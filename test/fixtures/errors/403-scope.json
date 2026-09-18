@@ -1,0 +1,13 @@
+{
+  "provenance": {
+    "operation": "GetQueriesAlertsV2",
+    "reference": "https://developer.crowdstrike.com/sdks/python/responses/",
+    "schema_read": "2026-07-28",
+    "provenance": "synthetic"
+  },
+  "response": {
+    "status": 403,
+    "headers": {},
+    "body": { "meta": { "trace_id": "synthetic-trace-scope" }, "errors": [{ "code": 403, "message": "access denied, authorization failed" }] }
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "provenance": {
+    "operation": "oauth2AccessToken",
+    "reference": "https://developer.crowdstrike.com/sdks/python/responses/",
+    "schema_read": "2026-07-28",
+    "provenance": "synthetic"
+  },
+  "response": {
+    "status": 201,
+    "headers": { "x-cs-region": "us-2" },
+    "body": { "access_token": "synthetic-access-token", "expires_in": 1799, "token_type": "bearer" }
+  }
+}

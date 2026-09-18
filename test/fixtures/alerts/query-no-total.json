@@ -1,0 +1,17 @@
+{
+  "provenance": {
+    "operation": "GetQueriesAlertsV2",
+    "reference": "https://developer.crowdstrike.com/api-reference/collections/alerts/",
+    "schema_read": "2026-07-28",
+    "provenance": "synthetic"
+  },
+  "response": {
+    "status": 200,
+    "headers": {},
+    "body": {
+      "meta": { "query_time": 0.011, "pagination": { "offset": 0, "limit": 1 } },
+      "errors": [],
+      "resources": ["ldt:synthetic-agent-01:1001"]
+    }
+  }
+}

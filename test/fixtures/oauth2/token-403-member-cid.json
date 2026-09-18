@@ -1,0 +1,13 @@
+{
+  "provenance": {
+    "operation": "oauth2AccessToken",
+    "reference": "https://developer.crowdstrike.com/falcon-mcp/usage/flight-control/",
+    "schema_read": "2026-07-28",
+    "provenance": "synthetic"
+  },
+  "response": {
+    "status": 403,
+    "headers": {},
+    "body": { "meta": { "trace_id": "synthetic-trace-403" }, "errors": [{ "code": 403, "message": "access denied" }] }
+  }
+}

@@ -1,0 +1,13 @@
+{
+  "provenance": {
+    "operation": "oauth2AccessToken",
+    "reference": "https://developer.crowdstrike.com/api-reference/collections/oauth2/",
+    "schema_read": "2026-07-28",
+    "provenance": "synthetic"
+  },
+  "response": {
+    "status": 401,
+    "headers": {},
+    "body": { "meta": { "trace_id": "synthetic-trace-401" }, "errors": [{ "code": 401, "message": "access denied, invalid bearer token" }] }
+  }
+}

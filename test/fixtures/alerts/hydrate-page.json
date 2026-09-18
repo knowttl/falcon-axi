@@ -1,0 +1,40 @@
+{
+  "provenance": {
+    "operation": "PostEntitiesAlertsV2",
+    "reference": "https://developer.crowdstrike.com/api-reference/collections/alerts/",
+    "schema_read": "2026-07-28",
+    "provenance": "synthetic"
+  },
+  "response": {
+    "status": 200,
+    "headers": { "x-ratelimit-limit": "6000", "x-ratelimit-remaining": "5997" },
+    "body": {
+      "meta": { "query_time": 0.033 },
+      "errors": [],
+      "resources": [
+        {
+          "composite_id": "ldt:synthetic-agent-02:1002",
+          "severity": 90,
+          "severity_name": "Critical",
+          "tactic": "Execution",
+          "technique": "Command and Scripting Interpreter",
+          "status": "new",
+          "created_timestamp": "2026-07-28T10:58:02Z",
+          "cmdline": "powershell.exe -NoProfile -Command Get-Process",
+          "device": { "device_id": "synthetic-agent-02", "hostname": "WIN-WS-42", "platform_name": "Windows" }
+        },
+        {
+          "composite_id": "ldt:synthetic-agent-01:1001",
+          "severity": 70,
+          "severity_name": "High",
+          "tactic": "Defense Evasion",
+          "technique": "Masquerading",
+          "status": "new",
+          "created_timestamp": "2026-07-28T10:57:44Z",
+          "cmdline": "svch0st.exe -k netsvcs",
+          "device": { "device_id": "synthetic-agent-01", "hostname": "WIN-DC-01", "platform_name": "Windows" }
+        }
+      ]
+    }
+  }
+}

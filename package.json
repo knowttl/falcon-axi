@@ -1,0 +1,23 @@
+{
+  "name": "falcon-axi",
+  "version": "0.1.0",
+  "description": "Read CrowdStrike Falcon detections from the shell (read-only)",
+  "type": "module",
+  "files": ["dist/src", "README.md"],
+  "bin": { "falcon-axi": "dist/src/cli.js" },
+  "engines": { "node": ">=22.12.0" },
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "lint": "node scripts/architecture-check.mjs",
+    "test": "npm run build && node --test 'dist/test/offline/*.test.js'",
+    "verify": "npm run typecheck && npm run lint && npm test"
+  },
+  "dependencies": {
+    "@toon-format/toon": "4.1.1"
+  },
+  "devDependencies": {
+    "@types/node": "24.10.1",
+    "typescript": "5.9.3"
+  }
+}

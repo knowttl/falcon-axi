@@ -1,0 +1,35 @@
+{
+  "provenance": {
+    "operation": "PostEntitiesAlertsV2",
+    "reference": "https://developer.crowdstrike.com/api-reference/collections/alerts/",
+    "schema_read": "2026-07-28",
+    "provenance": "synthetic"
+  },
+  "response": {
+    "status": 200,
+    "headers": {},
+    "body": {
+      "meta": {
+        "query_time": 0.018
+      },
+      "errors": [],
+      "resources": [
+        {
+          "composite_id": "ldt:synthetic-agent-01:1001",
+          "severity": 70,
+          "severity_name": "High",
+          "tactic": "Defense Evasion",
+          "technique": "Masquerading",
+          "status": "new",
+          "created_timestamp": "2026-07-28T10:57:44Z",
+          "cmdline": "powershell.exe -NoProfile -EncodedCommand U3ludGhldGljU3ludGhldGljU3ludGhldGljU3ludGhldGljU3ludGhldGljU3ludGhldGljU3ludGhldGljU3ludGhldGljU3ludGhldGljU3ludGhldGljU3ludGhldGljU3ludGhldGljU3ludGhldGljU3ludGhldGljU3ludGhldGljU3ludGhldGljU3ludGhldGljU3ludGhldGljU3ludGhldGljU3ludGhldGljU3ludGhldGljU3ludGhldGljU3ludGhldGljU3ludGhldGljU3ludGhldGljU3ludGhldGljU3ludGhldGljU3ludGhldGljU3ludGhldGljU3ludGhldGljU3ludGhldGljU3ludGhldGljU3ludGhldGljU3ludGhldGljU3ludGhldGljU3ludGhldGljU3ludGhldGljU3ludGhldGljU3ludGhldGljU3ludGhldGljU3ludGhldGljU3ludGhldGljU3ludGhldGljU3ludGhldGljU3ludGhldGljU3ludGhldGljU3ludGhldGljU3ludGhldGljU3ludGhldGljU3ludGhldGljU3ludGhldGljU3ludGhldGljU3ludGhldGljU3ludGhldGljU3ludGhldGljU3ludGhldGljU3ludGhldGljU3ludGhldGljU3ludGhldGljU3ludGhldGljU3ludGhldGljU3ludGhldGljU3ludGhldGljU3ludGhldGljU3ludGhldGljU3ludGhldGljU3ludGhldGljU3ludGhldGljU3ludGhldGljU3ludGhldGljU3ludGhldGljU3ludGhldGljU3ludGhldGljU3ludGhldGljU3ludGhldGljU3ludGhldGljU3ludGhldGljU3ludGhldGljU3ludGhldGljU3ludGhldGljU3ludGhldGljU3ludGhldGljU3ludGhldGljU3ludGhldGljU3ludGhldGljU3ludGhldGljU3ludGhldGljU3ludGhldGljU3ludGhldGljU3ludGhldGlj",
+          "device": {
+            "device_id": "synthetic-agent-01",
+            "hostname": "WIN-DC-01",
+            "platform_name": "Windows"
+          }
+        }
+      ]
+    }
+  }
+}

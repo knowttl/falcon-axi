@@ -1,0 +1,13 @@
+{
+  "provenance": {
+    "operation": "GetQueriesAlertsV2",
+    "reference": "https://developer.crowdstrike.com/api-reference/falcon-query-language/",
+    "schema_read": "2026-07-28",
+    "provenance": "synthetic"
+  },
+  "response": {
+    "status": 400,
+    "headers": {},
+    "body": { "meta": { "trace_id": "synthetic-trace-fql" }, "errors": [{ "code": 400, "message": "invalid filter expression" }] }
+  }
+}

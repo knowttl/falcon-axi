@@ -35,12 +35,25 @@ Read it before adding or changing any command surface, and update it in the same
 Its §17 records open questions; check there before re-deriving a decision that was already argued, and its §18
 cites every source, so a claim can be re-verified rather than trusted.
 
-Nothing is implemented yet.
-The repository is design-stage: no `src/`, no runtime dependencies, no build pipeline.
-The project has no GitHub Actions workflow by captain directive.
-Validation is local, and adding a GitHub Actions workflow requires the captain to lift that directive.
-Once implementation begins, `npm run verify` is the single entry point for the complete local required-check
-set described in `docs/design/v1.md` §14.5 and §15.4.
+Stage 1 of that design is implemented: the package foundation, the sealed transport and its closed registry,
+credential resolution with `auth status`, and the detections slice (`detection list`, `detection show`, and the
+home view).
+The README's status section is the authoritative list of what is shipped and what is deliberately absent, and
+no help text, suggestion, or skill may advertise an unshipped command.
+`npm run verify` is the single local entry point for the complete offline required-check set (§14.5, §15.4);
+it runs typecheck, `scripts/architecture-check.mjs`, and the `test/offline/` suite, and it must stay offline.
+
+Two seams are worth knowing before changing them:
+
+- Commands are pure functions over a `Transport`, and `src/cli.ts`'s `run()` defaults to the sealed
+  `httpTransport`.
+  Offline tests pass `RecordedTransport` from `test/support/recorded.ts` as an argument.
+  That is the only substitution point, and it is code-level only: no flag, environment variable, or config key
+  can reach the recorded transport in a released build (§14.2).
+- `src/transport/network-sink.ts` is the one file allowed to touch the network, and `sendPermittedRequest` is
+  the one function in it allowed to do so.
+  `npm run lint` enforces that boundary and also rejects any automation configuration path appearing in the
+  repository.
 
 ## Credential rules
 
@@ -51,6 +64,11 @@ set described in `docs/design/v1.md` §14.5 and §15.4.
   CrowdStrike treats the tenant CID as sensitive, and so do we.
 - No credential, token, CID, or captured live data belongs in this repository, including fixtures.
   See `docs/design/v1.md` §5 and §14.4.
+  Every fixture under `test/fixtures/` is wholly synthetic and carries a provenance header that an offline test
+  asserts.
+
+The project has no GitHub Actions workflow by captain directive.
+Validation is local, and adding a GitHub Actions workflow requires the captain to lift that directive.
 
 ## Build to the AXI skill
 

@@ -1,0 +1,13 @@
+{
+  "provenance": {
+    "operation": "PostEntitiesAlertsV2",
+    "reference": "https://developer.crowdstrike.com/sdks/python/responses/",
+    "schema_read": "2026-07-28",
+    "provenance": "synthetic"
+  },
+  "response": {
+    "status": 500,
+    "headers": {},
+    "body": { "meta": { "trace_id": "synthetic-trace-500" }, "errors": [{ "code": 500, "message": "internal server error" }] }
+  }
+}
