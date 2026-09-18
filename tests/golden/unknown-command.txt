@@ -1,0 +1,3 @@
+error: unknown command host
+code: VALIDATION_ERROR
+help[2]: "valid commands: detection list, detection show, auth status","Run `falcon-axi --help` for the command list"

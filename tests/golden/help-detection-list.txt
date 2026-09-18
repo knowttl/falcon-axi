@@ -1,0 +1,15 @@
+falcon-axi detection list [--severity <name>] [--status <name>] [--since <window>] [--filter <FQL>] [--limit N] [--cursor <token>]
+
+--severity   one of informational, low, medium, high, critical
+--status     one of new, in_progress, closed, reopened
+--since      relative window such as 24h or 7d
+--filter     raw FQL; + is AND, `,` is OR, values are single-quoted, relative dates are lowercase
+--limit      rows in this call (default 20, ceiling 10000)
+--cursor     opaque continuation token from a previous call
+
+Filterable fields include severity_name, status, tactic, technique, created_timestamp, and device.hostname.
+Examples:
+  falcon-axi detection list --severity high --since 24h
+  falcon-axi detection list --filter "severity_name:'Critical'+status:'new'"
+
+This command is read-only and requires only Alerts:read.

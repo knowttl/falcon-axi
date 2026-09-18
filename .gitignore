@@ -1,14 +1,17 @@
-# Dependencies
-node_modules/
-
-# Build output
-dist/
+# Python build output
 build/
-*.tsbuildinfo
+dist/
+*.egg-info/
+__pycache__/
+*.py[cod]
 
-# Test and coverage output
+# Virtual environments and tool caches
+.venv/
+.mypy_cache/
+.pytest_cache/
+.ruff_cache/
 coverage/
-.nyc_output/
+.coverage
 
 # Credentials and local environment
 .env
@@ -18,9 +21,6 @@ coverage/
 
 # Logs
 *.log
-npm-debug.log*
-yarn-debug.log*
-yarn-error.log*
 
 # Editor and OS
 .DS_Store
@@ -28,7 +28,5 @@ yarn-error.log*
 *.swp
 
 # Caches
-.npm/
 .cache/
-.eslintcache
 .pi-subagents/

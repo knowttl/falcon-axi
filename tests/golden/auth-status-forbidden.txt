@@ -1,0 +1,3 @@
+error: the Falcon credential was refused
+code: AUTH_FAILED
+help[2]: "The API client has no scopes granted, or is disabled","Grant `Alerts:read` (read only) in the Falcon console under Support and resources > API clients and keys"

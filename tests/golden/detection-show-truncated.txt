@@ -1,0 +1,11 @@
+detection:
+  id: "ldt:synthetic-agent-01:1001"
+  severity: High (70)
+  tactic: Defense Evasion
+  technique: Masquerading
+  hostname: WIN-DC-01
+  device_id: synthetic-agent-01
+  status: new
+  first_seen: "2026-07-28T10:57:44Z"
+  cmdline: "powershell.exe -NoProfile -EncodedCommand U3ludGhldGljU3ludGhldGljU3ludGhldGljU3ludGhldGljU3ludGhldGljU3ludGhldGljU3ludGhldGljU3ludGhldGljU3ludGhldGljU3ludGhldGljU3ludGhldGljU3ludGhldGljU3ludGhldGljU3ludGhldGljU3ludGhldGljU3ludGhldGljU3ludGhldGljU3ludGhldGljU3ludGhldGljU3ludGhldGljU3ludGhldGljU3ludGhldGljU3ludGhldGljU3ludGhldGljU3ludGhldGljU3ludGhldGljU3ludGhldGljU3ludGhldGljU3ludGhldGljU3ludGhldGljU3ludGhldGljU3ludGhldGljU3ludGhldGljU3ludGhldGljU3ludGhldGljU3ludGhldGljU3ludGhldGljU3ludGhldGljU3ludGhldGljU3ludGhldGljU3ludGhldGljU3ludGhldGljU3ludGhldGljU3ludGhldGljU3ludGhldGljU3ludGhldGljU3ludGhldGljU3ludGhldGljU3ludGhldGljU3ludGhldGljU3ludGhldGljU3ludGhldGljU3ludGhldGljU3ludGhldGljU3ludGhldGljU3ludGhldGljU3ludGhldGljU3ludGhldGljU3ludGhldGljU3ludGhldGljU3ludGhldGljU3ludGhldGljU3ludGhldGljU3… (truncated, 1122 chars total)"
+help[1]: "Run `falcon-axi detection show ldt:synthetic-agent-01:1001 --full` to see the complete command line"

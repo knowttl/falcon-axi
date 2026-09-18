@@ -1,0 +1,14 @@
+falcon-axi 0.2.0 - Read CrowdStrike Falcon detections from the shell (read-only)
+
+Commands:
+  detection list            list detections from the Falcon Alerts collection
+  detection show <id>       the full detail for one detection
+  auth status               whether a credential resolved, and where to
+
+Global flags:
+  --help, --region <name|url>, --allow-unknown-origin, --member-cid <cid>, --no-member-cid
+
+Regions: us-1, us-2, eu-1, us-gov-1
+
+falcon-axi is read-only: it lists no mutating command and requires only Alerts:read for the
+commands stage 1 ships. Host and vulnerability domains are not implemented yet.

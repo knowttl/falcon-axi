@@ -1,0 +1,208 @@
+{
+  "comment": "The cross-language parity gate (docs/design/v1-python.md §5). Each scenario is one offline invocation: argv, environment, and recorded responses. The TypeScript stage 1 generated tests/golden/<name>.txt and exit-codes.json from this file; the Python port must reproduce both byte for byte.",
+  "scenarios": [
+    { "name": "help-top", "argv": ["--help"] },
+    { "name": "help-detection-list", "argv": ["detection", "list", "--help"] },
+    { "name": "help-detection-show", "argv": ["detection", "show", "--help"] },
+    { "name": "help-auth-status", "argv": ["auth", "status", "--help"] },
+
+    { "name": "unknown-flag", "argv": ["detection", "list", "--sev", "high"] },
+    { "name": "unknown-flag-global", "argv": ["auth", "status", "--filter", "x"] },
+    { "name": "unknown-command", "argv": ["host", "list"] },
+    { "name": "unknown-detection-subcommand", "argv": ["detection", "contain"] },
+    { "name": "unknown-auth-subcommand", "argv": ["auth", "login"] },
+    { "name": "profile-refused", "argv": ["detection", "list", "--profile", "prod"] },
+    { "name": "limit-above-ceiling", "argv": ["detection", "list", "--limit", "10001"] },
+    { "name": "limit-not-an-integer", "argv": ["detection", "list", "--limit", "two"] },
+    { "name": "flag-without-value", "argv": ["detection", "list", "--filter"] },
+    { "name": "member-cid-conflict", "argv": ["auth", "status", "--member-cid", "cid", "--no-member-cid"] },
+    { "name": "show-without-id", "argv": ["detection", "show"] },
+    { "name": "list-with-positional", "argv": ["detection", "list", "extra"] },
+    { "name": "unknown-severity", "argv": ["detection", "list", "--severity", "urgent"] },
+    { "name": "unknown-status", "argv": ["detection", "list", "--status", "stale"] },
+    { "name": "bad-since", "argv": ["detection", "list", "--since", "yesterday"] },
+    { "name": "unknown-region", "argv": ["detection", "list", "--region", "us-9"] },
+    { "name": "untrusted-origin", "argv": ["auth", "status", "--region", "https://api.crowdstrike.com.example"] },
+
+    {
+      "name": "detection-list-page",
+      "argv": ["detection", "list", "--limit", "2"],
+      "responders": [
+        { "op": "GetQueriesAlertsV2", "fixture": "alerts/query-page.json" },
+        { "op": "PostEntitiesAlertsV2", "fixture": "alerts/hydrate-page.json" }
+      ]
+    },
+    {
+      "name": "detection-list-filtered",
+      "argv": ["detection", "list", "--severity", "high", "--status", "new", "--since", "24h", "--limit", "2"],
+      "responders": [
+        { "op": "GetQueriesAlertsV2", "fixture": "alerts/query-page.json" },
+        { "op": "PostEntitiesAlertsV2", "fixture": "alerts/hydrate-page.json" }
+      ]
+    },
+    {
+      "name": "detection-list-empty",
+      "argv": ["detection", "list", "--severity", "critical", "--since", "24h"],
+      "responders": [{ "op": "GetQueriesAlertsV2", "fixture": "alerts/query-empty.json" }]
+    },
+    {
+      "name": "detection-list-empty-unfiltered",
+      "argv": ["detection", "list"],
+      "responders": [{ "op": "GetQueriesAlertsV2", "fixture": "alerts/query-empty.json" }]
+    },
+    {
+      "name": "detection-list-no-total",
+      "argv": ["detection", "list", "--limit", "1"],
+      "responders": [
+        { "op": "GetQueriesAlertsV2", "fixture": "alerts/query-no-total.json" },
+        { "op": "PostEntitiesAlertsV2", "fixture": "alerts/hydrate-detail.json" }
+      ]
+    },
+    {
+      "name": "detection-list-chunked-hydrate",
+      "argv": ["detection", "list", "--limit", "2500"],
+      "responders": [
+        { "op": "GetQueriesAlertsV2", "generate": { "kind": "ids", "count": 1002, "total": 1002 } },
+        { "op": "PostEntitiesAlertsV2", "generate": { "kind": "hydrate", "reverse": true, "severity_name": "Medium", "tactic": "Discovery", "hostname": "WIN-WS-11" } }
+      ]
+    },
+    {
+      "name": "detection-list-at-the-wall",
+      "argv": ["detection", "list", "--limit", "20"],
+      "cursor": { "position": 9990 },
+      "responders": [
+        { "op": "GetQueriesAlertsV2", "generate": { "kind": "ids", "count": 10, "total": 41892 } },
+        { "op": "PostEntitiesAlertsV2", "generate": { "kind": "hydrate", "severity_name": "Low", "tactic": "Discovery", "hostname": "WIN-WS-07" } }
+      ]
+    },
+    {
+      "name": "detection-list-pagination-limit",
+      "argv": ["detection", "list"],
+      "cursor": { "position": 10000 }
+    },
+    {
+      "name": "detection-list-short-hydrate-no-total",
+      "argv": ["detection", "list", "--limit", "20"],
+      "responders": [
+        { "op": "GetQueriesAlertsV2", "generate": { "kind": "ids", "count": 20, "total": null } },
+        { "op": "PostEntitiesAlertsV2", "generate": { "kind": "hydrate", "take": 18, "severity_name": "Medium", "tactic": "Discovery", "hostname": "WIN-WS-11" } }
+      ]
+    },
+    {
+      "name": "detection-list-short-hydrate-with-total",
+      "argv": ["detection", "list", "--limit", "20"],
+      "responders": [
+        { "op": "GetQueriesAlertsV2", "generate": { "kind": "ids", "count": 20, "total": 100 } },
+        { "op": "PostEntitiesAlertsV2", "generate": { "kind": "hydrate", "take": 18, "severity_name": "Low", "tactic": "Discovery", "hostname": "WIN-WS-07" } }
+      ]
+    },
+    {
+      "name": "detection-list-rate-limit-note",
+      "argv": ["detection", "list", "--limit", "2"],
+      "oauth": [
+        { "response": { "status": 201, "headers": { "x-cs-region": "us-1", "x-ratelimit-limit": "6000", "x-ratelimit-remaining": "100" }, "body": { "access_token": "synthetic-access-token", "expires_in": 1799, "token_type": "bearer" } } }
+      ],
+      "responders": [
+        { "op": "GetQueriesAlertsV2", "fixture": "alerts/query-page.json" },
+        { "op": "PostEntitiesAlertsV2", "fixture": "alerts/hydrate-page.json" }
+      ]
+    },
+    {
+      "name": "detection-list-member-cid",
+      "argv": ["detection", "list", "--limit", "2", "--member-cid", "synthetic-child-cid"],
+      "responders": [
+        { "op": "GetQueriesAlertsV2", "fixture": "alerts/query-page.json" },
+        { "op": "PostEntitiesAlertsV2", "fixture": "alerts/hydrate-page.json" }
+      ]
+    },
+
+    {
+      "name": "detection-show-truncated",
+      "argv": ["detection", "show", "ldt:synthetic-agent-01:1001"],
+      "responders": [{ "op": "PostEntitiesAlertsV2", "fixture": "alerts/hydrate-detail.json" }]
+    },
+    {
+      "name": "detection-show-full",
+      "argv": ["detection", "show", "ldt:synthetic-agent-01:1001", "--full"],
+      "responders": [{ "op": "PostEntitiesAlertsV2", "fixture": "alerts/hydrate-detail.json" }]
+    },
+    {
+      "name": "detection-show-not-found",
+      "argv": ["detection", "show", "ldt:absent:0"],
+      "responders": [{ "op": "PostEntitiesAlertsV2", "response": { "status": 200, "headers": {}, "body": { "resources": [] } } }]
+    },
+
+    {
+      "name": "home-view",
+      "argv": [],
+      "responders": [
+        { "op": "GetQueriesAlertsV2", "generate": { "kind": "ids", "count": 5, "total": 384 } },
+        { "op": "PostEntitiesAlertsV2", "generate": { "kind": "hydrate", "severity_name": "High", "tactic": "Execution", "hostname": "WIN-WS-42" } }
+      ]
+    },
+    { "name": "home-view-no-credential", "argv": [], "env": "none" },
+
+    { "name": "auth-status", "argv": ["auth", "status"] },
+    { "name": "auth-status-no-credential", "argv": ["auth", "status"], "env": "none" },
+    { "name": "auth-status-member-cid", "argv": ["auth", "status", "--member-cid", "synthetic-child-cid-a3b4"] },
+    {
+      "name": "auth-status-tenant-denied",
+      "argv": ["auth", "status", "--member-cid", "synthetic-child-cid"],
+      "oauth": [{ "fixture": "oauth2/token-403-member-cid.json" }]
+    },
+    {
+      "name": "auth-status-unauthorized",
+      "argv": ["auth", "status"],
+      "oauth": [{ "fixture": "oauth2/token-401.json" }]
+    },
+    {
+      "name": "auth-status-forbidden",
+      "argv": ["auth", "status"],
+      "oauth": [{ "fixture": "oauth2/token-403-member-cid.json" }]
+    },
+    {
+      "name": "auth-status-retargeted",
+      "argv": ["auth", "status"],
+      "oauth": [{ "fixture": "oauth2/token-region-us-2.json" }, { "fixture": "oauth2/token-success.json" }]
+    },
+    {
+      "name": "auth-status-region-mismatch",
+      "argv": ["auth", "status"],
+      "oauth": [{ "response": { "status": 201, "headers": { "x-cs-region": "us-gov-2" }, "body": { "access_token": "synthetic-access-token", "expires_in": 1799, "token_type": "bearer" } } }]
+    },
+
+    {
+      "name": "error-scope-denied",
+      "argv": ["detection", "list"],
+      "responders": [{ "op": "GetQueriesAlertsV2", "fixture": "errors/403-scope.json" }]
+    },
+    {
+      "name": "error-fql-invalid",
+      "argv": ["detection", "list", "--filter", "severity_name:High"],
+      "responders": [{ "op": "GetQueriesAlertsV2", "fixture": "errors/400-fql.json" }]
+    },
+    {
+      "name": "error-rate-limited",
+      "argv": ["detection", "list"],
+      "responders": [{ "op": "GetQueriesAlertsV2", "fixture": "errors/429-rate-limited.json" }]
+    },
+    {
+      "name": "error-upstream-on-hydrate",
+      "argv": ["detection", "list", "--limit", "2"],
+      "responders": [
+        { "op": "GetQueriesAlertsV2", "fixture": "alerts/query-page.json" },
+        { "op": "PostEntitiesAlertsV2", "fixture": "errors/500-internal.json" }
+      ]
+    },
+    {
+      "name": "error-not-found-on-query",
+      "argv": ["detection", "list"],
+      "responders": [{ "op": "GetQueriesAlertsV2", "response": { "status": 404, "headers": {}, "body": { "errors": [{ "code": 404, "message": "not found" }] } } }]
+    },
+    {
+      "name": "error-upstream-unavailable",
+      "argv": ["detection", "list"],
+      "responders": [{ "op": "GetQueriesAlertsV2", "response": { "status": 503, "headers": {}, "body": { "meta": { "trace_id": "synthetic-trace-503" }, "errors": [{ "code": 503, "message": "unavailable" }] } } }]
+    }
+  ]
+}

@@ -1,0 +1,3 @@
+error: this read reached the 10000 result boundary falcon-axi enforces for Alerts
+code: PAGINATION_LIMIT
+help[2]: "Narrow the filter so the result set fits under 10000, for example by shortening `--since` or adding `--severity`","The documented route past 10000 Alerts is PostCombinedAlertsV1 with `after` pagination, which falcon-axi v1 does not register"

@@ -1,0 +1,60 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "falcon-axi"
+version = "0.2.0"
+description = "Read CrowdStrike Falcon detections from the shell (read-only)"
+readme = "README.md"
+license = { text = "MIT" }
+requires-python = ">=3.11"
+dependencies = [
+  "crowdstrike-falconpy>=1.6.5,<2",
+  "toon-format>=0.9.0b1",
+]
+
+[project.scripts]
+falcon-axi = "falcon_axi.cli:main"
+
+[dependency-groups]
+dev = [
+  "mypy>=1.13",
+  "pytest>=8.3",
+  "requests-mock>=1.12",
+  "ruff>=0.8",
+  "types-requests>=2.32",
+]
+
+[tool.hatch.build.targets.wheel]
+packages = ["falcon_axi"]
+
+[tool.uv]
+prerelease = "allow"
+
+[tool.ruff]
+line-length = 128
+target-version = "py311"
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "B", "UP", "S"]
+ignore = ["S101"]
+
+[tool.ruff.lint.per-file-ignores]
+"tests/*" = ["S105", "S106", "S108"]
+
+[tool.mypy]
+python_version = "3.11"
+strict = true
+files = ["falcon_axi", "scripts"]
+
+[[tool.mypy.overrides]]
+module = "falconpy.*"
+ignore_missing_imports = true
+
+[[tool.mypy.overrides]]
+module = "toon_format.*"
+ignore_missing_imports = true
+
+[tool.pytest.ini_options]
+testpaths = ["tests/offline"]

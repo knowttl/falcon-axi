@@ -1,0 +1,5 @@
+count: 1 of unknown total
+continuation_cursor: eyJvcGVyYXRpb24iOiJHZXRRdWVyaWVzQWxlcnRzVjIiLCJtb2RlbCI6Im9mZnNldCIsInBvc2l0aW9uIjoxLCJmaW5nZXJwcmludCI6ImEzNGRiMTNlNTcxMGFkZmMwMjAzYWI4MDBmMDgzZmU0ZDNkYjQyMGFjMDMzYTE1NzU5YjQwNjM1MzY1YjVhOGMifQ
+detections[1]{id,severity,tactic,hostname}:
+  "ldt:synthetic-agent-01:1001",High,Defense Evasion,WIN-DC-01
+help[2]: "Run `falcon-axi detection show <id>` for the full detection","Run `falcon-axi detection list --limit 1 --cursor eyJvcGVyYXRpb24iOiJHZXRRdWVyaWVzQWxlcnRzVjIiLCJtb2RlbCI6Im9mZnNldCIsInBvc2l0aW9uIjoxLCJmaW5nZXJwcmludCI6ImEzNGRiMTNlNTcxMGFkZmMwMjAzYWI4MDBmMDgzZmU0ZDNkYjQyMGFjMDMzYTE1NzU5YjQwNjM1MzY1YjVhOGMifQ` for the next page"

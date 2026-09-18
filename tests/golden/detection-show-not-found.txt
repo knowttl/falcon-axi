@@ -1,0 +1,3 @@
+error: no detection matched that identifier
+code: NOT_FOUND
+help[2]: "Run `falcon-axi detection list` to see current detection identifiers","A composite id looks like `ldt:<agent id>:<detection id>`"

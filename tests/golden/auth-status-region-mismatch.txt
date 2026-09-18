@@ -1,0 +1,4 @@
+error: this credential belongs to Falcon region us-gov-2
+code: REGION_MISMATCH
+observed_region: us-gov-2
+help[2]: "falcon-axi has no verified base URL for us-gov-2","Supply a verified full Falcon base URL with `--region <url> --allow-unknown-origin`"

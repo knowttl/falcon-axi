@@ -1,0 +1,3 @@
+error: Falcon rate limited this API client
+code: RATE_LIMITED
+help[2]: "Wait for the rate limit window to reset and retry","Narrow the FQL filter or lower `--limit` to issue fewer requests"

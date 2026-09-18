@@ -1,0 +1,3 @@
+error: the selected member CID was refused for this credential
+code: TENANT_DENIED
+help[2]: "Verify this is a valid child CID in the Falcon console and not the parent CID itself","Or retry with `--no-member-cid` to authenticate as the credential's own CID"
