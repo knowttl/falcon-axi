@@ -86,7 +86,7 @@ Two seams are worth knowing before changing them:
   CrowdStrike treats the tenant CID as sensitive, and so do we.
 - No credential, token, CID, or captured live data belongs in this repository, including fixtures.
   See `docs/design/v1.md` §5 and §14.4.
-  Every fixture under `test/fixtures/` is wholly synthetic and carries a provenance header that an offline test
+  Every fixture under `tests/fixtures/` is wholly synthetic and carries a provenance header that an offline test
   asserts.
 
 The project has no GitHub Actions workflow by captain directive.
