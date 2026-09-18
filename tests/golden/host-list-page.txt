@@ -1,0 +1,6 @@
+count: 2 of 1174 total
+continuation_cursor: eyJvcGVyYXRpb24iOiJRdWVyeURldmljZXNCeUZpbHRlciIsIm1vZGVsIjoib2Zmc2V0IiwicG9zaXRpb24iOjIsImZpbmdlcnByaW50IjoiZjA5ZmZlZTUwY2QwODdlNTAwNGQ2ZGQ2NzcwNTE2M2EwZTRkOGExZDcyM2RiZGUzZDA5YzI2YTVhYzA5MmVhNSJ9
+hosts[2]{device_id,hostname,platform,last_seen}:
+  synthetic-device-01,WIN-DC-01,Windows,"2026-07-28T11:02:14Z"
+  synthetic-device-02,WIN-WS-42,Windows,"2026-07-28T10:57:48Z"
+help[3]: "Run `falcon-axi host show <device_id>` for full host details","Run `falcon-axi vuln list --host <device_id>` for its open vulnerabilities","Run `falcon-axi host list --limit 2 --cursor eyJvcGVyYXRpb24iOiJRdWVyeURldmljZXNCeUZpbHRlciIsIm1vZGVsIjoib2Zmc2V0IiwicG9zaXRpb24iOjIsImZpbmdlcnByaW50IjoiZjA5ZmZlZTUwY2QwODdlNTAwNGQ2ZGQ2NzcwNTE2M2EwZTRkOGExZDcyM2RiZGUzZDA5YzI2YTVhYzA5MmVhNSJ9` for the next page"

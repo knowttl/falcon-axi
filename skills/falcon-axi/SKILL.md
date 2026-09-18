@@ -1,13 +1,13 @@
 ---
 name: falcon-axi
-description: "Read CrowdStrike Falcon detections from the shell with falcon-axi (read-only). Use for Falcon alerts and detections, detection triage, severity and status filtering, tenant and region checks, and Falcon API credential diagnostics."
+description: "Read CrowdStrike Falcon detections, hosts, and vulnerabilities from the shell with falcon-axi (read-only). Use for Falcon alerts and detections, detection triage, host and sensor inventory, Spotlight vulnerability exposure, severity and status filtering, tenant and region checks, and Falcon API credential diagnostics."
 user-invocable: false
 ---
 
 # falcon-axi
 
-Read CrowdStrike Falcon detections from the shell.
-Prefer this CLI over the Falcon console or hand-rolled REST calls when a task needs to read detections.
+Read CrowdStrike Falcon detections, hosts, and vulnerabilities from the shell.
+Prefer this CLI over the Falcon console or hand-rolled REST calls when a task needs to read any of them.
 
 The CLI is strictly read-only: it exposes no write, create, update, delete, containment, quarantine,
 release, Real Time Response, or otherwise mutating operation, and the read-only boundary is enforced by a
@@ -18,33 +18,49 @@ for a flag.
 Invoke it without a global install with
 `uvx --from git+https://github.com/knowttl/falcon-axi@v0.2.0 falcon-axi <command>`.
 If output suggests a `falcon-axi` command, run the equivalent command through that same invocation form.
+The `host`, `vuln`, and `scopes` commands land after that tag, so use the default branch instead of
+`@v0.2.0` until a newer tag exists.
 
 ## When to use
 
 Use falcon-axi to answer what is firing in Falcon right now, to filter detections by severity, status, or
-time window, to read one detection in full, and to check whether a Falcon credential resolves and into
-which region and tenant.
+time window, to read one detection in full, to find hosts and read one host's detail, to read a host's or
+the fleet's Spotlight vulnerabilities, and to check whether a Falcon credential resolves and into which
+region and tenant.
 
-Stage 1 ships only the detections slice.
-`host`, `vuln`, `scopes`, and `setup` commands do not exist, and neither do `--all`, `--max-rows`,
-`--fields`, or `--profile`.
+`setup` does not exist, and neither do `--all`, `--max-rows`, `--fields`, or `--profile`.
+Neither does any command for a Falcon domain outside detections, hosts, and vulnerabilities.
 Do not invent them; an unknown flag or command fails loudly.
 
 ## Commands
 
-commands[3 total]:
+commands[5 total]:
 `falcon-axi`: the home view - tenant line plus the five newest detections.
 `detection`: `list` (flags `--severity`, `--status`, `--since`, `--filter`, `--limit`, `--cursor`),
 `show <composite id>` (flag `--full`).
+`host`: `list` (flags `--hostname`, `--platform`, `--status`, `--since`, `--filter`, `--limit`, `--cursor`),
+`show <device id>`.
+`vuln`: `list` (flags `--host`, `--severity`, `--status`, `--since`, `--filter`, `--limit`, `--cursor`).
 `auth`: `status`.
+`scopes`: the command-to-scope matrix, printed locally with no request.
 
 Global flags: `--help`, `--region <us-1|us-2|eu-1|us-gov-1|url>`, `--member-cid <cid>`, `--no-member-cid`,
 `--allow-unknown-origin`.
 
-`--severity` takes `informational`, `low`, `medium`, `high`, `critical`.
+`detection list --severity` takes `informational`, `low`, `medium`, `high`, `critical`, and its
 `--status` takes `new`, `in_progress`, `closed`, `reopened`.
+`host list --platform` takes `windows`, `mac`, `linux`, and its `--status` takes `normal`,
+`containment_pending`, `contained`, `lift_containment_pending`; `--hostname` accepts a wildcard such as
+`WIN-*`.
+`vuln list --severity` takes `low`, `medium`, `high`, `critical`, and its `--status` takes `open`,
+`closed`, `reopen`, `expired`.
 `--since` takes a relative window such as `30m`, `24h`, `7d`.
-`--filter` takes raw Alerts FQL, where `+` is AND, `,` is OR, and values are single-quoted.
+`--filter` takes raw FQL for that collection, where `+` is AND, `,` is OR, and values are single-quoted.
+
+Two rules are enforced locally, before any request: `vuln list` requires a filter from a shorthand flag or
+`--filter`, and a `*` anywhere in a Spotlight filter is refused because Spotlight does not support
+wildcards.
+`host list` does accept them.
 
 ## Workflow
 
@@ -54,7 +70,9 @@ Global flags: `--help`, `--region <us-1|us-2|eu-1|us-gov-1|url>`, `--member-cid 
 3. Run `falcon-axi detection list` with `--severity`, `--status`, `--since`, or `--filter` to narrow.
 4. Run `falcon-axi detection show <id>` for one detection, adding `--full` only when a truncated field
    matters.
-5. Follow the `help` suggestions in each response for the next read.
+5. Run `falcon-axi host show <device_id>` for the host it fired on, and
+   `falcon-axi vuln list --host <device_id>` for that host's exposure.
+6. Follow the `help` suggestions in each response for the next read.
 
 ## Credentials and API client permissions
 
@@ -64,11 +82,11 @@ Never put a client secret, bearer token, or tenant CID in a command, a suggestio
 `FALCON_BASE_URL`, `FALCON_MEMBER_CID`, and `FALCON_AXI_CREDENTIALS_FILE` are also read.
 
 Create the API client in the Falcon console under Support and resources > API clients and keys, with read
-scopes only:
+scopes only, and run `falcon-axi scopes` for the matrix from the tool itself:
 
-- `Alerts:read` is the stage-1 minimum and is all the shipped commands need.
-- `Hosts:read` and `Vulnerabilities:read` are optional and not required for stage 1; grant them only to
-  prepare a broader read client for domains that have not shipped yet.
+- `Alerts:read` for the home view, `detection list`, and `detection show`.
+- `Hosts:read` for `host list` and `host show`.
+- `Vulnerabilities:read` for `vuln list`.
 - Never grant a write, response, containment, or Real Time Response scope; falcon-axi requests none.
 
 Whether `--member-cid` additionally requires `Flight Control:read` is an open design question rather than a
@@ -77,30 +95,39 @@ settled requirement.
 ## Output and errors
 
 Output is TOON on stdout.
-A list view prints a definitive `count:` line, a compact `detections[N]{id,severity,tactic,hostname}`
-schema, and a `help[]` array, so an empty result is an answer rather than a silence to re-query.
+A list view prints a definitive `count:` line, a compact four-field schema -
+`detections[N]{id,severity,tactic,hostname}`, `hosts[N]{device_id,hostname,platform,last_seen}`, or
+`vulnerabilities[N]{id,cve,severity,hostname}` - and a `help[]` array, so an empty result is an answer
+rather than a silence to re-query.
 Errors are TOON documents on stdout too, carrying a stable `code` such as `AUTH_REQUIRED`, `AUTH_FAILED`,
 `SCOPE_DENIED`, `TENANT_DENIED`, `VALIDATION_ERROR`, `PAGINATION_LIMIT`, or `RATE_LIMITED`, plus actionable
 `help`.
 Exit code `0` is success, `2` is a usage error, and `1` is every other failure.
 Secrets and the tenant CID are redacted on stdout and stderr.
 
-Use `falcon-axi --help` for the command list and `falcon-axi detection list --help` for that command's
+Use `falcon-axi --help` for the command list and `falcon-axi host list --help` for that command's
 flags, filterable fields, and examples instead of guessing.
 
 ## Pagination
 
-One call reads one page: `--limit N` defaults to 20 with a ceiling of 10000.
+One call reads one page: `--limit N` defaults to 20, with a ceiling of 10000 on `detection list` and
+5000 on `host list` and `vuln list`.
 A truncated result prints a `continuation_cursor` and a ready-to-run next-page command; pass the token back
 with `--cursor`.
 The cursor is opaque and bound to the credential and filter that produced it, so never edit it or reuse it
 across a different query.
-Reading past 10000 Alerts results fails with `PAGINATION_LIMIT`; narrow the filter instead of paging on.
+It hides whether the API paginates by offset or by an `after` token.
+Reading past 10000 Alerts results fails with `PAGINATION_LIMIT`; narrow the filter instead of paging on,
+and `host list` stops at the same ceiling on `limit + offset`.
 
 ## Tips
 
 - Quote composite detection ids: they contain colons.
 - Prefer `--severity` and `--since` over a hand-written `--filter` when they express the same question.
+- A detection row carries the hostname; `host list --hostname "<name>"` turns it into a device id, which is
+  what `vuln list --host` wants.
+- Containment status on a host is data to read, never something to set: falcon-axi has no command that
+  changes it.
 - Use `--region` when the credential belongs to another Falcon cloud; a mismatch is re-targeted and
   reported by `auth status`.
 - Use `--member-cid` for a one-off read of a Flight Control child tenant, and `--no-member-cid` to clear an

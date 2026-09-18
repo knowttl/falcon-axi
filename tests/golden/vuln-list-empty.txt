@@ -1,0 +1,2 @@
+vulnerabilities: 0 vulnerabilities matching critical severity status open
+help[2]: "Run `falcon-axi vuln list --status open` to see every open vulnerability","Run `falcon-axi host list` to find the host you meant"

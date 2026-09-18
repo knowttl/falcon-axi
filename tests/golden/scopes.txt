@@ -1,0 +1,7 @@
+posture: read-only; falcon-axi requests no write scope and issues no mutating operation
+scopes[3]{scope,access,commands,required}:
+  "Alerts:read",read,"detection list, detection show",yes
+  "Hosts:read",read,"host list, host show",yes
+  "Vulnerabilities:read",read,vuln list,yes
+member_cid_token_scope: unresolved (Flight Control read may be required; see design section 17.7)
+help[2]: "Grant these scopes in the Falcon console under Support and resources > API clients and keys","Grant read access only; falcon-axi never needs a write scope"

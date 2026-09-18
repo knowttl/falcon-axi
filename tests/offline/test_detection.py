@@ -201,7 +201,7 @@ def test_the_home_view_caps_at_five_rows_and_names_the_read_only_posture() -> No
     )
     stdout, exit_code = run([], recorded, dict(CREDENTIAL_ENV))
     assert exit_code == 0
-    assert re.search(r"^description: Read CrowdStrike Falcon detections from the shell \(read-only\)$", stdout, re.MULTILINE)
+    assert "detections, hosts, and vulnerabilities from the shell (read-only)" in stdout
     assert re.search(r"^tenant: us-1 \(own CID unavailable\)$", stdout, re.MULTILINE)
     assert re.search(r"^count: 5 of 384 total$", stdout, re.MULTILINE)
     assert len(_rows(stdout)) == 5

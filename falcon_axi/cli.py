@@ -9,16 +9,50 @@ from typing import Any, Literal
 
 from falcon_axi.core import CliError
 from falcon_axi.credentials import Credential, resolve_credential, setup_help
-from falcon_axi.detection import DEFAULT_LIMIT, QUERY_CEILING, list_detections, show_detection
-from falcon_axi.fql import SEVERITIES, STATUSES, DetectionQuery
+from falcon_axi.detection import QUERY_CEILING as ALERTS_CEILING
+from falcon_axi.detection import list_detections, show_detection
+from falcon_axi.domain import DEFAULT_LIMIT, CommandOutput
+from falcon_axi.fql import (
+    HOST_STATUSES,
+    PLATFORMS,
+    SEVERITIES,
+    STATUSES,
+    VULN_SEVERITIES,
+    VULN_STATUSES,
+    DetectionQuery,
+    HostQuery,
+    VulnQuery,
+)
+from falcon_axi.host import QUERY_CEILING as HOSTS_CEILING
+from falcon_axi.host import list_hosts, show_host
 from falcon_axi.origin import REGIONS, assert_trusted_origin, resolve_base_url
 from falcon_axi.render import mask_cid, raw, render
+from falcon_axi.scopes import scope_matrix
 from falcon_axi.version import VERSION
+from falcon_axi.vuln import QUERY_CEILING as SPOTLIGHT_CEILING
+from falcon_axi.vuln import list_vulnerabilities
 
-DESCRIPTION = "Read CrowdStrike Falcon detections from the shell (read-only)"
+DESCRIPTION = "Read CrowdStrike Falcon detections, hosts, and vulnerabilities from the shell (read-only)"
 HOME_ROWS = 5
 
-Command = Literal["home", "detection list", "detection show", "auth status"]
+Command = Literal[
+    "home",
+    "detection list",
+    "detection show",
+    "host list",
+    "host show",
+    "vuln list",
+    "auth status",
+    "scopes",
+]
+
+#: The subcommands each noun takes; the valid-command list and every suggestion derive from it (§11.2).
+SUBCOMMANDS: Mapping[str, tuple[str, ...]] = {
+    "detection": ("list", "show"),
+    "host": ("list", "show"),
+    "vuln": ("list",),
+    "auth": ("status",),
+}
 
 GLOBAL_FLAGS = ("help", "region", "allow-unknown-origin", "member-cid", "no-member-cid")
 
@@ -26,10 +60,32 @@ COMMAND_FLAGS: Mapping[str, tuple[str, ...]] = {
     "home": (),
     "detection list": ("filter", "severity", "status", "since", "limit", "cursor"),
     "detection show": ("full",),
+    "host list": ("filter", "hostname", "platform", "status", "since", "limit", "cursor"),
+    "host show": (),
+    "vuln list": ("filter", "host", "severity", "status", "since", "limit", "cursor"),
     "auth status": (),
+    "scopes": (),
 }
 
-VALUE_FLAGS = frozenset({"region", "member-cid", "filter", "severity", "status", "since", "limit", "cursor"})
+#: Each list command's row ceiling is the API's own documented maximum (§7.3).
+LIMIT_CEILINGS: Mapping[str, tuple[int, str]] = {
+    "detection list": (ALERTS_CEILING, "Alerts query"),
+    "host list": (HOSTS_CEILING, "Hosts query"),
+    "vuln list": (SPOTLIGHT_CEILING, "Spotlight query"),
+}
+
+#: `<noun> show` takes exactly one identifier, and names where to find one when it is missing.
+SHOW_COMMANDS: Mapping[str, tuple[str, str]] = {
+    "detection show": ("detection identifier", "falcon-axi detection list"),
+    "host show": ("device identifier", "falcon-axi host list"),
+}
+
+#: The valid-command list every suggestion derives from, so none can name a command that does not exist.
+COMMANDS: tuple[str, ...] = tuple(name for name in COMMAND_FLAGS if name != "home")
+
+VALUE_FLAGS = frozenset(
+    {"region", "member-cid", "filter", "severity", "status", "since", "limit", "cursor", "hostname", "platform", "host"}
+)
 
 _SECRET_SHAPE = re.compile(r"(secret|password|token|key|passphrase)", re.IGNORECASE)
 _WHITESPACE = re.compile(r"\s")
@@ -80,34 +136,27 @@ def parse(argv: Sequence[str]) -> Parsed:
     command: Command = "home"
     index = 0
     first = argv[0] if argv else None
-    if first == "detection":
+    if first in SUBCOMMANDS:
+        noun = str(first)
         second = argv[1] if len(argv) > 1 else None
-        if second in ("list", "show"):
-            command = f"detection {second}"  # type: ignore[assignment]
+        if second in SUBCOMMANDS[noun]:
+            command = f"{noun} {second}"  # type: ignore[assignment]
             index = 2
         else:
             raise CliError(
                 "VALIDATION_ERROR",
-                f"unknown detection subcommand {second or ''}".strip(),
-                ["valid detection subcommands: list, show"],
+                f"unknown {noun} subcommand {second or ''}".strip(),
+                [f"valid {noun} subcommands: {', '.join(SUBCOMMANDS[noun])}"],
             )
-    elif first == "auth":
-        second = argv[1] if len(argv) > 1 else None
-        if second == "status":
-            command = "auth status"
-            index = 2
-        else:
-            raise CliError(
-                "VALIDATION_ERROR",
-                f"unknown auth subcommand {second or ''}".strip(),
-                ["valid auth subcommands: status"],
-            )
+    elif first == "scopes":
+        command = "scopes"
+        index = 1
     elif first is not None and not first.startswith("-"):
         raise CliError(
             "VALIDATION_ERROR",
             f"unknown command {first}",
             [
-                "valid commands: detection list, detection show, auth status",
+                f"valid commands: {', '.join(COMMANDS)}",
                 "Run `falcon-axi --help` for the command list",
             ],
         )
@@ -150,24 +199,26 @@ def parse(argv: Sequence[str]) -> Parsed:
             "--member-cid and --no-member-cid cannot be combined",
             ["Use `--member-cid <cid>` to select a child tenant or `--no-member-cid` to clear an inherited selection"],
         )
-    if command == "detection show" and len(positionals) != 1:
+    if command in SHOW_COMMANDS and len(positionals) != 1:
+        subject, remedy = SHOW_COMMANDS[command]
         raise CliError(
             "VALIDATION_ERROR",
-            "detection show requires exactly one detection identifier",
-            ["Run `falcon-axi detection list` to see current detection identifiers"],
+            f"{command} requires exactly one {subject}",
+            [f"Run `{remedy}` to see current {subject}s"],
         )
-    if command != "detection show" and positionals:
+    if command not in SHOW_COMMANDS and positionals:
         raise CliError(
             "VALIDATION_ERROR",
             f"`{command}` accepts no positional arguments",
             [f"valid flags for `{command}`: {', '.join(_valid_flags(command))}"],
         )
     if "limit" in flags:
-        _limit_of(flags)
+        _limit_of(flags, command)
     return Parsed(command, flags, tuple(positionals))
 
 
-def _limit_of(flags: Mapping[str, str | bool]) -> int:
+def _limit_of(flags: Mapping[str, str | bool], command: str) -> int:
+    ceiling, source = LIMIT_CEILINGS[command]
     value = flags.get("limit")
     if value is None:
         return DEFAULT_LIMIT
@@ -175,13 +226,13 @@ def _limit_of(flags: Mapping[str, str | bool]) -> int:
         parsed = int(str(value), 10)
     except ValueError:
         parsed = -1
-    if parsed < 1 or parsed > QUERY_CEILING:
+    if parsed < 1 or parsed > ceiling:
         raise CliError(
             "VALIDATION_ERROR",
-            f"--limit must be an integer from 1 to {QUERY_CEILING}",
+            f"--limit must be an integer from 1 to {ceiling}",
             [
-                f"{QUERY_CEILING} is the documented Alerts query ceiling",
-                f"Run `falcon-axi detection list --limit {DEFAULT_LIMIT}` for the default page",
+                f"{ceiling} is the documented {source} ceiling",
+                f"Run `falcon-axi {command} --limit {DEFAULT_LIMIT}` for the default page",
             ],
         )
     return parsed
@@ -191,9 +242,29 @@ def _str(value: str | bool | None) -> str | None:
     return value if isinstance(value, str) else None
 
 
-def _query_of(flags: Mapping[str, str | bool]) -> DetectionQuery:
+def _detection_query_of(flags: Mapping[str, str | bool]) -> DetectionQuery:
     return DetectionQuery(
         filter=_str(flags.get("filter")),
+        severity=_str(flags.get("severity")),
+        status=_str(flags.get("status")),
+        since=_str(flags.get("since")),
+    )
+
+
+def _host_query_of(flags: Mapping[str, str | bool]) -> HostQuery:
+    return HostQuery(
+        filter=_str(flags.get("filter")),
+        hostname=_str(flags.get("hostname")),
+        platform=_str(flags.get("platform")),
+        status=_str(flags.get("status")),
+        since=_str(flags.get("since")),
+    )
+
+
+def _vuln_query_of(flags: Mapping[str, str | bool]) -> VulnQuery:
+    return VulnQuery(
+        filter=_str(flags.get("filter")),
+        host=_str(flags.get("host")),
         severity=_str(flags.get("severity")),
         status=_str(flags.get("status")),
         since=_str(flags.get("since")),
@@ -203,7 +274,7 @@ def _query_of(flags: Mapping[str, str | bool]) -> DetectionQuery:
 def _suggestion_for(command: str, flags: Mapping[str, str | bool]) -> str:
     """Replays every non-sensitive flag of this invocation into a next-page suggestion (§7.2)."""
     parts = [f"falcon-axi {command}"]
-    for name in ("region", "filter", "severity", "status", "since", "limit"):
+    for name in ("region", "filter", "hostname", "platform", "host", "severity", "status", "since", "limit"):
         value = flags.get(name)
         if isinstance(value, str):
             quoted = f'"{value}"' if _WHITESPACE.search(value) else value
@@ -230,7 +301,7 @@ def help_text(command: str) -> str:
                 f"--status     one of {', '.join(STATUSES)}",
                 "--since      relative window such as 24h or 7d",
                 "--filter     raw FQL; + is AND, `,` is OR, values are single-quoted, relative dates are lowercase",
-                f"--limit      rows in this call (default {DEFAULT_LIMIT}, ceiling {QUERY_CEILING})",
+                f"--limit      rows in this call (default {DEFAULT_LIMIT}, ceiling {ALERTS_CEILING})",
                 "--cursor     opaque continuation token from a previous call",
                 "",
                 "Filterable fields include severity_name, status, tactic, technique, created_timestamp, and device.hostname.",
@@ -253,6 +324,76 @@ def help_text(command: str) -> str:
                 "This command is read-only and requires only Alerts:read.",
             ]
         )
+    if command == "host list":
+        return "\n".join(
+            [
+                "falcon-axi host list [--hostname <name>] [--platform <name>] [--status <name>] "
+                "[--since <window>] [--filter <FQL>] [--limit N] [--cursor <token>]",
+                "",
+                "--hostname   hostname to match; Hosts filters accept wildcards, so WIN-* works",
+                f"--platform   one of {', '.join(PLATFORMS)}",
+                f"--status     one of {', '.join(HOST_STATUSES)}",
+                "--since      last_seen within a relative window such as 24h or 7d",
+                "--filter     raw FQL; + is AND, `,` is OR, values are single-quoted, relative dates are lowercase",
+                f"--limit      rows in this call (default {DEFAULT_LIMIT}, ceiling {HOSTS_CEILING})",
+                "--cursor     opaque continuation token from a previous call",
+                "",
+                "Filterable fields include hostname, platform_name, os_version, agent_version, status,",
+                "last_seen, first_seen, machine_domain, and local_ip.",
+                "Examples:",
+                "  falcon-axi host list --platform windows --since 24h",
+                "  falcon-axi host list --filter \"hostname:'WIN-*'+platform_name:'Windows'\"",
+                "",
+                "This command is read-only and requires only Hosts:read. It reports containment status as",
+                "data and cannot change it.",
+            ]
+        )
+    if command == "host show":
+        return "\n".join(
+            [
+                "falcon-axi host show <device id>",
+                "",
+                "The device id is the agent id Falcon calls the AID, as printed by `falcon-axi host list`.",
+                "",
+                "Example: falcon-axi host show abc123",
+                "",
+                "This command is read-only and requires only Hosts:read.",
+            ]
+        )
+    if command == "vuln list":
+        return "\n".join(
+            [
+                "falcon-axi vuln list [--host <device id>] [--severity <name>] [--status <name>] "
+                "[--since <window>] [--filter <FQL>] [--limit N] [--cursor <token>]",
+                "",
+                "--host       device id (AID) whose vulnerabilities to read",
+                f"--severity   one of {', '.join(VULN_SEVERITIES)}",
+                f"--status     one of {', '.join(VULN_STATUSES)}",
+                "--since      created_timestamp within a relative window such as 24h or 7d",
+                "--filter     raw FQL; + is AND, `,` is OR, values are single-quoted",
+                f"--limit      rows in this call (default {DEFAULT_LIMIT}, ceiling {SPOTLIGHT_CEILING})",
+                "--cursor     opaque continuation token from a previous call",
+                "",
+                "A filter is required, from a shorthand flag or --filter, because Spotlight requires one.",
+                "Wildcards are unsupported and a `*` is refused before the request is made.",
+                "Filterable fields include aid, cve.id, cve.severity, cve.exprt_rating, cve.exploit_status,",
+                "status, and created_timestamp.",
+                "Examples:",
+                "  falcon-axi vuln list --severity critical --status open",
+                "  falcon-axi vuln list --filter \"status:'open'+cve.exploit_status:'90'\"",
+                "",
+                "This command is read-only and requires only Vulnerabilities:read.",
+            ]
+        )
+    if command == "scopes":
+        return "\n".join(
+            [
+                "falcon-axi scopes",
+                "",
+                "Prints the command-to-scope matrix for provisioning a read-only API client.",
+                "It is local only: it makes no request and needs no credential.",
+            ]
+        )
     if command == "auth status":
         return "\n".join(
             [
@@ -269,15 +410,19 @@ def help_text(command: str) -> str:
             "Commands:",
             "  detection list            list detections from the Falcon Alerts collection",
             "  detection show <id>       the full detail for one detection",
+            "  host list                 list hosts from the Falcon Hosts collection",
+            "  host show <device id>     the full detail for one host",
+            "  vuln list                 list Spotlight vulnerabilities; a filter is required",
             "  auth status               whether a credential resolved, and where to",
+            "  scopes                    the command-to-scope matrix, with no request made",
             "",
             "Global flags:",
             "  --help, --region <name|url>, --allow-unknown-origin, --member-cid <cid>, --no-member-cid",
             "",
             f"Regions: {', '.join(REGIONS)}",
             "",
-            "falcon-axi is read-only: it lists no mutating command and requires only Alerts:read for the",
-            "commands stage 1 ships. Host and vulnerability domains are not implemented yet.",
+            "falcon-axi is read-only: it lists no mutating command and requires only Alerts:read,",
+            "Hosts:read, and Vulnerabilities:read.",
         ]
     )
 
@@ -334,6 +479,44 @@ def _auth_status(transport: Any, flags: Mapping[str, str | bool], env: Mapping[s
     return value, ["Run `falcon-axi detection list` to read detections with this credential"]
 
 
+def _read(transport: Any, parsed: Parsed, resolved: Resolved) -> CommandOutput:
+    command = parsed.command
+    flags = parsed.flags
+    if command == "detection list":
+        return list_detections(
+            transport,
+            resolved.session,
+            query=_detection_query_of(flags),
+            limit=_limit_of(flags, command),
+            cursor=_str(flags.get("cursor")),
+            credential=resolved.credential,
+            suggestion=_suggestion_for(command, flags),
+        )
+    if command == "detection show":
+        return show_detection(transport, resolved.session, parsed.positionals[0], bool(flags.get("full")))
+    if command == "host list":
+        return list_hosts(
+            transport,
+            resolved.session,
+            query=_host_query_of(flags),
+            limit=_limit_of(flags, command),
+            cursor=_str(flags.get("cursor")),
+            credential=resolved.credential,
+            suggestion=_suggestion_for(command, flags),
+        )
+    if command == "host show":
+        return show_host(transport, resolved.session, parsed.positionals[0])
+    return list_vulnerabilities(
+        transport,
+        resolved.session,
+        query=_vuln_query_of(flags),
+        limit=_limit_of(flags, command),
+        cursor=_str(flags.get("cursor")),
+        credential=resolved.credential,
+        suggestion=_suggestion_for(command, flags),
+    )
+
+
 def _home_view(transport: Any, flags: Mapping[str, str | bool], env: Mapping[str, str], bin: str) -> tuple[str, int]:
     head: dict[str, Any] = {"bin": bin, "description": DESCRIPTION}
     try:
@@ -356,7 +539,8 @@ def _home_view(transport: Any, flags: Mapping[str, str | bool], env: Mapping[str
             [
                 *listed.help,
                 "Run `falcon-axi detection list` to see more detections",
-                "Run `falcon-axi auth status` to check the credential and region",
+                "Run `falcon-axi host list --filter \"hostname:'WIN-*'\"` to search hosts",
+                "Run `falcon-axi scopes` to see what this API client needs",
             ],
         ),
         0,
@@ -381,22 +565,14 @@ def run(
             return f"{help_text(parsed.command)}\n", 0
         if parsed.command == "home":
             return _home_view(transport, parsed.flags, values, bin or "falcon-axi")
+        if parsed.command == "scopes":
+            matrix = scope_matrix()
+            return render(matrix.value, matrix.help), 0
         if parsed.command == "auth status":
             value, help = _auth_status(transport, parsed.flags, values)
             return render(value, help), 0
         resolved = _session(transport, parsed.flags, values)
-        if parsed.command == "detection list":
-            output = list_detections(
-                transport,
-                resolved.session,
-                query=_query_of(parsed.flags),
-                limit=_limit_of(parsed.flags),
-                cursor=_str(parsed.flags.get("cursor")),
-                credential=resolved.credential,
-                suggestion=_suggestion_for("detection list", parsed.flags),
-            )
-        else:
-            output = show_detection(transport, resolved.session, parsed.positionals[0], bool(parsed.flags.get("full")))
+        output = _read(transport, parsed, resolved)
         return render(output.value, output.help), 0
     except Exception as error:
         known = error if isinstance(error, CliError) else CliError("UNKNOWN", "an unexpected error occurred")

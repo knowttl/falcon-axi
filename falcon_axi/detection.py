@@ -1,20 +1,19 @@
 """The detections domain: pure functions from arguments to requests and responses to rows."""
 
 from collections.abc import Mapping, Sequence
-from dataclasses import dataclass
 from typing import Any
 
 from falcon_axi.auth import Session
 from falcon_axi.core import CliError
 from falcon_axi.credentials import Credential
-from falcon_axi.cursor import CursorContext, decode_cursor, encode_cursor
+from falcon_axi.cursor import CursorContext, decode_offset, encode_cursor
+from falcon_axi.domain import CommandOutput, rate_limit_note, resources, text, total
 from falcon_axi.falcon_error import translate_falcon_error
 from falcon_axi.fql import DetectionQuery, describe_detection_query, detection_filter
 from falcon_axi.render import raw, truncate
-from falcon_axi.transport.types import FalconResponse, RequestArgs, Transport
+from falcon_axi.transport.types import RequestArgs, Transport
 
 #: Documented Alerts limits (docs/design/v1.md §7.3, §2.3).
-DEFAULT_LIMIT = 20
 QUERY_CEILING = 10_000
 HYDRATE_CHUNK = 1_000
 #: v1's defensive Alerts result stop; unverified and open in §17.12.
@@ -23,48 +22,24 @@ ALERTS_WALL = 10_000
 Alert = Mapping[str, Any]
 
 
-@dataclass(frozen=True)
-class CommandOutput:
-    value: dict[str, Any]
-    help: tuple[str, ...]
-
-
-def _resources(response: FalconResponse) -> list[Any]:
-    body = response.body if isinstance(response.body, Mapping) else {}
-    listed = body.get("resources")
-    return list(listed) if isinstance(listed, list) else []
-
-
-def _total(response: FalconResponse) -> int | None:
-    body = response.body if isinstance(response.body, Mapping) else {}
-    meta = body.get("meta")
-    pagination = meta.get("pagination") if isinstance(meta, Mapping) else None
-    value = pagination.get("total") if isinstance(pagination, Mapping) else None
-    return value if isinstance(value, int) and not isinstance(value, bool) else None
-
-
-def _text(value: Any) -> str | None:
-    return value if isinstance(value, str) and value else None
-
-
 def _hostname_of(alert: Alert) -> str | None:
     device = alert.get("device")
-    from_device = _text(device.get("hostname")) if isinstance(device, Mapping) else None
-    return from_device or _text(alert.get("hostname"))
+    from_device = text(device.get("hostname")) if isinstance(device, Mapping) else None
+    return from_device or text(alert.get("hostname"))
 
 
 def _device_id_of(alert: Alert) -> str | None:
     device = alert.get("device")
-    from_device = _text(device.get("device_id")) if isinstance(device, Mapping) else None
-    return from_device or _text(alert.get("device_id")) or _text(alert.get("agent_id"))
+    from_device = text(device.get("device_id")) if isinstance(device, Mapping) else None
+    return from_device or text(alert.get("device_id")) or text(alert.get("agent_id"))
 
 
 def _id_of(alert: Alert) -> str:
-    return _text(alert.get("composite_id")) or _text(alert.get("id")) or ""
+    return text(alert.get("composite_id")) or text(alert.get("id")) or ""
 
 
 def _severity_of(alert: Alert) -> str:
-    name = _text(alert.get("severity_name")) or "unknown"
+    name = text(alert.get("severity_name")) or "unknown"
     severity = alert.get("severity")
     return f"{name} ({severity})" if isinstance(severity, (int, float)) and not isinstance(severity, bool) else name
 
@@ -86,7 +61,7 @@ def _query_alert_ids(
     )
     if response.status != 200:
         raise translate_falcon_error(response, "GetQueriesAlertsV2", "detections")
-    return [id for id in _resources(response) if isinstance(id, str)], _total(response)
+    return [id for id in resources(response) if isinstance(id, str)], total(response)
 
 
 def _hydrate_alerts(transport: Transport, session: Session, ids: Sequence[str]) -> list[Alert]:
@@ -109,7 +84,7 @@ def _hydrate_alerts(transport: Transport, session: Session, ids: Sequence[str]) 
         )
         if response.status != 200:
             raise translate_falcon_error(response, "PostEntitiesAlertsV2", "detections")
-        for entry in _resources(response):
+        for entry in resources(response):
             if not isinstance(entry, Mapping):
                 continue
             id = _id_of(entry)
@@ -128,16 +103,6 @@ def _cursor_context(session: Session, credential: Credential, filter: str | None
     )
 
 
-def _rate_limit_note(session: Session) -> str | None:
-    limit = session.rate_limit.limit
-    remaining = session.rate_limit.remaining
-    if limit is None or remaining is None or limit <= 0:
-        return None
-    if remaining < limit * 0.1:
-        return f"{remaining} of {limit} requests remaining in this rate limit window"
-    return None
-
-
 def list_detections(
     transport: Transport,
     session: Session,
@@ -151,7 +116,7 @@ def list_detections(
     """`detection list`: query ids, hydrate them, and render the four-field schema (§10.2)."""
     filter = detection_filter(query)
     context = _cursor_context(session, credential, filter)
-    offset = 0 if cursor is None else decode_cursor(cursor, context, credential.client_secret)
+    offset = 0 if cursor is None else decode_offset(cursor, context, credential.client_secret)
     headroom = ALERTS_WALL - offset
     if headroom <= 0:
         raise CliError(
@@ -165,7 +130,7 @@ def list_detections(
             ],
         )
     page = min(limit, headroom)
-    ids, total = _query_alert_ids(transport, session, filter, page, offset)
+    ids, count = _query_alert_ids(transport, session, filter, page, offset)
     describe = describe_detection_query(query)
 
     if not ids:
@@ -181,19 +146,19 @@ def list_detections(
     all_rows = [
         {
             "id": _id_of(alert),
-            "severity": _text(alert.get("severity_name")) or "unknown",
-            "tactic": _text(alert.get("tactic")) or "unknown",
+            "severity": text(alert.get("severity_name")) or "unknown",
+            "tactic": text(alert.get("tactic")) or "unknown",
             "hostname": _hostname_of(alert) or "unknown",
         }
         for alert in alerts
     ]
     shown = all_rows if rows is None else all_rows[:rows]
     next_position = offset + len(ids)
-    more_remain = len(ids) >= page if total is None else next_position < total
+    more_remain = len(ids) >= page if count is None else next_position < count
     reachable = more_remain and next_position < ALERTS_WALL
 
     help = ["Run `falcon-axi detection show <id>` for the full detection"]
-    value: dict[str, Any] = {"count": raw(f"{len(shown)} of {total if total is not None else 'unknown'} total")}
+    value: dict[str, Any] = {"count": raw(f"{len(shown)} of {count if count is not None else 'unknown'} total")}
     if reachable:
         continuation = encode_cursor(next_position, context, credential.client_secret)
         value["continuation_cursor"] = continuation
@@ -210,7 +175,7 @@ def list_detections(
             "which falcon-axi v1 does not register, so those rows are not reachable through this CLI"
         )
     value["detections"] = shown
-    note = _rate_limit_note(session)
+    note = rate_limit_note(session)
     if note:
         value["rate_limit"] = raw(note)
     return CommandOutput(value=value, help=tuple(help))
@@ -229,7 +194,7 @@ def show_detection(transport: Transport, session: Session, id: str, full: bool) 
             ],
         )
     alert = alerts[0]
-    cmdline = _text(alert.get("cmdline"))
+    cmdline = text(alert.get("cmdline"))
     rendered = None if cmdline is None else (cmdline, False) if full else truncate(cmdline)
     help: list[str] = []
     if rendered is not None and rendered[1]:
@@ -238,14 +203,14 @@ def show_detection(transport: Transport, session: Session, id: str, full: bool) 
     detail: dict[str, Any] = {
         "id": _id_of(alert),
         "severity": _severity_of(alert),
-        "tactic": _text(alert.get("tactic")) or "unknown",
-        "technique": _text(alert.get("technique")) or "unknown",
+        "tactic": text(alert.get("tactic")) or "unknown",
+        "technique": text(alert.get("technique")) or "unknown",
         "hostname": _hostname_of(alert) or "unknown",
     }
     if device:
         detail["device_id"] = device
-    detail["status"] = _text(alert.get("status")) or "unknown"
-    detail["first_seen"] = _text(alert.get("created_timestamp")) or "unknown"
+    detail["status"] = text(alert.get("status")) or "unknown"
+    detail["first_seen"] = text(alert.get("created_timestamp")) or "unknown"
     if rendered is not None:
         detail["cmdline"] = rendered[0]
     return CommandOutput(value={"detection": detail}, help=tuple(help))

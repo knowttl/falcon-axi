@@ -1,0 +1,2 @@
+hosts: 0 hosts matching linux seen in the last 24h
+help[1]: "Run `falcon-axi host list --platform linux --since 24h --since 30d` to widen the window"

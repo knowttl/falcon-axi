@@ -1,0 +1,29 @@
+{
+  "provenance": {
+    "operation": "PostDeviceDetailsV2",
+    "reference": "https://developer.crowdstrike.com/api-reference/collections/hosts/",
+    "schema_read": "2026-07-28",
+    "provenance": "synthetic"
+  },
+  "response": {
+    "status": 200,
+    "headers": { "x-ratelimit-limit": "6000", "x-ratelimit-remaining": "5994" },
+    "body": {
+      "meta": { "query_time": 0.018 },
+      "errors": [],
+      "resources": [
+        {
+          "device_id": "synthetic-device-01",
+          "hostname": "WIN-DC-01",
+          "platform_name": "Windows",
+          "os_version": "Windows Server 2022",
+          "agent_version": "7.11.0000",
+          "status": "normal",
+          "machine_domain": "synthetic.example",
+          "first_seen": "2026-01-04T08:12:55Z",
+          "last_seen": "2026-07-28T11:02:14Z"
+        }
+      ]
+    }
+  }
+}

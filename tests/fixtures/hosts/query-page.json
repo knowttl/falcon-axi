@@ -1,0 +1,17 @@
+{
+  "provenance": {
+    "operation": "QueryDevicesByFilter",
+    "reference": "https://developer.crowdstrike.com/api-reference/collections/hosts/",
+    "schema_read": "2026-07-28",
+    "provenance": "synthetic"
+  },
+  "response": {
+    "status": 200,
+    "headers": { "x-ratelimit-limit": "6000", "x-ratelimit-remaining": "5997" },
+    "body": {
+      "meta": { "query_time": 0.014, "pagination": { "offset": 0, "limit": 2, "total": 1174 } },
+      "errors": [],
+      "resources": ["synthetic-device-01", "synthetic-device-02"]
+    }
+  }
+}

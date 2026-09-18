@@ -1,0 +1,37 @@
+{
+  "provenance": {
+    "operation": "combinedQueryVulnerabilities",
+    "reference": "https://developer.crowdstrike.com/api-reference/collections/spotlight-vulnerabilities/",
+    "schema_read": "2026-07-28",
+    "provenance": "synthetic"
+  },
+  "response": {
+    "status": 200,
+    "headers": { "x-ratelimit-limit": "6000", "x-ratelimit-remaining": "5993" },
+    "body": {
+      "meta": {
+        "query_time": 0.044,
+        "pagination": { "limit": 2, "total": 57, "after": "synthetic-after-token-2" }
+      },
+      "errors": [],
+      "resources": [
+        {
+          "id": "synthetic-vuln-01",
+          "aid": "synthetic-device-01",
+          "status": "open",
+          "created_timestamp": "2026-07-20T04:11:02Z",
+          "cve": { "id": "CVE-2026-0001", "severity": "CRITICAL", "base_score": 9.8, "exprt_rating": "CRITICAL" },
+          "host_info": { "hostname": "WIN-DC-01", "platform": "Windows" }
+        },
+        {
+          "id": "synthetic-vuln-02",
+          "aid": "synthetic-device-02",
+          "status": "open",
+          "created_timestamp": "2026-07-22T09:38:47Z",
+          "cve": { "id": "CVE-2026-0002", "severity": "HIGH", "base_score": 7.5, "exprt_rating": "HIGH" },
+          "host_info": { "hostname": "WIN-WS-42", "platform": "Windows" }
+        }
+      ]
+    }
+  }
+}

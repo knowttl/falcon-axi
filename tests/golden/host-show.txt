@@ -1,0 +1,11 @@
+host:
+  device_id: synthetic-device-01
+  hostname: WIN-DC-01
+  platform: Windows
+  os_version: Windows Server 2022
+  agent_version: 7.11.0000
+  status: normal
+  first_seen: "2026-01-04T08:12:55Z"
+  last_seen: "2026-07-28T11:02:14Z"
+  domain: synthetic.example
+help[2]: "Run `falcon-axi vuln list --host synthetic-device-01` for this host's open vulnerabilities","Run `falcon-axi detection list --filter \"device.hostname:'WIN-DC-01'\"` for its detections"

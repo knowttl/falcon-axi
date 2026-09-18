@@ -1,6 +1,6 @@
 # falcon-axi C1 design: the Python implementation of the v1 design
 
-Status: commissioned; stage 1 (P1) is implemented.
+Status: commissioned; stage 1 (P1) and stage 2 (P2) are implemented.
 Written 2026-09-18 by the `falcon-axi-mcp-vs-cli-review` scout after the captain chose path C1 in the Lavish review, and committed here when the captain commissioned the build.
 The captain locked four defaults at commissioning: MIT license, the repository stays private for now, the package name is `falcon-axi`, and decision D2 is accepted.
 §9.1's ship brief is the contract stage 1 was built to; §10's open decisions are answered by those locked defaults.
@@ -124,10 +124,12 @@ falcon_axi/
   credentials.py               env and 0600-file resolution, redaction set
   origin.py                    region table, trusted-origin check, autodiscovery retarget
   auth.py                      token mint (D2), session dataclass, rate-limit headers
-  fql.py, cursor.py            unchanged semantics from stage 1
+  fql.py, cursor.py            filter shorthands per domain; the opaque cursor, offset and token models
+  domain.py                    response reading shared by the three domain modules
   render.py                    the TOON boundary; raw lines and help block hand-formatted
   falcon_error.py              Falcon envelope to v1 §9 codes
   detection.py, host.py, vuln.py   pure functions: args to request descriptors, responses to rows
+  scopes.py                    the §8.3 command-to-scope matrix, projected from the registry
   transport/
     __init__.py                sealed request() and request_oauth_token(); mints permits
     operations.py              the closed registry with evidence
@@ -177,10 +179,12 @@ The module names mirror stage 1's `src/` one for one, so a reviewer can diff the
 
 The port is a refactor across languages, and v1.md's contract is the test.
 
-- The command surface stays exactly what stage 1 ships: home view, `detection list`, `detection show`, `auth status`; `--profile` still refused by name; nothing unshipped advertised (README status section rule).
+- The command surface stays exactly what stage 1 ships **for the duration of the port**: home view, `detection list`, `detection show`, `auth status`; `--profile` still refused by name; nothing unshipped advertised (README status section rule).
+  Stage 2 widens it to §1.2's three read domains plus `scopes`, which is the design's own surface rather than a port decision.
 - Every flag name, error code, help line, and TOON schema stays identical.
 - **Parity gate.** Before any TypeScript is deleted, the ship task generates golden outputs from the TypeScript stage 1 for every offline test scenario (each fixture set plus argv), commits them under `tests/golden/`, and the Python port must reproduce them byte for byte.
   The golden files are derived from synthetic fixtures, so they contain no tenant data and may be committed.
+  A later stage may change one of those documents only as a deliberate surface change argued in v1.md first, and `tests/golden/scenarios.json` records which documents changed and why.
 - The redaction set (`access_token`, `client_id`, `client_secret`, `member_cid`, `token`, `Authorization`) applies to stdout and stderr, including anything falconpy logs; falconpy's `debug` stays off and `sanitize_log` on.
 - No secret through argv: the flag-registration guard ports verbatim.
 
@@ -275,13 +279,15 @@ Answer four questions with evidence and stop:
 Generate `tests/golden/` from TypeScript stage 1; build the Python package per §4; reach byte-for-byte parity; port all 67 tests plus the golden comparisons; add `scripts/verify.py` and `scripts/architecture_check.py`; update README, AGENTS.md, and v1.md's status lines; then delete `src/`, `test/`, `package.json`, `tsconfig.json`, and `scripts/architecture-check.mjs` in the same PR so `main` never carries two implementations.
 Tag `v0.2.0`.
 
-**P2. Stage 2 domains.**
-`host list`, `host show`, `vuln list`, `scopes`, ported from falcon-mcp per §6 with `THIRD_PARTY_NOTICES.md`; `scripts/reference_check.py` pinned to the port commit; the §13 cost table and §8.3 scope matrix in v1.md updated.
+**P2. Stage 2 domains. Implemented.**
+`host list`, `host show`, `vuln list`, `scopes`, written against the documented collections rather than copied from falcon-mcp, so no `THIRD_PARTY_NOTICES.md` is owed and `scripts/reference_check.py` is still unwritten; v1.md's §8.3 matrix and §13 cost table already described this surface and needed no change.
+The golden set keeps the stage 1 scenarios as the cross-language parity gate and adds stage 2 scenarios as regression pins from this implementation.
 Tag `v0.3.0`.
 
 **P3. Stage 3 surface.**
 `setup` with hook and skill, `--all`, `--max-rows`, `--fields`, profile configuration, and the opt-in live smoke suite.
 Tag `v0.4.0`, and v1.md moves from "partially implemented" to "implemented".
+Stage 2 shipped without cutting a tag, so the next release tag covers both.
 
 ### 9.1 First ship brief, copy-ready
 

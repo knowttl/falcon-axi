@@ -6,7 +6,7 @@ from pathlib import Path
 import pytest
 from toon_format import decode
 
-from falcon_axi.cli import flag_guard, parse, run
+from falcon_axi.cli import COMMANDS, flag_guard, parse, run
 from falcon_axi.core import CliError
 from falcon_axi.render import render, truncate
 from falcon_axi.version import VERSION
@@ -26,11 +26,15 @@ def test_an_unknown_flag_is_rejected_by_name_with_the_valid_flags_inlined() -> N
 
 def test_an_unknown_command_or_subcommand_fails_before_any_request() -> None:
     recorded = RecordedTransport([])
-    stdout, exit_code = run(["host", "list"], recorded, dict(CREDENTIAL_ENV))
+    stdout, exit_code = run(["incident", "list"], recorded, dict(CREDENTIAL_ENV))
     assert exit_code == 2
-    assert "valid commands: detection list, detection show, auth status" in stdout
+    assert "valid commands: detection list, detection show, host list, host show, vuln list, auth status, scopes" in stdout
     subcommand, _ = run(["detection", "contain"], recorded, dict(CREDENTIAL_ENV))
     assert "valid detection subcommands: list, show" in subcommand
+    host, _ = run(["host", "contain"], recorded, dict(CREDENTIAL_ENV))
+    assert "valid host subcommands: list, show" in host
+    vuln, _ = run(["vuln", "show"], recorded, dict(CREDENTIAL_ENV))
+    assert "valid vuln subcommands: list" in vuln
     assert recorded.requests == []
 
 
@@ -39,8 +43,9 @@ def test_the_surface_lists_no_mutating_verb() -> None:
         with pytest.raises(CliError) as first:
             parse([verb])
         assert first.value.code == "VALIDATION_ERROR"
-        with pytest.raises(CliError):
-            parse(["detection", verb])
+        for noun in ("detection", "host", "vuln"):
+            with pytest.raises(CliError):
+                parse([noun, verb])
 
 
 def test_a_secret_shaped_flag_cannot_be_registered() -> None:
@@ -54,6 +59,10 @@ def test_limit_above_the_documented_ceiling_is_a_validation_error_naming_it() ->
     stdout, exit_code = run(["detection", "list", "--limit", "10001"], RecordedTransport([]), dict(CREDENTIAL_ENV))
     assert exit_code == 2
     assert "--limit must be an integer from 1 to 10000" in stdout
+    for command in ("host", "vuln"):
+        capped, code = run([command, "list", "--limit", "5001"], RecordedTransport([]), dict(CREDENTIAL_ENV))
+        assert code == 2
+        assert "--limit must be an integer from 1 to 5000" in capped
 
 
 def test_profile_is_refused_honestly_rather_than_silently_ignored() -> None:
@@ -71,14 +80,26 @@ def test_member_cid_and_no_member_cid_cannot_be_combined() -> None:
 
 
 def test_help_never_advertises_a_command_the_cli_does_not_have() -> None:
-    for argv in (["--help"], ["detection", "list", "--help"], ["detection", "show", "--help"], ["auth", "status", "--help"]):
+    shipped = (
+        ["--help"],
+        ["detection", "list", "--help"],
+        ["detection", "show", "--help"],
+        ["host", "list", "--help"],
+        ["host", "show", "--help"],
+        ["vuln", "list", "--help"],
+        ["auth", "status", "--help"],
+        ["scopes", "--help"],
+    )
+    for argv in shipped:
         stdout, exit_code = run(argv, RecordedTransport([]), dict(CREDENTIAL_ENV))
         assert exit_code == 0
-        for absent in ("host list", "vuln list", "falcon-axi scopes", "falcon-axi setup"):
+        for absent in ("falcon-axi setup", "--max-rows", "--fields", "vuln show", "tenant list"):
             assert absent not in stdout, f"{' '.join(argv)} advertises {absent}"
     top, _ = run(["--help"], RecordedTransport([]), dict(CREDENTIAL_ENV))
     assert "read-only" in top
     assert VERSION in top
+    for command in COMMANDS:
+        assert command in top
 
 
 def test_rendered_output_parses_as_toon_and_keeps_the_help_block_intact() -> None:
@@ -131,4 +152,4 @@ def test_every_fixture_is_wholly_synthetic_and_carries_its_provenance_header() -
         assert not re.search(r"Bearer\s+[A-Za-z0-9._-]{12,}", text, re.IGNORECASE), (
             f"{path.name} contains an Authorization value"
         )
-    assert count >= 9
+    assert count >= 15

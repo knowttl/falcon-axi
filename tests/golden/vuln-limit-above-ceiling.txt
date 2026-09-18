@@ -1,0 +1,3 @@
+error: "--limit must be an integer from 1 to 5000"
+code: VALIDATION_ERROR
+help[2]: "5000 is the documented Spotlight query ceiling","Run `falcon-axi vuln list --limit 20` for the default page"

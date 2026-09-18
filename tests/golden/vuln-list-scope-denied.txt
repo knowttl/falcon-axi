@@ -1,0 +1,4 @@
+error: this API client is not permitted to read vulnerabilities
+code: SCOPE_DENIED
+required_scopes[1]: "Vulnerabilities:read"
+help[2]: "Grant Vulnerabilities:read (read only) to the API client in the Falcon console under Support and resources > API clients and keys","A 403 can also mean the API client is disabled"

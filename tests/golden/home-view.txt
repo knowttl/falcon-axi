@@ -1,5 +1,5 @@
 bin: falcon-axi
-description: Read CrowdStrike Falcon detections from the shell (read-only)
+description: "Read CrowdStrike Falcon detections, hosts, and vulnerabilities from the shell (read-only)"
 tenant: us-1 (own CID unavailable)
 count: 5 of 384 total
 continuation_cursor: eyJvcGVyYXRpb24iOiJHZXRRdWVyaWVzQWxlcnRzVjIiLCJtb2RlbCI6Im9mZnNldCIsInBvc2l0aW9uIjo1LCJmaW5nZXJwcmludCI6IjI4Y2NiYWVjNTg4M2VkMTBmMDE3ZTVjZGQ0OTE2MTA4MGEzNzhhNWI1ZjM1NTVmN2Q4NmY0YjY3ZDgyNWQ4NDQifQ
@@ -9,4 +9,4 @@ detections[5]{id,severity,tactic,hostname}:
   "ldt:synthetic-agent-2:2",High,Execution,WIN-WS-42
   "ldt:synthetic-agent-3:3",High,Execution,WIN-WS-42
   "ldt:synthetic-agent-4:4",High,Execution,WIN-WS-42
-help[4]: "Run `falcon-axi detection show <id>` for the full detection","Run `falcon-axi detection list --cursor eyJvcGVyYXRpb24iOiJHZXRRdWVyaWVzQWxlcnRzVjIiLCJtb2RlbCI6Im9mZnNldCIsInBvc2l0aW9uIjo1LCJmaW5nZXJwcmludCI6IjI4Y2NiYWVjNTg4M2VkMTBmMDE3ZTVjZGQ0OTE2MTA4MGEzNzhhNWI1ZjM1NTVmN2Q4NmY0YjY3ZDgyNWQ4NDQifQ` for the next page","Run `falcon-axi detection list` to see more detections","Run `falcon-axi auth status` to check the credential and region"
+help[5]: "Run `falcon-axi detection show <id>` for the full detection","Run `falcon-axi detection list --cursor eyJvcGVyYXRpb24iOiJHZXRRdWVyaWVzQWxlcnRzVjIiLCJtb2RlbCI6Im9mZnNldCIsInBvc2l0aW9uIjo1LCJmaW5nZXJwcmludCI6IjI4Y2NiYWVjNTg4M2VkMTBmMDE3ZTVjZGQ0OTE2MTA4MGEzNzhhNWI1ZjM1NTVmN2Q4NmY0YjY3ZDgyNWQ4NDQifQ` for the next page","Run `falcon-axi detection list` to see more detections","Run `falcon-axi host list --filter \"hostname:'WIN-*'\"` to search hosts","Run `falcon-axi scopes` to see what this API client needs"

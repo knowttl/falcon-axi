@@ -1,0 +1,6 @@
+count: 2 of 57 total
+continuation_cursor: eyJvcGVyYXRpb24iOiJjb21iaW5lZFF1ZXJ5VnVsbmVyYWJpbGl0aWVzIiwibW9kZWwiOiJ0b2tlbiIsInBvc2l0aW9uIjoic3ludGhldGljLWFmdGVyLXRva2VuLTIiLCJmaW5nZXJwcmludCI6IjRiYTZhMjY0MDU4MDIzMWU5OTIxOGEzYzdiYzhiY2ZjODlmNjQxOWMxZjM1MmIyZWYzMGE1YWU0YzUxMjBhZjcifQ
+vulnerabilities[2]{id,cve,severity,hostname}:
+  synthetic-vuln-01,CVE-2026-0001,CRITICAL,WIN-DC-01
+  synthetic-vuln-02,CVE-2026-0002,HIGH,WIN-WS-42
+help[2]: "Run `falcon-axi host list --filter \"hostname:'<name>'\"` to read an affected host","Run `falcon-axi vuln list --status open --limit 2 --cursor eyJvcGVyYXRpb24iOiJjb21iaW5lZFF1ZXJ5VnVsbmVyYWJpbGl0aWVzIiwibW9kZWwiOiJ0b2tlbiIsInBvc2l0aW9uIjoic3ludGhldGljLWFmdGVyLXRva2VuLTIiLCJmaW5nZXJwcmludCI6IjRiYTZhMjY0MDU4MDIzMWU5OTIxOGEzYzdiYzhiY2ZjODlmNjQxOWMxZjM1MmIyZWYzMGE1YWU0YzUxMjBhZjcifQ` for the next page"

@@ -1,0 +1,17 @@
+{
+  "provenance": {
+    "operation": "combinedQueryVulnerabilities",
+    "reference": "https://developer.crowdstrike.com/api-reference/collections/spotlight-vulnerabilities/",
+    "schema_read": "2026-07-28",
+    "provenance": "synthetic"
+  },
+  "response": {
+    "status": 200,
+    "headers": { "x-ratelimit-limit": "6000", "x-ratelimit-remaining": "5992" },
+    "body": {
+      "meta": { "query_time": 0.012, "pagination": { "limit": 20, "total": 0 } },
+      "errors": [],
+      "resources": []
+    }
+  }
+}

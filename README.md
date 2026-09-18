@@ -6,12 +6,12 @@ An agent-facing CLI for reading the CrowdStrike Falcon platform from the shell, 
 Output is token-efficient TOON on stdout, errors are structured documents rather than prose, and every view
 ends with the commands that are worth running next.
 
-## Status: stage 1 of the v1 design
+## Status: stage 2 of the v1 design
 
-The package is real and installable, and it ships the first vertical slice of
+The package is real and installable, and it ships the three read domains of
 [`docs/design/v1.md`](docs/design/v1.md) rather than the whole v1 surface.
 
-What stage 1 ships:
+What is shipped:
 
 - the package foundation: a Python package, the `falcon-axi` console script, and one offline
   `uv run scripts/verify.py` entry point;
@@ -19,12 +19,15 @@ What stage 1 ships:
   operation and a single permitted network sink;
 - credential resolution through the environment or a `0600` credentials file, region selection and
   `X-Cs-Region` autodiscovery, Flight Control member-CID selection, and `auth status`;
-- the detections slice: `falcon-axi`, `falcon-axi detection list`, and `falcon-axi detection show`.
+- the three read domains: `falcon-axi`, `detection list`, `detection show`, `host list`,
+  `host show`, and `vuln list`;
+- `falcon-axi scopes`, the command-to-scope matrix, printed from the same operation registry the
+  transport enforces and without making a request.
 
-What stage 1 does **not** ship yet, so no output advertises it:
+What is **not** shipped yet, so no output advertises it:
 
-- `host` and `vuln` commands, and every domain `docs/design/v1.md` §1.3 defers;
-- `falcon-axi scopes` and `falcon-axi setup`, including the session hook and the generated skill;
+- every domain `docs/design/v1.md` §1.3 defers, `intel` and NG-SIEM among them;
+- `falcon-axi setup`, including the session hook and the generated skill;
 - `--all`, `--max-rows`, and `--fields`; a single call takes `--limit` and `--cursor` only;
 - profile configuration in `~/.config/falcon-axi/config.json`; `--profile` is refused by name rather
   than silently ignored.
@@ -50,7 +53,7 @@ If a task needs containment, a real-time-response session, a detection-status up
 change to the tenant, falcon-axi is the wrong tool and will not be persuaded otherwise.
 
 The registered operations require only `Alerts:read`, `Hosts:read`, and `Vulnerabilities:read`, and
-the commands stage 1 ships need only `Alerts:read`.
+the shipped commands need exactly that set and nothing else.
 Whether member-CID token minting additionally requires `Flight Control:read` remains an explicitly
 unresolved question in `docs/design/v1.md` §17.7.
 A falcon-axi release that asks for a write scope is wrong.
@@ -68,6 +71,9 @@ Run it with no install at all, which is the Python analog of `npx -y`:
 uvx --from git+https://github.com/knowttl/falcon-axi@v0.2.0 falcon-axi auth status
 uvx --from git+https://github.com/knowttl/falcon-axi@v0.2.0 falcon-axi detection list --severity high --since 24h
 ```
+
+The pinned tag is the last release; `host list`, `host show`, `vuln list`, and `scopes` land in the
+next one, so install from the default branch to use them before that tag exists.
 
 Or install the command once and call it directly:
 
@@ -89,7 +95,7 @@ name, so run the equivalent command through whichever invocation form is install
 ## Credentials
 
 Provision a **read-only** API client in the Falcon console under Support and resources > API clients
-and keys, granting `Alerts:read` and nothing more.
+and keys, granting `Alerts:read`, `Hosts:read`, and `Vulnerabilities:read` and nothing more.
 Supply it through one of the two accepted channels:
 
 ```sh
@@ -126,13 +132,15 @@ only read scopes.
 
 | Scope | Why |
 | --- | --- |
-| `Alerts:read` | **Required for stage 1.** Everything that ships today - the home view, `detection list`, `detection show`, and `auth status` - needs this and nothing else. |
-| `Hosts:read` | **Optional, for later.** Registered in the transport for the `host` domain, which stage 1 does not ship. |
-| `Vulnerabilities:read` | **Optional, for later.** Registered in the transport for the `vuln` domain, which stage 1 does not ship. |
+| `Alerts:read` | The home view, `detection list`, and `detection show`. |
+| `Hosts:read` | `host list` and `host show`. |
+| `Vulnerabilities:read` | `vuln list`. |
 
-So a tight detections-only client with `Alerts:read` is the right client to create now, and a broader
-read client with all three is the right one only if you want it to keep working unchanged when those
-domains ship.
+Run `falcon-axi scopes` for the same matrix from the tool itself; it is printed from the operation
+registry the transport enforces, so it cannot drift from what falcon-axi actually calls, and it
+needs no credential.
+Grant only the scopes for the domains you intend to read: each is independent, and a command whose
+scope is missing fails with `SCOPE_DENIED` naming exactly what to grant.
 
 **Never grant a write, response, containment, Real Time Response, or otherwise mutating scope.**
 falcon-axi requests none of them, would refuse to use one, and a client provisioned with one is the
@@ -163,23 +171,46 @@ A CID is treated as sensitive: it is masked in output and never echoed into a su
 2. `falcon-axi` - the content-first home view: tenant line plus the five newest detections.
 3. `falcon-axi detection list` - the working surface, with filters and pagination.
 4. `falcon-axi detection show <id>` - one detection in full.
+5. `falcon-axi host show <device_id>` - the host a detection fired on.
+6. `falcon-axi vuln list --host <device_id>` - that host's exposure.
 
 ```
 falcon-axi                                          what is firing right now
 falcon-axi auth status                              whether a credential resolved, and where to
+falcon-axi scopes                                   what to grant the API client
 falcon-axi detection list                           the 20 newest detections
 falcon-axi detection list --severity critical       one severity
 falcon-axi detection list --status new --since 24h  one status, one window
 falcon-axi detection list --filter "severity_name:'Critical'+status:'new'"
 falcon-axi detection show "ldt:aid:1234"            one detection
 falcon-axi detection show "ldt:aid:1234" --full     without truncating long fields
+falcon-axi host list --platform windows             the Windows fleet
+falcon-axi host list --hostname "WIN-*"             hostname search; Hosts filters take wildcards
+falcon-axi host list --status contained             hosts Falcon has contained, as data
+falcon-axi host show abc123                         one host
+falcon-axi vuln list --severity critical --status open
+falcon-axi vuln list --host abc123                  one host's vulnerabilities
 ```
 
-`--severity` takes `informational`, `low`, `medium`, `high`, or `critical`.
-`--status` takes `new`, `in_progress`, `closed`, or `reopened`.
+`detection list` takes `--severity` (`informational`, `low`, `medium`, `high`, `critical`),
+`--status` (`new`, `in_progress`, `closed`, `reopened`), and `--since`.
+`host list` takes `--hostname`, `--platform` (`windows`, `mac`, `linux`), `--status` (`normal`,
+`containment_pending`, `contained`, `lift_containment_pending`), and `--since` on `last_seen`.
+`vuln list` takes `--host`, `--severity` (`low`, `medium`, `high`, `critical`), `--status` (`open`,
+`closed`, `reopen`, `expired`), and `--since` on `created_timestamp`.
 `--since` takes a relative window such as `30m`, `24h`, or `7d`.
-`--filter` takes raw Alerts FQL, where `+` is AND, `,` is OR, and values are single-quoted; it
-composes with the shorthand flags.
+`--filter` takes raw FQL for that collection, where `+` is AND, `,` is OR, and values are
+single-quoted; it composes with the shorthand flags.
+
+Two domain rules come from the API and are enforced before the request is made:
+`vuln list` requires a filter, from a shorthand flag or `--filter`, and Spotlight filters reject a
+`*` wildcard anywhere.
+`host list` accepts wildcards, because the Hosts filter table documents `hostname` as supporting
+them.
+
+`host list` and `host show` report containment status as data.
+falcon-axi cannot change it; there is no command that contains, lifts containment on, or otherwise
+touches a host.
 
 ## Output and errors
 
@@ -195,6 +226,9 @@ detections[2]{id,severity,tactic,hostname}:
   "ldt:synthetic-agent-02:1002",Critical,Execution,WIN-WS-42
 help[2]: "Run `falcon-axi detection show <id>` for the full detection","Run `falcon-axi detection list --limit 2 --cursor ...` for the next page"
 ```
+
+`host list` prints `hosts[N]{device_id,hostname,platform,last_seen}` and `vuln list` prints
+`vulnerabilities[N]{id,cve,severity,hostname}`, in the same shape.
 
 An error is the same kind of document, also on stdout, carrying a stable `code` and actionable
 `help`:
@@ -218,23 +252,27 @@ An unknown flag or unknown command fails loudly with the valid set rather than b
 on stdout and stderr.
 
 Help is hierarchical: `falcon-axi --help` lists the commands and global flags, and
-`falcon-axi detection list --help` documents that command's flags, filterable fields, and examples.
+`falcon-axi host list --help` documents that command's flags, filterable fields, and examples.
 Ask the command rather than guessing its flags.
 
 ## Pagination
 
 One call reads one page.
-`--limit N` sets the rows for this call, defaulting to 20 with a ceiling of 10000, and a truncated
-result prints a `continuation_cursor` plus a ready-to-run next-page suggestion that replays the same
-filters.
+`--limit N` sets the rows for this call, defaulting to 20, with a ceiling of 10000 on
+`detection list` and 5000 on `host list` and `vuln list`, each the API's own documented maximum.
+A truncated result prints a `continuation_cursor` plus a ready-to-run next-page suggestion that
+replays the same filters.
 Pass it back with `--cursor <token>`.
 
 The cursor is opaque and bound to the credential and the filter that produced it, so it cannot be
 edited, reused across a different query, or shared between tenants.
-`--all`, `--max-rows`, and `--fields` do not exist in stage 1: loop on `--cursor` when more than one
+It hides the fact that Falcon paginates detections and hosts by offset and vulnerabilities by an
+`after` token: the CLI vocabulary is `--cursor` in all three.
+`--all`, `--max-rows`, and `--fields` do not exist yet: loop on `--cursor` when more than one
 page is genuinely needed.
 Reading past 10000 Alerts results fails with `PAGINATION_LIMIT` and asks for a narrower filter,
 because the documented route past that boundary is not registered in v1.
+`host list` stops at the documented Hosts `limit + offset` ceiling of 10000 the same way.
 
 ## Verify
 
@@ -249,9 +287,10 @@ synthetic fixtures.
 A pytest fixture refuses any socket, so no test can reach the network, and no fixture contains a
 captured Falcon response, credential, token, or tenant identifier.
 
-The offline suite includes the cross-language parity gate in `tests/golden/`: for every one of the
-52 recorded invocations, the Python implementation reproduces the document the TypeScript stage 1 it
-replaced printed, byte for byte, with the same exit code.
+The offline suite includes the recorded-invocation gate in `tests/golden/`: every recorded
+invocation reproduces its expected document byte for byte, with the same exit code.
+The stage 1 scenarios there are the cross-language parity gate, whose expected documents were
+generated by the TypeScript implementation this package replaced.
 
 Offline fixtures prove deterministic behavior, not upstream fidelity: they are authored from the
 documented response schemas cited in `docs/design/v1.md` §18, so every error-translation pattern
@@ -274,7 +313,7 @@ npx skills add knowttl/falcon-axi --skill falcon-axi -g
 
 Drop `-g` for a project-scoped install; the repository is private, so the install needs GitHub access to
 it.
-`falcon-axi setup` does not exist in stage 1, so the CLI installs no skill, session hook, or plugin
+`falcon-axi setup` does not exist yet, so the CLI installs no skill, session hook, or plugin
 itself.
 
 ## Relationship to falcon-mcp

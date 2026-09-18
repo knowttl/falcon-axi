@@ -1,0 +1,3 @@
+error: Spotlight filters do not support wildcards
+code: FQL_INVALID
+help[2]: "Remove the `*` and match an exact value, for example `cve.id:'CVE-2024-3094'`","Run `falcon-axi vuln list --help` for the filterable fields"
