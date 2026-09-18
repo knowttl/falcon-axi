@@ -100,6 +100,8 @@ Read the `axi` skill at `~/.pi/agent/skills/axi/SKILL.md` and the TOON spec it p
 reviewing any CLI behavior here.
 `azure-axi` and `awx-axi` are the sibling references for these patterns; `docs/design/v1.md` §18 lists where
 their assumptions do **not** transfer to Falcon.
+`skills/falcon-axi/SKILL.md` is this repo's agent-facing skill; it is hand-written for stage 1 and must never
+name a command the CLI does not ship (`docs/design/v1.md` §12.2).
 
 ## Maintaining this file
 
