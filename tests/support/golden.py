@@ -11,6 +11,7 @@ from typing import Any
 
 from falcon_axi.cli import run
 from falcon_axi.cursor import CursorContext, encode_cursor
+from falcon_axi.transport.operations import operation, path_arguments
 from falcon_axi.transport.types import FalconResponse, RequestArgs
 from tests.support.recorded import CREDENTIAL_ENV, NO_CREDENTIAL_ENV, Responder, as_response, fixture
 
@@ -77,6 +78,7 @@ class _GoldenTransport:
         self.oauth = oauth
 
     def request(self, id: str, args: RequestArgs) -> FalconResponse:
+        path_arguments(operation(id), dict(args.path_params or {}))
         for responder in self.responders:
             answer = responder(id, args)
             if answer is not None:

@@ -4,27 +4,35 @@ This file is the project's committed home for project-intrinsic agent knowledge:
 
 - Add durable project-specific notes here as they are discovered through real work.
 
-## v1 is read-only, and this is not negotiable
+## v1 is read-only, with exactly one captain-granted exception
 
-**falcon-axi v1 requires only CrowdStrike read permissions and implements no write, create, update, delete,
-execute, containment, quarantine, release, response, or otherwise mutating operation.**
+**falcon-axi v1 changes no state in a Falcon tenant and implements no write, create, update, delete, execute,
+containment, quarantine, release, or response operation, apart from starting and stopping an NG-SIEM search
+job under captain exception N1.**
 This is a captain-confirmed, binding architectural invariant.
-Relaxing it is a captain decision, never an agent's; if a task seems to require a mutation, stop and escalate.
+Relaxing it further is a captain decision, never an agent's; N1 is not a precedent to extend, and if a task
+seems to require any other mutation, stop and escalate.
 
-Two consequences that catch people out:
+Three consequences that catch people out:
 
 - **Read-only is semantic, not method-based.**
   Falcon reads are routinely POSTs (`PostEntitiesAlertsV2`, `PostDeviceDetailsV2`), and Falcon has read-scoped
   operations with real side effects (`RTR_InitSession` is scoped `Real time response:read` and opens a session
   on a live endpoint).
   So neither the HTTP verb nor the scope name proves safety.
-- **An endpoint may be added only with two citations**: official CrowdStrike documentation showing its required
-  scope is a read permission, and falcon-mcp's treatment of it as corroboration.
+- **An endpoint may be added only with two citations**: official CrowdStrike documentation stating its required
+  scope, and falcon-mcp's treatment of it as corroboration.
   The transport's operation registry carries that evidence as a required field and the local required-check
-  set asserts it.
+  set asserts it, per tier: a `: READ` doc scope for a read, a `: WRITE` one for the exception.
+- **The exception is closed by an id allowlist, not by discipline.**
+  `SEARCH_LIFECYCLE_IDS` in `falcon_axi/transport/operations.py` is exactly `StartSearchV1` and `StopSearchV1`,
+  and registry sealing rejects any other descriptor claiming `effect: "search-lifecycle"`, any scope other than
+  `NGSIEM:write` on one, and any `:write` scope on a `read` descriptor.
+  Admitting a third write operation means editing that allowlist, which is the reviewable diff §1.6 demands.
 
 See `docs/design/v1.md` §0 (the invariant), §1.5 (excluded capability classes), §2.2 (the two-citation rule),
-§3 (transport enforcement), §5.7 (read-scopes-only provisioning), and §15 (live-test boundary).
+§3 (transport enforcement), §4.3 (captain exception N1 and its boundary), §5.7 (provisioning), and §15
+(live-test boundary).
 
 ## The v1 design is authoritative
 
@@ -41,9 +49,10 @@ Read both before changing implementation structure; v1.md still owns behavior, v
 built.
 There is no Node runtime, no MCP process, and no `falcon-mcp` dependency anywhere in the tree.
 
-Stage 2 of that design is implemented: the package foundation, the sealed transport and its closed registry,
-credential resolution with `auth status`, and all three read domains (`detection list`, `detection show`,
-`host list`, `host show`, `vuln list`) plus the `scopes` matrix and the home view.
+Stage 3 of that design is implemented: the package foundation, the sealed transport and its closed registry,
+credential resolution with `auth status`, all three read domains (`detection list`, `detection show`,
+`host list`, `host show`, `vuln list`), the NG-SIEM search lifecycle (`search start`, `search status`,
+`search stop`), plus the `scopes` matrix and the home view.
 The README's status section is the authoritative list of what is shipped and what is deliberately absent, and
 no help text, suggestion, or skill may advertise an unshipped command.
 `uv run scripts/verify.py` is the single local entry point for the complete offline required-check set
@@ -54,7 +63,8 @@ expected document byte for byte.
 Its stage 1 scenarios are also the cross-language parity gate, because the TypeScript stage 1 this port
 replaced generated their expected documents.
 Changing any output means regenerating nothing; it means the change is a deliberate behavior change that must
-be argued in the design first, as stage 2's four changed stage 1 documents were.
+be argued in the design first, as stage 2's four changed stage 1 documents and stage 3's eight were.
+`tests/golden/scenarios.json`'s `comment` records which documents changed and why.
 
 Two seams are worth knowing before changing them:
 
@@ -68,6 +78,11 @@ Two seams are worth knowing before changing them:
   total before hydrating and reapply the query order after (§2.3).
   `vuln.py` is the exception, a single combined request paginated by an opaque `after` token rather than an
   offset; `cursor.py` carries both models behind one `--cursor` vocabulary.
+  `search.py` is a third shape again: an NG-SIEM query job carries no pagination metadata at all, so it has
+  neither `--limit` nor `--cursor`, and the caller owns the polling loop rather than the CLI blocking on it.
+  Its three routes are also the only ones with `{path}` variables, which `path_arguments()` validates against
+  separators and dot segments before a request is prepared; `RecordedTransport` runs the same check so the
+  test seam is never more permissive than the sealed transport.
 - `falcon_axi/transport/harness.py` is the one file allowed to touch the network and the one file allowed to
   import `falconpy`, from which only `APIHarnessV2` may be named; `send_permitted_request` is the one function
   in it allowed to reach the network.

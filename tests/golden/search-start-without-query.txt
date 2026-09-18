@@ -1,0 +1,3 @@
+error: search start requires a CQL query
+code: VALIDATION_ERROR
+help[2]: "CQL is pipe-based: a filter, then commands, for example `#event_simpleName=ProcessRollup2 | head(5)`","Run `falcon-axi search start --help` for the query shape"

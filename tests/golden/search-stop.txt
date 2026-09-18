@@ -1,0 +1,3 @@
+stopped: synthetic-search-job-01
+repository: search-all
+help[2]: "Run `falcon-axi search status synthetic-search-job-01` to confirm the job reports cancelled","Run `falcon-axi search start --query '<cql>'` to run a narrower search"

@@ -34,7 +34,7 @@ def setup_help(env: Mapping[str, str] | None = None) -> tuple[str, ...]:
     return (
         "Set FALCON_CLIENT_ID and FALCON_CLIENT_SECRET in the environment",
         f"Or write them to {credentials_path(env)} with mode 0600",
-        "Provision a read-only API client; falcon-axi never needs a write scope",
+        "Provision an API client with read scopes; only `search start` and `search stop` need NGSIEM:write",
     )
 
 

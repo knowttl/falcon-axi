@@ -1,0 +1,39 @@
+{
+  "provenance": {
+    "operation": "GetSearchStatusV1",
+    "reference": "https://developer.crowdstrike.com/api-reference/collections/ngsiem/",
+    "schema_read": "2026-07-28",
+    "provenance": "synthetic"
+  },
+  "response": {
+    "status": 200,
+    "headers": { "x-ratelimit-limit": "6000", "x-ratelimit-remaining": "5989" },
+    "body": {
+      "cancelled": false,
+      "done": true,
+      "events": [
+        {
+          "ComputerName": "WIN-DC-01",
+          "FileName": "powershell.exe",
+          "UserName": "synthetic-user-a",
+          "timestamp": "2026-07-28T09:14:02Z"
+        },
+        {
+          "ComputerName": "WIN-WS-42",
+          "FileName": "rundll32.exe",
+          "UserName": "synthetic-user-b",
+          "timestamp": "2026-07-28T09:15:44Z"
+        }
+      ],
+      "metaData": {
+        "eventCount": 2,
+        "filterQuery": { "queryString": "#event_simpleName=ProcessRollup2 | head(2)" },
+        "isAggregate": false,
+        "processedEvents": 148231,
+        "queryEnd": 1785315600000,
+        "queryStart": 1785229200000,
+        "timeMillis": 1943
+      }
+    }
+  }
+}

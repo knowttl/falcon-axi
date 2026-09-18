@@ -10,6 +10,7 @@ from collections.abc import Callable, Mapping, Sequence
 from pathlib import Path
 from typing import Any
 
+from falcon_axi.transport.operations import operation, path_arguments
 from falcon_axi.transport.types import FalconResponse, OAuthTokenArgs, RequestArgs
 
 FIXTURES = Path(__file__).resolve().parent.parent / "fixtures"
@@ -38,6 +39,9 @@ class RecordedTransport:
         self.requests: list[tuple[str, Any]] = []
 
     def request(self, id: str, args: RequestArgs) -> FalconResponse:
+        # The double is never more permissive than the sealed transport: it resolves the descriptor
+        # and validates the path variables exactly as `HttpTransport.request` does (§14.2).
+        path_arguments(operation(id), dict(args.path_params or {}))
         self.requests.append(("operation", (id, args)))
         for responder in self.responders:
             answer = responder(id, args)

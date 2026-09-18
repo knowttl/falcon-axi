@@ -1,0 +1,13 @@
+{
+  "provenance": {
+    "operation": "StartSearchV1",
+    "reference": "https://developer.crowdstrike.com/api-reference/collections/ngsiem/",
+    "schema_read": "2026-07-28",
+    "provenance": "synthetic"
+  },
+  "response": {
+    "status": 200,
+    "headers": { "x-ratelimit-limit": "6000", "x-ratelimit-remaining": "5991" },
+    "body": { "id": "synthetic-search-job-01" }
+  }
+}

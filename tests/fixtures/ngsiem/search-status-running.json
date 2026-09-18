@@ -1,0 +1,24 @@
+{
+  "provenance": {
+    "operation": "GetSearchStatusV1",
+    "reference": "https://developer.crowdstrike.com/api-reference/collections/ngsiem/",
+    "schema_read": "2026-07-28",
+    "provenance": "synthetic"
+  },
+  "response": {
+    "status": 200,
+    "headers": { "x-ratelimit-limit": "6000", "x-ratelimit-remaining": "5990" },
+    "body": {
+      "cancelled": false,
+      "done": false,
+      "events": [],
+      "metaData": {
+        "eventCount": 0,
+        "isAggregate": false,
+        "pollAfter": 1000,
+        "processedEvents": 4821,
+        "timeMillis": 812
+      }
+    }
+  }
+}

@@ -39,7 +39,8 @@ def translate_falcon_error(response: FalconResponse, id: OperationId, subject: s
     """
     messages = falcon_messages(response)
     trace = trace_id(response)
-    scopes = operation(id).scopes
+    descriptor = operation(id)
+    scopes = descriptor.scopes
     details = {"trace_id": trace} if trace else {}
     if response.status == 400:
         if any(_FILTER_WORDS.search(message) for message in messages):
@@ -68,6 +69,18 @@ def translate_falcon_error(response: FalconResponse, id: OperationId, subject: s
             ],
         )
     if response.status == 403:
+        if descriptor.effect != "read":
+            # The one write scope falcon-axi asks for, so the remedy cannot say "read only" (§4.3).
+            return CliError(
+                "SCOPE_DENIED",
+                f"this API client is not permitted to run {subject}",
+                [
+                    f"Grant {' and '.join(scopes)} to the API client in the Falcon console "
+                    "under Support and resources > API clients and keys",
+                    "Run `falcon-axi scopes` for the matrix, including which commands need this write scope",
+                ],
+                {"required_scopes": list(scopes)},
+            )
         return CliError(
             "SCOPE_DENIED",
             f"this API client is not permitted to read {subject}",

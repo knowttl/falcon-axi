@@ -1,6 +1,6 @@
 credential_resolved: true
 credential_channel: environment
 tenant: us-2 (re-targeted from us-1) (own CID unavailable)
-scopes: read-only client recommended; falcon-axi requests no write scope
+scopes: read scopes, plus NGSIEM:write for `search start` and `search stop` alone
 rate_limit: 5999 of 6000 requests remaining
 help[1]: "Run `falcon-axi detection list` to read detections with this credential"

@@ -1,0 +1,15 @@
+falcon-axi search start --query <CQL> [--repository <name>] [--since <window>]
+
+--query      the CQL search to run; required
+--repository repository or view to search (default search-all)
+--since      window to search, such as 24h or 7d (default 24h)
+
+CQL is pipe-based and is neither FQL nor SQL: a filter, then commands.
+Start from a tag or field filter and pipe into commands, and bound the result set in the
+query itself with `| head(N)` or an aggregate; there is no --limit and no --cursor.
+Examples:
+  falcon-axi search start --query '#event_simpleName=ProcessRollup2 | head(5)'
+  falcon-axi search start --query '#event_simpleName=ProcessRollup2 | groupBy([ComputerName], function=count())' --since 7d
+
+This command starts a job on the tenant and requires NGSIEM:write, the one write scope
+falcon-axi asks for. Poll it with `falcon-axi search status <id>`.

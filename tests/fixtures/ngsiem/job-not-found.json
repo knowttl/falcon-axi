@@ -1,0 +1,13 @@
+{
+  "provenance": {
+    "operation": "GetSearchStatusV1",
+    "reference": "https://developer.crowdstrike.com/api-reference/collections/ngsiem/",
+    "schema_read": "2026-07-28",
+    "provenance": "synthetic"
+  },
+  "response": {
+    "status": 404,
+    "headers": {},
+    "body": { "errors": [{ "code": 404, "message": "query job not found" }] }
+  }
+}

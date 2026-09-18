@@ -1,0 +1,4 @@
+state: running
+search_id: synthetic-search-job-01
+events_scanned: 4821
+help[2]: "Run `falcon-axi search status synthetic-search-job-01` again in a few seconds; the job is still running","Run `falcon-axi search stop synthetic-search-job-01` to cancel it"

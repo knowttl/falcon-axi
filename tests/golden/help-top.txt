@@ -1,4 +1,4 @@
-falcon-axi 0.2.0 - Read CrowdStrike Falcon detections, hosts, and vulnerabilities from the shell (read-only)
+falcon-axi 0.2.0 - Read CrowdStrike Falcon detections, hosts, vulnerabilities, and NG-SIEM searches from the shell
 
 Commands:
   detection list            list detections from the Falcon Alerts collection
@@ -6,6 +6,9 @@ Commands:
   host list                 list hosts from the Falcon Hosts collection
   host show <device id>     the full detail for one host
   vuln list                 list Spotlight vulnerabilities; a filter is required
+  search start              start an NG-SIEM CQL search job
+  search status <id>        poll one search job and read its events
+  search stop <id>          cancel one search job
   auth status               whether a credential resolved, and where to
   scopes                    the command-to-scope matrix, with no request made
 
@@ -14,5 +17,6 @@ Global flags:
 
 Regions: us-1, us-2, eu-1, us-gov-1
 
-falcon-axi is read-only: it lists no mutating command and requires only Alerts:read,
-Hosts:read, and Vulnerabilities:read.
+falcon-axi lists no command that changes a host, a detection, or a policy. It requires
+Alerts:read, Hosts:read, Vulnerabilities:read, and NGSIEM:read, plus NGSIEM:write for
+`search start` and `search stop` alone.

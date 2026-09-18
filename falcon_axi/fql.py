@@ -21,6 +21,8 @@ VULN_SEVERITIES = ("low", "medium", "high", "critical")
 VULN_STATUSES = ("open", "closed", "reopen", "expired")
 
 SINCE_PATTERN = re.compile(r"^(\d+)([mhd])$")
+#: Seconds per `--since` unit, for the domains that need an absolute instant rather than FQL text.
+SINCE_UNIT_SECONDS = {"m": 60, "h": 3_600, "d": 86_400}
 
 
 @dataclass(frozen=True)
@@ -69,7 +71,7 @@ def _one_of(value: str, valid: tuple[str, ...], flag: str) -> str:
     return normalized
 
 
-def _window(value: str) -> str:
+def _since_match(value: str) -> re.Match[str]:
     match = SINCE_PATTERN.match(value.lower())
     if not match:
         raise CliError(
@@ -77,6 +79,17 @@ def _window(value: str) -> str:
             "--since must be a relative window such as 24h",
             ["valid units for --since: m (minutes), h (hours), d (days)", "Example: `--since 7d`"],
         )
+    return match
+
+
+def since_seconds(value: str) -> int:
+    """The `--since` window as a duration, for NG-SIEM's epoch-millisecond search window."""
+    match = _since_match(value)
+    return int(match.group(1)) * SINCE_UNIT_SECONDS[match.group(2)]
+
+
+def _window(value: str) -> str:
+    match = _since_match(value)
     return f"now-{match.group(1)}{match.group(2)}"
 
 

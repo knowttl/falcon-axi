@@ -13,17 +13,24 @@ def test_the_matrix_is_local_only_and_needs_no_credential() -> None:
     stdout, exit_code = run(["scopes"], recorded, dict(NO_CREDENTIAL_ENV))
     assert exit_code == 0
     assert recorded.requests == []
-    assert stdout.startswith("posture: read-only; falcon-axi requests no write scope")
+    assert stdout.startswith("posture: read-only except NG-SIEM search start and stop")
 
 
-def test_every_printed_scope_is_a_read_scope_from_the_registry() -> None:
+def test_every_printed_scope_comes_from_the_registry_with_its_access_derived_from_it() -> None:
     stdout, _ = run(["scopes"], RecordedTransport([]), dict(NO_CREDENTIAL_ENV))
     parsed = decode(stdout)
     registered = {scope for descriptor in OPERATIONS.values() for scope in descriptor.scopes}
     assert {row["scope"] for row in parsed["scopes"]} == registered
     for row in parsed["scopes"]:
-        assert row["access"] == "read"
-        assert row["scope"].endswith(":read")
+        assert row["access"] == ("write" if row["scope"].endswith(":write") else "read")
+
+
+def test_the_only_write_scope_in_the_matrix_is_the_one_captain_exception_n1_admits() -> None:
+    stdout, _ = run(["scopes"], RecordedTransport([]), dict(NO_CREDENTIAL_ENV))
+    parsed = decode(stdout)
+    write_rows = [row for row in parsed["scopes"] if row["access"] == "write"]
+    assert [row["scope"] for row in write_rows] == ["NGSIEM:write"]
+    assert write_rows[0]["commands"] == "search start, search stop"
 
 
 def test_the_matrix_names_only_commands_the_cli_ships() -> None:
@@ -37,4 +44,3 @@ def test_it_preserves_the_unresolved_member_cid_question_rather_than_claiming_it
     stdout, _ = run(["scopes"], RecordedTransport([]), dict(NO_CREDENTIAL_ENV))
     assert "member_cid_token_scope: unresolved" in stdout
     assert "Flight Control" in stdout
-    assert "write" not in stdout.replace("no write scope", "").replace("never needs a write scope", "")

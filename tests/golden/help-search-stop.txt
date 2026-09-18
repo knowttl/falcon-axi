@@ -1,0 +1,10 @@
+falcon-axi search stop <search id> [--repository <name>]
+
+--repository the repository the job was started against (default search-all)
+
+Cancels one search job falcon-axi started. It changes no tenant data, no host, and no
+detection: the only thing it stops is the job.
+
+Example: falcon-axi search stop abc123
+
+This command requires NGSIEM:write, the one write scope falcon-axi asks for.

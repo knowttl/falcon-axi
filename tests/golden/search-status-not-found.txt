@@ -1,0 +1,3 @@
+error: no NG-SIEM search job matched that identifier
+code: NOT_FOUND
+help[2]: "A job id comes from `falcon-axi search start`, and a completed or cancelled job expires","Pass the same `--repository` the job was started against"

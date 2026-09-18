@@ -150,6 +150,11 @@ def send_permitted_request(prepared: PreparedOperation | PreparedToken, permit: 
             return _normalize(token_answer.status_code, token_answer.headers, _json_body(token_answer))
 
         descriptor = operation(prepared.operation_id)
+        path_params = dict(prepared.path_params)
+        if descriptor.id == "GetSearchStatusV1":
+            # falconpy's uber path-variable map for this one operation lists `search_id` beside
+            # `id` and reads every name it lists while interpolating, so both must be present.
+            path_params["search_id"] = path_params["id"]
         session = _RecordingSession()
         harness = APIHarnessV2(
             access_token=prepared.token,
@@ -165,6 +170,7 @@ def send_permitted_request(prepared: PreparedOperation | PreparedToken, permit: 
             descriptor.id,
             parameters=dict(prepared.query),
             body=prepared.body if prepared.body is not None else {},
+            **path_params,
         )
         if session.failure is not None:
             raise _transport_failure(session.failure) from session.failure

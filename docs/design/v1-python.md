@@ -1,6 +1,6 @@
 # falcon-axi C1 design: the Python implementation of the v1 design
 
-Status: commissioned; stage 1 (P1) and stage 2 (P2) are implemented.
+Status: commissioned; stage 1 (P1), stage 2 (P2), and the NG-SIEM search surface admitted by captain exception N1 (v1.md §4.3) are implemented.
 Written 2026-09-18 by the `falcon-axi-mcp-vs-cli-review` scout after the captain chose path C1 in the Lavish review, and committed here when the captain commissioned the build.
 The captain locked four defaults at commissioning: MIT license, the repository stays private for now, the package name is `falcon-axi`, and decision D2 is accepted.
 §9.1's ship brief is the contract stage 1 was built to; §10's open decisions are answered by those locked defaults.
@@ -12,8 +12,8 @@ This document changes the implementation language and the HTTP client underneath
 It amends v1.md §2 (backend), §3.3 (transport enforcement, restated for Python), §14 (test layout, restated for pytest), and §16 (API client evaluation, now adopting falconpy), and it adds packaging and distribution, which v1.md never specified.
 Every section of v1.md not named here carries over unchanged, and a commissioned build must not narrow or widen the v1 command surface while porting.
 
-Invariant R is unchanged and binding: falcon-axi requires only CrowdStrike read permissions and implements no mutating operation.
-Nothing in a Python rewrite relaxes it, and §3 below shows how the guarantee is rebuilt in Python.
+Invariant R is binding and carries over from v1.md §0: falcon-axi changes no tenant state and implements no mutating operation, with the single captain exception N1 (v1.md §4.3), starting and stopping an NG-SIEM search job.
+Nothing in a Python rewrite relaxes it further, and §3 below shows how the guarantee is rebuilt in Python.
 
 ## 1. Decision record
 
@@ -146,7 +146,7 @@ scripts/
 tests/
   fixtures/                    carried over byte-for-byte from stage 1, provenance headers intact
   offline/                     pytest, one file per seam and per domain
-  live/                        opt-in read-only smoke suite (v1.md §15), unchanged boundary
+  live/                        opt-in smoke suite (v1.md §15), unchanged boundary
   support/recorded.py          RecordedTransport and fixture loaders
 THIRD_PARTY_NOTICES.md         attribution for code ported from falcon-mcp (§6)
 ```
@@ -180,7 +180,7 @@ The module names mirror stage 1's `src/` one for one, so a reviewer can diff the
 The port is a refactor across languages, and v1.md's contract is the test.
 
 - The command surface stays exactly what stage 1 ships **for the duration of the port**: home view, `detection list`, `detection show`, `auth status`; `--profile` still refused by name; nothing unshipped advertised (README status section rule).
-  Stage 2 widens it to §1.2's three read domains plus `scopes`, which is the design's own surface rather than a port decision.
+  Stage 2 widens it to §1.2's three read domains plus `scopes`, and stage 3 adds the `search` noun captain exception N1 admits (v1.md §4.3); both are the design's own surface rather than port decisions.
 - Every flag name, error code, help line, and TOON schema stays identical.
 - **Parity gate.** Before any TypeScript is deleted, the ship task generates golden outputs from the TypeScript stage 1 for every offline test scenario (each fixture set plus argv), commits them under `tests/golden/`, and the Python port must reproduce them byte for byte.
   The golden files are derived from synthetic fixtures, so they contain no tenant data and may be committed.
@@ -223,7 +223,7 @@ It reaches the network, so it is opt-in and never part of `verify`.
   The two hygiene tests (provenance header present; no credential, token, CID, or realistic tenant-data pattern) port as is.
 - **Coverage of the design.** Every test named in v1.md §14.5 is re-expressed; the 67 stage 1 tests are the floor, and the parity gate of §5 adds the golden comparisons.
 - **Fast `--version`.** A test measures `falcon-axi --version` against the `python -c pass` floor in the same process and fails on a relative regression, as AXI §10 asks; `cli.py` handles version flags before importing `falconpy` or `toon_format`.
-- **Live suite.** `tests/live/` keeps v1.md §15's boundary word for word: read-only credentials, shape assertions only, nothing persisted, never in the required set.
+- **Live suite.** `tests/live/` keeps v1.md §15's boundary word for word: credentials provisioned per §5.7, shape assertions only, nothing persisted, any search job it starts also stopped, never in the required set.
 
 ## 8. Packaging and distribution
 
@@ -284,10 +284,14 @@ Tag `v0.2.0`.
 The golden set keeps the stage 1 scenarios as the cross-language parity gate and adds stage 2 scenarios as regression pins from this implementation.
 Tag `v0.3.0`.
 
-**P3. Stage 3 surface.**
+**P3. Stage 3 surface: NG-SIEM search under captain exception N1. Implemented.**
+`search start`, `search status`, `search stop`, the three lifecycle operations captain exception N1 admits (v1.md §0, §4.3), with `NGSIEM:write` required on `search start` and `search stop` alone.
+The golden set adds stage 3 scenarios as regression pins, including the forbidden-write registry gate.
+Stage 2 and stage 3 both shipped without cutting a tag, so the next release tag covers all three stages.
+
+**P4. Setup and delivery surface.**
 `setup` with hook and skill, `--all`, `--max-rows`, `--fields`, profile configuration, and the opt-in live smoke suite.
 Tag `v0.4.0`, and v1.md moves from "partially implemented" to "implemented".
-Stage 2 shipped without cutting a tag, so the next release tag covers both.
 
 ### 9.1 First ship brief, copy-ready
 

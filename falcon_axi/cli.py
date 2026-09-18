@@ -28,11 +28,12 @@ from falcon_axi.host import list_hosts, show_host
 from falcon_axi.origin import REGIONS, assert_trusted_origin, resolve_base_url
 from falcon_axi.render import mask_cid, raw, render
 from falcon_axi.scopes import scope_matrix
+from falcon_axi.search import DEFAULT_REPOSITORY, DEFAULT_SINCE, search_status, start_search, stop_search
 from falcon_axi.version import VERSION
 from falcon_axi.vuln import QUERY_CEILING as SPOTLIGHT_CEILING
 from falcon_axi.vuln import list_vulnerabilities
 
-DESCRIPTION = "Read CrowdStrike Falcon detections, hosts, and vulnerabilities from the shell (read-only)"
+DESCRIPTION = "Read CrowdStrike Falcon detections, hosts, vulnerabilities, and NG-SIEM searches from the shell"
 HOME_ROWS = 5
 
 Command = Literal[
@@ -42,6 +43,9 @@ Command = Literal[
     "host list",
     "host show",
     "vuln list",
+    "search start",
+    "search status",
+    "search stop",
     "auth status",
     "scopes",
 ]
@@ -51,6 +55,7 @@ SUBCOMMANDS: Mapping[str, tuple[str, ...]] = {
     "detection": ("list", "show"),
     "host": ("list", "show"),
     "vuln": ("list",),
+    "search": ("start", "status", "stop"),
     "auth": ("status",),
 }
 
@@ -63,6 +68,9 @@ COMMAND_FLAGS: Mapping[str, tuple[str, ...]] = {
     "host list": ("filter", "hostname", "platform", "status", "since", "limit", "cursor"),
     "host show": (),
     "vuln list": ("filter", "host", "severity", "status", "since", "limit", "cursor"),
+    "search start": ("query", "repository", "since"),
+    "search status": ("repository",),
+    "search stop": ("repository",),
     "auth status": (),
     "scopes": (),
 }
@@ -74,17 +82,33 @@ LIMIT_CEILINGS: Mapping[str, tuple[int, str]] = {
     "vuln list": (SPOTLIGHT_CEILING, "Spotlight query"),
 }
 
-#: `<noun> show` takes exactly one identifier, and names where to find one when it is missing.
+#: Each command that takes exactly one identifier, with the line that says where to find one.
 SHOW_COMMANDS: Mapping[str, tuple[str, str]] = {
-    "detection show": ("detection identifier", "falcon-axi detection list"),
-    "host show": ("device identifier", "falcon-axi host list"),
+    "detection show": ("detection identifier", "Run `falcon-axi detection list` to see current detection identifiers"),
+    "host show": ("device identifier", "Run `falcon-axi host list` to see current device identifiers"),
+    "search status": ("search identifier", "A search identifier comes from `falcon-axi search start --query '<cql>'`"),
+    "search stop": ("search identifier", "A search identifier comes from `falcon-axi search start --query '<cql>'`"),
 }
 
 #: The valid-command list every suggestion derives from, so none can name a command that does not exist.
 COMMANDS: tuple[str, ...] = tuple(name for name in COMMAND_FLAGS if name != "home")
 
 VALUE_FLAGS = frozenset(
-    {"region", "member-cid", "filter", "severity", "status", "since", "limit", "cursor", "hostname", "platform", "host"}
+    {
+        "region",
+        "member-cid",
+        "filter",
+        "severity",
+        "status",
+        "since",
+        "limit",
+        "cursor",
+        "hostname",
+        "platform",
+        "host",
+        "query",
+        "repository",
+    }
 )
 
 _SECRET_SHAPE = re.compile(r"(secret|password|token|key|passphrase)", re.IGNORECASE)
@@ -204,7 +228,7 @@ def parse(argv: Sequence[str]) -> Parsed:
         raise CliError(
             "VALIDATION_ERROR",
             f"{command} requires exactly one {subject}",
-            [f"Run `{remedy}` to see current {subject}s"],
+            [remedy],
         )
     if command not in SHOW_COMMANDS and positionals:
         raise CliError(
@@ -385,12 +409,64 @@ def help_text(command: str) -> str:
                 "This command is read-only and requires only Vulnerabilities:read.",
             ]
         )
+    if command == "search start":
+        return "\n".join(
+            [
+                "falcon-axi search start --query <CQL> [--repository <name>] [--since <window>]",
+                "",
+                "--query      the CQL search to run; required",
+                f"--repository repository or view to search (default {DEFAULT_REPOSITORY})",
+                f"--since      window to search, such as 24h or 7d (default {DEFAULT_SINCE})",
+                "",
+                "CQL is pipe-based and is neither FQL nor SQL: a filter, then commands.",
+                "Start from a tag or field filter and pipe into commands, and bound the result set in the",
+                "query itself with `| head(N)` or an aggregate; there is no --limit and no --cursor.",
+                "Examples:",
+                "  falcon-axi search start --query '#event_simpleName=ProcessRollup2 | head(5)'",
+                "  falcon-axi search start --query '#event_simpleName=ProcessRollup2 "
+                "| groupBy([ComputerName], function=count())' --since 7d",
+                "",
+                "This command starts a job on the tenant and requires NGSIEM:write, the one write scope",
+                "falcon-axi asks for. Poll it with `falcon-axi search status <id>`.",
+            ]
+        )
+    if command == "search status":
+        return "\n".join(
+            [
+                "falcon-axi search status <search id> [--repository <name>]",
+                "",
+                f"--repository the repository the job was started against (default {DEFAULT_REPOSITORY})",
+                "",
+                "One call is one poll: it reports running, cancelled, or done, and carries the events once",
+                "the job is done. Compare parsed_query with the query you sent, because NG-SIEM turns an",
+                "unrecognised word into a free-text stage rather than an error.",
+                "",
+                "Example: falcon-axi search status abc123",
+                "",
+                "This command is read-only and requires only NGSIEM:read.",
+            ]
+        )
+    if command == "search stop":
+        return "\n".join(
+            [
+                "falcon-axi search stop <search id> [--repository <name>]",
+                "",
+                f"--repository the repository the job was started against (default {DEFAULT_REPOSITORY})",
+                "",
+                "Cancels one search job falcon-axi started. It changes no tenant data, no host, and no",
+                "detection: the only thing it stops is the job.",
+                "",
+                "Example: falcon-axi search stop abc123",
+                "",
+                "This command requires NGSIEM:write, the one write scope falcon-axi asks for.",
+            ]
+        )
     if command == "scopes":
         return "\n".join(
             [
                 "falcon-axi scopes",
                 "",
-                "Prints the command-to-scope matrix for provisioning a read-only API client.",
+                "Prints the command-to-scope matrix for provisioning the API client.",
                 "It is local only: it makes no request and needs no credential.",
             ]
         )
@@ -413,6 +489,9 @@ def help_text(command: str) -> str:
             "  host list                 list hosts from the Falcon Hosts collection",
             "  host show <device id>     the full detail for one host",
             "  vuln list                 list Spotlight vulnerabilities; a filter is required",
+            "  search start              start an NG-SIEM CQL search job",
+            "  search status <id>        poll one search job and read its events",
+            "  search stop <id>          cancel one search job",
             "  auth status               whether a credential resolved, and where to",
             "  scopes                    the command-to-scope matrix, with no request made",
             "",
@@ -421,8 +500,9 @@ def help_text(command: str) -> str:
             "",
             f"Regions: {', '.join(REGIONS)}",
             "",
-            "falcon-axi is read-only: it lists no mutating command and requires only Alerts:read,",
-            "Hosts:read, and Vulnerabilities:read.",
+            "falcon-axi lists no command that changes a host, a detection, or a policy. It requires",
+            "Alerts:read, Hosts:read, Vulnerabilities:read, and NGSIEM:read, plus NGSIEM:write for",
+            "`search start` and `search stop` alone.",
         ]
     )
 
@@ -473,7 +553,7 @@ def _auth_status(transport: Any, flags: Mapping[str, str | bool], env: Mapping[s
     if credential.path:
         value["credential_path"] = credential.path
     value["tenant"] = raw(_tenant_line(resolved.session))
-    value["scopes"] = raw("read-only client recommended; falcon-axi requests no write scope")
+    value["scopes"] = raw("read scopes, plus NGSIEM:write for `search start` and `search stop` alone")
     if limit is not None and remaining is not None:
         value["rate_limit"] = raw(f"{remaining} of {limit} requests remaining")
     return value, ["Run `falcon-axi detection list` to read detections with this credential"]
@@ -506,6 +586,28 @@ def _read(transport: Any, parsed: Parsed, resolved: Resolved) -> CommandOutput:
         )
     if command == "host show":
         return show_host(transport, resolved.session, parsed.positionals[0])
+    if command == "search start":
+        return start_search(
+            transport,
+            resolved.session,
+            query=_str(flags.get("query")) or "",
+            repository=_str(flags.get("repository")) or DEFAULT_REPOSITORY,
+            since=_str(flags.get("since")) or DEFAULT_SINCE,
+        )
+    if command == "search status":
+        return search_status(
+            transport,
+            resolved.session,
+            parsed.positionals[0],
+            repository=_str(flags.get("repository")) or DEFAULT_REPOSITORY,
+        )
+    if command == "search stop":
+        return stop_search(
+            transport,
+            resolved.session,
+            parsed.positionals[0],
+            repository=_str(flags.get("repository")) or DEFAULT_REPOSITORY,
+        )
     return list_vulnerabilities(
         transport,
         resolved.session,

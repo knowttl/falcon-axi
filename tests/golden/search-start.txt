@@ -1,0 +1,5 @@
+search_id: synthetic-search-job-01
+repository: search-all
+query: #event_simpleName=ProcessRollup2 | head(2)
+window: the last 24h
+help[3]: "Run `falcon-axi search status synthetic-search-job-01` to poll this job and read its events","Run `falcon-axi search stop synthetic-search-job-01` to cancel it","A job keeps running until it completes or is stopped, so stop one you no longer need"

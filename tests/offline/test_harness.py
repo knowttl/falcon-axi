@@ -16,6 +16,7 @@ from falcon_axi.transport.types import OAuthTokenArgs, PreparedOperation, Prepar
 TOKEN_URL = "https://api.crowdstrike.com/oauth2/token"
 QUERY_URL = "https://api.crowdstrike.com/alerts/queries/alerts/v2"
 HYDRATE_URL = "https://api.crowdstrike.com/alerts/entities/alerts/v2"
+QUERYJOBS_URL = "https://api.crowdstrike.com/humio/api/v1/repositories/search-all/queryjobs"
 JSON = {"Content-Type": "application/json"}
 
 
@@ -48,6 +49,44 @@ def test_the_hydrate_step_issues_the_registered_post_with_its_body() -> None:
     assert request.method == "POST"
     assert request.path == "/alerts/entities/alerts/v2"
     assert request.json() == {"composite_ids": ["ldt:a:1"]}
+
+
+def test_the_search_lifecycle_routes_interpolate_their_path_variables() -> None:
+    """The three NG-SIEM routes are the only ones with `{name}` variables (§3.3 property 7).
+
+    `GetSearchStatusV1` also pins the falconpy quirk the sink works around: its uber path-variable
+    map lists `search_id` beside `id` and reads every name it lists while interpolating.
+    """
+    with requests_mock.Mocker() as mock:
+        mock.post(QUERYJOBS_URL, json={"id": "synthetic-job"}, headers=JSON)
+        mock.get(f"{QUERYJOBS_URL}/synthetic-job", json={"done": True, "events": []}, headers=JSON)
+        mock.delete(f"{QUERYJOBS_URL}/synthetic-job", status_code=200, headers=JSON)
+        transport = HttpTransport()
+        transport.request(
+            "StartSearchV1",
+            RequestArgs(
+                base_url="https://api.crowdstrike.com",
+                token="synthetic-token",
+                path_params={"repository": "search-all"},
+                body={"queryString": "#event_simpleName=ProcessRollup2", "start": 1, "end": 2},
+            ),
+        )
+        for id in ("GetSearchStatusV1", "StopSearchV1"):
+            transport.request(
+                id,  # type: ignore[arg-type]
+                RequestArgs(
+                    base_url="https://api.crowdstrike.com",
+                    token="synthetic-token",
+                    path_params={"repository": "search-all", "id": "synthetic-job"},
+                ),
+            )
+    started, polled, stopped = mock.request_history
+    assert (started.method, started.path) == ("POST", "/humio/api/v1/repositories/search-all/queryjobs")
+    assert started.json()["queryString"] == "#event_simpleName=ProcessRollup2"
+    assert (polled.method, polled.path) == ("GET", "/humio/api/v1/repositories/search-all/queryjobs/synthetic-job")
+    assert (stopped.method, stopped.path) == ("DELETE", "/humio/api/v1/repositories/search-all/queryjobs/synthetic-job")
+    # The path variables are interpolated, never left behind as query string parameters.
+    assert all(not request.qs for request in mock.request_history)
 
 
 def test_the_token_mint_is_falcon_axis_own_and_refuses_to_follow_a_redirect() -> None:

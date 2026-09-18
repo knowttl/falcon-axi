@@ -1,4 +1,4 @@
 falcon-axi scopes
 
-Prints the command-to-scope matrix for provisioning a read-only API client.
+Prints the command-to-scope matrix for provisioning the API client.
 It is local only: it makes no request and needs no credential.

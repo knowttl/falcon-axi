@@ -73,5 +73,19 @@
   "error-rate-limited": 1,
   "error-upstream-on-hydrate": 1,
   "error-not-found-on-query": 1,
-  "error-upstream-unavailable": 1
+  "error-upstream-unavailable": 1,
+  "help-search-start": 0,
+  "help-search-status": 0,
+  "help-search-stop": 0,
+  "search-start": 0,
+  "search-start-scope-denied": 1,
+  "search-start-without-query": 2,
+  "search-start-unsafe-repository": 2,
+  "search-status-done": 0,
+  "search-status-running": 0,
+  "search-status-empty": 0,
+  "search-status-not-found": 1,
+  "search-stop": 0,
+  "search-stop-without-id": 2,
+  "unknown-search-subcommand": 2
 }

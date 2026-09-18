@@ -175,7 +175,7 @@ def test_detection_show_reports_a_missing_detection_as_not_found() -> None:
     assert re.search(r"^code: NOT_FOUND$", stdout, re.MULTILINE)
 
 
-def test_the_home_view_caps_at_five_rows_and_names_the_read_only_posture() -> None:
+def test_the_home_view_caps_at_five_rows_and_names_the_domains_it_reads() -> None:
     ids = [f"ldt:synthetic-agent-{index}:{index}" for index in range(5)]
     recorded = RecordedTransport(
         [
@@ -201,7 +201,7 @@ def test_the_home_view_caps_at_five_rows_and_names_the_read_only_posture() -> No
     )
     stdout, exit_code = run([], recorded, dict(CREDENTIAL_ENV))
     assert exit_code == 0
-    assert "detections, hosts, and vulnerabilities from the shell (read-only)" in stdout
+    assert "detections, hosts, vulnerabilities, and NG-SIEM searches from the shell" in stdout
     assert re.search(r"^tenant: us-1 \(own CID unavailable\)$", stdout, re.MULTILINE)
     assert re.search(r"^count: 5 of 384 total$", stdout, re.MULTILINE)
     assert len(_rows(stdout)) == 5

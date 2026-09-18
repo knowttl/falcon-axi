@@ -1,0 +1,6 @@
+state: done
+count: 0 of 0 matching events
+events_scanned: 148231
+parsed_query: #event_simpleName=ProcessRollup2 | head(2)
+events: 0 events matched this search
+help[2]: "Compare parsed_query with the query you sent: NG-SIEM turns an unrecognised word into a free-text stage rather than an error","Bound a large result set in the query itself, with `| head(N)` or an aggregate such as `groupBy([...], function=count())`"

@@ -1,8 +1,8 @@
 """`falcon-axi scopes`: the command-to-scope matrix, projected from the operation registry (§8.3).
 
 It is local-only and authentication-free, and because it is generated from the registry it cannot
-drift from what falcon-axi actually calls and cannot name a write scope: no registered operation
-has one (§5.7).
+drift from what falcon-axi actually calls and cannot name a write scope beyond the one captain
+exception N1 admits: no other registered operation has one (§4.3, §5.7).
 """
 
 from typing import Any
@@ -18,6 +18,9 @@ COMMAND_OPERATIONS: tuple[tuple[str, tuple[OperationId, ...]], ...] = (
     ("host list", ("QueryDevicesByFilter", "PostDeviceDetailsV2")),
     ("host show", ("PostDeviceDetailsV2",)),
     ("vuln list", ("combinedQueryVulnerabilities",)),
+    ("search start", ("StartSearchV1",)),
+    ("search status", ("GetSearchStatusV1",)),
+    ("search stop", ("StopSearchV1",)),
 )
 
 
@@ -31,13 +34,19 @@ def scope_rows() -> list[dict[str, str]]:
                 if command not in listed:
                     listed.append(command)
     return [
-        {"scope": scope, "access": "read", "commands": ", ".join(named), "required": "yes"} for scope, named in commands.items()
+        {
+            "scope": scope,
+            "access": "write" if scope.endswith(":write") else "read",
+            "commands": ", ".join(named),
+            "required": "yes",
+        }
+        for scope, named in commands.items()
     ]
 
 
 def scope_matrix() -> CommandOutput:
     value: dict[str, Any] = {
-        "posture": raw("read-only; falcon-axi requests no write scope and issues no mutating operation"),
+        "posture": raw("read-only except NG-SIEM search start and stop, the one write scope captain exception N1 admits"),
         "scopes": scope_rows(),
         "member_cid_token_scope": raw("unresolved (Flight Control read may be required; see design section 17.7)"),
     }
@@ -45,6 +54,7 @@ def scope_matrix() -> CommandOutput:
         value=value,
         help=(
             "Grant these scopes in the Falcon console under Support and resources > API clients and keys",
-            "Grant read access only; falcon-axi never needs a write scope",
+            "Grant read access only, apart from NGSIEM:write; falcon-axi needs no other write scope",
+            "Omit NGSIEM:write to provision a wholly read-only client, and the `search` commands then fail with SCOPE_DENIED",
         ),
     )

@@ -21,6 +21,8 @@ class RequestArgs:
     token: str
     query: Mapping[str, str | int] | None = None
     body: Any = None
+    #: Values interpolated into the route's `{name}` variables, validated before the request is sent.
+    path_params: Mapping[str, str] | None = None
     allow_unknown_origin: bool = False
 
 
@@ -45,13 +47,14 @@ class Transport(Protocol):
 
 @dataclass(frozen=True)
 class PreparedOperation:
-    """One registered read operation, resolved and validated, ready for the sink."""
+    """One registered operation, resolved and validated, ready for the sink."""
 
     operation_id: OperationId
     origin: str
     token: str
     query: Mapping[str, str | int] = field(default_factory=lambda: MappingProxyType({}))
     body: Any = None
+    path_params: Mapping[str, str] = field(default_factory=lambda: MappingProxyType({}))
 
 
 @dataclass(frozen=True)

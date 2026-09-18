@@ -28,7 +28,10 @@ def test_an_unknown_command_or_subcommand_fails_before_any_request() -> None:
     recorded = RecordedTransport([])
     stdout, exit_code = run(["incident", "list"], recorded, dict(CREDENTIAL_ENV))
     assert exit_code == 2
-    assert "valid commands: detection list, detection show, host list, host show, vuln list, auth status, scopes" in stdout
+    assert (
+        "valid commands: detection list, detection show, host list, host show, vuln list, "
+        "search start, search status, search stop, auth status, scopes" in stdout
+    )
     subcommand, _ = run(["detection", "contain"], recorded, dict(CREDENTIAL_ENV))
     assert "valid detection subcommands: list, show" in subcommand
     host, _ = run(["host", "contain"], recorded, dict(CREDENTIAL_ENV))
@@ -87,6 +90,9 @@ def test_help_never_advertises_a_command_the_cli_does_not_have() -> None:
         ["host", "list", "--help"],
         ["host", "show", "--help"],
         ["vuln", "list", "--help"],
+        ["search", "start", "--help"],
+        ["search", "status", "--help"],
+        ["search", "stop", "--help"],
         ["auth", "status", "--help"],
         ["scopes", "--help"],
     )
@@ -96,7 +102,9 @@ def test_help_never_advertises_a_command_the_cli_does_not_have() -> None:
         for absent in ("falcon-axi setup", "--max-rows", "--fields", "vuln show", "tenant list"):
             assert absent not in stdout, f"{' '.join(argv)} advertises {absent}"
     top, _ = run(["--help"], RecordedTransport([]), dict(CREDENTIAL_ENV))
-    assert "read-only" in top
+    # The one write scope is named where an operator will see it, and no mutating command is listed.
+    assert "lists no command that changes a host, a detection, or a policy" in top
+    assert "NGSIEM:write" in top
     assert VERSION in top
     for command in COMMANDS:
         assert command in top
