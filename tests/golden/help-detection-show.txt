@@ -1,0 +1,7 @@
+falcon-axi detection show <composite id> [--full]
+
+--full       print long fields such as the command line without truncation
+
+Example: falcon-axi detection show "ldt:aid:1234"
+
+This command is read-only and requires only Alerts:read.

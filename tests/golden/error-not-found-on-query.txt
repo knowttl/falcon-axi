@@ -1,0 +1,3 @@
+error: no detections matched that identifier
+code: NOT_FOUND
+help[1]: "Run `falcon-axi detection list` to see current identifiers"

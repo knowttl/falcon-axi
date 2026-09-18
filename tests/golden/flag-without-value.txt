@@ -1,0 +1,2 @@
+error: "--filter requires a value"
+code: VALIDATION_ERROR

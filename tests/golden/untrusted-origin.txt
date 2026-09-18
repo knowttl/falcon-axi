@@ -1,0 +1,4 @@
+error: the resolved Falcon base URL is not a trusted destination
+code: ORIGIN_NOT_ALLOWED
+invalid_component: host
+help[3]: "Use a documented region with `--region` (us-1 us-2 eu-1 us-gov-1)","Allowed hosts are the documented Falcon clouds and subdomains of crowdstrike.com or gcw.crowdstrike.com","Pass `--allow-unknown-origin` in the same invocation to reach a deliberately selected unknown Falcon cloud"

@@ -1,0 +1,3 @@
+error: the filter for detections was rejected
+code: FQL_INVALID
+help[3]: "FQL uses + for AND, `,` for OR, and values must be quoted","Example: `--filter \"severity_name:'High'+status:'new'\"`","Run `falcon-axi detection list --help` for the filterable fields"

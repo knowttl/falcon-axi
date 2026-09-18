@@ -1,0 +1,13 @@
+count: 10 of 41892 total
+detections[10]{id,severity,tactic,hostname}:
+  "ldt:synthetic-agent-0:0",Low,Discovery,WIN-WS-07
+  "ldt:synthetic-agent-1:1",Low,Discovery,WIN-WS-07
+  "ldt:synthetic-agent-2:2",Low,Discovery,WIN-WS-07
+  "ldt:synthetic-agent-3:3",Low,Discovery,WIN-WS-07
+  "ldt:synthetic-agent-4:4",Low,Discovery,WIN-WS-07
+  "ldt:synthetic-agent-5:5",Low,Discovery,WIN-WS-07
+  "ldt:synthetic-agent-6:6",Low,Discovery,WIN-WS-07
+  "ldt:synthetic-agent-7:7",Low,Discovery,WIN-WS-07
+  "ldt:synthetic-agent-8:8",Low,Discovery,WIN-WS-07
+  "ldt:synthetic-agent-9:9",Low,Discovery,WIN-WS-07
+help[3]: "Run `falcon-axi detection show <id>` for the full detection","Narrow the filter so the result set fits under 10000, for example by shortening `--since` or adding `--severity`","The documented route past 10000 Alerts is PostCombinedAlertsV1 with `after` pagination, which falcon-axi v1 does not register, so those rows are not reachable through this CLI"

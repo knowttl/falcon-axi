@@ -1,0 +1,2 @@
+detections: 0 detections in this tenant
+help[1]: "Run `falcon-axi detection list` without filters to see what is firing"

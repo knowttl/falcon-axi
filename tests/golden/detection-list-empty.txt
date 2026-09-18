@@ -1,0 +1,2 @@
+detections: 0 detections matching critical severity in the last 24h
+help[1]: "Run `falcon-axi detection list --severity critical --since 24h --since 7d` to widen the window"

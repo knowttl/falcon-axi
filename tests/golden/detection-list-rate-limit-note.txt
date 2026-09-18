@@ -1,0 +1,7 @@
+count: 2 of 384 total
+continuation_cursor: eyJvcGVyYXRpb24iOiJHZXRRdWVyaWVzQWxlcnRzVjIiLCJtb2RlbCI6Im9mZnNldCIsInBvc2l0aW9uIjoyLCJmaW5nZXJwcmludCI6ImM3OTIxYjExMjNlODAxY2Q5NmRmNDA5NjkzOGRkMWZiNGJhODc1MmQzM2E0Y2M0Y2EwNWVmMDRlMWFjN2QxMDEifQ
+detections[2]{id,severity,tactic,hostname}:
+  "ldt:synthetic-agent-01:1001",High,Defense Evasion,WIN-DC-01
+  "ldt:synthetic-agent-02:1002",Critical,Execution,WIN-WS-42
+rate_limit: 100 of 6000 requests remaining in this rate limit window
+help[2]: "Run `falcon-axi detection show <id>` for the full detection","Run `falcon-axi detection list --limit 2 --cursor eyJvcGVyYXRpb24iOiJHZXRRdWVyaWVzQWxlcnRzVjIiLCJtb2RlbCI6Im9mZnNldCIsInBvc2l0aW9uIjoyLCJmaW5nZXJwcmludCI6ImM3OTIxYjExMjNlODAxY2Q5NmRmNDA5NjkzOGRkMWZiNGJhODc1MmQzM2E0Y2M0Y2EwNWVmMDRlMWFjN2QxMDEifQ` for the next page"

@@ -1,0 +1,4 @@
+error: Falcon could not answer the request for detections
+code: UPSTREAM_ERROR
+trace_id: synthetic-trace-500
+help[2]: "Retry shortly","Quote the trace_id when opening a CrowdStrike support case"

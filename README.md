@@ -10,8 +10,8 @@ The package is real and installable, and it ships the first vertical slice of
 
 What stage 1 ships:
 
-- the package foundation: a Node package, a TypeScript build, the `falcon-axi` bin entry, and one
-  offline `npm run verify` entry point;
+- the package foundation: a Python package, the `falcon-axi` console script, and one offline
+  `uv run scripts/verify.py` entry point;
 - the sealed read-only transport and its closed operation registry, with evidence carried per
   operation and a single permitted network sink;
 - credential resolution through the environment or a `0600` credentials file, region selection and
@@ -28,6 +28,9 @@ What stage 1 does **not** ship yet, so no output advertises it:
 
 `docs/design/v1.md` remains the authority for the full v1 surface, and its §17 open questions are
 still open. Nothing here answers one of them.
+[`docs/design/v1-python.md`](docs/design/v1-python.md) amends it for language, HTTP client, test
+layout, and packaging: falcon-axi is pure Python on `crowdstrike-falconpy`, with no Node runtime and
+no MCP process anywhere.
 
 ## Read-only
 
@@ -45,6 +48,27 @@ the commands stage 1 ships need only `Alerts:read`.
 Whether member-CID token minting additionally requires `Flight Control:read` remains an explicitly
 unresolved question in `docs/design/v1.md` §17.7.
 A falcon-axi release that asks for a write scope is wrong.
+
+## Install
+
+falcon-axi installs from this repository with [uv](https://docs.astral.sh/uv/); it is not on PyPI
+while the repository is private.
+
+```sh
+# Linux, WSL, macOS
+curl -LsSf https://astral.sh/uv/install.sh | sh
+uv tool install git+https://github.com/knowttl/falcon-axi@v0.2.0
+```
+
+```powershell
+# Windows
+winget install --id astral-sh.uv
+uv tool install git+https://github.com/knowttl/falcon-axi@v0.2.0
+```
+
+For a one-off run, or for an agent with no global install:
+`uvx --from git+https://github.com/knowttl/falcon-axi falcon-axi ...`.
+uv provisions Python 3.11 or newer on demand, so no system Python is required.
 
 ## Use
 
@@ -71,14 +95,19 @@ No secret is ever accepted as a command-line argument.
 ## Verify
 
 ```sh
-npm install
-npm run verify
+uv sync
+uv run scripts/verify.py
 ```
 
-`npm run verify` is the single local entry point and runs entirely offline: typecheck, the
-architecture boundary check, and the offline test suite against wholly synthetic fixtures.
-No test reaches the network, and no fixture contains a captured Falcon response, credential, token,
-or tenant identifier.
+`uv run scripts/verify.py` is the single local entry point and runs entirely offline: ruff,
+`mypy --strict`, the architecture boundary check, and the offline test suite against wholly
+synthetic fixtures.
+A pytest fixture refuses any socket, so no test can reach the network, and no fixture contains a
+captured Falcon response, credential, token, or tenant identifier.
+
+The offline suite includes the cross-language parity gate in `tests/golden/`: for every one of the
+52 recorded invocations, the Python implementation reproduces the document the TypeScript stage 1 it
+replaced printed, byte for byte, with the same exit code.
 
 Offline fixtures prove deterministic behavior, not upstream fidelity: they are authored from the
 documented response schemas cited in `docs/design/v1.md` §18, so every error-translation pattern
@@ -93,8 +122,10 @@ workflow requires the captain to lift that directive.
 
 [`CrowdStrike/falcon-mcp`](https://github.com/CrowdStrike/falcon-mcp) is used as a behavioral,
 domain, scope, FQL, credential, and test reference only.
-It is not a fork base, not a dependency, and not part of falcon-axi at runtime.
+It is not a fork base, not a dependency, and not part of falcon-axi at runtime: falcon-axi runs no
+MCP process, imports no `falcon_mcp` or `mcp` module, and installs neither.
+Its only runtime dependencies are `crowdstrike-falconpy` and `toon-format`.
 
 ## License
 
-Not yet chosen.
+MIT. See [`LICENSE`](LICENSE).

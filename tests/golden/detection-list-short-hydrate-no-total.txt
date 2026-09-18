@@ -1,0 +1,22 @@
+count: 18 of unknown total
+continuation_cursor: eyJvcGVyYXRpb24iOiJHZXRRdWVyaWVzQWxlcnRzVjIiLCJtb2RlbCI6Im9mZnNldCIsInBvc2l0aW9uIjoyMCwiZmluZ2VycHJpbnQiOiI2NTUxOTU1Y2RlYmQ1OWQ4ZmY3ODczYTJmMmJiNzdjYjkwZGFkMDAwZDEyYmNhNjJjMmI1NGM5MWU1NDhhMGQ3In0
+detections[18]{id,severity,tactic,hostname}:
+  "ldt:synthetic-agent-0:0",Medium,Discovery,WIN-WS-11
+  "ldt:synthetic-agent-1:1",Medium,Discovery,WIN-WS-11
+  "ldt:synthetic-agent-2:2",Medium,Discovery,WIN-WS-11
+  "ldt:synthetic-agent-3:3",Medium,Discovery,WIN-WS-11
+  "ldt:synthetic-agent-4:4",Medium,Discovery,WIN-WS-11
+  "ldt:synthetic-agent-5:5",Medium,Discovery,WIN-WS-11
+  "ldt:synthetic-agent-6:6",Medium,Discovery,WIN-WS-11
+  "ldt:synthetic-agent-7:7",Medium,Discovery,WIN-WS-11
+  "ldt:synthetic-agent-8:8",Medium,Discovery,WIN-WS-11
+  "ldt:synthetic-agent-9:9",Medium,Discovery,WIN-WS-11
+  "ldt:synthetic-agent-10:10",Medium,Discovery,WIN-WS-11
+  "ldt:synthetic-agent-11:11",Medium,Discovery,WIN-WS-11
+  "ldt:synthetic-agent-12:12",Medium,Discovery,WIN-WS-11
+  "ldt:synthetic-agent-13:13",Medium,Discovery,WIN-WS-11
+  "ldt:synthetic-agent-14:14",Medium,Discovery,WIN-WS-11
+  "ldt:synthetic-agent-15:15",Medium,Discovery,WIN-WS-11
+  "ldt:synthetic-agent-16:16",Medium,Discovery,WIN-WS-11
+  "ldt:synthetic-agent-17:17",Medium,Discovery,WIN-WS-11
+help[2]: "Run `falcon-axi detection show <id>` for the full detection","Run `falcon-axi detection list --limit 20 --cursor eyJvcGVyYXRpb24iOiJHZXRRdWVyaWVzQWxlcnRzVjIiLCJtb2RlbCI6Im9mZnNldCIsInBvc2l0aW9uIjoyMCwiZmluZ2VycHJpbnQiOiI2NTUxOTU1Y2RlYmQ1OWQ4ZmY3ODczYTJmMmJiNzdjYjkwZGFkMDAwZDEyYmNhNjJjMmI1NGM5MWU1NDhhMGQ3In0` for the next page"
