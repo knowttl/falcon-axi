@@ -98,6 +98,7 @@ export FALCON_CLIENT_SECRET=...
 ```
 
 ```sh
+mkdir -p ~/.config/falcon-axi
 install -m 0600 /dev/null ~/.config/falcon-axi/credentials
 printf 'FALCON_CLIENT_ID=%s\nFALCON_CLIENT_SECRET=%s\n' "$id" "$secret" > ~/.config/falcon-axi/credentials
 ```
