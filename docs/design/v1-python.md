@@ -1,8 +1,8 @@
 # falcon-axi C1 design: the Python implementation of the v1 design
 
 Status: commissioned; stage 1 (P1), stage 2 (P2), and the NG-SIEM search surface admitted by captain exception N1 (v1.md §4.3) are implemented.
-Written 2026-09-18 by the `falcon-axi-mcp-vs-cli-review` scout after the captain chose path C1 in the Lavish review, and committed here when the captain commissioned the build.
-The captain locked four defaults at commissioning: MIT license, the repository stays private for now, the package name is `falcon-axi`, and decision D2 is accepted.
+Decision record, 2026-09-18: implement falcon-axi in Python on falconpy, and commit that design with the build.
+Locked defaults: MIT license, package name `falcon-axi`, and decision D2 accepted.
 §9.1's ship brief is the contract stage 1 was built to; §10's open decisions are answered by those locked defaults.
 
 ## 0. What this document is, and what it is not
@@ -17,8 +17,7 @@ Nothing in a Python rewrite relaxes it further, and §3 below shows how the guar
 
 ## 1. Decision record
 
-The captain's words, from the Lavish session on 2026-09-18, are recorded in the backlog task `falcon-axi-mcp-vs-cli-review` through the captain-hold answer path.
-In sequence: "I like option C the best. Would it make sense to have another node wrapper around the python? or should we just stick with python?"; then "okay lets proceed with your recommendation. What would the install look like then? where would I publish the package?"; then "proceed with your recommendation for the remaining items then write the design and report and hand it back to the captain so he can commission the build."
+Decision record, 2026-09-18: implement falcon-axi as a pure Python CLI on falconpy, with no Node wrapper, and record the resulting choices below.
 
 Resulting decisions:
 
@@ -264,7 +263,7 @@ For agents without a global install, `uvx --from git+https://github.com/knowttl/
 
 ## 9. Commissioning plan
 
-Each stage is one ship task with its own PR through no-mistakes.
+Each stage is one change with its own pull request.
 
 **P0. Spike, one day, no product code.**
 Answer four questions with evidence and stop:
@@ -331,7 +330,7 @@ Scope
     add the socket guard; add scripts/architecture_check.py and scripts/verify.py.
   - Update README (install from git with uv, status section, relationship to falcon-mcp stating no
     runtime dependency), AGENTS.md (verify entry point, seams, credential rules), and v1.md status
-    lines; add docs/design/v1-python.md from the scout's design.
+    lines; add docs/design/v1-python.md as committed in this document.
   - Delete src/, test/, package.json, package-lock.json, tsconfig.json, scripts/architecture-check.mjs,
     dist/ in the same PR.
 
@@ -350,7 +349,7 @@ Out of scope
   any PyPI publish. Tag v0.2.0 is cut by the captain after merge.
 
 Decisions assumed (design §10); stop with needs-decision if any is contradicted
-  license not yet chosen (no publish); repo stays private; package name falcon-axi; D2 accepted.
+  license not yet chosen (no publish); package name falcon-axi; D2 accepted.
 ```
 
 ## 10. Captain decisions still open
@@ -358,7 +357,7 @@ Decisions assumed (design §10); stop with needs-decision if any is contradicted
 All four were answered by the captain at commissioning and are recorded in the status line above.
 
 1. **License for falcon-axi.** MIT, in `LICENSE`.
-2. **Repository visibility.** Private for now, so install is from git with uv and PyPI stays deferred.
+2. **Repository visibility.** Install is from git with uv, and PyPI stays deferred until a public release.
 3. **Package name.** `falcon-axi`.
 4. **D2 acceptance.** Accepted: falcon-axi mints the token with redirects refused and hands it to falconpy (§3.3).
 

@@ -111,7 +111,8 @@ Two seams are worth knowing before changing them:
   Standalone member-CID values, including those in auth status, suggestions, URLs, and logs, stay masked or
   unprinted; the documented `--member-cid` flag remains allowed.
   NG-SIEM search event CID fields (`cid`, `#repo.cid`) are redacted in output.
-- No credential, token, CID, or captured live data belongs in this repository, including fixtures.
+- No credential, token, CID, captured live data, or personal data belongs in this repository, including fixtures, docs, and pull-request text.
+  Clean it out before it is committed.
   See `docs/design/v1.md` §5 and §14.4.
   Every fixture under `tests/fixtures/` is wholly synthetic and carries a provenance header that an offline test
   asserts.
