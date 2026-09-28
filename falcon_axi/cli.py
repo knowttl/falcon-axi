@@ -30,8 +30,8 @@ from falcon_axi.render import mask_cid, raw, render
 from falcon_axi.scopes import scope_matrix
 from falcon_axi.search import DEFAULT_REPOSITORY, DEFAULT_SINCE, search_status, start_search, stop_search
 from falcon_axi.version import VERSION
+from falcon_axi.vuln import EXTRA_FIELDS, list_vulnerabilities, parse_fields
 from falcon_axi.vuln import QUERY_CEILING as SPOTLIGHT_CEILING
-from falcon_axi.vuln import list_vulnerabilities
 
 DESCRIPTION = "Read CrowdStrike Falcon detections, hosts, vulnerabilities, and NG-SIEM searches from the shell"
 HOME_ROWS = 5
@@ -67,7 +67,7 @@ COMMAND_FLAGS: Mapping[str, tuple[str, ...]] = {
     "detection show": ("full",),
     "host list": ("filter", "hostname", "platform", "status", "since", "limit", "cursor"),
     "host show": (),
-    "vuln list": ("filter", "host", "severity", "status", "since", "limit", "cursor"),
+    "vuln list": ("filter", "host", "severity", "status", "since", "limit", "cursor", "fields"),
     "search start": ("query", "repository", "since"),
     "search status": ("repository",),
     "search stop": ("repository",),
@@ -108,6 +108,7 @@ VALUE_FLAGS = frozenset(
         "host",
         "query",
         "repository",
+        "fields",
     }
 )
 
@@ -238,6 +239,8 @@ def parse(argv: Sequence[str]) -> Parsed:
         )
     if "limit" in flags:
         _limit_of(flags, command)
+    if "fields" in flags:
+        parse_fields(str(flags["fields"]))
     return Parsed(command, flags, tuple(positionals))
 
 
@@ -298,7 +301,7 @@ def _vuln_query_of(flags: Mapping[str, str | bool]) -> VulnQuery:
 def _suggestion_for(command: str, flags: Mapping[str, str | bool]) -> str:
     """Replays every non-sensitive flag of this invocation into a next-page suggestion (§7.2)."""
     parts = [f"falcon-axi {command}"]
-    for name in ("region", "filter", "hostname", "platform", "host", "severity", "status", "since", "limit"):
+    for name in ("region", "filter", "hostname", "platform", "host", "severity", "status", "since", "limit", "fields"):
         value = flags.get(name)
         if isinstance(value, str):
             quoted = f'"{value}"' if _WHITESPACE.search(value) else value
@@ -388,7 +391,7 @@ def help_text(command: str) -> str:
         return "\n".join(
             [
                 "falcon-axi vuln list [--host <device id>] [--severity <name>] [--status <name>] "
-                "[--since <window>] [--filter <FQL>] [--limit N] [--cursor <token>]",
+                "[--since <window>] [--filter <FQL>] [--limit N] [--cursor <token>] [--fields <names>]",
                 "",
                 "--host       device id (AID) whose vulnerabilities to read",
                 f"--severity   one of {', '.join(VULN_SEVERITIES)}",
@@ -397,7 +400,10 @@ def help_text(command: str) -> str:
                 "--filter     raw FQL; + is AND, `,` is OR, values are single-quoted",
                 f"--limit      rows in this call (default {DEFAULT_LIMIT}, ceiling {SPOTLIGHT_CEILING})",
                 "--cursor     opaque continuation token from a previous call",
+                f"--fields     extra columns, comma-separated: {', '.join(EXTRA_FIELDS)}",
                 "",
+                "Default columns are id, cve, severity, and hostname. --fields adds columns from that",
+                "allowlist; an unknown name is refused and the valid names are listed.",
                 "A filter is required, from a shorthand flag or --filter, because Spotlight requires one.",
                 "Wildcards are unsupported and a `*` is refused before the request is made.",
                 "Filterable fields include aid, cve.id, cve.severity, cve.exprt_rating, cve.exploit_status,",
@@ -616,6 +622,7 @@ def _read(transport: Any, parsed: Parsed, resolved: Resolved) -> CommandOutput:
         cursor=_str(flags.get("cursor")),
         credential=resolved.credential,
         suggestion=_suggestion_for(command, flags),
+        fields=parse_fields(_str(flags.get("fields")) or "") if flags.get("fields") else (),
     )
 
 

@@ -88,6 +88,35 @@ def _token_failure(response: FalconResponse, member_cid: str | None) -> CliError
     return translate_falcon_error(response, "GetQueriesAlertsV2", "the Falcon token endpoint")
 
 
+def _redirect_refused() -> CliError:
+    """A token redirect is never followed, and Location is never read (§6.3, §6.4)."""
+    return CliError(
+        "ORIGIN_NOT_ALLOWED",
+        "the Falcon endpoint answered with a redirect and no credential was replayed",
+        ["Supply a verified Falcon base URL with `--region <url>`"],
+        {"invalid_component": "redirect"},
+    )
+
+
+def _region_mismatch(observed: str) -> CliError:
+    return CliError(
+        "REGION_MISMATCH",
+        f"this credential belongs to Falcon region {observed}",
+        [
+            f"falcon-axi has no verified base URL for {observed}",
+            "Supply a verified full Falcon base URL with `--region <url> --allow-unknown-origin`",
+        ],
+        {"observed_region": observed},
+    )
+
+
+def _verified_host(observed: str) -> str:
+    target = REGIONS.get(observed)
+    if not target:
+        raise _region_mismatch(observed)
+    return target
+
+
 def authenticate(
     transport: Transport,
     credential: Credential,
@@ -97,8 +126,9 @@ def authenticate(
 ) -> Session:
     """Mints a bearer token for this invocation (§5.1, §5.4).
 
-    The token is never persisted, and region autodiscovery re-targets at most once on the
-    `X-Cs-Region` header Falcon returns with the token (§6.4).
+    The token is never persisted. Region autodiscovery re-targets at most once: a 3xx from the
+    token endpoint is not followed, and a known `X-Cs-Region` selects that region's verified host
+    for one re-mint. Location is never read (§6.4).
     """
 
     def mint(target: str) -> FalconResponse:
@@ -113,29 +143,31 @@ def authenticate(
         )
 
     response = mint(base_url)
-    if response.status not in (200, 201):
-        raise _token_failure(response, member_cid)
-
     retargeted_from: str | None = None
-    observed = response.headers.get("x-cs-region")
     current = region_of(base_url)
-    if observed and current and observed != current:
-        target = REGIONS.get(observed)
-        if not target:
-            raise CliError(
-                "REGION_MISMATCH",
-                f"this credential belongs to Falcon region {observed}",
-                [
-                    f"falcon-axi has no verified base URL for {observed}",
-                    "Supply a verified full Falcon base URL with `--region <url> --allow-unknown-origin`",
-                ],
-                {"observed_region": observed},
-            )
+    if 300 <= response.status < 400:
+        observed = response.headers.get("x-cs-region")
+        if not observed:
+            raise _redirect_refused()
+        target = _verified_host(observed)
+        if target == base_url:
+            raise _redirect_refused()
         retargeted_from = current
         base_url = target
         response = mint(base_url)
-        if response.status not in (200, 201):
-            raise _token_failure(response, member_cid)
+        if 300 <= response.status < 400:
+            raise _redirect_refused()
+    elif response.status in (200, 201):
+        observed = response.headers.get("x-cs-region")
+        if observed and current and observed != current:
+            target = _verified_host(observed)
+            retargeted_from = current
+            base_url = target
+            response = mint(base_url)
+            if 300 <= response.status < 400:
+                raise _redirect_refused()
+    if response.status not in (200, 201):
+        raise _token_failure(response, member_cid)
 
     return Session(
         token=_token_of(response),

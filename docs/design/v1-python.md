@@ -89,6 +89,7 @@ The token side does not: `requests` re-sends a POST body on a 307 or 308, so a r
 
 **Decision D2: falcon-axi mints the token itself and hands it to falconpy.**
 The thirty-line client-credentials request in stage 1's `auth.ts` is ported to `requests` with `allow_redirects=False`, reading `access_token`, `expires_in`, and `X-Cs-Region` exactly as today, and the result is passed to `APIHarnessV2(access_token=..., base_url=...)`.
+A token 3xx is returned to authenticate rather than followed; `X-Cs-Region` selects a verified region host for one re-mint, and `Location` is never read.
 This preserves §6.3 (no credential ever follows a redirect), §6.4 (autodiscovery stays in falcon-axi's hands), and §5.4 (no token cache; a token minted with `access_token=` is marked non-refreshable by falconpy, which is correct for a process that lives for one command).
 The cost is that falconpy's own login and refresh code goes unused; that is one function falcon-axi already has.
 
@@ -185,7 +186,7 @@ The port is a refactor across languages, and v1.md's contract is the test.
 - **Parity gate.** Before any TypeScript is deleted, the ship task generates golden outputs from the TypeScript stage 1 for every offline test scenario (each fixture set plus argv), commits them under `tests/golden/`, and the Python port must reproduce them byte for byte.
   The golden files are derived from synthetic fixtures, so they contain no tenant data and may be committed.
   A later stage may change one of those documents only as a deliberate surface change argued in v1.md first, and `tests/golden/scenarios.json` records which documents changed and why.
-- The redaction set (`access_token`, `client_id`, `client_secret`, `member_cid`, `token`, `Authorization`) applies to stdout and stderr, including anything falconpy logs; falconpy's `debug` stays off and `sanitize_log` on.
+- Redaction on stdout and stderr, including anything falconpy logs, follows v1.md §5.5; falconpy's `debug` stays off and `sanitize_log` on.
 - No secret through argv: the flag-registration guard ports verbatim.
 
 ## 6. Porting from falcon-mcp, and the license mechanics
@@ -290,7 +291,7 @@ The golden set adds stage 3 scenarios as regression pins, including the forbidde
 Stage 2 and stage 3 both shipped without cutting a tag, so the next release tag covers all three stages.
 
 **P4. Setup and delivery surface.**
-`setup` with hook and skill, `--all`, `--max-rows`, `--fields`, profile configuration, and the opt-in live smoke suite.
+`setup` with hook and skill, `--all`, `--max-rows`, `--fields` on detection and host lists, profile configuration, and the opt-in live smoke suite.
 Tag `v0.4.0`, and v1.md moves from "partially implemented" to "implemented".
 
 ### 9.1 First ship brief, copy-ready

@@ -94,10 +94,10 @@ def _json_body(answer: requests.Response) -> Any:
         return None
 
 
-def _normalize(status: Any, headers: Any, body: Any) -> FalconResponse:
+def _normalize(status: Any, headers: Any, body: Any, *, refuse_redirect: bool) -> FalconResponse:
     lowered = {str(key).lower(): str(value) for key, value in dict(headers or {}).items()}
     code = int(status) if isinstance(status, (int, str)) and str(status).isdigit() else 0
-    if 300 <= code < 400:
+    if refuse_redirect and 300 <= code < 400:
         raise _refuse_redirect()
     return FalconResponse(status=code, headers=lowered, body=body)
 
@@ -135,7 +135,8 @@ def send_permitted_request(prepared: PreparedOperation | PreparedToken, permit: 
         if isinstance(prepared, PreparedToken):
             # D2 (docs/design/v1-python.md §3.3): falcon-axi mints the token itself, because
             # `requests` replays a POST body on a 307 or 308 and falconpy allows redirects on
-            # the token path. No credential ever follows a redirect.
+            # the token path. A 3xx is returned, never followed, and Location is never read;
+            # authenticate re-mints once against a verified region host (§6.4).
             token_answer = requests.post(
                 f"{prepared.origin}{OAUTH_PATH}",
                 data=dict(prepared.form),
@@ -147,7 +148,12 @@ def send_permitted_request(prepared: PreparedOperation | PreparedToken, permit: 
                 allow_redirects=False,
                 timeout=TIMEOUT_SECONDS,
             )
-            return _normalize(token_answer.status_code, token_answer.headers, _json_body(token_answer))
+            return _normalize(
+                token_answer.status_code,
+                token_answer.headers,
+                _json_body(token_answer),
+                refuse_redirect=False,
+            )
 
         descriptor = operation(prepared.operation_id)
         path_params = dict(prepared.path_params)
@@ -189,4 +195,4 @@ def send_permitted_request(prepared: PreparedOperation | PreparedToken, permit: 
         )
     # The status, headers, and body are read from the response falconpy issued rather than from its
     # own container, so a redirect or an empty body is seen exactly as Falcon sent it.
-    return _normalize(answer.status_code, answer.headers, _json_body(answer))
+    return _normalize(answer.status_code, answer.headers, _json_body(answer), refuse_redirect=True)

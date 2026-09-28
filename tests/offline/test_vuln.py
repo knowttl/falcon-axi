@@ -4,9 +4,17 @@ import re
 
 from falcon_axi.cli import run
 from falcon_axi.cursor import CursorContext, encode_cursor
+from falcon_axi.transport.types import FalconResponse, RequestArgs
 from tests.support.recorded import CREDENTIAL_ENV, RecordedTransport, fixture, response, serve
 
 PAGE = [serve("combinedQueryVulnerabilities", fixture("spotlight/combined-page.json"))]
+
+
+def _by_facet(args: RequestArgs) -> FalconResponse:
+    facets = args.query.get("facet")
+    if facets == ("cve", "host_info"):
+        return fixture("spotlight/combined-page.json")
+    return fixture("spotlight/combined-unfaceted.json")
 
 
 def test_vuln_list_is_one_request_with_no_hydrate_step() -> None:
@@ -16,7 +24,66 @@ def test_vuln_list_is_one_request_with_no_hydrate_step() -> None:
     assert re.search(r"^count: 2 of 57 total$", stdout, re.MULTILINE)
     assert "vulnerabilities[2]{id,cve,severity,hostname}:" in stdout
     assert len(recorded.requests) == 2  # the token mint and one combined read
-    assert recorded.operation_requests("combinedQueryVulnerabilities")[0].query["filter"] == "status:'open'"
+    query = recorded.operation_requests("combinedQueryVulnerabilities")[0].query
+    assert query["filter"] == "status:'open'"
+    assert query["facet"] == ("cve", "host_info")
+
+
+def test_default_rows_require_the_cve_and_host_info_facets() -> None:
+    """Without those facets Spotlight returns an empty cve id and no host_info."""
+    recorded = RecordedTransport([serve("combinedQueryVulnerabilities", _by_facet)])
+    stdout, exit_code = run(["vuln", "list", "--status", "open", "--limit", "2"], recorded, dict(CREDENTIAL_ENV))
+    assert exit_code == 0
+    assert "CVE-2026-0001,CRITICAL,WIN-DC-01" in stdout
+    assert "unknown,unknown,unknown" not in stdout
+    unfaceted = fixture("spotlight/combined-unfaceted.json")
+    assert unfaceted.body["resources"][0]["cve"] == {"id": ""}
+    assert "host_info" not in unfaceted.body["resources"][0]
+
+
+def test_fields_extends_the_row_and_requests_only_the_facets_those_columns_need() -> None:
+    recorded = RecordedTransport(PAGE)
+    stdout, exit_code = run(
+        [
+            "vuln",
+            "list",
+            "--status",
+            "open",
+            "--limit",
+            "2",
+            "--fields",
+            "description,base_score,status,remediation,local_ip",
+        ],
+        recorded,
+        dict(CREDENTIAL_ENV),
+    )
+    assert exit_code == 0
+    assert "vulnerabilities[2]{id,cve,severity,hostname,description,base_score,status,remediation,local_ip}:" in stdout
+    assert "synthetic critical vulnerability" in stdout
+    assert "9.8" in stdout
+    assert "synthetic-remediation-01" in stdout
+    assert "10.0.0.11" in stdout
+    assert recorded.operation_requests("combinedQueryVulnerabilities")[0].query["facet"] == (
+        "cve",
+        "host_info",
+        "remediation",
+    )
+    assert "--fields description,base_score,status,remediation,local_ip" in stdout
+
+
+def test_an_unknown_field_name_is_refused_before_any_request() -> None:
+    recorded = RecordedTransport(PAGE)
+    stdout, exit_code = run(
+        ["vuln", "list", "--status", "open", "--fields", "description,not-a-field"],
+        recorded,
+        dict(CREDENTIAL_ENV),
+    )
+    assert exit_code == 2
+    assert re.search(r"^code: VALIDATION_ERROR$", stdout, re.MULTILINE)
+    assert "not-a-field" in stdout
+    assert "description" in stdout
+    assert "base_score" in stdout
+    assert recorded.operation_requests("combinedQueryVulnerabilities") == []
 
 
 def test_a_missing_filter_is_refused_locally_because_spotlight_requires_one() -> None:

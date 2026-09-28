@@ -16,6 +16,7 @@ from falcon_axi.transport.types import OAuthTokenArgs, PreparedOperation, Prepar
 TOKEN_URL = "https://api.crowdstrike.com/oauth2/token"
 QUERY_URL = "https://api.crowdstrike.com/alerts/queries/alerts/v2"
 HYDRATE_URL = "https://api.crowdstrike.com/alerts/entities/alerts/v2"
+VULN_URL = "https://api.crowdstrike.com/spotlight/combined/vulnerabilities/v1"
 QUERYJOBS_URL = "https://api.crowdstrike.com/humio/api/v1/repositories/search-all/queryjobs"
 JSON = {"Content-Type": "application/json"}
 
@@ -36,6 +37,20 @@ def test_the_query_step_issues_the_registered_get_with_its_parameters() -> None:
     assert response.status == 200
     assert response.headers["x-ratelimit-limit"] == "6000"
     assert response.body["resources"] == ["ldt:a:1"]
+
+
+def test_spotlight_facets_are_repeated_query_parameters() -> None:
+    with requests_mock.Mocker() as mock:
+        mock.get(VULN_URL, json={"resources": []}, headers=JSON)
+        HttpTransport().request(
+            "combinedQueryVulnerabilities",
+            RequestArgs(
+                base_url="https://api.crowdstrike.com",
+                token="synthetic-token",
+                query={"limit": 2, "filter": "status:'open'", "facet": ("cve", "host_info")},
+            ),
+        )
+    assert mock.request_history[0].qs["facet"] == ["cve", "host_info"]
 
 
 def test_the_hydrate_step_issues_the_registered_post_with_its_body() -> None:
@@ -110,20 +125,25 @@ def test_the_token_mint_is_falcon_axis_own_and_refuses_to_follow_a_redirect() ->
 
 
 @pytest.mark.parametrize("status", [301, 307, 308])
-def test_a_redirect_on_the_token_path_is_refused_without_replaying_the_credential(status: int) -> None:
+def test_a_redirect_on_the_token_path_is_returned_and_never_followed(status: int) -> None:
+    """The sink does not replay the credential. authenticate decides whether to re-mint (§6.4)."""
     with requests_mock.Mocker() as mock:
-        mock.post(TOKEN_URL, status_code=status, headers={"Location": "https://attacker.example/oauth2/token"})
-        with pytest.raises(CliError) as error:
-            HttpTransport().request_oauth_token(
-                OAuthTokenArgs(
-                    base_url="https://api.crowdstrike.com",
-                    client_id="synthetic-client-id",
-                    client_secret="synthetic-client-secret",
-                )
+        mock.post(
+            TOKEN_URL,
+            status_code=status,
+            headers={"Location": "https://attacker.example/oauth2/token", "X-Cs-Region": "us-2"},
+        )
+        response = HttpTransport().request_oauth_token(
+            OAuthTokenArgs(
+                base_url="https://api.crowdstrike.com",
+                client_id="synthetic-client-id",
+                client_secret="synthetic-client-secret",
             )
-    assert error.value.code == "ORIGIN_NOT_ALLOWED"
-    assert error.value.details["invalid_component"] == "redirect"
+        )
+    assert response.status == status
+    assert response.headers["x-cs-region"] == "us-2"
     assert len(mock.request_history) == 1
+    assert mock.request_history[0].url == TOKEN_URL
 
 
 def test_an_unreachable_endpoint_and_an_untrusted_certificate_are_named_apart() -> None:

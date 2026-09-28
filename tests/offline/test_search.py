@@ -57,6 +57,36 @@ def test_search_status_renders_the_events_and_the_query_the_api_actually_parsed(
     }
 
 
+def test_search_events_redact_the_tenant_cid_fields() -> None:
+    """A real-shaped event carries the tenant CID in `cid` and `#repo.cid`; neither value is printed."""
+    cid = "0123456789abcdef0123456789abcdef"
+    body = {
+        "cancelled": False,
+        "done": True,
+        "events": [
+            {
+                "#repo.cid": cid,
+                "cid": cid,
+                "ComputerName": "WIN-DC-01",
+                "FileName": "powershell.exe",
+                "timestamp": "2026-07-28T09:14:02Z",
+            }
+        ],
+        "metaData": {
+            "eventCount": 1,
+            "filterQuery": {"queryString": "#event_simpleName=ProcessRollup2 | head(1)"},
+            "isAggregate": False,
+            "processedEvents": 12,
+        },
+    }
+    recorded = RecordedTransport([serve("GetSearchStatusV1", response(200, body))])
+    stdout, exit_code = run(["search", "status", "synthetic-search-job-01"], recorded, dict(CREDENTIAL_ENV))
+    assert exit_code == 0
+    assert cid not in stdout
+    assert "[redacted]" in stdout
+    assert "WIN-DC-01" in stdout
+
+
 def test_a_running_job_says_so_rather_than_reporting_zero_events() -> None:
     recorded = RecordedTransport([serve("GetSearchStatusV1", fixture("ngsiem/search-status-running.json"))])
     stdout, exit_code = run(["search", "status", "synthetic-search-job-01"], recorded, dict(CREDENTIAL_ENV))

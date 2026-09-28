@@ -72,12 +72,63 @@ def test_a_401_at_token_mint_is_auth_failed_and_a_403_without_a_member_cid_is_to
     assert "no scopes granted" in forbidden
 
 
-def test_region_autodiscovery_retargets_exactly_once_on_x_cs_region() -> None:
-    recorded = RecordedTransport([], [fixture("oauth2/token-region-us-2.json"), TOKEN_SUCCESS])
+def test_region_autodiscovery_retargets_exactly_once_on_a_308_x_cs_region() -> None:
+    """Falcon announces a non-us-1 cloud with 308, X-Cs-Region, and an empty body, not a 201."""
+    redirect = fixture("oauth2/token-region-us-2.json")
+    recorded = RecordedTransport([], [redirect, TOKEN_SUCCESS])
     stdout, exit_code = run(["auth", "status"], recorded, dict(CREDENTIAL_ENV))
     assert exit_code == 0
-    assert len(recorded.oauth_requests()) == 2
+    assert redirect.status == 308
+    assert redirect.body is None
+    minted = recorded.oauth_requests()
+    assert len(minted) == 2
+    assert minted[0].base_url == "https://api.crowdstrike.com"
+    assert minted[1].base_url == "https://api.us-2.crowdstrike.com"
+    assert "attacker" not in minted[1].base_url
+    assert ":443" not in minted[1].base_url
     assert re.search(r"^tenant: us-2 \(re-targeted from us-1\) \(own CID unavailable\)$", stdout, re.MULTILINE)
+
+
+def test_a_201_with_a_different_known_region_still_retargets_once() -> None:
+    observed = replace(TOKEN_SUCCESS, headers={"x-cs-region": "eu-1"})
+    recorded = RecordedTransport([], [observed, TOKEN_SUCCESS])
+    stdout, exit_code = run(["auth", "status"], recorded, dict(CREDENTIAL_ENV))
+    assert exit_code == 0
+    assert [request.base_url for request in recorded.oauth_requests()] == [
+        "https://api.crowdstrike.com",
+        "https://api.eu-1.crowdstrike.com",
+    ]
+    assert "re-targeted from us-1" in stdout
+
+
+def test_a_308_whose_region_is_unknown_is_region_mismatch_and_is_not_followed() -> None:
+    observed = replace(
+        fixture("oauth2/token-region-us-2.json"),
+        headers={"x-cs-region": "us-gov-2", "location": "https://attacker.example/oauth2/token"},
+    )
+    recorded = RecordedTransport([], [observed])
+    stdout, exit_code = run(["auth", "status"], recorded, dict(CREDENTIAL_ENV))
+    assert exit_code == 1
+    assert re.search(r"^code: REGION_MISMATCH$", stdout, re.MULTILINE)
+    assert "us-gov-2" in stdout
+    assert len(recorded.oauth_requests()) == 1
+
+
+def test_a_308_without_a_region_and_a_second_redirect_are_refused() -> None:
+    missing = replace(fixture("oauth2/token-region-us-2.json"), headers={"location": "https://attacker.example/oauth2/token"})
+    refused, exit_code = run(["auth", "status"], RecordedTransport([], [missing]), dict(CREDENTIAL_ENV))
+    assert exit_code == 1
+    assert re.search(r"^code: ORIGIN_NOT_ALLOWED$", refused, re.MULTILINE)
+
+    second = replace(fixture("oauth2/token-region-us-2.json"), headers={"x-cs-region": "eu-1"})
+    recorded = RecordedTransport([], [fixture("oauth2/token-region-us-2.json"), second])
+    again, exit_code = run(["auth", "status"], recorded, dict(CREDENTIAL_ENV))
+    assert exit_code == 1
+    assert re.search(r"^code: ORIGIN_NOT_ALLOWED$", again, re.MULTILINE)
+    assert [request.base_url for request in recorded.oauth_requests()] == [
+        "https://api.crowdstrike.com",
+        "https://api.us-2.crowdstrike.com",
+    ]
 
 
 def test_an_unknown_observed_region_is_region_mismatch_and_preserves_the_observed_value() -> None:

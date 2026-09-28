@@ -99,8 +99,12 @@ def test_help_never_advertises_a_command_the_cli_does_not_have() -> None:
     for argv in shipped:
         stdout, exit_code = run(argv, RecordedTransport([]), dict(CREDENTIAL_ENV))
         assert exit_code == 0
-        for absent in ("falcon-axi setup", "--max-rows", "--fields", "vuln show", "tenant list"):
+        for absent in ("falcon-axi setup", "--max-rows", "vuln show", "tenant list"):
             assert absent not in stdout, f"{' '.join(argv)} advertises {absent}"
+        if argv == ["vuln", "list", "--help"]:
+            assert "--fields" in stdout
+        else:
+            assert "--fields" not in stdout, f"{' '.join(argv)} advertises --fields"
     top, _ = run(["--help"], RecordedTransport([]), dict(CREDENTIAL_ENV))
     # The one write scope is named where an operator will see it, and no mutating command is listed.
     assert "lists no command that changes a host, a detection, or a policy" in top

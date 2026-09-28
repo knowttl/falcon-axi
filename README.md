@@ -33,7 +33,8 @@ What is **not** shipped yet, so no output advertises it:
   outside the three search lifecycle operations: no ingest, no lookup files, no parser or dashboard
   writes, and no Charlotte AI;
 - `falcon-axi setup`, including the session hook and the generated skill;
-- `--all`, `--max-rows`, and `--fields`; a single call takes `--limit` and `--cursor` only;
+- `--all` and `--max-rows`, and `--fields` on detection and host lists; list pagination takes
+  `--limit` and `--cursor` only;
 - profile configuration in `~/.config/falcon-axi/config.json`; `--profile` is refused by name rather
   than silently ignored.
 
@@ -174,6 +175,8 @@ the first thing to check.
 `--region` takes one of `us-1`, `us-2`, `eu-1`, `us-gov-1`, or a full base URL.
 The default is `us-1`, and a credential that belongs to another cloud is re-targeted from the
 `X-Cs-Region` response header rather than failing, which `auth status` reports.
+Falcon can announce that cloud with a redirect and `X-Cs-Region`.
+falcon-axi does not follow the redirect, and re-mints once against the verified host for that region.
 An origin outside the trusted Falcon hosts is refused as `ORIGIN_NOT_ALLOWED` unless
 `--allow-unknown-origin` is passed deliberately.
 
@@ -184,8 +187,7 @@ A standalone member-CID value is sensitive: auth status, suggestions, URLs, and 
 The `--member-cid` flag remains available for child-tenant selection, but its value is never echoed into output.
 Alerts v2 composite detection ids contain the own-tenant or selected child CID and are printed as-is, including
 when passed to `detection show`.
-NG-SIEM search event CID fields (`cid`, `#repo.cid`) must be redacted in output; implementation follows in the
-separate D1/D2 change.
+NG-SIEM search event CID fields (`cid`, `#repo.cid`) are redacted in output.
 
 ## Workflow
 
@@ -227,6 +229,9 @@ falcon-axi search stop 01JABCDEF                    cancel a job you no longer n
 `containment_pending`, `contained`, `lift_containment_pending`), and `--since` on `last_seen`.
 `vuln list` takes `--host`, `--severity` (`low`, `medium`, `high`, `critical`), `--status` (`open`,
 `closed`, `reopen`, `expired`), and `--since` on `created_timestamp`.
+`vuln list --fields description,base_score` adds those columns to the default
+`id,cve,severity,hostname` row; run `falcon-axi vuln list --help` for the allowed names.
+An unknown name is refused and the valid names are listed.
 `--since` takes a relative window such as `30m`, `24h`, or `7d`.
 `--filter` takes raw FQL for that collection, where `+` is AND, `,` is OR, and values are
 single-quoted; it composes with the shorthand flags.
@@ -262,7 +267,7 @@ erroring, so a malformed pipe returns the wrong rows silently rather than failin
 ## Output and errors
 
 Output is TOON on stdout.
-A list view prints a definitive `count:` line, a compact four-field schema, and a `help[]` array of
+A list view prints a definitive `count:` line, a compact default four-field schema, and a `help[]` array of
 the next commands, so an empty result is an answer rather than an ambiguous silence.
 
 ```
@@ -275,7 +280,8 @@ help[2]: "Run `falcon-axi detection show <id>` for the full detection","Run `fal
 ```
 
 `host list` prints `hosts[N]{device_id,hostname,platform,last_seen}` and `vuln list` prints
-`vulnerabilities[N]{id,cve,severity,hostname}`, in the same shape.
+`vulnerabilities[N]{id,cve,severity,hostname}` by default, in the same shape.
+`vuln list --fields` appends the selected columns.
 `search status` is the exception: a CQL result set has no fixed shape, so its columns are whatever
 the query projected.
 
@@ -297,8 +303,9 @@ The stable codes are `VALIDATION_ERROR`, `CREDENTIAL_INCOMPLETE`, `FQL_INVALID`,
 `TLS_UNTRUSTED`, `READ_ONLY_VIOLATION`, and `UNKNOWN`.
 An unknown flag or unknown command fails loudly with the valid set rather than being ignored.
 
-`access_token`, `client_id`, `client_secret`, `member_cid`, `token`, and `Authorization` fields are redacted
-on stdout and stderr; the composite detection id exception is described under child-tenant selection above.
+Secrets and tenant CID fields, including `cid` and `#repo.cid` in search events, are redacted
+on stdout and stderr; composite detection ids are the exception described under child-tenant selection
+above and in [`docs/design/v1.md` §5.5](docs/design/v1.md#55-redaction).
 
 Help is hierarchical: `falcon-axi --help` lists the commands and global flags, and
 `falcon-axi host list --help` documents that command's flags, filterable fields, and examples.
@@ -317,7 +324,7 @@ The cursor is opaque and bound to the credential and the filter that produced it
 edited, reused across a different query, or shared between tenants.
 It hides the fact that Falcon paginates detections and hosts by offset and vulnerabilities by an
 `after` token: the CLI vocabulary is `--cursor` in all three.
-`--all`, `--max-rows`, and `--fields` do not exist yet: loop on `--cursor` when more than one
+`--all` and `--max-rows` do not exist yet: loop on `--cursor` when more than one
 page is genuinely needed.
 Reading past 10000 Alerts results fails with `PAGINATION_LIMIT` and asks for a narrower filter,
 because the documented route past that boundary is not registered in v1.

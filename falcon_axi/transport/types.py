@@ -7,6 +7,9 @@ from typing import Any, Protocol
 
 from falcon_axi.transport.operations import OperationId
 
+#: A query value is a scalar, or a tuple when Falcon expects the key repeated (`facet`).
+QueryValue = str | int | tuple[str, ...]
+
 
 @dataclass(frozen=True)
 class FalconResponse:
@@ -19,7 +22,7 @@ class FalconResponse:
 class RequestArgs:
     base_url: str
     token: str
-    query: Mapping[str, str | int] | None = None
+    query: Mapping[str, QueryValue] | None = None
     body: Any = None
     #: Values interpolated into the route's `{name}` variables, validated before the request is sent.
     path_params: Mapping[str, str] | None = None
@@ -52,7 +55,7 @@ class PreparedOperation:
     operation_id: OperationId
     origin: str
     token: str
-    query: Mapping[str, str | int] = field(default_factory=lambda: MappingProxyType({}))
+    query: Mapping[str, QueryValue] = field(default_factory=lambda: MappingProxyType({}))
     body: Any = None
     path_params: Mapping[str, str] = field(default_factory=lambda: MappingProxyType({}))
 

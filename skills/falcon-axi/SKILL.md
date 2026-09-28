@@ -30,7 +30,7 @@ the fleet's Spotlight vulnerabilities, to run a CQL search over NG-SIEM event da
 one of those four domains, and to check whether a Falcon credential resolves and into which region and
 tenant.
 
-`setup` does not exist, and neither do `--all`, `--max-rows`, `--fields`, or `--profile`.
+`setup` does not exist, and neither do `--all`, `--max-rows`, `--profile`, or `--fields` on detection and host lists.
 Neither does any command for a Falcon domain outside detections, hosts, vulnerabilities, and NG-SIEM
 search; there is no ingest, lookup-file, parser, dashboard, or Charlotte AI command.
 Do not invent them; an unknown flag or command fails loudly.
@@ -43,7 +43,7 @@ commands[6 total]:
 `show <composite id>` (flag `--full`).
 `host`: `list` (flags `--hostname`, `--platform`, `--status`, `--since`, `--filter`, `--limit`, `--cursor`),
 `show <device id>`.
-`vuln`: `list` (flags `--host`, `--severity`, `--status`, `--since`, `--filter`, `--limit`, `--cursor`).
+`vuln`: `list` (flags `--host`, `--severity`, `--status`, `--since`, `--filter`, `--limit`, `--cursor`, `--fields`).
 `search`: `start` (flags `--query`, `--repository`, `--since`), `status <search id>` (flag `--repository`),
 `stop <search id>` (flag `--repository`).
 `auth`: `status`.
@@ -59,6 +59,8 @@ Global flags: `--help`, `--region <us-1|us-2|eu-1|us-gov-1|url>`, `--member-cid 
 `WIN-*`.
 `vuln list --severity` takes `low`, `medium`, `high`, `critical`, and its `--status` takes `open`,
 `closed`, `reopen`, `expired`.
+`vuln list --fields` adds columns to the default `id,cve,severity,hostname` row.
+Run `falcon-axi vuln list --help` for valid names; an unknown name is a `VALIDATION_ERROR` that lists them.
 `--since` takes a relative window such as `30m`, `24h`, `7d`.
 `--filter` takes raw FQL for that collection, where `+` is AND, `,` is OR, and values are single-quoted.
 
@@ -116,10 +118,11 @@ settled requirement.
 ## Output and errors
 
 Output is TOON on stdout.
-A list view prints a definitive `count:` line, a compact four-field schema -
+A list view prints a definitive `count:` line, a compact default four-field schema -
 `detections[N]{id,severity,tactic,hostname}`, `hosts[N]{device_id,hostname,platform,last_seen}`, or
 `vulnerabilities[N]{id,cve,severity,hostname}` - and a `help[]` array, so an empty result is an answer
 rather than a silence to re-query.
+`vuln list --fields` appends the selected columns.
 `search status` has no fixed schema, because a CQL result set's columns are whatever the query projected.
 Errors are TOON documents on stdout too, carrying a stable `code` such as `AUTH_REQUIRED`, `AUTH_FAILED`,
 `SCOPE_DENIED`, `TENANT_DENIED`, `VALIDATION_ERROR`, `PAGINATION_LIMIT`, or `RATE_LIMITED`, plus actionable
@@ -127,8 +130,7 @@ Errors are TOON documents on stdout too, carrying a stable `code` such as `AUTH_
 Exit code `0` is success, `2` is a usage error, and `1` is every other failure.
 Secrets are redacted on stdout and stderr.
 For CID handling, see Credentials above.
-NG-SIEM search event CID fields (`cid`, `#repo.cid`) must be redacted in output; implementation follows in the
-separate D1/D2 change.
+NG-SIEM search event CID fields (`cid`, `#repo.cid`) are redacted in output.
 
 Use `falcon-axi --help` for the command list and `falcon-axi host list --help` for that command's
 flags, filterable fields, and examples instead of guessing.

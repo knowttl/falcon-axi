@@ -4,8 +4,20 @@ import re
 from collections.abc import Mapping, Sequence
 from typing import Any, NamedTuple
 
-#: Keys redacted on every stream, taken from falconpy's `sanitize_dictionary` (§5.5).
-REDACTED_KEYS = frozenset({"access_token", "client_id", "client_secret", "member_cid", "token", "authorization"})
+#: Keys redacted on every stream. The first five match falconpy's `sanitize_dictionary` (§5.5).
+#: `cid` and `#repo.cid` are NG-SIEM event fields that carry the tenant CID.
+REDACTED_KEYS = frozenset(
+    {
+        "access_token",
+        "client_id",
+        "client_secret",
+        "member_cid",
+        "token",
+        "authorization",
+        "cid",
+        "#repo.cid",
+    }
+)
 
 
 class Raw(NamedTuple):

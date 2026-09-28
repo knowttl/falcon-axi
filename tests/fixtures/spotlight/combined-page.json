@@ -20,16 +20,44 @@
           "aid": "synthetic-device-01",
           "status": "open",
           "created_timestamp": "2026-07-20T04:11:02Z",
-          "cve": { "id": "CVE-2026-0001", "severity": "CRITICAL", "base_score": 9.8, "exprt_rating": "CRITICAL" },
-          "host_info": { "hostname": "WIN-DC-01", "platform": "Windows" }
+          "updated_timestamp": "2026-07-21T01:02:03Z",
+          "cve": {
+            "id": "CVE-2026-0001",
+            "severity": "CRITICAL",
+            "description": "synthetic critical vulnerability",
+            "base_score": 9.8,
+            "exprt_rating": "CRITICAL"
+          },
+          "host_info": {
+            "hostname": "WIN-DC-01",
+            "platform": "Windows",
+            "os_version": "Windows Server 2022",
+            "local_ip": "10.0.0.11"
+          },
+          "apps": [{ "product_name_version": "OpenSSL 3.0.0" }],
+          "remediation": { "ids": ["synthetic-remediation-01"] }
         },
         {
           "id": "synthetic-vuln-02",
           "aid": "synthetic-device-02",
           "status": "open",
           "created_timestamp": "2026-07-22T09:38:47Z",
-          "cve": { "id": "CVE-2026-0002", "severity": "HIGH", "base_score": 7.5, "exprt_rating": "HIGH" },
-          "host_info": { "hostname": "WIN-WS-42", "platform": "Windows" }
+          "updated_timestamp": "2026-07-23T02:03:04Z",
+          "cve": {
+            "id": "CVE-2026-0002",
+            "severity": "HIGH",
+            "description": "synthetic high vulnerability",
+            "base_score": 7.5,
+            "exprt_rating": "HIGH"
+          },
+          "host_info": {
+            "hostname": "WIN-WS-42",
+            "platform": "Windows",
+            "os_version": "Windows 11",
+            "local_ip": "10.0.0.42"
+          },
+          "apps": [{ "product_name_version": "Chrome 120" }],
+          "remediation": { "ids": ["synthetic-remediation-02"] }
         }
       ]
     }
