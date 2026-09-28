@@ -106,6 +106,12 @@ Two seams are worth knowing before changing them:
 - Redaction covers `access_token`, `client_id`, `client_secret`, `member_cid`, `token`, and `Authorization`,
   on stdout and on stderr.
   CrowdStrike treats the tenant CID as sensitive, and so do we.
+  Alerts v2 composite detection ids contain the own-tenant or selected child CID and are printed as-is, including
+  when passed to `detection show`.
+  Standalone member-CID values, including those in auth status, suggestions, URLs, and logs, stay masked or
+  unprinted; the documented `--member-cid` flag remains allowed.
+  NG-SIEM search event CID fields (`cid`, `#repo.cid`) must be redacted in output; implementation follows in the
+  separate D1/D2 change.
 - No credential, token, CID, or captured live data belongs in this repository, including fixtures.
   See `docs/design/v1.md` §5 and §14.4.
   Every fixture under `tests/fixtures/` is wholly synthetic and carries a provenance header that an offline test

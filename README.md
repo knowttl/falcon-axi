@@ -180,7 +180,12 @@ An origin outside the trusted Falcon hosts is refused as `ORIGIN_NOT_ALLOWED` un
 `--member-cid <cid>` reads one Flight Control child tenant for that invocation, and
 `--no-member-cid` clears an inherited `FALCON_MEMBER_CID`.
 The two cannot be combined.
-A CID is treated as sensitive: it is masked in output and never echoed into a suggestion.
+A standalone member-CID value is sensitive: auth status, suggestions, URLs, and logs mask it or do not print it.
+The `--member-cid` flag remains available for child-tenant selection, but its value is never echoed into output.
+Alerts v2 composite detection ids contain the own-tenant or selected child CID and are printed as-is, including
+when passed to `detection show`.
+NG-SIEM search event CID fields (`cid`, `#repo.cid`) must be redacted in output; implementation follows in the
+separate D1/D2 change.
 
 ## Workflow
 
@@ -292,8 +297,8 @@ The stable codes are `VALIDATION_ERROR`, `CREDENTIAL_INCOMPLETE`, `FQL_INVALID`,
 `TLS_UNTRUSTED`, `READ_ONLY_VIOLATION`, and `UNKNOWN`.
 An unknown flag or unknown command fails loudly with the valid set rather than being ignored.
 
-`access_token`, `client_id`, `client_secret`, `member_cid`, `token`, and `Authorization` are redacted
-on stdout and stderr.
+`access_token`, `client_id`, `client_secret`, `member_cid`, `token`, and `Authorization` fields are redacted
+on stdout and stderr; the composite detection id exception is described under child-tenant selection above.
 
 Help is hierarchical: `falcon-axi --help` lists the commands and global flags, and
 `falcon-axi host list --help` documents that command's flags, filterable fields, and examples.

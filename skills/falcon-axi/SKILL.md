@@ -92,7 +92,11 @@ reaches a URL path.
 
 Credentials belong in `FALCON_CLIENT_ID` and `FALCON_CLIENT_SECRET`, or in a `0600` credentials file at
 `~/.config/falcon-axi/credentials`, never on the command line.
-Never put a client secret, bearer token, or tenant CID in a command, a suggestion, a fixture, or a commit.
+Never put a client secret or bearer token in a command, suggestion, fixture, or commit.
+The `--member-cid` flag is allowed for child-tenant selection; do not echo its standalone value in generated
+suggestions, fixtures, or commits.
+An Alerts v2 composite detection id contains the own-tenant or selected child CID and may be passed to
+`detection show` as printed.
 `FALCON_BASE_URL`, `FALCON_MEMBER_CID`, and `FALCON_AXI_CREDENTIALS_FILE` are also read.
 
 Create the API client in the Falcon console under Support and resources > API clients and keys, with read
@@ -121,7 +125,10 @@ Errors are TOON documents on stdout too, carrying a stable `code` such as `AUTH_
 `SCOPE_DENIED`, `TENANT_DENIED`, `VALIDATION_ERROR`, `PAGINATION_LIMIT`, or `RATE_LIMITED`, plus actionable
 `help`.
 Exit code `0` is success, `2` is a usage error, and `1` is every other failure.
-Secrets and the tenant CID are redacted on stdout and stderr.
+Secrets are redacted on stdout and stderr.
+For CID handling, see Credentials above.
+NG-SIEM search event CID fields (`cid`, `#repo.cid`) must be redacted in output; implementation follows in the
+separate D1/D2 change.
 
 Use `falcon-axi --help` for the command list and `falcon-axi host list --help` for that command's
 flags, filterable fields, and examples instead of guessing.
