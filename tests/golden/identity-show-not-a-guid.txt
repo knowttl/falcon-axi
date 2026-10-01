@@ -1,3 +1,3 @@
 error: an identity id must be an entity GUID
 code: VALIDATION_ERROR
-help[2]: "Run `falcon-axi identity list --name '<name>'` to find an identity id","For an Active Directory user, the id is the account object GUID, as in an identity detection's `source_account_object_guid`"
+help[2]: "Run `falcon-axi identity list --name '<name>'` to find an identity id","For an Active Directory user the id may be the account object GUID, as in an identity detection's `source_account_object_guid`, which is unverified"
