@@ -1,6 +1,6 @@
 credential_resolved: true
 credential_channel: environment
 tenant: us-1 (own CID unavailable)
-scopes: read scopes, plus NGSIEM:write for `search start` and `search stop`, and Identity Protection GraphQL:write for the `identity` commands, alone
+scopes: read scopes, plus NGSIEM:write for `search start`, `search stop`, and `identity activity`, and Identity Protection GraphQL:write for `identity list`, `identity show`, and `identity timeline`, alone
 rate_limit: 5999 of 6000 requests remaining
 help[1]: "Run `falcon-axi detection list` to read detections with this credential"

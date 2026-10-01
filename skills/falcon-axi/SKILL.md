@@ -53,10 +53,10 @@ license-gated `Assets:read`.
 `vuln`: `list` (flags `--host`, `--severity`, `--status`, `--since`, `--filter`, `--limit`, `--cursor`, `--fields`).
 `cve`: `show <CVE-ID>` only.
 There is no `cve list`.
-`identity`: `activity <account objectGUID, sAMAccountName, or UPN>` (flag `--since`).
 `search`: `start` (flags `--query`, `--repository`, `--since`), `status <search id>` (flag `--repository`),
 `stop <search id>` (flag `--repository`).
-`identity`: `list` (flags `--name`, `--email`, `--domain`, `--type`, `--limit`, `--cursor`),
+`identity`: `activity <account objectGUID, sAMAccountName, or UPN>` (flag `--since`),
+`list` (flags `--name`, `--email`, `--domain`, `--type`, `--limit`, `--cursor`),
 `show <identity id>` (flag `--full`), `timeline <identity id>` (flags `--since`, `--category`, `--limit`,
 `--cursor`).
 `auth`: `status`.

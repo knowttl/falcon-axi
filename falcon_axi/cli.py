@@ -36,16 +36,18 @@ from falcon_axi.identity import DEFAULT_SINCE as IDENTITY_DEFAULT_SINCE
 from falcon_axi.identity import (
     ENTITY_TYPES,
     TIMELINE_CATEGORIES,
+    TIMELINE_ROWS,
     IdentityQuery,
+    activity_query,
     identity_timeline,
     list_identities,
     parse_categories,
     show_identity,
+    start_identity_activity,
     validate_entity_id,
     validate_identity_query,
 )
 from falcon_axi.identity import QUERY_CEILING as IDENTITY_CEILING
-from falcon_axi.identity import TIMELINE_ROWS, activity_query, start_identity_activity
 from falcon_axi.origin import REGIONS, assert_trusted_origin, resolve_base_url
 from falcon_axi.render import mask_cid, raw, render
 from falcon_axi.scopes import scope_matrix
@@ -794,8 +796,9 @@ def help_text(command: str) -> str:
             "falcon-axi lists no command that changes a host, a detection, a policy, or an identity. It",
             "requires Alerts:read, Hosts:read, Vulnerabilities:read, Vulnerabilities (Falcon Intelligence):read,",
             "NGSIEM:read, Identity Protection Entities:read, and Identity Protection Timeline:read, plus two",
-            "write-labelled scopes: NGSIEM:write for `search start` and `search stop`, and Identity Protection",
-            "GraphQL:write for the `identity` commands, which Falcon requires even for read-only queries.",
+            "write-labelled scopes: NGSIEM:write for `search start`, `search stop`, and `identity activity`, and",
+            "Identity Protection GraphQL:write for `identity list`, `identity show`, and `identity timeline`,",
+            "which Falcon requires even for read-only queries.",
             "The `account` commands also need Assets:read, a license-gated scope that only some tenants can grant.",
         ]
     )
@@ -848,8 +851,8 @@ def _auth_status(transport: Any, flags: Mapping[str, str | bool], env: Mapping[s
         value["credential_path"] = credential.path
     value["tenant"] = raw(_tenant_line(resolved.session))
     value["scopes"] = raw(
-        "read scopes, plus NGSIEM:write for `search start` and `search stop`, "
-        "and Identity Protection GraphQL:write for the `identity` commands, alone"
+        "read scopes, plus NGSIEM:write for `search start`, `search stop`, and `identity activity`, "
+        "and Identity Protection GraphQL:write for `identity list`, `identity show`, and `identity timeline`, alone"
     )
     if limit is not None and remaining is not None:
         value["rate_limit"] = raw(f"{remaining} of {limit} requests remaining")

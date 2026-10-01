@@ -104,7 +104,7 @@ uvx --from git+https://github.com/knowttl/falcon-axi@v0.2.0 falcon-axi detection
 ```
 
 The pinned tag is the last release.
-For commands added after that tag, including host login history, Discover accounts, and CVE intelligence, install from the
+For commands added after that tag, including host login history, Discover accounts, CVE intelligence, and identity activity, install from the
 default branch until a newer tag exists; see the shipped command list above.
 
 Or install the command once and call it directly:
@@ -312,8 +312,8 @@ Anything else is refused before a request is made, because the value becomes par
 It prints a job id; poll it with `search status <id>` and stop it with `search stop <id>`.
 Use the same [region and tenant](#region-and-tenant) when following the job's suggestions.
 It is a search under N1, not a new operation; see `falcon-axi scopes` for its required permission.
-The identity directory (users, risk scores, associations) is not shipped: its only API route is a GraphQL
-endpoint that requires a write scope even to read.
+The separately shipped [Identity Protection directory](#identity-protection) uses GraphQL under N2.
+`identity activity` does not use that endpoint or require its scopes.
 
 ### NG-SIEM search
 

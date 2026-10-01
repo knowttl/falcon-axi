@@ -20,6 +20,11 @@ from tests.support.recorded import CREDENTIAL_ENV, RecordedTransport, fixture, r
         (["vuln", "list", "--status", "open", "--limit", "2"], False),
         (["vuln", "list", "--status", "open"], True),
         (["auth", "status"], False),
+        (["identity", "list", "--name", "Admin*", "--limit", "2"], False),
+        (["identity", "list", "--name", "Admin*"], True),
+        (["identity", "show", "00000000-0000-4000-8000-000000000001"], False),
+        (["identity", "timeline", "00000000-0000-4000-8000-000000000001", "--since", "24h"], False),
+        (["identity", "timeline", "00000000-0000-4000-8000-000000000001", "--since", "24h"], True),
     ],
 )
 @pytest.mark.parametrize("selection", [[], ["--no-member-cid"], ["--member-cid", "synthetic-selected-child"]])
@@ -40,6 +45,16 @@ def test_discovery_empty_states_and_continuations_preserve_context_once(argv, em
             serve("PostDeviceDetailsV2", fixture("hosts/details-page.json")),
             serve("combinedQueryVulnerabilities", empty_page if empty else fixture("spotlight/combined-page.json")),
             serve("GetVulnerabilities", fixture("intel/vulnerability-one.json")),
+            serve(
+                "api_preempt_proxy_post_graphql",
+                lambda args: fixture(
+                    {
+                        "identity_show": "identity/entity-detail.json",
+                        "identity_timeline": "identity/timeline-empty.json" if empty else "identity/timeline-page.json",
+                        "identity_list": "identity/entities-empty.json" if empty else "identity/entities-page.json",
+                    }[args.document]
+                ),
+            ),
         ],
         oauth=[response(201, fixture("oauth2/token-success.json").body)],
     )
@@ -65,7 +80,11 @@ def test_discovery_empty_states_and_continuations_preserve_context_once(argv, em
         if selection and selection[0] == "--member-cid":
             tokens += selection
         subjects = {
-            "<id>": details.body["resources"][0]["composite_id"],
+            "<id>": (
+                "00000000-0000-4000-8000-000000000001"
+                if tokens[1] == "identity"
+                else details.body["resources"][0]["composite_id"]
+            ),
             "<device_id>": "synthetic-device-01",
             "<CVE-ID>": "CVE-2099-0001",
         }
@@ -81,9 +100,15 @@ def test_discovery_empty_states_and_continuations_preserve_context_once(argv, em
                 "detection": "GetQueriesAlertsV2",
                 "host": "QueryDevicesByFilter",
                 "vuln": "combinedQueryVulnerabilities",
+                "identity": "api_preempt_proxy_post_graphql",
             }[tokens[1]]
             requests = recorded.operation_requests(operation)
-            assert requests[0].query.get("filter") == requests[-1].query.get("filter")
+            if tokens[1] == "identity":
+                first = requests[0].variables
+                latest = requests[-1].variables
+                assert {key: value for key, value in latest.items() if key != "after"} == first
+            else:
+                assert requests[0].query.get("filter") == requests[-1].query.get("filter")
         followed += 1
     assert followed > 0
 

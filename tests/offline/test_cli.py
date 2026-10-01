@@ -7,16 +7,7 @@ from pathlib import Path
 import pytest
 from toon_format import decode
 
-from falcon_axi.cli import (
-    COMMAND_FLAGS,
-    COMMANDS,
-    VALUE_FLAGS,
-    _contextual_help,
-    _suggestion_for,
-    flag_guard,
-    parse,
-    run,
-)
+from falcon_axi.cli import COMMAND_FLAGS, COMMANDS, VALUE_FLAGS, _followup_help, _suggestion_for, flag_guard, parse, run
 from falcon_axi.core import CliError
 from falcon_axi.render import render, truncate
 from falcon_axi.version import VERSION
@@ -40,7 +31,7 @@ def test_an_unknown_command_or_subcommand_fails_before_any_request() -> None:
     assert exit_code == 2
     assert (
         "valid commands: detection list, detection show, host list, host show, host logins, account list, "
-        "account show, vuln list, cve show, search start, search status, search stop, identity list, "
+        "account show, vuln list, cve show, identity activity, search start, search status, search stop, identity list, "
         "identity show, identity timeline, auth status, scopes" in stdout
     )
     subcommand, _ = run(["detection", "contain"], recorded, dict(CREDENTIAL_ENV))
@@ -92,7 +83,7 @@ def test_continuation_arguments_survive_shell_parsing_and_expansion(command: str
     value = 'O\'Brien * $HOME "quoted" \\ $(printf expanded); &|<> []\n'
     flags = {name: value for name in ("region", *COMMAND_FLAGS[command]) if name in VALUE_FLAGS and name != "cursor"}
     positionals = (value,) if command == "identity timeline" else ()
-    help = _contextual_help([f"Run `{_suggestion_for(command, flags, positionals)}` for the next page"], flags)
+    help = _followup_help([f"Run `{_suggestion_for(command, flags, positionals)}` for the next page"], flags, None)
     suggestion = help[0].removeprefix("Run `").removesuffix("` for the next page")
     result = subprocess.run(  # noqa: S603
         ["sh", "-c", f"set -- {suggestion}; printf '%s\\0' \"$@\""],  # noqa: S607

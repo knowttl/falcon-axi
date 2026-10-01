@@ -1,9 +1,9 @@
-"""The Identity Protection domain: the user and endpoint directory and activity timeline, over GraphQL.
+"""Identity Protection directory and timeline reads over GraphQL, plus NG-SIEM account activity.
 
-Every command here sends one fixed, registered GraphQL query document through the one operation
-captain exception N2 admits (docs/design/v1.md §4.4). The commands name a document and supply
-variables; they never build GraphQL text, and Relay `first`/`after` pagination travels in the same
-opaque `--cursor` the other domains use (§7.1).
+The directory commands send fixed, registered GraphQL documents through captain exception N2
+(docs/design/v1.md §4.4), with variables and Relay pagination behind the same `--cursor` (§7.1).
+`identity activity` composes a fixed NG-SIEM search under N1, adding no operation or scope (§4.3).
+Its subject's closed shape excludes CQL syntax before regex metacharacters are escaped.
 """
 
 import json
@@ -249,8 +249,6 @@ def list_identities(
         continuation = encode_cursor(end_cursor, context, credential.client_secret)
         value["continuation_cursor"] = continuation
         help.append(f"Run `{suggestion} --cursor {continuation}` for the next page")
-        if session.member_cid:
-            help.append("Supply the same tenant selection used for this invocation when continuing")
     value["identities"] = rows
     return CommandOutput(value=_rate_limit(session, value), help=tuple(help))
 
@@ -412,8 +410,6 @@ def identity_timeline(
         continuation = encode_cursor(f"{start}|{end_cursor}", context, credential.client_secret)
         value["continuation_cursor"] = continuation
         help.append(f"Run `{suggestion} --cursor {continuation}` for the next page")
-        if session.member_cid:
-            help.append("Supply the same tenant selection used for this invocation when continuing")
     value["events"] = [_event_row(event) for event in events]
     return CommandOutput(value=_rate_limit(session, value), help=tuple(help))
 
