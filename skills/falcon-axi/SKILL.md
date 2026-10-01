@@ -101,14 +101,12 @@ The unverified Active Directory account-GUID relationship is recorded in `docs/d
 These commands are backed by Identity Protection's GraphQL endpoint, not NG-SIEM.
 
 Identity Protection detections are `detection list --product idp`.
-They have no device, so their rows add `account`, `account_id`, `device_id`, and `product` columns and
-`hostname` is the source endpoint or `n/a`.
-`detection show` prints the same account, source-endpoint, and product fields when present.
+For their account and source-endpoint fields, including missing-value behavior, see
+[`docs/design/v1.md` §10.2](../../docs/design/v1.md#102-default-schemas).
 To see what that account did, run `falcon-axi identity activity <account_id>`; it starts one NG-SIEM job and
 prints a search id, then follow it with `search status <id>` and `search stop <id>` like any other search.
-Suggestions from successful authenticated commands, including the home view, lists, detection pivots, and
-search lifecycle, preserve explicit region, unknown-origin opt-in, and `--no-member-cid` flags exactly once.
-Supply the same tenant selection when following suggestions for a child tenant; they never print its CID.
+Follow the README's [region and tenant guidance](../../README.md#region-and-tenant) when using suggestions
+for the detection pivot and search job.
 The account is matched in full, ignoring case, and a value that is not a GUID or a plain account name is
 refused.
 
@@ -167,7 +165,6 @@ Nonempty list views print a definitive `count:` line and compact rows, with cont
 Empty results state the answer rather than leaving a silence to re-query.
 Default schemas, including login and account rows, are specified in `docs/design/v1.md` §10.2.
 Identity pages report rows shown without a total.
-A `detection list` page holding an identity alert adds `account`, `account_id`, `device_id`, and `product` columns.
 `vuln list --fields` appends the selected columns.
 `search status` has no fixed schema, because a CQL result set's columns are whatever the query projected.
 For identity row schemas, counts, and detail truncation, see `docs/design/v1.md` §10.2.

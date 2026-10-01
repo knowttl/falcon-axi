@@ -76,8 +76,8 @@ same endpoint also accepts mutations.
 So falcon-axi never sends GraphQL a caller supplies: the GraphQL directory and timeline commands name one of a closed set
 of registered `query` documents, every caller value travels as a JSON variable and never inside the
 document text, and the network sink refuses any other body.
-There is no `--query` flag, no GraphQL passthrough, and no password reset, account disable, or any
-other action on an identity.
+The GraphQL commands have no `--query` flag or passthrough, and there is no password reset, account disable,
+or any other action on an identity.
 
 If a task needs containment, a real-time-response session, a detection-status update, NG-SIEM
 ingest, a parser change, an identity action, or any other change to the tenant, falcon-axi is the
@@ -267,8 +267,8 @@ falcon-axi identity timeline 00000000-0000-0000-0000-000000000001 --since 24h
 
 `detection list` takes `--severity` (`informational`, `low`, `medium`, `high`, `critical`),
 `--status` (`new`, `in_progress`, `closed`, `reopened`), `--product` (`epp` for endpoint alerts, `idp`
-for Identity Protection, `mobile`, `xdr`, `overwatch`, `cwpp`, `ngsiem`, `thirdparty`,
-`data-protection`), and `--since`.
+for Identity Protection), and `--since`.
+Run `falcon-axi detection list --help` for the complete product values.
 `host list` takes `--hostname`, `--platform` (`windows`, `mac`, `linux`), `--status` (`normal`,
 `containment_pending`, `contained`, `lift_containment_pending`), and `--since` on `last_seen`.
 `vuln list` takes `--host`, `--severity` (`low`, `medium`, `high`, `critical`), `--status` (`open`,
@@ -308,7 +308,9 @@ A page of endpoint alerts is unchanged.
 SSO, and risk-score events, bounded to the latest 200, newest first.
 The account is an objectGUID (`account_id` in `detection show`), a sAMAccountName, or a UPN, and is
 matched in full, ignoring case.
-Anything else is refused before a request is made, because the value becomes part of the query.
+Names must follow [the activity query contract](docs/design/v1.md#identity-activity-a-fixed-search-not-a-fourth-operation),
+which defines the allowed characters, event families, and matching fields.
+Other values are refused before a request is made, because the value becomes part of the query.
 It prints a job id; poll it with `search status <id>` and stop it with `search stop <id>`.
 Use the same [region and tenant](#region-and-tenant) when following the job's suggestions.
 It is a search under N1, not a new operation; see `falcon-axi scopes` for its required permission.
