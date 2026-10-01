@@ -21,6 +21,7 @@ TARGET_FIXTURES = [
     ("GetQueriesAlertsV2", "alerts/query-page.json"),
     ("PostEntitiesAlertsV2", "alerts/hydrate-page.json"),
     ("combinedQueryVulnerabilities", "spotlight/combined-page.json"),
+    ("GetVulnerabilities", "intel/vulnerability-one.json"),
     ("StartSearchV1", "ngsiem/start-search.json"),
     ("GetSearchStatusV1", "ngsiem/search-status-running.json"),
     ("StopSearchV1", "ngsiem/stop-search.json"),
@@ -96,7 +97,7 @@ def test_emitted_pivots_preserve_global_context_without_copying_source_filters(
     for suggestion in suggestions:
         command = suggestion.partition("`")[2].rpartition("`")[0]
         command = command.replace("<device_id>", "synthetic-device-01").replace("<user_name>", "synthetic-admin")
-        command = command.replace("<name>", "WIN-DC-01")
+        command = command.replace("<name>", "WIN-DC-01").replace("<CVE-ID>", "CVE-2099-0001")
         id = "synthetic-account-01" if "account show" in command else "ldt:synthetic-agent-01:1001"
         command = command.replace("<id>", id)
         tokens = shlex.split(command)
