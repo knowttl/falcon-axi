@@ -628,8 +628,8 @@ def help_text(command: str) -> str:
                 "",
                 "Example: falcon-axi identity activity 00000000-0000-0000-0000-000000000000 --since 7d",
                 "",
-                "This command starts a job on the tenant and requires NGSIEM:write, the one write scope",
-                "falcon-axi asks for. It changes no identity, account, or detection.",
+                "This command starts a job on the tenant and requires NGSIEM:write.",
+                "It changes no identity, account, or detection.",
             ]
         )
     if command == "search start":
