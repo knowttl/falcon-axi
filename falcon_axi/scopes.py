@@ -1,4 +1,4 @@
-"""`falcon-axi scopes`: the command-to-scope matrix, projected from the operation registry (§8.3).
+"""`falcon-axi scopes`: the command-to-scope matrix, projected from operation and document registries (§8.3).
 
 It is local-only and authentication-free, and because it is generated from the registry it cannot
 drift from what falcon-axi actually calls and cannot name a write scope beyond the two the captain's exceptions
@@ -12,7 +12,7 @@ from falcon_axi.render import raw
 from falcon_axi.transport.graphql import GRAPHQL_DOCUMENTS
 from falcon_axi.transport.operations import OPERATIONS, OperationId
 
-#: Each command's operations; its required scope set is their union (§8.1).
+#: Each command's operations; GraphQL documents also contribute domain read scopes (§8.1).
 COMMAND_OPERATIONS: tuple[tuple[str, tuple[OperationId, ...]], ...] = (
     ("detection list", ("GetQueriesAlertsV2", "PostEntitiesAlertsV2")),
     ("detection show", ("PostEntitiesAlertsV2",)),
