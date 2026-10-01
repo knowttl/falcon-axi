@@ -165,17 +165,17 @@ LOGINS = [serve("QueryDeviceLoginHistoryV2", fixture("hosts/login-history.json")
 def test_host_logins_renders_one_row_per_login_and_sends_the_documented_request() -> None:
     recorded = RecordedTransport(LOGINS)
     stdout, exit_code = run(
-        ["host", "logins", "synthetic-device-01", "synthetic-device-02", "--since", "24h", "--limit", "5"],
+        ["host", "logins", "synthetic-device-01", "--since", "24h", "--limit", "5"],
         recorded,
         dict(CREDENTIAL_ENV),
     )
     assert exit_code == 0
-    assert re.search(r"^count: 2 logins across 2 hosts$", stdout, re.MULTILINE)
+    assert re.search(r"^count: 2 logins on 1 host$", stdout, re.MULTILINE)
     assert "logins[2]{device_id,user_name,login_time}:" in stdout
     assert 'synthetic-device-01,synthetic-svc-backup,"2026-10-01T13:07:57Z"' in stdout
     assert "synthetic-cid" not in stdout
     (request,) = recorded.operation_requests("QueryDeviceLoginHistoryV2")
-    assert request.body == {"ids": ["synthetic-device-01", "synthetic-device-02"]}
+    assert request.body == {"ids": ["synthetic-device-01"]}
     assert request.query == {"limit": 5, "from": "now-24h"}
 
 
@@ -185,12 +185,15 @@ def test_host_logins_without_since_leaves_falcons_own_window_in_force() -> None:
     assert recorded.operation_requests("QueryDeviceLoginHistoryV2")[0].query == {"limit": 20}
 
 
-def test_host_logins_chunks_ten_ids_per_request_and_dedupes() -> None:
-    recorded = RecordedTransport(LOGINS)
-    ids = [f"synthetic-device-{index:02d}" for index in range(12)]
-    run(["host", "logins", *ids, ids[0]], recorded, dict(CREDENTIAL_ENV))
-    bodies = [request.body["ids"] for request in recorded.operation_requests("QueryDeviceLoginHistoryV2")]
-    assert [len(chunk) for chunk in bodies] == [10, 2]
+def test_host_logins_rejects_multiple_ids_including_duplicates_before_authentication() -> None:
+    for second in ("synthetic-device-01", "synthetic-device-02"):
+        recorded = RecordedTransport(LOGINS)
+        stdout, exit_code = run(
+            ["host", "logins", "synthetic-device-01", second], recorded, dict(CREDENTIAL_ENV)
+        )
+        assert exit_code == 2
+        assert "host logins requires exactly one device identifier" in stdout
+        assert recorded.requests == []
 
 
 def test_a_host_that_returns_its_limit_says_more_may_exist() -> None:

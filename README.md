@@ -264,8 +264,8 @@ falcon-axi identity timeline 00000000-0000-0000-0000-000000000001 --since 24h
 `vuln list --fields description,base_score` adds those columns to the default
 `id,cve,severity,hostname` row; run `falcon-axi vuln list --help` for the allowed names.
 An unknown name is refused and the valid names are listed.
-`host logins <device_id>...` takes `--since` (a relative window, Falcon's own default is `7d`) and
-`--limit` (per host, ceiling 100) and answers ten hosts per request.
+`host logins <device_id>` accepts exactly one host and takes `--since` (a relative window, Falcon's own default is `7d`) and
+`--limit` (ceiling 100), issuing one login-history request.
 Its rows are recent interactive logins from the Host Timeline, not a full audit trail.
 `account list` takes `--filter` (raw FQL on Discover account fields), `--limit` (ceiling 100), and
 `--cursor`; the accounts are the ones Discover has seen log in on endpoints, not an identity

@@ -5,7 +5,7 @@ Commands:
   detection show <id>       the full detail for one detection
   host list                 list hosts from the Falcon Hosts collection
   host show <device id>     the full detail for one host
-  host logins <device id>...  recent interactive logins on one or more hosts
+  host logins <device id>   recent interactive logins on one host
   account list              list Discover accounts observed on endpoints
   account show <id>         the full detail for one account
   vuln list                 list Spotlight vulnerabilities; a filter is required

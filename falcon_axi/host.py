@@ -3,7 +3,7 @@
 `host list` is the documented two-step read (§2.3): `QueryDevicesByFilter` returns device ids and
 `PostDeviceDetailsV2` hydrates them, with the query-step order reapplied afterwards because an
 entity endpoint may answer in any order. `host show` is the hydrate step alone. `host logins` is
-one request per ten hosts: `QueryDeviceLoginHistoryV2` takes the device ids in its body.
+one request: `QueryDeviceLoginHistoryV2` takes the device id in its body.
 """
 
 from collections.abc import Mapping, Sequence
@@ -24,9 +24,6 @@ QUERY_CEILING = 5_000
 HYDRATE_CHUNK = 5_000
 #: The cited Hosts wall: a captured 400 reads `limit + offset must be less than 10000` (§7.1).
 HOSTS_WALL = 9_999
-#: Documented login-history limits: at most 10 device ids per request, and a limit of [1-100] that
-#: Falcon applies to each host separately (observed live: two hosts at limit 1 return two rows).
-LOGIN_HISTORY_CHUNK = 10
 LOGIN_CEILING = 100
 #: Falcon's own window when `from` is omitted (documented default `now-7d`).
 LOGIN_DEFAULT_SINCE = "7d"
@@ -210,70 +207,66 @@ def show_host(transport: Transport, session: Session, id: str) -> CommandOutput:
 
 
 def host_logins(
-    transport: Transport, session: Session, ids: Sequence[str], limit: int, since: str | None = None
+    transport: Transport, session: Session, id: str, limit: int, since: str | None = None
 ) -> CommandOutput:
-    """`host logins <device_id>...`: recent interactive logins per host, newest first as Falcon returns them."""
-    unique = list(dict.fromkeys(ids))
+    """`host logins <device_id>`: recent interactive logins on one host, newest first as Falcon returns them."""
     query: dict[str, str | int] = {"limit": limit}
     if since is not None:
         query["from"] = window(since)
     rows: list[dict[str, str]] = []
     saturated = False
-    for index in range(0, len(unique), LOGIN_HISTORY_CHUNK):
-        response = transport.request(
-            "QueryDeviceLoginHistoryV2",
-            RequestArgs(
-                base_url=session.base_url,
-                token=session.token,
-                allow_unknown_origin=session.allow_unknown_origin,
-                query=query,
-                body={"ids": unique[index : index + LOGIN_HISTORY_CHUNK]},
-            ),
+    response = transport.request(
+        "QueryDeviceLoginHistoryV2",
+        RequestArgs(
+            base_url=session.base_url,
+            token=session.token,
+            allow_unknown_origin=session.allow_unknown_origin,
+            query=query,
+            body={"ids": [id]},
+        ),
+    )
+    if response.status == 400 and any("invalid device id" in message for message in falcon_messages(response)):
+        raise CliError(
+            "NOT_FOUND",
+            "no host matched that identifier",
+            [
+                "Run `falcon-axi host list` to see current device identifiers",
+                "A device id is the agent id Falcon calls the AID",
+            ],
         )
-        if response.status == 400 and any("invalid device id" in message for message in falcon_messages(response)):
-            raise CliError(
-                "NOT_FOUND",
-                "no host matched one of those identifiers",
-                [
-                    "Run `falcon-axi host list` to see current device identifiers",
-                    "A device id is the agent id Falcon calls the AID",
-                ],
-            )
-        if response.status != 200:
-            raise translate_falcon_error(response, "QueryDeviceLoginHistoryV2", "host login history")
-        for entry in resources(response):
-            if not isinstance(entry, Mapping):
-                continue
-            device_id = _device_id_of(entry)
-            logins = entry.get("recent_logins")
-            logins = logins if isinstance(logins, list) else []
-            saturated = saturated or len(logins) >= limit
-            rows.extend(
-                {
-                    "device_id": device_id,
-                    "user_name": text(login.get("user_name")) or "unknown",
-                    "login_time": text(login.get("login_time")) or "unknown",
-                }
-                for login in logins
-                if isinstance(login, Mapping)
-            )
-
-    hosts = f"{len(unique)} host{'' if len(unique) == 1 else 's'}"
+    if response.status != 200:
+        raise translate_falcon_error(response, "QueryDeviceLoginHistoryV2", "host login history")
+    for entry in resources(response):
+        if not isinstance(entry, Mapping):
+            continue
+        device_id = _device_id_of(entry)
+        logins = entry.get("recent_logins")
+        logins = logins if isinstance(logins, list) else []
+        saturated = saturated or len(logins) >= limit
+        rows.extend(
+            {
+                "device_id": device_id,
+                "user_name": text(login.get("user_name")) or "unknown",
+                "login_time": text(login.get("login_time")) or "unknown",
+            }
+            for login in logins
+            if isinstance(login, Mapping)
+        )
     if not rows:
         return CommandOutput(
-            value={"logins": raw(f"0 logins on {hosts} in the last {since or LOGIN_DEFAULT_SINCE}")},
+            value={"logins": raw(f"0 logins on 1 host in the last {since or LOGIN_DEFAULT_SINCE}")},
             help=(
                 "Run `falcon-axi host logins <device_id> --since 30d` to widen the window",
                 "Run `falcon-axi host show <device_id>` to check when the host was last seen",
             ),
         )
     help = [
-        f"Run `falcon-axi host show {unique[0]}` for full host details",
+        f"Run `falcon-axi host show {id}` for full host details",
         "Run `falcon-axi host list --filter \"last_login_user:'<user_name>'\"` to find where a user last logged in",
     ]
     if saturated:
-        help.append(f"A host returned its limit of {limit} logins: raise --limit (ceiling {LOGIN_CEILING}) or narrow --since")
-    value: dict[str, Any] = {"count": raw(f"{len(rows)} logins across {hosts}"), "logins": rows}
+        help.append(f"The host returned its limit of {limit} logins: raise --limit (ceiling {LOGIN_CEILING}) or narrow --since")
+    value: dict[str, Any] = {"count": raw(f"{len(rows)} logins on 1 host"), "logins": rows}
     note = rate_limit_note(session)
     if note:
         value["rate_limit"] = raw(note)

@@ -19,8 +19,7 @@
             { "user_name": "synthetic-svc-backup", "login_time": "2026-10-01T13:07:57Z" },
             { "user_name": "synthetic-admin", "login_time": "2026-10-01T12:03:18Z" }
           ]
-        },
-        { "cid": "synthetic-cid", "device_id": "synthetic-device-02", "recent_logins": [] }
+        }
       ]
     }
   }

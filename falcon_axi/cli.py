@@ -125,6 +125,7 @@ LIMIT_CEILINGS: Mapping[str, tuple[int, str]] = {
 SHOW_COMMANDS: Mapping[str, tuple[str, str]] = {
     "detection show": ("detection identifier", "Run `falcon-axi detection list` to see current detection identifiers"),
     "host show": ("device identifier", "Run `falcon-axi host list` to see current device identifiers"),
+    "host logins": ("device identifier", "Run `falcon-axi host list` to see current device identifiers"),
     "account show": ("account identifier", "Run `falcon-axi account list` to see current account identifiers"),
     "cve show": ("CVE identifier", "A CVE identifier matches CVE-<year>-<number>, for example CVE-2021-44228"),
     "search status": ("search identifier", "A search identifier comes from `falcon-axi search start --query '<cql>'`"),
@@ -280,13 +281,7 @@ def parse(argv: Sequence[str]) -> Parsed:
         )
     if command == "cve show":
         validate_cve_id(positionals[0])
-    if command == "host logins" and not positionals:
-        raise CliError(
-            "VALIDATION_ERROR",
-            "host logins requires at least one device identifier",
-            ["Run `falcon-axi host list` to see current device identifiers"],
-        )
-    if command not in SHOW_COMMANDS and command != "host logins" and positionals:
+    if command not in SHOW_COMMANDS and positionals:
         raise CliError(
             "VALIDATION_ERROR",
             f"`{command}` accepts no positional arguments",
@@ -393,8 +388,9 @@ def _suggestion_for(command: str, flags: Mapping[str, str | bool], positionals: 
         value = flags.get(name)
         if isinstance(value, str):
             parts.extend((f"--{name}", value))
-    if flags.get("allow-unknown-origin"):
-        parts.append("--allow-unknown-origin")
+    for name in ("allow-unknown-origin", "no-member-cid"):
+        if flags.get(name):
+            parts.append(f"--{name}")
     return shlex.join(parts)
 
 
@@ -477,10 +473,9 @@ def help_text(command: str) -> str:
     if command == "host logins":
         return "\n".join(
             [
-                "falcon-axi host logins <device id>... [--since <window>] [--limit N]",
+                "falcon-axi host logins <device id> [--since <window>] [--limit N]",
                 "",
-                "One or more device ids (the AID, as printed by `falcon-axi host list`); Falcon answers ten",
-                "hosts per request and falcon-axi sends as many requests as the ids need.",
+                "The device id is the agent id Falcon calls the AID, as printed by `falcon-axi host list`.",
                 f"--since      window to read, such as 24h or 7d (default {LOGIN_DEFAULT_SINCE}, Falcon's own default)",
                 f"--limit      logins per host in this call (default {DEFAULT_LIMIT}, ceiling {LOGIN_CEILING})",
                 "",
@@ -716,7 +711,7 @@ def help_text(command: str) -> str:
             "  detection show <id>       the full detail for one detection",
             "  host list                 list hosts from the Falcon Hosts collection",
             "  host show <device id>     the full detail for one host",
-            "  host logins <device id>...  recent interactive logins on one or more hosts",
+            "  host logins <device id>   recent interactive logins on one host",
             "  account list              list Discover accounts observed on endpoints",
             "  account show <id>         the full detail for one account",
             "  vuln list                 list Spotlight vulnerabilities; a filter is required",
@@ -833,7 +828,7 @@ def _read(transport: Any, parsed: Parsed, resolved: Resolved) -> CommandOutput:
         return host_logins(
             transport,
             resolved.session,
-            parsed.positionals,
+            parsed.positionals[0],
             limit=_limit_of(flags, command),
             since=_str(flags.get("since")),
         )

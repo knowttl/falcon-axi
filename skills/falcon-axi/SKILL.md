@@ -47,7 +47,7 @@ commands[9 total]:
 `detection`: `list` (flags `--severity`, `--status`, `--since`, `--filter`, `--limit`, `--cursor`),
 `show <composite id>` (flag `--full`).
 `host`: `list` (flags `--hostname`, `--platform`, `--status`, `--since`, `--filter`, `--limit`, `--cursor`),
-`show <device id>`, `logins <device id>...` (flags `--since`, `--limit` per host).
+`show <device id>`, `logins <device id>` (exactly one host; flags `--since`, `--limit`).
 `account`: `list` (flags `--filter`, `--limit`, `--cursor`), `show <account id>`; Discover accounts, which need the
 license-gated `Assets:read`.
 `vuln`: `list` (flags `--host`, `--severity`, `--status`, `--since`, `--filter`, `--limit`, `--cursor`, `--fields`).

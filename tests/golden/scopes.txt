@@ -1,5 +1,5 @@
 posture: read-only except two write-labelled scopes: NGSIEM:write for NG-SIEM search start and stop (captain exception N1), and Identity Protection GraphQL:write for fixed read-only identity queries (captain exception N2)
-scopes[9]{scope,access,commands,required}:
+scopes[10]{scope,access,commands,required}:
   "Alerts:read",read,"detection list, detection show",yes
   "Hosts:read",read,"host list, host show, host logins",yes
   "Assets:read",read,"account list, account show",yes

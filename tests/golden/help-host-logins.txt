@@ -1,7 +1,6 @@
-falcon-axi host logins <device id>... [--since <window>] [--limit N]
+falcon-axi host logins <device id> [--since <window>] [--limit N]
 
-One or more device ids (the AID, as printed by `falcon-axi host list`); Falcon answers ten
-hosts per request and falcon-axi sends as many requests as the ids need.
+The device id is the agent id Falcon calls the AID, as printed by `falcon-axi host list`.
 --since      window to read, such as 24h or 7d (default 7d, Falcon's own default)
 --limit      logins per host in this call (default 20, ceiling 100)
 

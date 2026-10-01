@@ -1,5 +1,5 @@
-count: 2 logins across 2 hosts
+count: 2 logins on 1 host
 logins[2]{device_id,user_name,login_time}:
   synthetic-device-01,synthetic-svc-backup,"2026-10-01T13:07:57Z"
   synthetic-device-01,synthetic-admin,"2026-10-01T12:03:18Z"
-help[3]: "Run `falcon-axi host show synthetic-device-01` for full host details","Run `falcon-axi host list --filter \"last_login_user:'<user_name>'\"` to find where a user last logged in","A host returned its limit of 2 logins: raise --limit (ceiling 100) or narrow --since"
+help[3]: "Run `falcon-axi host show synthetic-device-01` for full host details","Run `falcon-axi host list --filter \"last_login_user:'<user_name>'\"` to find where a user last logged in","The host returned its limit of 2 logins: raise --limit (ceiling 100) or narrow --since"

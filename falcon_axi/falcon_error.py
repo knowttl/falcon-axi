@@ -62,13 +62,21 @@ def translate_falcon_error(response: FalconResponse, id: OperationId, subject: s
         )
     if response.status == 400:
         if any(_FILTER_WORDS.search(message) for message in messages):
+            if "Assets:read" in scopes:
+                command, example = "account list", "username:'synthetic-user'"
+            elif "Hosts:read" in scopes:
+                command, example = "host list", "hostname:'WIN-*'"
+            elif "Vulnerabilities:read" in scopes:
+                command, example = "vuln list", "status:'open'"
+            else:
+                command, example = "detection list", "severity_name:'High'+status:'new'"
             return CliError(
                 "FQL_INVALID",
                 f"the filter for {subject} was rejected",
                 [
                     "FQL uses + for AND, `,` for OR, and values must be quoted",
-                    "Example: `--filter \"severity_name:'High'+status:'new'\"`",
-                    "Run `falcon-axi detection list --help` for the filterable fields",
+                    f"Example: `--filter \"{example}\"`",
+                    f"Run `falcon-axi {command} --help` for the filterable fields",
                 ],
             )
         return CliError(
