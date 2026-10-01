@@ -91,9 +91,10 @@ def test_continuation_arguments_survive_shell_parsing_and_expansion(command: str
         check=True,
     )
     arguments = result.stdout.decode().split("\0")[:-1]
-    assert arguments[: 5 + len(positionals)] == ["falcon-axi", *command.split(), "--region", value, *positionals]
-    replayed = arguments[5 + len(positionals) :]
-    assert dict(zip(replayed[::2], replayed[1::2], strict=True)) == {f"--{name}": value for name in flags if name != "region"}
+    assert arguments[: 3 + len(positionals)] == ["falcon-axi", *command.split(), *positionals]
+    replayed = arguments[3 + len(positionals) :]
+    assert len(replayed) == 2 * len(flags)
+    assert dict(zip(replayed[::2], replayed[1::2], strict=True)) == {f"--{name}": value for name in flags}
 
 
 def test_member_cid_and_no_member_cid_cannot_be_combined() -> None:
