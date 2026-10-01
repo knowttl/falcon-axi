@@ -5,7 +5,7 @@ scopes[10]{scope,access,commands,required}:
   "Assets:read",read,"account list, account show",yes
   "Vulnerabilities:read",read,vuln list,yes
   "Vulnerabilities (Falcon Intelligence):read",read,cve show,yes
-  "NGSIEM:write",write,"search start, search stop",yes
+  "NGSIEM:write",write,"identity activity, search start, search stop",yes
   "NGSIEM:read",read,search status,yes
   "Identity Protection GraphQL:write",write,"identity list, identity show, identity timeline",yes
   "Identity Protection Entities:read",read,"identity list, identity show",yes

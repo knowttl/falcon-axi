@@ -10,6 +10,7 @@ from falcon_axi.cursor import CursorContext, decode_offset, encode_cursor
 from falcon_axi.domain import CommandOutput, rate_limit_note, resources, text, total
 from falcon_axi.falcon_error import translate_falcon_error
 from falcon_axi.fql import DetectionQuery, describe_detection_query, detection_filter
+from falcon_axi.identity import is_account_subject
 from falcon_axi.render import raw, truncate
 from falcon_axi.transport.types import RequestArgs, Transport
 
@@ -25,7 +26,20 @@ Alert = Mapping[str, Any]
 def _hostname_of(alert: Alert) -> str | None:
     device = alert.get("device")
     from_device = text(device.get("hostname")) if isinstance(device, Mapping) else None
-    return from_device or text(alert.get("hostname"))
+    return from_device or text(alert.get("hostname")) or text(alert.get("source_endpoint_host_name"))
+
+
+def _account_of(alert: Alert) -> str | None:
+    """The identity the alert is about. Endpoint alerts carry none; Identity Protection alerts carry `source_account_*`."""
+    return text(alert.get("source_account_name")) or text(alert.get("source_account_upn"))
+
+
+def _account_id_of(alert: Alert) -> str | None:
+    return text(alert.get("source_account_object_guid"))
+
+
+def _is_identity(alert: Alert) -> bool:
+    return _account_of(alert) is not None or text(alert.get("product")) == "idp"
 
 
 def _device_id_of(alert: Alert) -> str | None:
@@ -145,15 +159,21 @@ def list_detections(
         return CommandOutput(value={"detections": raw(detections)}, help=empty_help)
 
     alerts = _hydrate_alerts(transport, session, ids)
-    all_rows = [
-        {
+    # Identity alerts have no device, so a page holding any gains `account` and `product` columns,
+    # and an identity row without an endpoint reads `-` rather than the EDR placeholder `unknown`.
+    with_identity = any(_is_identity(alert) for alert in alerts)
+    all_rows = []
+    for alert in alerts:
+        row = {
             "id": _id_of(alert),
             "severity": text(alert.get("severity_name")) or "unknown",
             "tactic": text(alert.get("tactic")) or "unknown",
-            "hostname": _hostname_of(alert) or "unknown",
+            "hostname": _hostname_of(alert) or ("n/a" if _is_identity(alert) else "unknown"),
         }
-        for alert in alerts
-    ]
+        if with_identity:
+            row["account"] = _account_of(alert) or "n/a"
+            row["product"] = text(alert.get("product")) or "n/a"
+        all_rows.append(row)
     shown = all_rows if rows is None else all_rows[:rows]
     next_position = offset + len(ids)
     more_remain = len(ids) >= page if count is None else next_position < count
@@ -192,7 +212,7 @@ def show_detection(transport: Transport, session: Session, id: str, full: bool) 
             "no detection matched that identifier",
             [
                 "Run `falcon-axi detection list` to see current detection identifiers",
-                "A composite id looks like `ldt:<agent id>:<detection id>`",
+                "A composite id looks like `<cid>:ind:<id>`; copy it from the id column of `detection list`",
             ],
         )
     alert = alerts[0]
@@ -202,15 +222,31 @@ def show_detection(transport: Transport, session: Session, id: str, full: bool) 
     if rendered is not None and rendered[1]:
         help.append(f"Run `falcon-axi detection show {id} --full` to see the complete command line")
     device = _device_id_of(alert)
+    account = _account_of(alert)
+    account_id = _account_id_of(alert)
+    source_ip = text(alert.get("source_endpoint_ip_address"))
+    hostname = _hostname_of(alert)
     detail: dict[str, Any] = {
         "id": _id_of(alert),
         "severity": _severity_of(alert),
         "tactic": text(alert.get("tactic")) or "unknown",
         "technique": text(alert.get("technique")) or "unknown",
-        "hostname": _hostname_of(alert) or "unknown",
     }
+    if hostname or not _is_identity(alert):
+        detail["hostname"] = hostname or "unknown"
     if device:
         detail["device_id"] = device
+    if source_ip:
+        detail["source_ip"] = source_ip
+    if text(alert.get("product")):
+        detail["product"] = text(alert.get("product"))
+    if account:
+        detail["account"] = account
+    if account_id:
+        detail["account_id"] = account_id
+    pivot = account_id or (account if account and is_account_subject(account) else None)
+    if pivot:
+        help.append(f"Run `falcon-axi identity activity {pivot}` to see what this account did")
     detail["status"] = text(alert.get("status")) or "unknown"
     detail["first_seen"] = text(alert.get("created_timestamp")) or "unknown"
     if rendered is not None:

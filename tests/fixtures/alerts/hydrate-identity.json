@@ -1,0 +1,49 @@
+{
+  "provenance": {
+    "operation": "PostEntitiesAlertsV2",
+    "reference": "https://developer.crowdstrike.com/api-reference/collections/alerts/",
+    "schema_read": "2026-10-01",
+    "provenance": "synthetic"
+  },
+  "response": {
+    "status": 200,
+    "headers": { "x-ratelimit-limit": "6000", "x-ratelimit-remaining": "5997" },
+    "body": {
+      "meta": { "query_time": 0.033 },
+      "errors": [],
+      "resources": [
+        {
+          "composite_id": "synthetic-cid:ind:synthetic-idp-01:2001",
+          "product": "idp",
+          "severity": 70,
+          "severity_name": "High",
+          "tactic": "Credential Access",
+          "technique": "Kerberoasting",
+          "status": "new",
+          "created_timestamp": "2026-10-01T08:15:00Z",
+          "type": "idp-session-ntlm-additional-involved-endpoint",
+          "user_name": "synthetic.user",
+          "source_account_name": "synthetic.user",
+          "source_account_upn": "synthetic.user@example.test",
+          "source_account_object_guid": "00000000-0000-0000-0000-000000000001",
+          "source_endpoint_host_name": "WIN-WS-07",
+          "source_endpoint_ip_address": "192.0.2.17",
+          "agent_id": "synthetic-agent-07"
+        },
+        {
+          "composite_id": "synthetic-cid:ind:synthetic-idp-02:2002",
+          "product": "idp",
+          "severity": 50,
+          "severity_name": "Medium",
+          "tactic": "Lateral Movement",
+          "technique": "Remote Services",
+          "status": "new",
+          "created_timestamp": "2026-10-01T08:10:00Z",
+          "type": "idp-user-endpoint-app-info",
+          "user_name": "synthetic.svc",
+          "source_account_upn": "synthetic.svc@example.test"
+        }
+      ]
+    }
+  }
+}

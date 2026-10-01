@@ -290,6 +290,7 @@ Tag `v0.3.0`.
 **P3. Stage 3 surface: NG-SIEM search under captain exception N1. Implemented.**
 `search start`, `search status`, `search stop`, the three lifecycle operations captain exception N1 admits (v1.md §0, §4.3), with `NGSIEM:write` required on `search start` and `search stop` alone.
 The golden set adds stage 3 scenarios as regression pins, including the forbidden-write registry gate.
+Identity slice A then added `identity activity` (a fixed `StartSearchV1` search, so `NGSIEM:write` is also required there) and identity-aware detection rendering with `detection list --product`, all in `falcon_axi/identity.py`, `detection.py`, and `fql.py`, with no new operation, scope, or falconpy surface.
 Stage 2 and stage 3 both shipped without cutting a tag, so the next release tag covers all three stages.
 
 **P3b. Identity Protection GraphQL under captain exception N2. Implemented.**

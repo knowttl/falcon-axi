@@ -10,6 +10,7 @@ Commands:
   account show <id>         the full detail for one account
   vuln list                 list Spotlight vulnerabilities; a filter is required
   cve show <CVE-ID>         Falcon Intelligence detail for one CVE
+  identity activity <acct>  start a search for one account's identity events
   search start              start an NG-SIEM CQL search job
   search status <id>        poll one search job and read its events
   search stop <id>          cancel one search job

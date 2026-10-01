@@ -23,6 +23,7 @@ COMMAND_OPERATIONS: tuple[tuple[str, tuple[OperationId, ...]], ...] = (
     ("account show", ("get_accounts",)),
     ("vuln list", ("combinedQueryVulnerabilities",)),
     ("cve show", ("GetVulnerabilities",)),
+    ("identity activity", ("StartSearchV1",)),
     ("search start", ("StartSearchV1",)),
     ("search status", ("GetSearchStatusV1",)),
     ("search stop", ("StopSearchV1",)),

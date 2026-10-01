@@ -19,6 +19,7 @@ from falcon_axi.domain import DEFAULT_LIMIT, CommandOutput
 from falcon_axi.fql import (
     HOST_STATUSES,
     PLATFORMS,
+    PRODUCTS,
     SEVERITIES,
     STATUSES,
     VULN_SEVERITIES,
@@ -44,6 +45,7 @@ from falcon_axi.identity import (
     validate_identity_query,
 )
 from falcon_axi.identity import QUERY_CEILING as IDENTITY_CEILING
+from falcon_axi.identity import TIMELINE_ROWS, activity_query, start_identity_activity
 from falcon_axi.origin import REGIONS, assert_trusted_origin, resolve_base_url
 from falcon_axi.render import mask_cid, raw, render
 from falcon_axi.scopes import scope_matrix
@@ -66,6 +68,7 @@ Command = Literal[
     "account show",
     "vuln list",
     "cve show",
+    "identity activity",
     "search start",
     "search status",
     "search stop",
@@ -83,6 +86,7 @@ SUBCOMMANDS: Mapping[str, tuple[str, ...]] = {
     "account": ("list", "show"),
     "vuln": ("list",),
     "cve": ("show",),
+    "identity": ("activity",),
     "search": ("start", "status", "stop"),
     "identity": ("list", "show", "timeline"),
     "auth": ("status",),
@@ -92,7 +96,7 @@ GLOBAL_FLAGS = ("help", "region", "allow-unknown-origin", "member-cid", "no-memb
 
 COMMAND_FLAGS: Mapping[str, tuple[str, ...]] = {
     "home": (),
-    "detection list": ("filter", "severity", "status", "since", "limit", "cursor"),
+    "detection list": ("filter", "severity", "status", "product", "since", "limit", "cursor"),
     "detection show": ("full",),
     "host list": ("filter", "hostname", "platform", "status", "since", "limit", "cursor"),
     "host show": (),
@@ -101,6 +105,7 @@ COMMAND_FLAGS: Mapping[str, tuple[str, ...]] = {
     "account show": (),
     "vuln list": ("filter", "host", "severity", "status", "since", "limit", "cursor", "fields"),
     "cve show": (),
+    "identity activity": ("since",),
     "search start": ("query", "repository", "since"),
     "search status": ("repository",),
     "search stop": ("repository",),
@@ -129,6 +134,10 @@ SHOW_COMMANDS: Mapping[str, tuple[str, str]] = {
     "host logins": ("device identifier", "Run `falcon-axi host list` to see current device identifiers"),
     "account show": ("account identifier", "Run `falcon-axi account list` to see current account identifiers"),
     "cve show": ("CVE identifier", "A CVE identifier matches CVE-<year>-<number>, for example CVE-2021-44228"),
+    "identity activity": (
+        "account objectGUID or account name",
+        "Run `falcon-axi detection show <id>` for an identity detection's account_id",
+    ),
     "search status": ("search identifier", "A search identifier comes from `falcon-axi search start --query '<cql>'`"),
     "search stop": ("search identifier", "A search identifier comes from `falcon-axi search start --query '<cql>'`"),
     "identity show": ("identity id", "Run `falcon-axi identity list` to see current identity ids"),
@@ -146,6 +155,7 @@ VALUE_FLAGS = frozenset(
         "filter",
         "severity",
         "status",
+        "product",
         "since",
         "limit",
         "cursor",
@@ -305,6 +315,8 @@ def parse(argv: Sequence[str]) -> Parsed:
         if "category" in flags:
             parse_categories(str(flags["category"]))
         since_seconds(_str(flags.get("since")) or IDENTITY_DEFAULT_SINCE)
+    if command == "identity activity":
+        activity_query(positionals[0])
     return Parsed(command, flags, tuple(positionals))
 
 
@@ -339,6 +351,7 @@ def _detection_query_of(flags: Mapping[str, str | bool]) -> DetectionQuery:
         severity=_str(flags.get("severity")),
         status=_str(flags.get("status")),
         since=_str(flags.get("since")),
+        product=_str(flags.get("product")),
     )
 
 
@@ -381,6 +394,7 @@ def _suggestion_for(command: str, flags: Mapping[str, str | bool], positionals: 
         "host",
         "severity",
         "status",
+        "product",
         "since",
         "limit",
         "fields",
@@ -426,19 +440,24 @@ def help_text(command: str) -> str:
     if command == "detection list":
         return "\n".join(
             [
-                "falcon-axi detection list [--severity <name>] [--status <name>] [--since <window>] "
+                "falcon-axi detection list [--severity <name>] [--status <name>] [--product <name>] [--since <window>] "
                 "[--filter <FQL>] [--limit N] [--cursor <token>]",
                 "",
                 f"--severity   one of {', '.join(SEVERITIES)}",
                 f"--status     one of {', '.join(STATUSES)}",
+                f"--product    one of {', '.join(PRODUCTS)}; epp is endpoint alerts, idp is Identity Protection",
                 "--since      relative window such as 24h or 7d",
                 "--filter     raw FQL; + is AND, `,` is OR, values are single-quoted, relative dates are lowercase",
                 f"--limit      rows in this call (default {DEFAULT_LIMIT}, ceiling {ALERTS_CEILING})",
                 "--cursor     opaque continuation token from a previous call",
                 "",
-                "Filterable fields include severity_name, status, tactic, technique, created_timestamp, and device.hostname.",
+                "Filterable fields include severity_name, status, product, tactic, technique, created_timestamp,",
+                "and device.hostname.",
+                "Identity Protection alerts have no device: their rows show the endpoint they came from as hostname",
+                "(or `n/a`) and add account and product columns when the page holds any.",
                 "Examples:",
                 "  falcon-axi detection list --severity high --since 24h",
+                "  falcon-axi detection list --product idp --since 7d",
                 "  falcon-axi detection list --filter \"severity_name:'Critical'+status:'new'\"",
                 "",
                 "This command is read-only and requires only Alerts:read.",
@@ -592,6 +611,26 @@ def help_text(command: str) -> str:
                 "Whether --member-cid carries this scope is unverified.",
             ]
         )
+    if command == "identity activity":
+        return "\n".join(
+            [
+                "falcon-axi identity activity <account objectGUID or name> [--since <window>]",
+                "",
+                f"--since      window to search, such as 24h or 7d (default {DEFAULT_SINCE})",
+                "",
+                "Starts one NG-SIEM search job for an account's Identity Protection events: Active Directory",
+                "authentication and service access, LDAP and RPC requests, account changes and audits, SSO",
+                f"logons, and risk-score changes. It returns the latest {TIMELINE_ROWS}, newest first.",
+                "The account is an objectGUID (account_id in `detection show`), a sAMAccountName, or a UPN.",
+                "A name may contain letters, digits, and `. _ @ $ -` only, and is matched in full, ignoring case.",
+                "Poll the job with `falcon-axi search status <id>` and cancel it with `falcon-axi search stop <id>`.",
+                "",
+                "Example: falcon-axi identity activity 00000000-0000-0000-0000-000000000000 --since 7d",
+                "",
+                "This command starts a job on the tenant and requires NGSIEM:write, the one write scope",
+                "falcon-axi asks for. It changes no identity, account, or detection.",
+            ]
+        )
     if command == "search start":
         return "\n".join(
             [
@@ -738,6 +777,7 @@ def help_text(command: str) -> str:
             "  account show <id>         the full detail for one account",
             "  vuln list                 list Spotlight vulnerabilities; a filter is required",
             "  cve show <CVE-ID>         Falcon Intelligence detail for one CVE",
+            "  identity activity <acct>  start a search for one account's identity events",
             "  search start              start an NG-SIEM CQL search job",
             "  search status <id>        poll one search job and read its events",
             "  search stop <id>          cancel one search job",
@@ -866,6 +906,13 @@ def _read(transport: Any, parsed: Parsed, resolved: Resolved) -> CommandOutput:
         )
     if command == "account show":
         return show_account(transport, resolved.session, parsed.positionals[0])
+    if command == "identity activity":
+        return start_identity_activity(
+            transport,
+            resolved.session,
+            parsed.positionals[0],
+            since=_str(flags.get("since")) or DEFAULT_SINCE,
+        )
     if command == "search start":
         return start_search(
             transport,
@@ -950,6 +997,7 @@ def _home_view(transport: Any, flags: Mapping[str, str | bool], env: Mapping[str
                 [
                     *listed.help,
                     "Run `falcon-axi detection list` to see more detections",
+                    "Run `falcon-axi detection list --product idp` for Identity Protection detections",
                     "Run `falcon-axi host list --filter \"hostname:'WIN-*'\"` to search hosts",
                     "Run `falcon-axi cve show <CVE-ID>` for Falcon Intelligence on one CVE",
                     "Run `falcon-axi scopes` to see what this API client needs",

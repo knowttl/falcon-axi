@@ -1,0 +1,5 @@
+count: 2 of 2 total
+detections[2]{id,severity,tactic,hostname,account,product}:
+  "synthetic-cid:ind:synthetic-idp-01:2001",High,Credential Access,WIN-WS-07,synthetic.user,idp
+  "synthetic-cid:ind:synthetic-idp-02:2002",Medium,Lateral Movement,n/a,synthetic.svc@example.test,idp
+help[1]: "Run `falcon-axi detection show <id>` for the full detection"

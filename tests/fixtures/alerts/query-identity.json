@@ -1,0 +1,17 @@
+{
+  "provenance": {
+    "operation": "GetQueriesAlertsV2",
+    "reference": "https://developer.crowdstrike.com/api-reference/collections/alerts/",
+    "schema_read": "2026-10-01",
+    "provenance": "synthetic"
+  },
+  "response": {
+    "status": 200,
+    "headers": { "x-ratelimit-limit": "6000", "x-ratelimit-remaining": "5998" },
+    "body": {
+      "meta": { "query_time": 0.021, "pagination": { "offset": 0, "limit": 2, "total": 2 } },
+      "errors": [],
+      "resources": ["synthetic-cid:ind:synthetic-idp-01:2001", "synthetic-cid:ind:synthetic-idp-02:2002"]
+    }
+  }
+}

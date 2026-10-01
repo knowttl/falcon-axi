@@ -27,6 +27,9 @@ What is shipped:
 - the Identity Protection directory and timeline: `identity list`, `identity show`, and
   `identity timeline`, sending only fixed read-only GraphQL query documents under captain exception
   N2, the other place falcon-axi asks for a write-labelled scope;
+- identity-aware detections (`detection list --product idp`, with account and source-endpoint
+  fields when present) and `identity activity <account>`, a fixed NG-SIEM search over one account's
+  Identity Protection events that adds no operation and no scope beyond N1's;
 - `falcon-axi scopes`, the command-to-scope matrix, printed from the same operation registry the
   transport enforces and without making a request.
 
@@ -178,7 +181,7 @@ The Identity Protection scopes are expected to appear in the console only for a 
 Falcon Identity Protection.
 This console visibility requirement is inferred from other license-gated scopes, not verified for
 Identity Protection.
-To enable the `identity` commands, edit the falcon-axi API client and grant `Identity Protection
+To enable `identity list`, `identity show`, and `identity timeline`, edit the falcon-axi API client and grant `Identity Protection
 GraphQL` (the console offers write only), `Identity Protection Entities` (read), and `Identity
 Protection Timeline` (read).
 A command missing required permissions answers `SCOPE_DENIED` naming its required scopes; use
@@ -218,10 +221,12 @@ NG-SIEM search event CID fields (`cid`, `#repo.cid`) are redacted in output.
 5. `falcon-axi host show <device_id>` - the host a detection fired on.
 6. `falcon-axi vuln list --host <device_id>` - that host's exposure.
 7. `falcon-axi cve show <CVE-ID>` - what Falcon Intelligence knows about one CVE, which is not host exposure.
-8. `falcon-axi search start --query '<cql>'` - when the question is outside the read domains,
-   ask NG-SIEM directly, then poll with `search status <id>` and cancel with
+8. `falcon-axi detection list --product idp` and `falcon-axi identity activity <account_id>` - for an
+   identity detection, what that account did.
+9. `falcon-axi search start --query '<cql>'` - when the question is not one of the domains
+   above, ask NG-SIEM directly, then poll with `search status <id>` and cancel with
    `search stop <id>`.
-9. `falcon-axi identity list --name 'Admin*'` - who an account is, how risky it is, and (with
+10. `falcon-axi identity list --name 'Admin*'` - who an account is, how risky it is, and (with
    `identity show <id>` and `identity timeline <id>`) what it owns and what it did.
 
 ```
@@ -231,6 +236,7 @@ falcon-axi scopes                                   what to grant the API client
 falcon-axi detection list                           the 20 newest detections
 falcon-axi detection list --severity critical       one severity
 falcon-axi detection list --status new --since 24h  one status, one window
+falcon-axi detection list --product idp             Identity Protection detections
 falcon-axi detection list --filter "severity_name:'Critical'+status:'new'"
 falcon-axi detection show "ldt:aid:1234"            one detection
 falcon-axi detection show "ldt:aid:1234" --full     without truncating long fields
@@ -244,6 +250,7 @@ falcon-axi account show abc123                      one Discover account
 falcon-axi vuln list --severity critical --status open
 falcon-axi vuln list --host abc123                  one host's vulnerabilities
 falcon-axi cve show CVE-2021-44228               Falcon Intelligence detail for one CVE
+falcon-axi identity activity <account_id> --since 7d  an account's identity events
 falcon-axi search start --query '#event_simpleName=ProcessRollup2 | head(5)'
 falcon-axi search status 01JABCDEF                  one poll: running, cancelled, or done
 falcon-axi search stop 01JABCDEF                    cancel a job you no longer need
@@ -253,7 +260,9 @@ falcon-axi identity timeline 00000000-0000-0000-0000-000000000001 --since 24h
 ```
 
 `detection list` takes `--severity` (`informational`, `low`, `medium`, `high`, `critical`),
-`--status` (`new`, `in_progress`, `closed`, `reopened`), and `--since`.
+`--status` (`new`, `in_progress`, `closed`, `reopened`), `--product` (`epp` for endpoint alerts, `idp`
+for Identity Protection, `mobile`, `xdr`, `overwatch`, `cwpp`, `ngsiem`, `thirdparty`,
+`data-protection`), and `--since`.
 `host list` takes `--hostname`, `--platform` (`windows`, `mac`, `linux`), `--status` (`normal`,
 `containment_pending`, `contained`, `lift_containment_pending`), and `--since` on `last_seen`.
 `vuln list` takes `--host`, `--severity` (`low`, `medium`, `high`, `critical`), `--status` (`open`,
@@ -280,6 +289,24 @@ them.
 `host list` and `host show` report containment status as data.
 falcon-axi cannot change it; there is no command that contains, lifts containment on, or otherwise
 touches a host.
+
+### Identity
+
+Identity Protection detections are Alerts with `product:'idp'`, readable under `Alerts:read`.
+They have no device, so a `detection list` page that holds one gains `account` and `product` columns,
+and `hostname` shows the endpoint the alert came from or `n/a`; `detection show` prints `account`,
+`account_id`, `source_ip`, and `product` when present.
+A page of endpoint alerts is unchanged.
+
+`identity activity <account> [--since 24h]` starts one NG-SIEM search over the account's Active Directory,
+SSO, and risk-score events and returns the latest 200, newest first.
+The account is an objectGUID (`account_id` in `detection show`), a sAMAccountName, or a UPN, and is
+matched in full, ignoring case.
+Anything else is refused before a request is made, because the value becomes part of the query.
+It prints a job id; poll it with `search status <id>` and stop it with `search stop <id>`.
+It is a search under N1, not a new operation: it needs `NGSIEM:write` like `search start`, and nothing else.
+The identity directory (users, risk scores, associations) is not shipped: its only API route is a GraphQL
+endpoint that requires a write scope even to read.
 
 ### NG-SIEM search
 

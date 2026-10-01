@@ -9,6 +9,7 @@ from graphql import GraphQLResolveInfo, build_schema, graphql_sync
 from toon_format import decode
 
 from falcon_axi.cli import run
+from falcon_axi.identity import activity_query
 from falcon_axi.transport.graphql import GRAPHQL_DOCUMENTS, request_body
 from falcon_axi.transport.operations import operation
 from falcon_axi.transport.types import FalconResponse, RequestArgs
@@ -538,3 +539,134 @@ def test_no_identity_command_can_reach_a_document_outside_the_registry() -> None
         run(argv, recorded, dict(CREDENTIAL_ENV))
         sent.update(args.document for args in recorded.operation_requests(GRAPHQL) if args.document)
     assert sent == set(GRAPHQL_DOCUMENTS)
+
+
+GUID = "00000000-0000-0000-0000-000000000001"
+STARTED = [serve("StartSearchV1", fixture("ngsiem/start-search.json"))]
+IDENTITY_QUERY = fixture("alerts/query-identity.json")
+IDENTITY_HYDRATE = fixture("alerts/hydrate-identity.json")
+
+
+def test_identity_activity_starts_one_search_for_the_guid_and_hands_polling_to_search_status() -> None:
+    recorded = RecordedTransport(STARTED)
+    stdout, exit_code = run(["identity", "activity", GUID], recorded, dict(CREDENTIAL_ENV))
+    assert exit_code == 0
+    assert "search_id: synthetic-search-job-01" in stdout
+    assert "falcon-axi search status synthetic-search-job-01" in stdout
+    assert len(recorded.operation_requests("StartSearchV1")) == 1
+    args = recorded.operation_requests("StartSearchV1")[0]
+    assert args.path_params == {"repository": "search-all"}
+    query = args.body["queryString"]
+    for field in ("SourceAccountObjectGuid", "PerformedOnAccountObjectGuid", "AccountObjectGuid"):
+        assert f"{field}=/^{GUID}$/i" in query
+    assert "table([" in query
+    assert "sortby=@timestamp, order=desc" in query
+
+
+def test_the_since_window_defaults_to_24h_and_is_overridable() -> None:
+    recorded = RecordedTransport(STARTED)
+    run(["identity", "activity", GUID], recorded, dict(CREDENTIAL_ENV))
+    run(["identity", "activity", GUID, "--since", "7d"], recorded, dict(CREDENTIAL_ENV))
+    first, second = (args.body for args in recorded.operation_requests("StartSearchV1"))
+    assert first["end"] - first["start"] == 86_400 * 1_000
+    assert second["end"] - second["start"] == 7 * 86_400 * 1_000
+
+
+def test_a_guid_matches_case_insensitively_because_falcon_stores_it_in_upper_case() -> None:
+    assert activity_query(GUID.upper()).count("/i") == 3
+
+
+def test_an_account_name_is_matched_on_the_name_fields_only() -> None:
+    query = activity_query("svc.backup$")
+    for field in ("SourceAccountSamAccountName", "SourceAccountUserName", "PerformedOnAccountName", "SamAccountName"):
+        assert f"{field}=/^svc\\.backup\\$$/i" in query
+    assert "ObjectGuid" not in query
+
+
+def test_the_projection_leaves_the_kerberos_ticket_hash_samples_out() -> None:
+    assert "KerberosResponseTicketHashSample" not in activity_query(GUID)
+
+
+@pytest.mark.parametrize("subject", ['a"b', "a b", "a*", "a|b", "a\\b", 'x" | drop() | "', "(a)", "a;b", "a/b"])
+def test_a_subject_that_could_alter_the_query_is_refused_before_any_request(subject: str) -> None:
+    recorded = RecordedTransport([])
+    stdout, exit_code = run(["identity", "activity", subject], recorded, dict(CREDENTIAL_ENV))
+    assert exit_code == 2
+    assert "identity activity takes an account objectGUID or an account name" in stdout
+    assert recorded.requests == []
+
+
+def test_identity_activity_requires_exactly_one_account() -> None:
+    recorded = RecordedTransport([])
+    for argv in (["identity", "activity"], ["identity", "activity", "a", "b"]):
+        stdout, exit_code = run(argv, recorded, dict(CREDENTIAL_ENV))
+        assert exit_code == 2
+        assert "identity activity requires exactly one account objectGUID or account name" in stdout
+    assert recorded.requests == []
+
+
+def test_identity_activity_takes_only_a_since_flag() -> None:
+    stdout, exit_code = run(["identity", "activity", GUID, "--repository", "x"], RecordedTransport([]), dict(CREDENTIAL_ENV))
+    assert exit_code == 2
+    assert "unknown flag --repository for `identity activity`" in stdout
+
+
+def test_detection_list_composes_a_product_filter() -> None:
+    recorded = RecordedTransport([serve("GetQueriesAlertsV2", IDENTITY_QUERY), serve("PostEntitiesAlertsV2", IDENTITY_HYDRATE)])
+    run(["detection", "list", "--product", "IDP", "--since", "7d"], recorded, dict(CREDENTIAL_ENV))
+    assert recorded.operation_requests("GetQueriesAlertsV2")[0].query["filter"] == "product:'idp'+created_timestamp:>'now-7d'"
+
+
+def test_an_unknown_product_is_refused_with_the_valid_values() -> None:
+    recorded = RecordedTransport([])
+    stdout, exit_code = run(["detection", "list", "--product", "idp' , product:'epp"], recorded, dict(CREDENTIAL_ENV))
+    assert exit_code == 2
+    assert "valid values for --product: epp, idp" in stdout
+    assert recorded.operation_requests("GetQueriesAlertsV2") == []
+
+
+def test_identity_rows_show_the_account_product_and_source_endpoint_instead_of_unknown() -> None:
+    recorded = RecordedTransport([serve("GetQueriesAlertsV2", IDENTITY_QUERY), serve("PostEntitiesAlertsV2", IDENTITY_HYDRATE)])
+    stdout, exit_code = run(["detection", "list", "--product", "idp"], recorded, dict(CREDENTIAL_ENV))
+    assert exit_code == 0
+    assert re.search(r"^detections\[2\]\{id,severity,tactic,hostname,account,product\}:$", stdout, re.MULTILINE)
+    assert "unknown" not in stdout.replace("unknown total", "")
+    assert re.search(r",WIN-WS-07,synthetic\.user,idp$", stdout, re.MULTILINE)
+    # No endpoint on the second alert, and its account falls back to the UPN.
+    assert re.search(r",n/a,synthetic\.svc@example\.test,idp$", stdout, re.MULTILINE)
+
+
+def test_a_page_without_identity_alerts_keeps_the_four_column_schema() -> None:
+    recorded = RecordedTransport(
+        [
+            serve("GetQueriesAlertsV2", fixture("alerts/query-page.json")),
+            serve("PostEntitiesAlertsV2", fixture("alerts/hydrate-page.json")),
+        ]
+    )
+    stdout, _ = run(["detection", "list", "--limit", "2"], recorded, dict(CREDENTIAL_ENV))
+    assert "{id,severity,tactic,hostname}:" in stdout
+    assert "account" not in stdout
+
+
+def test_detection_show_prints_the_identity_fields_and_suggests_the_activity_pivot() -> None:
+    first = IDENTITY_HYDRATE.body["resources"][0]
+    recorded = RecordedTransport([serve("PostEntitiesAlertsV2", response(200, {"resources": [first]}))])
+    stdout, exit_code = run(["detection", "show", first["composite_id"]], recorded, dict(CREDENTIAL_ENV))
+    assert exit_code == 0
+    assert "hostname: WIN-WS-07" in stdout
+    assert "device_id: synthetic-agent-07" in stdout
+    assert "source_ip: 192.0.2.17" in stdout
+    assert "product: idp" in stdout
+    assert "account: synthetic.user" in stdout
+    assert f"account_id: {GUID}" in stdout
+    assert f"falcon-axi identity activity {GUID}" in stdout
+
+
+def test_detection_show_for_an_identity_alert_with_no_endpoint_omits_hostname() -> None:
+    second = IDENTITY_HYDRATE.body["resources"][1]
+    recorded = RecordedTransport([serve("PostEntitiesAlertsV2", response(200, {"resources": [second]}))])
+    stdout, _ = run(["detection", "show", second["composite_id"]], recorded, dict(CREDENTIAL_ENV))
+    assert "hostname" not in stdout
+    assert "account: synthetic.svc@example.test" in stdout
+    # An account name or UPN is a valid subject, so the pivot is offered without a GUID.
+    assert "falcon-axi identity activity synthetic.svc@example.test" in stdout

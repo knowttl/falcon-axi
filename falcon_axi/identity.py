@@ -7,6 +7,7 @@ opaque `--cursor` the other domains use (§7.1).
 """
 
 import json
+import re
 import time
 import uuid
 from collections.abc import Mapping, Sequence
@@ -22,6 +23,7 @@ from falcon_axi.domain import CommandOutput, body_of, rate_limit_note, text
 from falcon_axi.falcon_error import trace_id, translate_falcon_error
 from falcon_axi.fql import since_seconds
 from falcon_axi.render import raw
+from falcon_axi.search import DEFAULT_REPOSITORY, start_search
 from falcon_axi.transport.operations import OperationId
 from falcon_axi.transport.types import RequestArgs, Transport
 
@@ -414,3 +416,69 @@ def identity_timeline(
             help.append("Supply the same tenant selection used for this invocation when continuing")
     value["events"] = [_event_row(event) for event in events]
     return CommandOutput(value=_rate_limit(session, value), help=tuple(help))
+
+
+_GUID = re.compile(r"^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$")
+#: sAMAccountName and UPN characters. No quote, backslash, or `*`, so no value can end the CQL string
+#: or become a wildcard.
+_NAME = re.compile(r"^[A-Za-z0-9._@$-]{1,256}$")
+
+_GUID_FIELDS = ("SourceAccountObjectGuid", "PerformedOnAccountObjectGuid", "AccountObjectGuid")
+_NAME_FIELDS = ("SourceAccountSamAccountName", "SourceAccountUserName", "PerformedOnAccountName", "SamAccountName")
+_EVENT_FAMILIES = "^(ActiveDirectory|Sso|IdpEntityRiskScoreChange)"
+#: Rows the timeline returns, newest first.
+TIMELINE_ROWS = 200
+#: Authentication events carry Kerberos ticket hash samples, which are deliberately absent here.
+_COLUMNS = (
+    "@timestamp",
+    "#event_simpleName",
+    "SourceAccountSamAccountName",
+    "SourceAccountUserName",
+    "PerformedByAccountObjectName",
+    "PerformedOnAccountName",
+    "SourceEndpointHostName",
+    "source.ip",
+    "TargetServiceAccessIdentifier",
+    "ActiveDirectoryAuditActionType",
+)
+
+
+def is_account_subject(subject: str) -> bool:
+    return bool(_GUID.match(subject) or _NAME.match(subject))
+
+
+def activity_query(subject: str) -> str:
+    """The CQL for one account, given its objectGUID (an alert's `account_id`) or its account name."""
+    if _GUID.match(subject):
+        fields: tuple[str, ...] = _GUID_FIELDS
+        pattern = subject
+    elif _NAME.match(subject):
+        fields = _NAME_FIELDS
+        pattern = subject.replace(".", "\\.").replace("$", "\\$")
+    else:
+        raise CliError(
+            "VALIDATION_ERROR",
+            "identity activity takes an account objectGUID or an account name",
+            [
+                "An account name may contain letters, digits, and `. _ @ $ -` only; no wildcard is accepted",
+                "Run `falcon-axi detection show <id>` for an identity detection's account and account_id",
+            ],
+        )
+    # Matching is case-sensitive for a quoted string, and Falcon stores GUIDs in upper case while an
+    # account name's case is whatever the directory holds, so both go through an anchored `/i` regex.
+    match = " OR ".join(f"{field}=/^{pattern}$/i" for field in fields)
+    columns = ", ".join(_COLUMNS)
+    return (
+        f"#event_simpleName=/{_EVENT_FAMILIES}/ | {match} "
+        f"| table([{columns}], limit={TIMELINE_ROWS}, sortby=@timestamp, order=desc)"
+    )
+
+
+def start_identity_activity(
+    transport: Transport,
+    session: Session,
+    subject: str,
+    since: str,
+) -> CommandOutput:
+    """`identity activity <account>`: start one NG-SIEM job and hand its polling to `search status`."""
+    return start_search(transport, session, activity_query(subject), DEFAULT_REPOSITORY, since)
