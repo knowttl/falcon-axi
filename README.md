@@ -419,8 +419,7 @@ Install it from the repository:
 npx skills add knowttl/falcon-axi --skill falcon-axi -g
 ```
 
-Drop `-g` for a project-scoped install; the repository is private, so the install needs GitHub access to
-it.
+Drop `-g` for a project-scoped install.
 `falcon-axi setup` does not exist yet, so the CLI installs no skill, session hook, or plugin
 itself.
 

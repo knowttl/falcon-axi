@@ -212,7 +212,7 @@ falcon-axi's domain modules stay pure functions from arguments to request descri
 **Mechanics.**
 Each file containing ported code carries a header naming the falcon-mcp source file and commit, and `THIRD_PARTY_NOTICES.md` reproduces the falcon-mcp MIT notice.
 falconpy is Unlicense and needs no notice, but it is a dependency, not ported code.
-The falcon-axi repository's own license is still "not yet chosen" per the README; MIT would be the natural match and is a captain decision (§10).
+The falcon-axi repository's license is defined in [`LICENSE`](../../LICENSE), per the captain's decision in §10.
 
 **Reference check.**
 `scripts/reference_check.py` records the falcon-mcp commit the port was made from and asserts the registry's scope evidence against upstream `api_scopes.py` at that commit or a newer one.
@@ -233,7 +233,7 @@ It reaches the network, so it is opt-in and never part of `verify`.
 **Build.** `pyproject.toml` with the `hatchling` backend, static version, `[project.scripts] falcon-axi = "falcon_axi.cli:main"`.
 `uv build` produces the wheel and sdist; `uv lock` pins the two dependencies and their transitive closure for reproducible installs.
 
-**Install from the private repository, available on day one.**
+**Install from the public repository.**
 
 ```sh
 # Linux, WSL, macOS
@@ -248,15 +248,15 @@ uv tool install git+https://github.com/knowttl/falcon-axi@v0.2.0
 ```
 
 Then `FALCON_CLIENT_ID` and `FALCON_CLIENT_SECRET` in the environment or the 0600 credentials file, and `falcon-axi auth status`.
-The install uses the operator's existing GitHub credentials, needs no registry account or publish token, and pins by tag; `uv tool upgrade falcon-axi` moves to a newer tag.
+The install needs no GitHub credentials, registry account, or publish token and pins by tag; `uv tool upgrade falcon-axi` moves to a newer tag.
 For agents without a global install, `uvx --from git+https://github.com/knowttl/falcon-axi falcon-axi ...` is the Python analog of `npx -y` and is the form the generated skill uses (v1.md §12.2).
 
 **Publishing, in order.**
 
-1. Now: signed git tags `vX.Y.Z` on the private repository.
-2. Later, gated on a license choice and the repository going public: PyPI as `falcon-axi` (unclaimed as of 2026-09-18).
+1. Now: signed git tags `vX.Y.Z`.
+2. Later, deferred until a public release (§10): PyPI as `falcon-axi` (unclaimed as of 2026-09-18).
    Manual, from an operator machine: `uv build` then `uv publish --token <project-scoped PyPI token>`.
-   Trusted publishing needs a release workflow, which is not authorized: the only workflow is the offline CI gate.
+   Trusted publishing needs a release workflow, which is not authorized under v1.md §15.4.
    Install then becomes `uv tool install falcon-axi` or `uvx falcon-axi`.
 3. Optional after 2: the AXI community catalog, which requires independent source review at a pinned public release.
 4. Never npm, never a container image.
