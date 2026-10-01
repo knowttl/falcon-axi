@@ -122,7 +122,7 @@ def test_emitted_continuations_execute_with_the_same_filter_and_tenant_context(
     shell = shutil.which("bash")
     assert shell
     result = subprocess.run(  # noqa: S603
-        [shell, "-c", f"falcon-axi() {{ {shlex.quote(sys.executable)} -c {shlex.quote(program)} \"$@\"; }}; {command}"],
+        [shell, "-c", f'falcon-axi() {{ {shlex.quote(sys.executable)} -c {shlex.quote(program)} "$@"; }}; {command}'],
         env={**os.environ, **env},
         capture_output=True,
         text=True,

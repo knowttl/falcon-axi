@@ -9,13 +9,22 @@ from tests.support.recorded import CREDENTIAL_ENV, RecordedTransport, fixture, s
     ("noun", "query_operation", "detail_operation", "query_fixture", "example"),
     [
         ("account", "query_accounts", "get_accounts", "discover/accounts-query-page.json", "username:'synthetic-user'"),
-        ("detection", "GetQueriesAlertsV2", "PostEntitiesAlertsV2", "alerts/query-page.json",
-         "severity_name:'High'+status:'new'"),
+        (
+            "detection",
+            "GetQueriesAlertsV2",
+            "PostEntitiesAlertsV2",
+            "alerts/query-page.json",
+            "severity_name:'High'+status:'new'",
+        ),
         ("host", "QueryDevicesByFilter", "PostDeviceDetailsV2", "hosts/query-page.json", "hostname:'WIN-*'"),
     ],
 )
 def test_query_and_entity_filter_rejections_teach_the_failed_domains_fields(
-    noun: str, query_operation: str, detail_operation: str, query_fixture: str, example: str,
+    noun: str,
+    query_operation: str,
+    detail_operation: str,
+    query_fixture: str,
+    example: str,
 ) -> None:
     rejected = fixture("errors/400-fql.json")
     for argv, responders in (
@@ -29,7 +38,7 @@ def test_query_and_entity_filter_rejections_teach_the_failed_domains_fields(
         assert document["code"] == "FQL_INVALID"
         assert document["help"] == [
             "FQL uses + for AND, `,` for OR, and values must be quoted",
-            f"Example: `--filter \"{example}\"`",
+            f'Example: `--filter "{example}"`',
             f"Run `falcon-axi {noun} list --help` for the filterable fields",
         ]
 
@@ -48,6 +57,6 @@ def test_combined_reads_use_their_own_fql_remedy(argv: list[str], operation: str
     assert exit_code == 2
     assert document["code"] == "FQL_INVALID"
     assert document["help"][1:] == [
-        f"Example: `--filter \"{example}\"`",
+        f'Example: `--filter "{example}"`',
         f"Run `falcon-axi {noun} list --help` for the filterable fields",
     ]

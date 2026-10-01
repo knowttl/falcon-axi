@@ -78,8 +78,7 @@ def test_emitted_pivots_preserve_global_context_without_copying_source_filters(
     if explicit_member:
         assert "Supply the same tenant selection used for this invocation when continuing" in document["help"]
     suggestions = [
-        item for item in document["help"]
-        if item.startswith("Run `falcon-axi ") and not item.endswith("for the next page")
+        item for item in document["help"] if item.startswith("Run `falcon-axi ") and not item.endswith("for the next page")
     ]
     assert suggestions
     target_env = {**env, **({"FALCON_MEMBER_CID": str(selected)} if explicit_member else {})}
@@ -105,7 +104,7 @@ def test_emitted_pivots_preserve_global_context_without_copying_source_filters(
         assert tokens.count("--region") == 1
         assert "--member-cid" not in tokens
         result = subprocess.run(  # noqa: S603
-            [shell, "-c", f"falcon-axi() {{ {shlex.quote(sys.executable)} -c {shlex.quote(program)} \"$@\"; }}; {command}"],
+            [shell, "-c", f'falcon-axi() {{ {shlex.quote(sys.executable)} -c {shlex.quote(program)} "$@"; }}; {command}'],
             env={**os.environ, **target_env},
             capture_output=True,
             text=True,
@@ -115,5 +114,7 @@ def test_emitted_pivots_preserve_global_context_without_copying_source_filters(
         followed, exit_code, authentication = json.loads(result.stdout)
         assert exit_code == 0, followed
         expected = recorded.oauth_requests()[0]
-        expected_authentication = [] if tokens[1] == "scopes" else [[expected.base_url, selected, expected.allow_unknown_origin]]
+        expected_authentication = (
+            [] if tokens[1] == "scopes" else [[expected.base_url, selected, expected.allow_unknown_origin]]
+        )
         assert authentication == expected_authentication

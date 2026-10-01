@@ -188,9 +188,7 @@ def test_host_logins_without_since_leaves_falcons_own_window_in_force() -> None:
 def test_host_logins_rejects_multiple_ids_including_duplicates_before_authentication() -> None:
     for second in ("synthetic-device-01", "synthetic-device-02"):
         recorded = RecordedTransport(LOGINS)
-        stdout, exit_code = run(
-            ["host", "logins", "synthetic-device-01", second], recorded, dict(CREDENTIAL_ENV)
-        )
+        stdout, exit_code = run(["host", "logins", "synthetic-device-01", second], recorded, dict(CREDENTIAL_ENV))
         assert exit_code == 2
         assert "host logins requires exactly one device identifier" in stdout
         assert recorded.requests == []
