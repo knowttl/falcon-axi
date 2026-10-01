@@ -73,7 +73,7 @@ See `docs/design/v1.md` §0, §1.5, §3, §4.3, and §4.4.
 **N2 is not general write authority.**
 Falcon scopes the one Identity Protection GraphQL endpoint `WRITE` even for read-only queries, and the
 same endpoint also accepts mutations.
-So falcon-axi never sends GraphQL a caller supplies: the identity commands name one of a closed set
+So falcon-axi never sends GraphQL a caller supplies: the GraphQL directory and timeline commands name one of a closed set
 of registered `query` documents, every caller value travels as a JSON variable and never inside the
 document text, and the network sink refuses any other body.
 There is no `--query` flag, no GraphQL passthrough, and no password reset, account disable, or any
@@ -305,7 +305,7 @@ and `product` columns, and `hostname` shows the source endpoint or `n/a`.
 A page of endpoint alerts is unchanged.
 
 `identity activity <account> [--since 24h]` starts one NG-SIEM search over the account's Active Directory,
-SSO, and risk-score events and returns the latest 200, newest first.
+SSO, and risk-score events, bounded to the latest 200, newest first.
 The account is an objectGUID (`account_id` in `detection show`), a sAMAccountName, or a UPN, and is
 matched in full, ignoring case.
 Anything else is refused before a request is made, because the value becomes part of the query.
@@ -359,7 +359,7 @@ Output is TOON on stdout.
 A non-empty list view prints a `count:` line, a compact domain-specific schema, and a `help[]` array of
 the next commands.
 Empty results are stated explicitly rather than left as ambiguous silence.
-Identity pages report rows shown without a total; their schemas are defined in
+GraphQL identity pages report rows shown without a total; their schemas are defined in
 [the output contract](docs/design/v1.md#102-default-schemas).
 
 ```

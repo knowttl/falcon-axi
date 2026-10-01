@@ -130,7 +130,7 @@ falcon_axi/
   render.py                    the TOON boundary; raw lines and help block hand-formatted
   falcon_error.py              Falcon envelope to v1 §9 codes
   detection.py, host.py, account.py, vuln.py   pure functions: args to request descriptors, responses to rows
-  identity.py                  directory and timeline commands over registered GraphQL documents
+  identity.py                  Identity Protection commands (v1.md §4.3, §4.4)
   scopes.py                    the §8.3 command-to-scope matrix, projected from the registry
   transport/
     __init__.py                sealed request() and request_oauth_token(); mints permits
@@ -288,7 +288,8 @@ The golden set keeps the stage 1 scenarios as the cross-language parity gate and
 Tag `v0.3.0`.
 
 **P3. Stage 3 surface: NG-SIEM search under captain exception N1. Implemented.**
-`search start`, `search status`, `search stop`, the three lifecycle operations captain exception N1 admits (v1.md §0, §4.3), with `NGSIEM:write` required on `search start` and `search stop` alone.
+`search start`, `search status`, `search stop`, the three lifecycle operations captain exception N1 admits (v1.md §0, §4.3).
+The current command-to-scope matrix is projected by `falcon-axi scopes` (v1.md §8.3).
 The golden set adds stage 3 scenarios as regression pins, including the forbidden-write registry gate.
 Identity slice A then added `identity activity` (a fixed `StartSearchV1` search, so `NGSIEM:write` is also required there) and identity-aware detection rendering with `detection list --product`, all in `falcon_axi/identity.py`, `detection.py`, and `fql.py`, with no new operation, scope, or falconpy surface.
 Stage 2 and stage 3 both shipped without cutting a tag, so the next release tag covers all three stages.
