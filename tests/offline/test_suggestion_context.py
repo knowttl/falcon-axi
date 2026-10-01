@@ -86,3 +86,59 @@ def test_discovery_empty_states_and_continuations_preserve_context_once(argv, em
             assert requests[0].query.get("filter") == requests[-1].query.get("filter")
         followed += 1
     assert followed > 0
+
+
+@pytest.mark.parametrize(
+    ("noun", "flag", "value", "empty"),
+    [
+        ("detection", "filter", "status:'new',status:'in_progress'", False),
+        ("detection", "filter", "status:'new',status:'in_progress'", True),
+        ("detection", "filter", "device.hostname:'WIN-$backup'", False),
+        ("detection", "filter", 'device.hostname:\'WIN "LAB"\'', False),
+        ("host", "filter", "status:'normal',status:'contained'", False),
+        ("host", "filter", "status:'normal',status:'contained'", True),
+        ("host", "hostname", "WIN-*", False),
+        ("host", "hostname", "WIN-$backup", False),
+        ("host", "hostname", "WIN-$backup", True),
+        ("vuln", "filter", "status:'open',status:'closed'", False),
+    ],
+)
+def test_replayed_query_values_survive_shell_parsing_and_reach_the_next_request(noun, flag, value, empty) -> None:
+    operation = {
+        "detection": "GetQueriesAlertsV2",
+        "host": "QueryDevicesByFilter",
+        "vuln": "combinedQueryVulnerabilities",
+    }[noun]
+    page = {
+        "detection": fixture("alerts/query-page.json"),
+        "host": fixture("hosts/query-page.json"),
+        "vuln": fixture("spotlight/combined-page.json"),
+    }[noun]
+    recorded = RecordedTransport(
+        [
+            serve(operation, response(200, {"resources": []}) if empty else page),
+            serve("PostEntitiesAlertsV2", fixture("alerts/hydrate-page.json")),
+            serve("PostDeviceDetailsV2", fixture("hosts/details-page.json")),
+        ]
+    )
+    argv = [noun, "list", f"--{flag}", value, "--since", "24h", "--limit", "2"]
+    if noun == "detection":
+        argv += ["--product", "idp"]
+    stdout, exit_code = run(argv, recorded, dict(CREDENTIAL_ENV))
+    assert exit_code == 0, stdout
+    help = decode(stdout)["help"]
+    suggestion = next(item for item in help if ("widen the window" if empty else "--cursor") in item)
+    tokens = shlex.split(suggestion.split("`", 2)[1])
+    assert tokens[tokens.index(f"--{flag}") + 1] == value
+    stdout, exit_code = run(tokens[1:], recorded, dict(CREDENTIAL_ENV))
+    assert exit_code == 0, stdout
+    first, second = recorded.operation_requests(operation)
+    expected = first.query["filter"]
+    if empty:
+        expected = expected.replace("now-24h", "now-7d" if noun == "detection" else "now-30d")
+    assert second.query["filter"] == expected
+    if not empty:
+        if noun == "vuln":
+            assert second.query["after"] == "synthetic-after-token-2"
+        else:
+            assert second.query["offset"] == 2
