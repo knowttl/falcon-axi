@@ -522,8 +522,8 @@ def help_text(command: str) -> str:
                 "  falcon-axi search start --query '#event_simpleName=ProcessRollup2 "
                 "| groupBy([ComputerName], function=count())' --since 7d",
                 "",
-                "This command starts a job on the tenant and requires NGSIEM:write, the one write scope",
-                "falcon-axi asks for. Poll it with `falcon-axi search status <id>`.",
+                "This command starts a job on the tenant and requires NGSIEM:write.",
+                "Poll it with `falcon-axi search status <id>`.",
             ]
         )
     if command == "search status":
@@ -554,7 +554,7 @@ def help_text(command: str) -> str:
                 "",
                 "Example: falcon-axi search stop abc123",
                 "",
-                "This command requires NGSIEM:write, the one write scope falcon-axi asks for.",
+                "This command requires NGSIEM:write.",
             ]
         )
     if command == "identity list":

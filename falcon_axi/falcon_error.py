@@ -100,7 +100,6 @@ def translate_falcon_error(response: FalconResponse, id: OperationId, subject: s
                 {"required_scopes": list(scopes)},
             )
         if descriptor.effect != "read":
-            # The one write scope falcon-axi asks for, so the remedy cannot say "read only" (§4.3).
             return CliError(
                 "SCOPE_DENIED",
                 f"this API client is not permitted to run {subject}",
