@@ -24,6 +24,7 @@ from falcon_axi.fql import (
     DetectionQuery,
     HostQuery,
     VulnQuery,
+    since_seconds,
 )
 from falcon_axi.host import QUERY_CEILING as HOSTS_CEILING
 from falcon_axi.host import list_hosts, show_host
@@ -34,7 +35,10 @@ from falcon_axi.identity import (
     IdentityQuery,
     identity_timeline,
     list_identities,
+    parse_categories,
     show_identity,
+    validate_entity_id,
+    validate_identity_query,
 )
 from falcon_axi.identity import QUERY_CEILING as IDENTITY_CEILING
 from falcon_axi.origin import REGIONS, assert_trusted_origin, resolve_base_url
@@ -274,6 +278,14 @@ def parse(argv: Sequence[str]) -> Parsed:
         _limit_of(flags, command)
     if "fields" in flags:
         parse_fields(str(flags["fields"]))
+    if command == "identity list":
+        validate_identity_query(_identity_query_of(flags))
+    if command in ("identity show", "identity timeline"):
+        validate_entity_id(positionals[0])
+    if command == "identity timeline":
+        if "category" in flags:
+            parse_categories(str(flags["category"]))
+        since_seconds(_str(flags.get("since")) or IDENTITY_DEFAULT_SINCE)
     return Parsed(command, flags, tuple(positionals))
 
 
@@ -328,6 +340,15 @@ def _vuln_query_of(flags: Mapping[str, str | bool]) -> VulnQuery:
         severity=_str(flags.get("severity")),
         status=_str(flags.get("status")),
         since=_str(flags.get("since")),
+    )
+
+
+def _identity_query_of(flags: Mapping[str, str | bool]) -> IdentityQuery:
+    return IdentityQuery(
+        name=_str(flags.get("name")),
+        email=_str(flags.get("email")),
+        domain=_str(flags.get("domain")),
+        type=_str(flags.get("type")),
     )
 
 
@@ -760,12 +781,7 @@ def _read(transport: Any, parsed: Parsed, resolved: Resolved) -> CommandOutput:
         return list_identities(
             transport,
             resolved.session,
-            query=IdentityQuery(
-                name=_str(flags.get("name")),
-                email=_str(flags.get("email")),
-                domain=_str(flags.get("domain")),
-                type=_str(flags.get("type")),
-            ),
+            query=_identity_query_of(flags),
             limit=_limit_of(flags, command),
             cursor=_str(flags.get("cursor")),
             credential=resolved.credential,

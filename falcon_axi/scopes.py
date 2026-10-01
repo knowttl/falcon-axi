@@ -73,7 +73,7 @@ def scope_matrix() -> CommandOutput:
             "falcon-axi needs no other write scope",
             "Identity Protection GraphQL:write is labelled write because Falcon requires it even for read-only queries; "
             "falcon-axi sends only its own fixed read queries, never caller-supplied GraphQL (captain exception N2)",
-            "Omit NGSIEM:write to provision a wholly read-only client, and the `search` commands then fail with SCOPE_DENIED",
+            "Omit NGSIEM:write and `search start` and `search stop` fail with SCOPE_DENIED",
             "Omit Identity Protection GraphQL:write and the `identity` commands fail with SCOPE_DENIED",
         ),
     )

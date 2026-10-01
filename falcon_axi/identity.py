@@ -6,6 +6,7 @@ variables; they never build GraphQL text, and Relay `first`/`after` pagination t
 opaque `--cursor` the other domains use (§7.1).
 """
 
+import json
 import time
 import uuid
 from collections.abc import Mapping, Sequence
@@ -61,7 +62,7 @@ def _nodes(connection: Any) -> list[Node]:
     return _objects(_mapping(connection).get("nodes"))
 
 
-def _entity_id(value: str) -> str:
+def validate_entity_id(value: str) -> str:
     """An entity id is a GUID, and the variable's GraphQL type is `UUID`, so anything else cannot match."""
     candidate = value.strip()
     try:
@@ -79,16 +80,28 @@ def _entity_id(value: str) -> str:
     return candidate
 
 
-def _pattern(value: str | None, flag: str) -> str | None:
+def _validate_pattern(value: str | None, flag: str) -> None:
     if value is None:
-        return None
+        return
     if not value.strip("* "):
         raise CliError(
             "VALIDATION_ERROR",
             f"--{flag} requires a value, and a bare wildcard matches every identity",
             [f"Pass a more specific pattern, for example `--{flag} 'Admin*'`"],
         )
-    return value
+
+
+def validate_identity_query(query: IdentityQuery) -> None:
+    if query.type is not None and query.type.lower() not in ENTITY_TYPES:
+        raise CliError(
+            "VALIDATION_ERROR",
+            f"unknown type {query.type}",
+            [f"valid values for --type: {', '.join(ENTITY_TYPES)}"],
+        )
+    _validate_pattern(query.name, "name")
+    _validate_pattern(query.email, "email")
+    if query.domain is not None and not query.domain.strip():
+        raise CliError("VALIDATION_ERROR", "--domain requires a value")
 
 
 def _query(transport: Transport, session: Session, document: str, variables: Mapping[str, Any], subject: str) -> Node:
@@ -185,17 +198,10 @@ def list_identities(
     cursor: str | None = None,
 ) -> CommandOutput:
     """`identity list`: one directory page, rendered as the five-field schema."""
+    validate_identity_query(query)
     entity_type = query.type.lower() if query.type else None
-    if entity_type is not None and entity_type not in ENTITY_TYPES:
-        raise CliError(
-            "VALIDATION_ERROR",
-            f"unknown type {query.type}",
-            [f"valid values for --type: {', '.join(ENTITY_TYPES)}"],
-        )
-    name = _pattern(query.name, "name")
-    email = _pattern(query.email, "email")
-    if query.domain is not None and not query.domain.strip():
-        raise CliError("VALIDATION_ERROR", "--domain requires a value")
+    name = query.name
+    email = query.email
     variables: dict[str, Any] = {"first": limit}
     if name:
         variables["name"] = name
@@ -203,7 +209,7 @@ def list_identities(
         variables["email"] = email
     if query.domain:
         variables["domains"] = [query.domain]
-    fingerprint = "|".join((entity_type or "", name or "", email or "", query.domain or ""))
+    fingerprint = json.dumps((entity_type, name, email, query.domain), separators=(",", ":"))
     context = _cursor_context(session, credential, fingerprint)
     if cursor is not None:
         variables["after"] = decode_after(cursor, context, credential.client_secret)
@@ -215,7 +221,7 @@ def list_identities(
     if not nodes:
         empty = f"0 identities matching {describe}" if describe else "0 identities"
         return CommandOutput(
-            value=_rate_limit(session, {"identities": raw(empty)}),
+            value=_rate_limit(session, {"identities": empty}),
             help=(
                 "Run `falcon-axi identity list` without filters to see the directory",
                 "Name and email patterns accept `*` wildcards, for example `--name 'Admin*'`",
@@ -288,7 +294,7 @@ def _incident_row(incident: Node) -> dict[str, str]:
 
 def show_identity(transport: Transport, session: Session, id: str, full: bool) -> CommandOutput:
     """`identity show <id>`: one entity's directory detail, risk, accounts, associations, and open incidents."""
-    entity_id = _entity_id(id)
+    entity_id = validate_entity_id(id)
     data = _query(transport, session, "identity_show", {"entityIds": [entity_id]}, "identities")
     nodes = _nodes(data.get("entities"))
     if not nodes:
@@ -370,7 +376,7 @@ def identity_timeline(
     cursor: str | None = None,
 ) -> CommandOutput:
     """`identity timeline <id>`: one page of an identity's recent activity, newest first."""
-    entity_id = _entity_id(id)
+    entity_id = validate_entity_id(id)
     chosen = parse_categories(",".join(categories)) if categories else ()
     context = _cursor_context(session, credential, "|".join((entity_id.lower(), since.lower(), ",".join(chosen))))
     start = _window_start(since)
@@ -388,7 +394,7 @@ def identity_timeline(
     events = _nodes(connection)
     if not events:
         return CommandOutput(
-            value=_rate_limit(session, {"events": raw(f"0 events for this identity in the last {since}")}),
+            value=_rate_limit(session, {"events": f"0 events for this identity in the last {since}"}),
             help=(
                 f"Run `falcon-axi identity timeline {entity_id} --since 30d` to widen the window",
                 f"Run `falcon-axi identity show {entity_id}` to confirm the identity exists",
@@ -398,7 +404,7 @@ def identity_timeline(
         f"Run `falcon-axi identity show {entity_id}` for this identity's risk, accounts, and associations",
         f"Run `falcon-axi identity timeline {entity_id} --category threat` to narrow to threat events",
     ]
-    value: dict[str, Any] = {"window": raw(f"the last {since}"), "count": raw(f"{len(events)} shown")}
+    value: dict[str, Any] = {"window": f"the last {since}", "count": raw(f"{len(events)} shown")}
     more, end_cursor = _page_info(connection)
     if more and end_cursor:
         continuation = encode_cursor(f"{start}|{end_cursor}", context, credential.client_secret)

@@ -38,6 +38,15 @@ def test_the_only_write_scopes_in_the_matrix_are_the_two_the_captain_exceptions_
     }
 
 
+def test_provisioning_hints_describe_each_write_scope_without_claiming_the_other_is_read_only() -> None:
+    stdout, exit_code = run(["scopes"], RecordedTransport([]), dict(NO_CREDENTIAL_ENV))
+    assert exit_code == 0
+    hints = decode(stdout)["help"]
+    assert "Omit NGSIEM:write and `search start` and `search stop` fail with SCOPE_DENIED" in hints
+    assert "Omit Identity Protection GraphQL:write and the `identity` commands fail with SCOPE_DENIED" in hints
+    assert not any("wholly read-only client" in hint for hint in hints)
+
+
 def test_the_identity_commands_list_their_per_document_read_scopes() -> None:
     stdout, _ = run(["scopes"], RecordedTransport([]), dict(NO_CREDENTIAL_ENV))
     rows = {row["scope"]: row for row in decode(stdout)["scopes"]}

@@ -12,7 +12,7 @@ from falcon_axi.cli import run
 from falcon_axi.transport.graphql import GRAPHQL_DOCUMENTS, request_body
 from falcon_axi.transport.operations import operation
 from falcon_axi.transport.types import FalconResponse, RequestArgs
-from tests.support.recorded import CREDENTIAL_ENV, FIXTURES, RecordedTransport, fixture, response, serve
+from tests.support.recorded import CREDENTIAL_ENV, FIXTURES, NO_CREDENTIAL_ENV, RecordedTransport, fixture, response, serve
 
 GRAPHQL = "api_preempt_proxy_post_graphql"
 ENTITY_ID = "00000000-0000-4000-8000-000000000001"
@@ -91,7 +91,50 @@ def test_an_unknown_type_a_bare_wildcard_and_an_oversized_limit_are_refused_befo
         stdout, exit_code = run(argv, recorded, dict(CREDENTIAL_ENV))
         assert exit_code == 2
         assert needle in stdout
-        assert recorded.operation_requests(GRAPHQL) == []
+        assert recorded.requests == []
+
+
+@pytest.mark.parametrize("authentication", ["missing", "valid", "failed"])
+@pytest.mark.parametrize(
+    "argv, message",
+    [
+        (["identity", "list", "--type", "group"], "unknown type group"),
+        (["identity", "list", "--name", "*"], "bare wildcard"),
+        (["identity", "list", "--email", " * "], "bare wildcard"),
+        (["identity", "list", "--domain", " \t "], "--domain requires a value"),
+        (["identity", "list", "--limit", "201"], "--limit must be an integer"),
+        (["identity", "show", "not-a-guid"], "an identity id must be an entity GUID"),
+        (["identity", "timeline", "not-a-guid"], "an identity id must be an entity GUID"),
+        (["identity", "timeline", ENTITY_ID, "--category", "gossip"], "unknown --category"),
+        (["identity", "timeline", ENTITY_ID, "--category", "activity,"], "unknown --category"),
+        (["identity", "timeline", ENTITY_ID, "--since", "yesterday"], "--since must be a relative window"),
+    ],
+)
+def test_identity_usage_errors_precede_credentials_and_all_requests(
+    authentication: str, argv: list[str], message: str
+) -> None:
+    env = NO_CREDENTIAL_ENV if authentication == "missing" else CREDENTIAL_ENV
+    oauth = response(401, {}) if authentication == "failed" else fixture("oauth2/token-success.json")
+    recorded = RecordedTransport([], oauth=[oauth])
+    stdout, exit_code = run(argv, recorded, dict(env))
+    assert exit_code == 2
+    parsed = decode(stdout)
+    assert parsed["code"] == "VALIDATION_ERROR"
+    assert message in parsed["error"]
+    assert recorded.requests == []
+
+
+def test_identity_help_skips_input_validation_and_authentication() -> None:
+    for argv in (
+        ["identity", "list", "--type", "group", "--help"],
+        ["identity", "show", "not-a-guid", "--help"],
+        ["identity", "timeline", "--since", "yesterday", "--help"],
+    ):
+        recorded = RecordedTransport([])
+        stdout, exit_code = run(argv, recorded, dict(NO_CREDENTIAL_ENV))
+        assert exit_code == 0
+        assert stdout.startswith("falcon-axi identity")
+        assert recorded.requests == []
 
 
 def test_identity_list_continues_with_an_opaque_cursor_bound_to_its_filters() -> None:
@@ -110,6 +153,41 @@ def test_identity_list_continues_with_an_opaque_cursor_bound_to_its_filters() ->
     assert exit_code == 2
     assert "does not continue the current query" in stdout
     assert other.operation_requests(GRAPHQL) == []
+
+
+@pytest.mark.parametrize(
+    "first_flags, second_flags",
+    [
+        (
+            ["--name", "Ops|Admin", "--email", "user@example.test"],
+            ["--name", "Ops", "--email", "Admin|user@example.test"],
+        ),
+        (
+            ["--email", "user|team", "--domain", "example.test"],
+            ["--email", "user", "--domain", "team|example.test"],
+        ),
+    ],
+)
+@pytest.mark.parametrize("entity_type", [None, "user", "endpoint"])
+def test_directory_cursor_rejects_ambiguous_filter_boundaries(
+    first_flags: list[str], second_flags: list[str], entity_type: str | None
+) -> None:
+    argv = ["identity", "list", *(["--type", entity_type] if entity_type else [])]
+    for original, changed in ((first_flags, second_flags), (second_flags, first_flags)):
+        stdout, exit_code = run([*argv, *original], RecordedTransport(LISTED), dict(CREDENTIAL_ENV))
+        assert exit_code == 0
+        cursor = _cursor_of(stdout)
+        continued = RecordedTransport(LISTED)
+        _, exit_code = run([*argv, *original, "--cursor", cursor], continued, dict(CREDENTIAL_ENV))
+        assert exit_code == 0
+        variables = _sent(continued).variables
+        assert variables is not None
+        assert variables["after"] == "synthetic-end-cursor-01"
+        other = RecordedTransport(LISTED)
+        stdout, exit_code = run([*argv, *changed, "--cursor", cursor], other, dict(CREDENTIAL_ENV))
+        assert exit_code == 2
+        assert "does not continue the current query" in stdout
+        assert other.operation_requests(GRAPHQL) == []
 
 
 @pytest.mark.parametrize("pattern", ["O'Brien", '*$HOME"test"*', "a;b", "a\\b", "two words", "Admin*"])
@@ -136,6 +214,32 @@ def test_the_last_page_carries_no_cursor_and_an_empty_result_is_a_definitive_sta
     )
     assert "continuation_cursor" not in stdout
     assert re.search(r"^identities: 0 identities matching name Nobody\*$", stdout, re.MULTILINE)
+
+
+@pytest.mark.parametrize("flag", ["name", "email", "domain"])
+def test_empty_directory_filters_are_encoded_as_one_toon_value(flag: str) -> None:
+    pattern = 'Ann\nMarie\r\t"\\, : test'
+    recorded = RecordedTransport([serve(GRAPHQL, fixture("identity/entities-empty.json"))])
+    stdout, exit_code = run(["identity", "list", f"--{flag}", pattern], recorded, dict(CREDENTIAL_ENV))
+    assert exit_code == 0
+    parsed = decode(stdout)
+    assert parsed["identities"] == f"0 identities matching {flag} {pattern}"
+    assert set(parsed) == {"identities", "help"}
+    assert len(stdout.splitlines()) == 2
+
+
+@pytest.mark.parametrize("empty", [False, True])
+def test_timeline_window_text_is_encoded_as_one_toon_value(empty: bool) -> None:
+    recorded = RecordedTransport(
+        [serve(GRAPHQL, fixture("identity/timeline-empty.json" if empty else "identity/timeline-page.json"))]
+    )
+    stdout, exit_code = run(["identity", "timeline", ENTITY_ID, "--since", "7d\n"], recorded, dict(CREDENTIAL_ENV))
+    assert exit_code == 0
+    parsed = decode(stdout)
+    if empty:
+        assert parsed["events"] == "0 events for this identity in the last 7d\n"
+    else:
+        assert parsed["window"] == "the last 7d\n"
 
 
 def test_identity_show_prints_risk_accounts_associations_and_open_incidents() -> None:
@@ -219,7 +323,7 @@ def test_identity_show_refuses_a_value_that_is_not_a_guid_and_reports_a_missing_
     stdout, exit_code = run(["identity", "show", "synthetic-admin"], recorded, dict(CREDENTIAL_ENV))
     assert exit_code == 2
     assert "an identity id must be an entity GUID" in stdout
-    assert recorded.operation_requests(GRAPHQL) == []
+    assert recorded.requests == []
 
     stdout, exit_code = run(
         ["identity", "show", ENTITY_ID],
@@ -338,6 +442,28 @@ def test_a_timeline_cursor_continues_the_same_window_and_replays_the_identity_id
     assert (variables["startTime"], variables["after"]) == (start, "synthetic-timeline-cursor-01")
 
 
+@pytest.mark.parametrize(
+    "changed",
+    [
+        ["identity", "timeline", "00000000-0000-4000-8000-000000000002", "--since", "3d", "--category", "activity"],
+        ["identity", "timeline", ENTITY_ID, "--since", "4d", "--category", "activity"],
+        ["identity", "timeline", ENTITY_ID, "--since", "3d", "--category", "threat"],
+    ],
+)
+def test_timeline_cursor_remains_bound_to_identity_window_and_categories(changed: list[str]) -> None:
+    stdout, exit_code = run(
+        ["identity", "timeline", ENTITY_ID, "--since", "3d", "--category", "activity"],
+        RecordedTransport(TIMELINE),
+        dict(CREDENTIAL_ENV),
+    )
+    assert exit_code == 0
+    other = RecordedTransport(TIMELINE)
+    stdout, exit_code = run([*changed, "--cursor", _cursor_of(stdout)], other, dict(CREDENTIAL_ENV))
+    assert exit_code == 2
+    assert "does not continue the current query" in stdout
+    assert other.operation_requests(GRAPHQL) == []
+
+
 def test_a_timeline_with_no_events_says_so_and_an_unknown_category_is_refused() -> None:
     stdout, _ = run(
         ["identity", "timeline", ENTITY_ID],
@@ -349,7 +475,7 @@ def test_a_timeline_with_no_events_says_so_and_an_unknown_category_is_refused() 
     stdout, exit_code = run(["identity", "timeline", ENTITY_ID, "--category", "gossip"], recorded, dict(CREDENTIAL_ENV))
     assert exit_code == 2
     assert "valid values for --category: activity, notification, threat, entity, audit, policy, system" in stdout
-    assert recorded.operation_requests(GRAPHQL) == []
+    assert recorded.requests == []
 
 
 def test_a_missing_graphql_scope_names_the_write_labelled_scope_and_the_read_scope_honestly() -> None:
