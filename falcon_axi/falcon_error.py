@@ -11,8 +11,8 @@ from falcon_axi.transport.types import FalconResponse
 
 _FILTER_WORDS = re.compile(r"\b(fql|filter|query)\b", re.IGNORECASE)
 
-#: Scopes whose console picker entry exists only with the matching Falcon subscription, so a 403
-#: cannot be fixed by granting the scope alone (docs/design/v1.md §5.7).
+#: License prerequisites for scope-denied remedies; provisioning guidance lives in README.md.
+#: Console picker visibility is inferred, not observed (docs/design/v1.md §17.17).
 LICENSE_GATED_SCOPES = {"Assets:read": "Falcon Discover or Exposure Management"}
 
 
