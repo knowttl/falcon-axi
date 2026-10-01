@@ -304,8 +304,8 @@ The account is an objectGUID (`account_id` in `detection show`), a sAMAccountNam
 matched in full, ignoring case.
 Anything else is refused before a request is made, because the value becomes part of the query.
 It prints a job id; poll it with `search status <id>` and stop it with `search stop <id>`.
-Detection pivots and search lifecycle suggestions preserve explicit region, unknown-origin opt-in, and
-`--no-member-cid` flags.
+Suggestions from successful authenticated commands, including the home view, lists, detection pivots, and
+search lifecycle, preserve explicit region, unknown-origin opt-in, and `--no-member-cid` flags exactly once.
 When a child tenant is selected, supply the same tenant selection for every suggested command; its CID is
 never printed in suggestions.
 It is a search under N1, not a new operation: it needs `NGSIEM:write` like `search start`, and nothing else.

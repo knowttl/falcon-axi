@@ -186,8 +186,6 @@ def list_detections(
         continuation = encode_cursor(next_position, context, credential.client_secret)
         value["continuation_cursor"] = continuation
         help.append(f"Run `{suggestion} --cursor {continuation}` for the next page")
-        if session.member_cid:
-            help.append("Supply the same tenant selection used for this invocation when continuing")
     elif more_remain:
         help.append(
             f"Narrow the filter so the result set fits under {ALERTS_WALL}, for example by "

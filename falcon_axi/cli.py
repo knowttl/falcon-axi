@@ -992,7 +992,7 @@ def _home_view(transport: Any, flags: Mapping[str, str | bool], env: Mapping[str
     return (
         render(
             {**head, **listed.value},
-            _contextual_help(
+            _followup_help(
                 [
                     *listed.help,
                     "Run `falcon-axi detection list` to see more detections",
@@ -1002,13 +1002,14 @@ def _home_view(transport: Any, flags: Mapping[str, str | bool], env: Mapping[str
                     "Run `falcon-axi scopes` to see what this API client needs",
                 ],
                 flags,
+                resolved.session.member_cid,
             ),
         ),
         0,
     )
 
 
-def _followup_help(output: CommandOutput, flags: Mapping[str, str | bool], member_cid: str | None) -> tuple[str, ...]:
+def _followup_help(help: Sequence[str], flags: Mapping[str, str | bool], member_cid: str | None) -> tuple[str, ...]:
     suffix = ""
     region = _str(flags.get("region"))
     if region:
@@ -1017,10 +1018,10 @@ def _followup_help(output: CommandOutput, flags: Mapping[str, str | bool], membe
         if flags.get(name):
             suffix += f" --{name}"
     command = re.compile(r"`(falcon-axi [^`]+)`")
-    help = tuple(command.sub(lambda match: f"`{match.group(1)}{suffix}`", item) for item in output.help)
-    if member_cid and any(command.search(item) for item in output.help):
-        help += ("Supply the same tenant selection used for this invocation when following these suggestions",)
-    return help
+    contextual = tuple(command.sub(lambda match: f"`{match.group(1)}{suffix}`", item) for item in help)
+    if member_cid and any(command.search(item) for item in help):
+        contextual += ("Supply the same tenant selection used for this invocation when following these suggestions",)
+    return contextual
 
 
 def run(
@@ -1048,15 +1049,10 @@ def run(
             return render(matrix.value, _contextual_help(matrix.help, flags)), 0
         if parsed.command == "auth status":
             value, help = _auth_status(transport, parsed.flags, values)
-            return render(value, _contextual_help(help, flags)), 0
+            return render(value, _followup_help(help, parsed.flags, _member_cid_of(parsed.flags, values))), 0
         resolved = _session(transport, parsed.flags, values)
         output = _read(transport, parsed, resolved)
-        help = output.help
-        if parsed.command in ("detection show", "identity activity", "search start", "search status", "search stop"):
-            help = _followup_help(output, parsed.flags, resolved.session.member_cid)
-        else:
-            help = _contextual_help(help, flags)
-        return render(output.value, help), 0
+        return render(output.value, _followup_help(output.help, parsed.flags, resolved.session.member_cid)), 0
     except Exception as error:
         known = error if isinstance(error, CliError) else CliError("UNKNOWN", "an unexpected error occurred")
         return (

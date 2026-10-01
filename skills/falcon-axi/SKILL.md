@@ -105,8 +105,8 @@ They have no device, so their rows add `account`, `account_id`, `device_id`, and
 `detection show` prints the same account, source-endpoint, and product fields when present.
 To see what that account did, run `falcon-axi identity activity <account_id>`; it starts one NG-SIEM job and
 prints a search id, then follow it with `search status <id>` and `search stop <id>` like any other search.
-Detection pivots and search lifecycle suggestions preserve explicit region, unknown-origin opt-in, and
-`--no-member-cid` flags.
+Suggestions from successful authenticated commands, including the home view, lists, detection pivots, and
+search lifecycle, preserve explicit region, unknown-origin opt-in, and `--no-member-cid` flags exactly once.
 Supply the same tenant selection when following suggestions for a child tenant; they never print its CID.
 The account is matched in full, ignoring case, and a value that is not a GUID or a plain account name is
 refused.

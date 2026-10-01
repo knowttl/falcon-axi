@@ -160,8 +160,6 @@ def list_hosts(
         continuation = encode_cursor(next_position, context, credential.client_secret)
         value["continuation_cursor"] = continuation
         help.append(f"Run `{suggestion} --cursor {continuation}` for the next page")
-        if session.member_cid:
-            help.append("Supply the same tenant selection used for this invocation when continuing")
     elif more_remain:
         help.extend(_wall_help())
     value["hosts"] = rows
