@@ -315,6 +315,9 @@ and narrowed with `--category` (`activity`, `notification`, `threat`, `entity`, 
 `system`; comma-separated).
 An identity id is an entity GUID, as printed by `identity list`; for an Active Directory user it is
 the account object GUID.
+Open incidents are limited to the first 10; when more exist, the detail reports
+`open_incidents_partial: true` and discloses the cap.
+`--full` expands associations only, not incidents.
 
 These commands are backed by Identity Protection's GraphQL endpoint, not NG-SIEM, and they send only
 fixed, read-only query documents (captain exception N2, above).

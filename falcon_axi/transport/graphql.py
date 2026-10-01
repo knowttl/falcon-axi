@@ -128,6 +128,9 @@ _SHOW = """query IdentityShow($entityIds: [UUID!]) {
             primaryDisplayName
           }
         }
+        pageInfo {
+          hasNextPage
+        }
       }
       accounts {
         ... on ActiveDirectoryAccountDescriptor {
@@ -211,6 +214,15 @@ _TIMELINE = """query IdentityTimeline(
         }
       }
       ACTIVITY_EVENTS
+      ... on TimelineFileOperationEvent {
+        targetEntity {
+          entityId
+          primaryDisplayName
+        }
+        userDisplayName
+        endpointDisplayName
+        ipAddress
+      }
     }
     pageInfo {
       hasNextPage

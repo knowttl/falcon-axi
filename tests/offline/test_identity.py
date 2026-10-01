@@ -1,19 +1,32 @@
 """The Identity Protection domain over GraphQL (docs/design/v1.md §4.4, §10.2)."""
 
 import re
+import shlex
+from typing import Any
 
+import pytest
+from graphql import GraphQLResolveInfo, build_schema, graphql_sync
 from toon_format import decode
 
 from falcon_axi.cli import run
-from falcon_axi.transport.graphql import GRAPHQL_DOCUMENTS
-from falcon_axi.transport.types import RequestArgs
-from tests.support.recorded import CREDENTIAL_ENV, RecordedTransport, fixture, response, serve
+from falcon_axi.transport.graphql import GRAPHQL_DOCUMENTS, request_body
+from falcon_axi.transport.operations import operation
+from falcon_axi.transport.types import FalconResponse, RequestArgs
+from tests.support.recorded import CREDENTIAL_ENV, FIXTURES, RecordedTransport, fixture, response, serve
 
 GRAPHQL = "api_preempt_proxy_post_graphql"
 ENTITY_ID = "00000000-0000-4000-8000-000000000001"
 LISTED = [serve(GRAPHQL, fixture("identity/entities-page.json"))]
 DETAIL = [serve(GRAPHQL, fixture("identity/entity-detail.json"))]
 TIMELINE = [serve(GRAPHQL, fixture("identity/timeline-page.json"))]
+SCHEMA = build_schema((FIXTURES / "identity/schema.graphql").read_text(encoding="utf-8"))
+
+
+def _execute_query(args: RequestArgs, root: dict[str, Any]) -> FalconResponse:
+    body = request_body(operation(GRAPHQL), args.document, args.variables, args.body)
+    result = graphql_sync(SCHEMA, body["query"], variable_values=body["variables"], root_value=root)
+    assert not result.errors, result.errors
+    return response(200, {"data": result.data})
 
 
 def _sent(recorded: RecordedTransport) -> RequestArgs:
@@ -86,7 +99,7 @@ def test_identity_list_continues_with_an_opaque_cursor_bound_to_its_filters() ->
     stdout, _ = run(["identity", "list", "--name", "Admin*"], first, dict(CREDENTIAL_ENV))
     cursor = _cursor_of(stdout)
     assert "synthetic-end-cursor-01" not in stdout
-    assert 'identity list --name \\"Admin*\\" --cursor' in stdout
+    assert "identity list --name 'Admin*' --cursor" in stdout
 
     second = RecordedTransport(LISTED)
     run(["identity", "list", "--name", "Admin*", "--cursor", cursor], second, dict(CREDENTIAL_ENV))
@@ -97,6 +110,22 @@ def test_identity_list_continues_with_an_opaque_cursor_bound_to_its_filters() ->
     assert exit_code == 2
     assert "does not continue the current query" in stdout
     assert other.operation_requests(GRAPHQL) == []
+
+
+@pytest.mark.parametrize("pattern", ["O'Brien", '*$HOME"test"*', "a;b", "a\\b", "two words", "Admin*"])
+@pytest.mark.parametrize("flag", ["name", "email", "domain"])
+def test_identity_continuation_replays_shell_sensitive_filters(flag: str, pattern: str) -> None:
+    argv = ["identity", "list", f"--{flag}", pattern]
+    first = RecordedTransport(LISTED)
+    stdout, exit_code = run(argv, first, dict(CREDENTIAL_ENV))
+    assert exit_code == 0
+    hint = next(item for item in decode(stdout)["help"] if item.endswith("` for the next page"))
+    replay = shlex.split(hint.removeprefix("Run `").removesuffix("` for the next page"))
+    assert replay[:-2] == ["falcon-axi", *argv]
+    second = RecordedTransport(LISTED)
+    _, exit_code = run(replay[1:], second, dict(CREDENTIAL_ENV))
+    assert exit_code == 0
+    assert _sent(second).variables == {**_sent(first).variables, "after": "synthetic-end-cursor-01"}
 
 
 def test_the_last_page_carries_no_cursor_and_an_empty_result_is_a_definitive_statement() -> None:
@@ -160,6 +189,31 @@ def test_identity_show_caps_a_long_association_list_until_full_is_given() -> Non
     assert "associations_total" not in full
 
 
+@pytest.mark.parametrize("incident_count", [0, 9, 10, 11])
+@pytest.mark.parametrize("full", [False, True])
+def test_identity_show_discloses_the_server_incident_cap_even_with_full(incident_count: int, full: bool) -> None:
+    incident = fixture("identity/entity-detail.json").body["data"]["entities"]["nodes"][0]["openIncidents"]["nodes"][0]
+    incidents = [incident] * incident_count
+
+    def open_incidents(info: GraphQLResolveInfo, first: int) -> dict[str, Any]:
+        return {"nodes": incidents[:first], "pageInfo": {"hasNextPage": len(incidents) > first}}
+
+    node = {"entityId": ENTITY_ID, "openIncidents": open_incidents}
+    recorded = RecordedTransport([serve(GRAPHQL, lambda args: _execute_query(args, {"entities": {"nodes": [node]}}))])
+    stdout, exit_code = run(["identity", "show", ENTITY_ID, *(["--full"] if full else [])], recorded, dict(CREDENTIAL_ENV))
+    assert exit_code == 0
+    detail = decode(stdout)["identity"]
+    assert len(detail["open_incidents"]) == min(incident_count, 10)
+    if incident_count > 10:
+        assert detail["open_incidents_partial"] is True
+        assert "Open incidents are limited to the first 10; more exist in Falcon" in stdout
+        assert "--full expands associations only" in stdout
+    else:
+        assert "open_incidents_partial" not in detail
+        assert "more exist in Falcon" not in stdout
+    _sent(recorded)
+
+
 def test_identity_show_refuses_a_value_that_is_not_a_guid_and_reports_a_missing_identity() -> None:
     recorded = RecordedTransport(DETAIL)
     stdout, exit_code = run(["identity", "show", "synthetic-admin"], recorded, dict(CREDENTIAL_ENV))
@@ -205,6 +259,61 @@ def test_identity_timeline_sends_its_window_categories_and_page_size_as_variable
     # An alert event has no endpoint or address, and the row says so rather than dropping the column.
     assert parsed["events"][1]["endpoint"] == "unknown"
     assert parsed["events"][1]["user"] == "Synthetic Admin"
+
+
+@pytest.mark.parametrize(
+    "event_type",
+    [
+        "TimelineUserOnEndpointActivityEvent",
+        "TimelineAuthenticationEvent",
+        "TimelineSuccessfulAuthenticationEvent",
+        "TimelineFailedAuthenticationEvent",
+        "TimelineServiceAccessEvent",
+        "TimelineLdapSearchEvent",
+        "TimelineDceRpcEvent",
+        "TimelineRemoteCodeExecutionEvent",
+        "TimelineFileOperationEvent",
+        "TimelineAlertEvent",
+    ],
+)
+@pytest.mark.parametrize("endpoint_name", ["SYNTH-WS-07", None])
+def test_timeline_fetches_event_specific_fields_on_initial_and_continued_pages(
+    event_type: str, endpoint_name: str | None
+) -> None:
+    event = {
+        "__typename": event_type,
+        "eventId": "synthetic-event",
+        "eventType": "SYNTHETIC_ACTIVITY",
+        "eventSeverity": "INFORMATIONAL",
+        "timestamp": "2026-09-30T10:15:00Z",
+        "sourceEntity": {"entityId": ENTITY_ID, "primaryDisplayName": "Synthetic Admin"},
+        "targetEntity": {"entityId": ENTITY_ID, "primaryDisplayName": "SYNTH-TARGET"},
+        "userDisplayName": "Synthetic User",
+        "endpointDisplayName": endpoint_name,
+        "ipAddress": "192.0.2.10",
+    }
+    root = {"timeline": {"nodes": [event], "pageInfo": {"hasNextPage": True, "endCursor": "synthetic-next-page"}}}
+    cursor: list[str] = []
+    for _ in range(2):
+        recorded = RecordedTransport([serve(GRAPHQL, lambda args: _execute_query(args, root))])
+        stdout, exit_code = run(
+            ["identity", "timeline", ENTITY_ID, "--category", "activity", *cursor], recorded, dict(CREDENTIAL_ENV)
+        )
+        assert exit_code == 0
+        row = decode(stdout)["events"][0]
+        if event_type == "TimelineAlertEvent":
+            assert (row["user"], row["endpoint"], row["ip"]) == ("Synthetic Admin", "unknown", "unknown")
+        else:
+            assert (row["user"], row["endpoint"], row["ip"]) == (
+                "Synthetic User",
+                endpoint_name or "SYNTH-TARGET",
+                "192.0.2.10",
+            )
+        if cursor:
+            variables = _sent(recorded).variables
+            assert variables is not None
+            assert variables["after"] == "synthetic-next-page"
+        cursor = ["--cursor", _cursor_of(stdout)]
 
 
 def test_identity_timeline_defaults_to_seven_days_and_sends_no_categories() -> None:

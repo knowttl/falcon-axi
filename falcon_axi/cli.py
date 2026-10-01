@@ -2,6 +2,7 @@
 
 import os
 import re
+import shlex
 import sys
 from collections.abc import Mapping, Sequence
 from dataclasses import dataclass
@@ -144,7 +145,6 @@ VALUE_FLAGS = frozenset(
 )
 
 _SECRET_SHAPE = re.compile(r"(secret|password|token|key|passphrase)", re.IGNORECASE)
-_WHITESPACE = re.compile(r"\s")
 
 
 def flag_guard(name: str) -> None:
@@ -333,7 +333,7 @@ def _vuln_query_of(flags: Mapping[str, str | bool]) -> VulnQuery:
 
 def _suggestion_for(command: str, flags: Mapping[str, str | bool], positionals: Sequence[str] = ()) -> str:
     """Replays every non-sensitive flag of this invocation into a next-page suggestion (§7.2)."""
-    parts = [f"falcon-axi {command}", *positionals]
+    parts = ["falcon-axi", *command.split(), *positionals]
     for name in (
         "region",
         "filter",
@@ -353,12 +353,10 @@ def _suggestion_for(command: str, flags: Mapping[str, str | bool], positionals: 
     ):
         value = flags.get(name)
         if isinstance(value, str):
-            # A name or email pattern carries `*`, which the shell would expand if it were left bare.
-            quoted = f'"{value}"' if _WHITESPACE.search(value) or (name in ("name", "email") and "*" in value) else value
-            parts.append(f"--{name} {quoted}")
+            parts.extend((f"--{name}", value))
     if flags.get("allow-unknown-origin"):
         parts.append("--allow-unknown-origin")
-    return " ".join(parts)
+    return shlex.join(parts)
 
 
 def _member_cid_of(flags: Mapping[str, str | bool], env: Mapping[str, str]) -> str | None:

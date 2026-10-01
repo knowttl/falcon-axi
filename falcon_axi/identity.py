@@ -318,6 +318,12 @@ def show_identity(transport: Transport, session: Session, id: str, full: bool) -
     if len(shown) < len(associations):
         detail["associations_total"] = len(associations)
         help.append(f"Run `falcon-axi identity show {detail['id']} --full` to list every association")
+    if _mapping(_mapping(node.get("openIncidents")).get("pageInfo")).get("hasNextPage") is True:
+        detail["open_incidents_partial"] = True
+        help.append(
+            f"Open incidents are limited to the first {len(detail['open_incidents'])}; more exist in Falcon. "
+            "--full expands associations only"
+        )
     return CommandOutput(value=_rate_limit(session, {"identity": detail}), help=tuple(help))
 
 
