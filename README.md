@@ -6,7 +6,7 @@ An agent-facing CLI for reading the CrowdStrike Falcon platform from the shell, 
 Output is token-efficient TOON on stdout, errors are structured documents rather than prose, and every view
 ends with the commands that are worth running next.
 
-## Status: stage 3 of the v1 design
+## Status: partial implementation of the v1 design
 
 The package is real and installable, and it ships the read domains of
 [`docs/design/v1.md`](docs/design/v1.md) plus NG-SIEM search, rather than the whole v1 surface.
@@ -89,9 +89,9 @@ uvx --from git+https://github.com/knowttl/falcon-axi@v0.2.0 falcon-axi auth stat
 uvx --from git+https://github.com/knowttl/falcon-axi@v0.2.0 falcon-axi detection list --severity high --since 24h
 ```
 
-The pinned tag is the last release; `host list`, `host show`, `vuln list`, `scopes`, and the three
-`search` commands land in the next one, so install from the default branch to use them before that
-tag exists.
+The pinned tag is the last release; `host list`, `host show`, `vuln list`, `cve show`, `scopes`,
+and the three `search` commands are not in it.
+Install from the default branch to use them before a newer tag exists.
 
 Or install the command once and call it directly:
 
@@ -107,17 +107,14 @@ winget install --id astral-sh.uv
 uv tool install git+https://github.com/knowttl/falcon-axi@v0.2.0
 ```
 
-Pin the tag rather than the default branch; suggestions printed by the tool use the bare `falcon-axi`
-name, so run the equivalent command through whichever invocation form is installed.
+For released commands, pin the tag rather than the default branch; suggestions printed by the tool use the
+bare `falcon-axi` name, so run the equivalent command through whichever invocation form is installed.
 
 ## Credentials
 
 Provision an API client in the Falcon console under Support and resources > API clients and keys,
-granting `Alerts:read`, `Hosts:read`, `Vulnerabilities:read`, `Vulnerabilities (Falcon Intelligence):read`,
-and `NGSIEM:read`, plus `NGSIEM:write` only if the `search start` and `search stop` commands are wanted,
-and nothing more.
-The Falcon Intelligence scope is license-gated; omit it and `cve show` fails with `SCOPE_DENIED`.
-Supply it through one of the two accepted channels:
+granting only the permissions for the commands you intend to use (see [API client permissions](#api-client-permissions)).
+Supply the credential through one of the two accepted channels:
 
 ```sh
 export FALCON_CLIENT_ID=...

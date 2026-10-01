@@ -19,8 +19,8 @@ looking for a flag.
 Invoke it without a global install with
 `uvx --from git+https://github.com/knowttl/falcon-axi@v0.2.0 falcon-axi <command>`.
 If output suggests a `falcon-axi` command, run the equivalent command through that same invocation form.
-The `host`, `vuln`, `search`, and `scopes` commands land after that tag, so use the default branch instead
-of `@v0.2.0` until a newer tag exists.
+The `host`, `vuln`, `cve`, `search`, and `scopes` commands are not in that tag, so use the default branch
+instead of `@v0.2.0` until a newer tag exists.
 
 ## When to use
 
@@ -46,7 +46,7 @@ commands[8 total]:
 `show <device id>`.
 `vuln`: `list` (flags `--host`, `--severity`, `--status`, `--since`, `--filter`, `--limit`, `--cursor`, `--fields`).
 `cve`: `show <CVE-ID>` only. There is no `cve list`.
-`search`: `start` (flags `--query`, `--repository`, `--since`), `status <search id>` (flag `--repository`,
+`search`: `start` (flags `--query`, `--repository`, `--since`), `status <search id>` (flag `--repository`),
 `stop <search id>` (flag `--repository`).
 `auth`: `status`.
 `scopes`: the command-to-scope matrix, printed locally with no request.
@@ -78,10 +78,10 @@ Spotlight's `Vulnerabilities:read`.
 `#event_simpleName=ProcessRollup2 | groupBy([ComputerName], function=count())`.
 Its `--since` defaults to `24h` and its `--repository` defaults to `search-all`.
 
-Three rules are enforced locally, before any request: `vuln list` requires a filter from a shorthand flag or
+These checks are enforced locally, before any request: `vuln list` requires a filter from a shorthand flag or
 `--filter`; a `*` anywhere in a Spotlight filter is refused because Spotlight does not support wildcards;
-and a `--repository` containing `/`, `\`, or `%`, or equal to `.` or `..`, is refused because the value
-reaches a URL path.
+`cve show` requires a CVE identifier; and a `--repository` containing `/`, `\`, or `%`, or equal to `.` or `..`,
+is refused because the value reaches a URL path.
 `host list` does accept wildcards.
 
 ## Workflow

@@ -50,7 +50,7 @@ Read both before changing implementation structure; v1.md still owns behavior, v
 built.
 There is no Node runtime, no MCP process, and no `falcon-mcp` dependency anywhere in the tree.
 
-Stage 3 of that design is implemented: the package foundation, the sealed transport and its closed registry,
+The implemented surface includes the package foundation, the sealed transport and its closed registry,
 credential resolution with `auth status`, the read domains (`detection list`, `detection show`,
 `host list`, `host show`, `vuln list`, `cve show`), the NG-SIEM search lifecycle (`search start`, `search status`,
 `search stop`), plus the `scopes` matrix and the home view.

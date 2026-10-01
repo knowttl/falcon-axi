@@ -180,7 +180,7 @@ The module names mirror stage 1's `src/` one for one, so a reviewer can diff the
 The port is a refactor across languages, and v1.md's contract is the test.
 
 - The command surface stays exactly what stage 1 ships **for the duration of the port**: home view, `detection list`, `detection show`, `auth status`; `--profile` still refused by name; nothing unshipped advertised (README status section rule).
-  Stage 2 widens it to §1.2's three read domains plus `scopes`, and stage 3 adds the `search` noun captain exception N1 admits (v1.md §4.3); both are the design's own surface rather than port decisions.
+  Stage 2 widens it to the original three read domains plus `scopes`, and stage 3 adds the `search` noun captain exception N1 admits (v1.md §4.3); both are the design's own surface rather than port decisions.
 - Every flag name, error code, help line, and TOON schema stays identical.
 - **Parity gate.** Before any TypeScript is deleted, the ship task generates golden outputs from the TypeScript stage 1 for every offline test scenario (each fixture set plus argv), commits them under `tests/golden/`, and the Python port must reproduce them byte for byte.
   The golden files are derived from synthetic fixtures, so they contain no tenant data and may be committed.
