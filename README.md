@@ -172,12 +172,15 @@ wrong client for this tool.
 `NGSIEM:write` and `Identity Protection GraphQL:write` are the two exceptions, each is required by its
 commands alone, and leaving either ungranted is a supported configuration.
 
-The Identity Protection scopes appear in the console only for a tenant licensed for Falcon Identity
-Protection.
+The Identity Protection scopes are expected to appear in the console only for a tenant licensed for
+Falcon Identity Protection.
+This console visibility requirement is inferred from other license-gated scopes, not verified for
+Identity Protection.
 To enable the `identity` commands, edit the falcon-axi API client and grant `Identity Protection
 GraphQL` (the console offers write only), `Identity Protection Entities` (read), and `Identity
 Protection Timeline` (read).
-Until then, `identity` commands answer `SCOPE_DENIED` naming exactly those scopes.
+A command missing required permissions answers `SCOPE_DENIED` naming its required scopes; use
+`falcon-axi scopes` for the per-command requirements.
 
 Whether minting a member-CID token additionally requires `Flight Control:read` is an open design
 question (`docs/design/v1.md` §17.7), not a settled requirement.
