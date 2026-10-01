@@ -124,8 +124,8 @@ Two seams are worth knowing before changing them:
   Every fixture under `tests/fixtures/` is wholly synthetic and carries a provenance header that an offline test
   asserts.
 
-The project has no GitHub Actions workflow by captain directive.
-Validation is local, and adding a GitHub Actions workflow requires the captain to lift that directive.
+The only automation is `.github/workflows/ci.yml`, which runs `uv run scripts/verify.py` with no secrets.
+The architecture check rejects any other CI configuration and any workflow naming `FALCON_AXI_LIVE` or a Falcon credential variable.
 
 ## Build to the AXI skill
 

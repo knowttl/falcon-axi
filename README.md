@@ -405,8 +405,9 @@ stays provisional until a real response confirms it.
 Live Falcon calls are run by hand and stay outside the required checks; the opt-in live smoke suite
 of §15 is not implemented yet.
 
-This project has no GitHub Actions workflow by captain directive; validation is local, and adding a
-workflow requires the captain to lift that directive.
+GitHub Actions runs the same offline gate, `uv run scripts/verify.py`, on every pull request and every push
+to `main`.
+It uses no secrets and makes no Falcon calls.
 
 ## Agent skill
 

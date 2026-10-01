@@ -48,8 +48,12 @@ def test_no_mcp_dependency_reaches_the_package_or_the_lock() -> None:
         assert not re.search(r"^\s*(import|from)\s+(falcon_)?mcp\b", path.read_text(encoding="utf-8"), re.MULTILINE)
 
 
-def test_this_repository_carries_no_automation_workflow() -> None:
-    assert not (REPO / ".github/workflows").exists()
+def test_workflows_run_only_the_offline_gate_without_credentials() -> None:
+    for workflow in (REPO / ".github/workflows").glob("*"):
+        text = workflow.read_text(encoding="utf-8")
+        assert "secrets." not in text
+        for name in ("FALCON_AXI_LIVE", "FALCON_CLIENT_ID", "FALCON_CLIENT_SECRET"):
+            assert name not in text
 
 
 def test_the_help_path_never_imports_falconpy_or_the_encoder() -> None:

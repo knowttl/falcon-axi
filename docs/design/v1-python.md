@@ -256,7 +256,7 @@ For agents without a global install, `uvx --from git+https://github.com/knowttl/
 1. Now: signed git tags `vX.Y.Z` on the private repository.
 2. Later, gated on a license choice and the repository going public: PyPI as `falcon-axi` (unclaimed as of 2026-09-18).
    Manual, from an operator machine: `uv build` then `uv publish --token <project-scoped PyPI token>`.
-   Trusted publishing is unavailable because it requires GitHub Actions, which the captain's directive prohibits.
+   Trusted publishing needs a release workflow, which is not authorized: the only workflow is the offline CI gate.
    Install then becomes `uv tool install falcon-axi` or `uvx falcon-axi`.
 3. Optional after 2: the AXI community catalog, which requires independent source review at a pinned public release.
 4. Never npm, never a container image.
