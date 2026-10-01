@@ -440,15 +440,15 @@ _COLUMNS = (
 
 
 def is_account_subject(subject: str) -> bool:
-    return bool(_GUID.match(subject) or _NAME.match(subject))
+    return bool(_GUID.fullmatch(subject) or _NAME.fullmatch(subject))
 
 
 def activity_query(subject: str) -> str:
     """The CQL for one account, given its objectGUID (an alert's `account_id`) or its account name."""
-    if _GUID.match(subject):
+    if _GUID.fullmatch(subject):
         fields: tuple[str, ...] = _GUID_FIELDS
         pattern = subject
-    elif _NAME.match(subject):
+    elif _NAME.fullmatch(subject):
         fields = _NAME_FIELDS
         pattern = subject.replace(".", "\\.").replace("$", "\\$")
     else:

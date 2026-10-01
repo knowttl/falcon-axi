@@ -587,7 +587,22 @@ def test_the_projection_leaves_the_kerberos_ticket_hash_samples_out() -> None:
     assert "KerberosResponseTicketHashSample" not in activity_query(GUID)
 
 
-@pytest.mark.parametrize("subject", ['a"b', "a b", "a*", "a|b", "a\\b", 'x" | drop() | "', "(a)", "a;b", "a/b"])
+@pytest.mark.parametrize(
+    "subject",
+    [
+        'a"b',
+        "a b",
+        "a*",
+        "a|b",
+        "a\\b",
+        'x" | drop() | "',
+        "(a)",
+        "a;b",
+        "a/b",
+        pytest.param("synthetic.user\n", id="account-trailing-newline"),
+        pytest.param(GUID + "\n", id="guid-trailing-newline"),
+    ],
+)
 def test_a_subject_that_could_alter_the_query_is_refused_before_any_request(subject: str) -> None:
     recorded = RecordedTransport([])
     stdout, exit_code = run(["identity", "activity", subject], recorded, dict(CREDENTIAL_ENV))
