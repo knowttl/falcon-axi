@@ -8,6 +8,7 @@ import pytest
 from falcon_axi.core import CliError
 from falcon_axi.transport.harness import mint_permit, send_permitted_request
 from falcon_axi.transport.types import PreparedOperation
+from scripts import architecture_check
 from scripts.architecture_check import check
 
 REPO = Path(__file__).resolve().parent.parent.parent
@@ -48,12 +49,48 @@ def test_no_mcp_dependency_reaches_the_package_or_the_lock() -> None:
         assert not re.search(r"^\s*(import|from)\s+(falcon_)?mcp\b", path.read_text(encoding="utf-8"), re.MULTILINE)
 
 
-def test_workflows_run_only_the_offline_gate_without_credentials() -> None:
-    for workflow in (REPO / ".github/workflows").glob("*"):
-        text = workflow.read_text(encoding="utf-8")
-        assert "secrets." not in text
-        for name in ("FALCON_AXI_LIVE", "FALCON_CLIENT_ID", "FALCON_CLIENT_SECRET"):
-            assert name not in text
+def test_architecture_allows_the_offline_ci_workflow(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+    workflow = tmp_path / ".github/workflows/ci.yml"
+    workflow.parent.mkdir(parents=True)
+    workflow.write_text("jobs: {verify: {steps: [{run: uv run scripts/verify.py}]}}", encoding="utf-8")
+    monkeypatch.setattr(architecture_check, "REPO", tmp_path)
+    assert check() is True
+
+
+@pytest.mark.parametrize(
+    "relative",
+    [
+        ".github/workflows/release.yml",
+        ".github/workflows/ci.yaml",
+        ".github/workflows/nested/release.yml",
+        ".github/workflows/ci.yml/nested.yml",
+        ".gitlab-ci.yml",
+        ".circleci/config.yml",
+        "azure-pipelines.yml",
+        "Jenkinsfile",
+    ],
+)
+def test_architecture_rejects_other_automation(
+    relative: str, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    workflow = tmp_path / relative
+    workflow.parent.mkdir(parents=True, exist_ok=True)
+    workflow.write_text("jobs: {release: {steps: [{run: uv build}]}}", encoding="utf-8")
+    monkeypatch.setattr(architecture_check, "REPO", tmp_path)
+    with pytest.raises(AssertionError, match="automation configuration is not authorized"):
+        check()
+
+
+@pytest.mark.parametrize("name", ["FALCON_AXI_LIVE", "FALCON_CLIENT_ID", "FALCON_CLIENT_SECRET"])
+def test_architecture_rejects_live_variables_in_ci(
+    name: str, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    workflow = tmp_path / ".github/workflows/ci.yml"
+    workflow.parent.mkdir(parents=True)
+    workflow.write_text(f"env: {{{name}: synthetic}}", encoding="utf-8")
+    monkeypatch.setattr(architecture_check, "REPO", tmp_path)
+    with pytest.raises(AssertionError, match="workflow references a live-suite or credential variable"):
+        check()
 
 
 def test_the_help_path_never_imports_falconpy_or_the_encoder() -> None:

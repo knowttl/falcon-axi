@@ -125,7 +125,7 @@ Two seams are worth knowing before changing them:
   asserts.
 
 The only automation is `.github/workflows/ci.yml`, which runs `uv run scripts/verify.py` with no secrets.
-The architecture check rejects any other CI configuration and any workflow naming `FALCON_AXI_LIVE` or a Falcon credential variable.
+The architecture check allows exactly `.github/workflows/ci.yml`, rejects other CI configurations, and rejects `FALCON_AXI_LIVE`, `FALCON_CLIENT_ID`, or `FALCON_CLIENT_SECRET` in that workflow.
 
 ## Build to the AXI skill
 

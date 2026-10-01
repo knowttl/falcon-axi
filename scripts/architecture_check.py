@@ -81,12 +81,12 @@ def check() -> bool:
         if NETWORK_REFERENCE.search(text):
             raise AssertionError(f"network reference outside the sealed sink: {path}")
 
-    # GitHub Actions is the only authorized automation, and it runs only the offline gate, so a workflow
-    # may never name the live-suite switch or a Falcon credential variable (§15.4).
     for relative in AUTOMATION_PATHS:
         if (REPO / relative).exists():
             raise AssertionError(f"automation configuration is not authorized in this repository: {relative}")
     for workflow in sorted((REPO / WORKFLOW_DIRECTORY).glob("*")):
+        if workflow != REPO / WORKFLOW_DIRECTORY / "ci.yml" or not workflow.is_file():
+            raise AssertionError(f"automation configuration is not authorized in this repository: {workflow}")
         named = [name for name in CREDENTIAL_NAMES if name in workflow.read_text(encoding="utf-8")]
         if named:
             raise AssertionError(f"workflow references a live-suite or credential variable: {workflow} names {named}")
