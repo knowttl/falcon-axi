@@ -78,7 +78,7 @@ def test_profile_is_refused_honestly_rather_than_silently_ignored() -> None:
 
 @pytest.mark.parametrize("command", ["detection list", "host list", "vuln list", "identity list", "identity timeline"])
 def test_continuation_arguments_survive_shell_parsing_and_expansion(command: str) -> None:
-    value = "O'Brien * $HOME \"quoted\" \\ $(printf expanded); &|<> []\n"
+    value = 'O\'Brien * $HOME "quoted" \\ $(printf expanded); &|<> []\n'
     flags = {name: value for name in ("region", *COMMAND_FLAGS[command]) if name in VALUE_FLAGS and name != "cursor"}
     positionals = (value,) if command == "identity timeline" else ()
     suggestion = _suggestion_for(command, flags, positionals)

@@ -110,9 +110,7 @@ def test_an_unknown_type_a_bare_wildcard_and_an_oversized_limit_are_refused_befo
         (["identity", "timeline", ENTITY_ID, "--since", "yesterday"], "--since must be a relative window"),
     ],
 )
-def test_identity_usage_errors_precede_credentials_and_all_requests(
-    authentication: str, argv: list[str], message: str
-) -> None:
+def test_identity_usage_errors_precede_credentials_and_all_requests(authentication: str, argv: list[str], message: str) -> None:
     env = NO_CREDENTIAL_ENV if authentication == "missing" else CREDENTIAL_ENV
     oauth = response(401, {}) if authentication == "failed" else fixture("oauth2/token-success.json")
     recorded = RecordedTransport([], oauth=[oauth])
