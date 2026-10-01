@@ -21,7 +21,8 @@ Three consequences that catch people out:
   on a live endpoint).
   So neither the HTTP verb nor the scope name proves safety.
 - **An endpoint may be added only with two citations**: official CrowdStrike documentation stating its required
-  scope, and falcon-mcp's treatment of it as corroboration.
+  scope, and falcon-mcp's treatment of it as corroboration, or, when falcon-mcp has no tool, falconpy's
+  generated endpoint table plus another first-party CrowdStrike SDK (§2.2).
   The transport's operation registry carries that evidence as a required field and the local required-check
   set asserts it, per tier: a `: READ` doc scope for a read, a `: WRITE` one for the exception.
 - **The exception is closed by an id allowlist, not by discipline.**
@@ -50,8 +51,8 @@ built.
 There is no Node runtime, no MCP process, and no `falcon-mcp` dependency anywhere in the tree.
 
 Stage 3 of that design is implemented: the package foundation, the sealed transport and its closed registry,
-credential resolution with `auth status`, all three read domains (`detection list`, `detection show`,
-`host list`, `host show`, `vuln list`), the NG-SIEM search lifecycle (`search start`, `search status`,
+credential resolution with `auth status`, the read domains (`detection list`, `detection show`,
+`host list`, `host show`, `vuln list`, `cve show`), the NG-SIEM search lifecycle (`search start`, `search status`,
 `search stop`), plus the `scopes` matrix and the home view.
 The README's status section is the authoritative list of what is shipped and what is deliberately absent, and
 no help text, suggestion, or skill may advertise an unshipped command.

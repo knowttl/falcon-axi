@@ -1,12 +1,12 @@
 ---
 name: falcon-axi
-description: "Read CrowdStrike Falcon detections, hosts, vulnerabilities, and NG-SIEM searches from the shell with falcon-axi. Use for Falcon alerts and detections, detection triage, host and sensor inventory, Spotlight vulnerability exposure, NG-SIEM CQL event search, severity and status filtering, tenant and region checks, and Falcon API credential diagnostics."
+description: "Read CrowdStrike Falcon detections, hosts, vulnerabilities, CVE intelligence, and NG-SIEM searches from the shell with falcon-axi. Use for Falcon alerts and detections, detection triage, host and sensor inventory, Spotlight vulnerability exposure, Falcon Intelligence CVE detail, NG-SIEM CQL event search, severity and status filtering, tenant and region checks, and Falcon API credential diagnostics."
 user-invocable: false
 ---
 
 # falcon-axi
 
-Read CrowdStrike Falcon detections, hosts, vulnerabilities, and NG-SIEM event data from the shell.
+Read CrowdStrike Falcon detections, hosts, vulnerabilities, CVE intelligence, and NG-SIEM event data from the shell.
 Prefer this CLI over the Falcon console or hand-rolled REST calls when a task needs to read any of them.
 
 The CLI changes nothing in the tenant except an NG-SIEM search job: it exposes no write, create, update,
@@ -26,25 +26,27 @@ of `@v0.2.0` until a newer tag exists.
 
 Use falcon-axi to answer what is firing in Falcon right now, to filter detections by severity, status, or
 time window, to read one detection in full, to find hosts and read one host's detail, to read a host's or
-the fleet's Spotlight vulnerabilities, to run a CQL search over NG-SIEM event data when the question is not
-one of those four domains, and to check whether a Falcon credential resolves and into which region and
-tenant.
+the fleet's Spotlight vulnerabilities, to read what Falcon Intelligence knows about one CVE, to run a CQL
+search over NG-SIEM event data when the question is not one of those domains, and to check whether a Falcon
+credential resolves and into which region and tenant.
 
 `setup` does not exist, and neither do `--all`, `--max-rows`, `--profile`, or `--fields` on detection and host lists.
-Neither does any command for a Falcon domain outside detections, hosts, vulnerabilities, and NG-SIEM
-search; there is no ingest, lookup-file, parser, dashboard, or Charlotte AI command.
+Neither does any command for a Falcon domain outside detections, hosts, Spotlight vulnerabilities, `cve show`,
+and NG-SIEM search; there is no `cve list`, no intel actor, indicator, or report command, and no ingest,
+lookup-file, parser, dashboard, or Charlotte AI command.
 Do not invent them; an unknown flag or command fails loudly.
 
 ## Commands
 
-commands[6 total]:
+commands[8 total]:
 `falcon-axi`: the home view - tenant line plus the five newest detections.
 `detection`: `list` (flags `--severity`, `--status`, `--since`, `--filter`, `--limit`, `--cursor`),
 `show <composite id>` (flag `--full`).
 `host`: `list` (flags `--hostname`, `--platform`, `--status`, `--since`, `--filter`, `--limit`, `--cursor`),
 `show <device id>`.
 `vuln`: `list` (flags `--host`, `--severity`, `--status`, `--since`, `--filter`, `--limit`, `--cursor`, `--fields`).
-`search`: `start` (flags `--query`, `--repository`, `--since`), `status <search id>` (flag `--repository`),
+`cve`: `show <CVE-ID>` only. There is no `cve list`.
+`search`: `start` (flags `--query`, `--repository`, `--since`), `status <search id>` (flag `--repository`,
 `stop <search id>` (flag `--repository`).
 `auth`: `status`.
 `scopes`: the command-to-scope matrix, printed locally with no request.
@@ -61,6 +63,13 @@ Global flags: `--help`, `--region <us-1|us-2|eu-1|us-gov-1|url>`, `--member-cid 
 `closed`, `reopen`, `expired`.
 `vuln list --fields` adds columns to the default `id,cve,severity,hostname` row.
 Run `falcon-axi vuln list --help` for valid names; an unknown name is a `VALIDATION_ERROR` that lists them.
+`cve show` takes one identifier matching `CVE-<year>-<number>`, such as `CVE-2021-44228`.
+It reads Falcon Intelligence, not Spotlight host exposure.
+An empty result means Intelligence has no entry for that CVE.
+Default fields are `cve`, `severity`, `cvss_v3_score`, `exploit_status`, `publish_date`, `updated`, and
+`description`; related actor, report, threat, and affected-product lists are counts and are not expanded.
+It requires `Vulnerabilities (Falcon Intelligence):read`, which is license-gated and is not the same scope as
+Spotlight's `Vulnerabilities:read`.
 `--since` takes a relative window such as `30m`, `24h`, `7d`.
 `--filter` takes raw FQL for that collection, where `+` is AND, `,` is OR, and values are single-quoted.
 
@@ -85,10 +94,12 @@ reaches a URL path.
    matters.
 5. Run `falcon-axi host show <device_id>` for the host it fired on, and
    `falcon-axi vuln list --host <device_id>` for that host's exposure.
-6. When the question is not one of those four domains, run `falcon-axi search start --query '<cql>'`, then
+6. Run `falcon-axi cve show <CVE-ID>` when the question is what Falcon Intelligence knows about a CVE,
+   including a CVE that Spotlight has not evaluated on a host.
+7. When the question is not one of those domains, run `falcon-axi search start --query '<cql>'`, then
    poll `falcon-axi search status <id>` until it reports `state: done`, and run
    `falcon-axi search stop <id>` for any job no longer needed.
-7. Follow the `help` suggestions in each response for the next read.
+8. Follow the `help` suggestions in each response for the next read.
 
 ## Credentials and API client permissions
 
@@ -107,6 +118,9 @@ scopes only, and run `falcon-axi scopes` for the matrix from the tool itself:
 - `Alerts:read` for the home view, `detection list`, and `detection show`.
 - `Hosts:read` for `host list` and `host show`.
 - `Vulnerabilities:read` for `vuln list`.
+- `Vulnerabilities (Falcon Intelligence):read` for `cve show`. It is license-gated. Spotlight's
+  `Vulnerabilities:read` does not satisfy it. If the scope is missing from the picker, the tenant has no
+  Falcon Intelligence subscription.
 - `NGSIEM:read` for `search status`.
 - `NGSIEM:write` for `search start` and `search stop` only. This is the one write scope falcon-axi asks for;
   omit it for a wholly read-only client and those two commands fail with `SCOPE_DENIED`.

@@ -1,6 +1,8 @@
 """The complete scoped-operation surface of falcon-axi v1 (docs/design/v1.md §2.1, §3.3).
 
 The union is closed: adding a member requires both §2.2 citations in the same change.
+When falcon-mcp has no tool for the operation, the second citation is falconpy's generated
+endpoint table plus another first-party CrowdStrike SDK, not a missing falcon-mcp row.
 
 Every operation is a read except the two the captain's N1 exception admits: `StartSearchV1` and
 `StopSearchV1` carry `NGSIEM:write`, and the second enforcement tier below is what keeps that
@@ -21,6 +23,7 @@ OperationId = Literal[
     "QueryDevicesByFilter",
     "PostDeviceDetailsV2",
     "combinedQueryVulnerabilities",
+    "GetVulnerabilities",
     "StartSearchV1",
     "GetSearchStatusV1",
     "StopSearchV1",
@@ -44,6 +47,8 @@ SEARCH_LIFECYCLE_SCOPES: tuple[str, ...] = ("NGSIEM:write",)
 class Evidence:
     doc_url: str
     doc_scope: str
+    #: Second citation (§2.2). falcon-mcp when it has a tool; otherwise falconpy's generated
+    #: endpoint table plus another first-party SDK. The field name is the historical citation.
     falcon_mcp: str
 
 
@@ -60,6 +65,7 @@ class FalconOperation:
 ALERTS_DOC = "https://developer.crowdstrike.com/api-reference/collections/alerts/"
 HOSTS_DOC = "https://developer.crowdstrike.com/api-reference/collections/hosts/"
 SPOTLIGHT_DOC = "https://developer.crowdstrike.com/api-reference/collections/spotlight-vulnerabilities/"
+INTEL_DOC = "https://developer.crowdstrike.com/api-reference/collections/intel/"
 NGSIEM_DOC = "https://developer.crowdstrike.com/api-reference/collections/ngsiem/"
 
 CANONICAL: tuple[FalconOperation, ...] = (
@@ -128,6 +134,22 @@ CANONICAL: tuple[FalconOperation, ...] = (
             falcon_mcp=(
                 "falcon_mcp/common/api_scopes.py maps combinedQueryVulnerabilities to "
                 "Vulnerabilities:read for search_vulnerabilities"
+            ),
+        ),
+    ),
+    FalconOperation(
+        id="GetVulnerabilities",
+        method="POST",
+        path="/intel/entities/vulnerabilities/GET/v1",
+        scopes=("Vulnerabilities (Falcon Intelligence):read",),
+        effect="read",
+        evidence=Evidence(
+            doc_url=INTEL_DOC,
+            doc_scope="Vulnerabilities (Falcon Intelligence): READ",
+            falcon_mcp=(
+                "falcon-mcp has no tool for GetVulnerabilities. "
+                "falconpy/_endpoint/_intel.py maps GetVulnerabilities to POST "
+                "/intel/entities/vulnerabilities/GET/v1. PSFalcon Get-FalconCve wraps the same operation."
             ),
         ),
     ),
@@ -214,6 +236,14 @@ def _seal_effect(entry: FalconOperation) -> None:
         raise ValueError(f"operation {entry.id} has an unsupported method")
 
 
+def _second_citation(entry: FalconOperation) -> bool:
+    """§2.2: falcon-mcp, or falconpy's generated table plus PSFalcon when falcon-mcp has no tool."""
+    text = entry.evidence.falcon_mcp
+    if "api_scopes.py" in text and "maps " in text:
+        return True
+    return "falcon-mcp has no tool" in text and "falconpy/_endpoint/" in text and "PSFalcon Get-FalconCve" in text
+
+
 def _seal(entry: FalconOperation) -> FalconOperation:
     _seal_effect(entry)
     if not entry.path.startswith("/"):
@@ -222,6 +252,8 @@ def _seal(entry: FalconOperation) -> FalconOperation:
         raise ValueError(f"operation {entry.id} declares no scope")
     if not (entry.evidence.doc_url and entry.evidence.doc_scope and entry.evidence.falcon_mcp):
         raise ValueError(f"operation {entry.id} is missing evidence")
+    if not _second_citation(entry):
+        raise ValueError(f"operation {entry.id} is missing its §2.2 corroboration")
     if any(pattern.search(entry.path) for pattern in MUTATION_ROUTE_PATTERNS):
         raise ValueError(f"operation {entry.id} matches a known mutation route")
     return entry
