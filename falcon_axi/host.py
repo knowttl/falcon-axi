@@ -208,9 +208,7 @@ def show_host(transport: Transport, session: Session, id: str) -> CommandOutput:
     )
 
 
-def host_logins(
-    transport: Transport, session: Session, id: str, limit: int, since: str | None = None
-) -> CommandOutput:
+def host_logins(transport: Transport, session: Session, id: str, limit: int, since: str | None = None) -> CommandOutput:
     """`host logins <device_id>`: recent interactive logins on one host, newest first as Falcon returns them."""
     query: dict[str, str | int] = {"limit": limit}
     if since is not None:

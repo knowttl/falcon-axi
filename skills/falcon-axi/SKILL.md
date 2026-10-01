@@ -1,12 +1,12 @@
 ---
 name: falcon-axi
-description: "Read CrowdStrike Falcon detections, hosts, vulnerabilities, CVE intelligence, NG-SIEM searches, and Identity Protection users and timelines from the shell with falcon-axi. Use for Falcon alerts and detections, detection triage, host and sensor inventory, Spotlight vulnerability exposure, Falcon Intelligence CVE detail, NG-SIEM CQL event search, Identity Protection user and endpoint risk, accounts, and activity timelines, severity and status filtering, tenant and region checks, and Falcon API credential diagnostics."
+description: "Read CrowdStrike Falcon detections, hosts, vulnerabilities, CVE intelligence, NG-SIEM searches, and Identity Protection users and timelines from the shell with falcon-axi. Use for Falcon alerts and detections, detection triage, host and sensor inventory, recent interactive host logins, Discover account inventory, Spotlight vulnerability exposure, Falcon Intelligence CVE detail, NG-SIEM CQL event search, Identity Protection user and endpoint risk, accounts, and activity timelines, severity and status filtering, tenant and region checks, and Falcon API credential diagnostics."
 user-invocable: false
 ---
 
 # falcon-axi
 
-Read CrowdStrike Falcon detections, hosts, vulnerabilities, CVE intelligence, NG-SIEM event data, and Identity Protection users from the shell.
+Read CrowdStrike Falcon detections, hosts, recent interactive logins, Discover accounts, vulnerabilities, CVE intelligence, NG-SIEM event data, and Identity Protection users from the shell.
 Prefer this CLI over the Falcon console or hand-rolled REST calls when a task needs to read any of them.
 
 The CLI changes nothing in the tenant except an NG-SIEM search job: it exposes no write, create, update,
@@ -114,7 +114,7 @@ is refused because the value reaches a URL path.
    `falcon-axi vuln list --host <device_id>` for that host's exposure.
 6. Run `falcon-axi cve show <CVE-ID>` when the question is what Falcon Intelligence knows about a CVE,
    including a CVE that Spotlight has not evaluated on a host.
-7. When the question is not one of those domains, run `falcon-axi search start --query '<cql>'`, then
+7. When the question is outside the read domains, run `falcon-axi search start --query '<cql>'`, then
    poll `falcon-axi search status <id>` until it reports `state: done`, and run
    `falcon-axi search stop <id>` for any job no longer needed.
 8. For who an account or endpoint is, run `falcon-axi identity list --name '<name>'`, then
@@ -144,11 +144,10 @@ settled requirement.
 ## Output and errors
 
 Output is TOON on stdout.
-Detection, host, and vulnerability lists use compact default four-field schemas -
-`detections[N]{id,severity,tactic,hostname}`, `hosts[N]{device_id,hostname,platform,last_seen}`, or
-`vulnerabilities[N]{id,cve,severity,hostname}`.
-Non-empty results include a count and next-step help; empty results are stated explicitly rather than left
-as silence to re-query.
+Nonempty list views print a definitive `count:` line and compact rows, with contextual next commands.
+Empty results state the answer rather than leaving a silence to re-query.
+Default schemas, including login and account rows, are specified in `docs/design/v1.md` §10.2.
+Identity pages report rows shown without a total.
 `vuln list --fields` appends the selected columns.
 `search status` has no fixed schema, because a CQL result set's columns are whatever the query projected.
 For identity row schemas, counts, and detail truncation, see `docs/design/v1.md` §10.2.
@@ -166,9 +165,9 @@ flags, filterable fields, and examples instead of guessing.
 
 ## Pagination
 
-One call reads one page: `--limit N` defaults to 20, with a ceiling of 10000 on `detection list` and
-5000 on `host list` and `vuln list`, 100 on `account list`, and 200 on `identity list` and `identity timeline`.
-`host logins --limit` is per host, ceiling 100.
+One list call reads one page.
+Use the command's `--help` for limit defaults and ceilings; `docs/design/v1.md` §7.3 owns the limit contract.
+`host logins` has no cursor: follow its saturation warning instead of treating a full window as complete.
 `search status` has neither `--limit` nor `--cursor`, because a query job carries no pagination metadata;
 bound the result set in the CQL itself with `| head(N)` or an aggregate.
 A truncated result prints a `continuation_cursor` and a ready-to-run next-page command; pass the token back

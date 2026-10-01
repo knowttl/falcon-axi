@@ -75,7 +75,7 @@ def translate_falcon_error(response: FalconResponse, id: OperationId, subject: s
                 f"the filter for {subject} was rejected",
                 [
                     "FQL uses + for AND, `,` for OR, and values must be quoted",
-                    f"Example: `--filter \"{example}\"`",
+                    f'Example: `--filter "{example}"`',
                     f"Run `falcon-axi {command} --help` for the filterable fields",
                 ],
             )

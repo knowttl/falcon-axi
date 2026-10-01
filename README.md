@@ -8,8 +8,8 @@ ends with the commands that are worth running next.
 
 ## Status: partial implementation of the v1 design
 
-The package is real and installable, and it ships the read domains of
-[`docs/design/v1.md`](docs/design/v1.md) plus NG-SIEM search, rather than the whole v1 surface.
+The package is real and installable, and it ships five read domains plus NG-SIEM search.
+The shipped and deferred commands are listed below; [`docs/design/v1.md`](docs/design/v1.md) owns the full v1 design.
 
 What is shipped:
 
@@ -20,11 +20,8 @@ What is shipped:
   operations, and a single permitted network sink;
 - credential resolution through the environment or a `0600` credentials file, region selection and
   `X-Cs-Region` autodiscovery, Flight Control member-CID selection, and `auth status`;
-- the read domains: `falcon-axi`, `detection list`, `detection show`, `host list`,
-  `host show`, `vuln list`, and `cve show`;
-- host login history and the Discover accounts inventory: `host logins`, `account list`, and
-  `account show`, admitted under the falconpy-plus-PSFalcon corroboration `docs/design/v1.md`
-  §2.2 accepts when falcon-mcp has no tool for an operation;
+- the home view and five read domains: `falcon-axi`, `detection list`, `detection show`, `host list`,
+  `host show`, `host logins`, `account list`, `account show`, `vuln list`, and `cve show`;
 - NG-SIEM search: `search start`, `search status`, and `search stop`, the three operations captain
   exception N1 admits;
 - the Identity Protection directory and timeline: `identity list`, `identity show`, and
@@ -83,7 +80,8 @@ If a task needs containment, a real-time-response session, a detection-status up
 ingest, a parser change, an identity action, or any other change to the tenant, falcon-axi is the
 wrong tool and will not be persuaded otherwise.
 
-For credential provisioning and missing-scope behavior, see [API client permissions](#api-client-permissions).
+See [API client permissions](#api-client-permissions) for provisioning, including optional search writes
+and license-gated account and CVE access.
 Whether member-CID token minting additionally requires `Flight Control:read` remains an explicitly
 unresolved question in `docs/design/v1.md` §17.7.
 A falcon-axi release that asks for any other write scope is wrong.
@@ -102,9 +100,9 @@ uvx --from git+https://github.com/knowttl/falcon-axi@v0.2.0 falcon-axi auth stat
 uvx --from git+https://github.com/knowttl/falcon-axi@v0.2.0 falcon-axi detection list --severity high --since 24h
 ```
 
-The pinned tag is the last release; `host list`, `host show`, `vuln list`, `cve show`, `scopes`,
-and the three `search` and three `identity` commands are not in it.
-Install from the default branch to use them before a newer tag exists.
+The pinned tag is the last release.
+For commands added after that tag, including host login history, Discover accounts, and CVE intelligence, install from the
+default branch until a newer tag exists; see the shipped command list above.
 
 Or install the command once and call it directly:
 
@@ -125,9 +123,8 @@ bare `falcon-axi` name, so run the equivalent command through whichever invocati
 
 ## Credentials
 
-Provision an API client in the Falcon console under Support and resources > API clients and keys,
-granting only the permissions for the commands you intend to use (see [API client permissions](#api-client-permissions)).
-Supply the credential through one of the two accepted channels:
+Provision an API client as described in [API client permissions](#api-client-permissions).
+Supply it through one of the two accepted channels:
 
 ```sh
 export FALCON_CLIENT_ID=...
@@ -221,8 +218,8 @@ NG-SIEM search event CID fields (`cid`, `#repo.cid`) are redacted in output.
 5. `falcon-axi host show <device_id>` - the host a detection fired on.
 6. `falcon-axi vuln list --host <device_id>` - that host's exposure.
 7. `falcon-axi cve show <CVE-ID>` - what Falcon Intelligence knows about one CVE, which is not host exposure.
-8. `falcon-axi search start --query '<cql>'` - when the question is not one of the domains
-   above, ask NG-SIEM directly, then poll with `search status <id>` and cancel with
+8. `falcon-axi search start --query '<cql>'` - when the question is outside the read domains,
+   ask NG-SIEM directly, then poll with `search status <id>` and cancel with
    `search stop <id>`.
 9. `falcon-axi identity list --name 'Admin*'` - who an account is, how risky it is, and (with
    `identity show <id>` and `identity timeline <id>`) what it owns and what it did.
@@ -388,8 +385,9 @@ Pass it back with `--cursor <token>`.
 
 The cursor is opaque and bound to the credential and the filter that produced it, so it cannot be
 edited, reused across a different query, or shared between tenants.
-It hides the fact that Falcon paginates detections and hosts by offset, vulnerabilities by an
-`after` token, and identities by a GraphQL `endCursor`: the CLI vocabulary is `--cursor` in all four.
+It hides the fact that Falcon paginates detections, hosts, and accounts by offset, vulnerabilities by an
+`after` token, and identities by a GraphQL `endCursor`: the CLI vocabulary is `--cursor` for every paginated command.
+`host logins` has no cursor: a full window warns that more logins may exist rather than claiming completeness.
 `--all` and `--max-rows` do not exist yet: loop on `--cursor` when more than one
 page is genuinely needed.
 Reading past 10000 Alerts results fails with `PAGINATION_LIMIT` and asks for a narrower filter,
