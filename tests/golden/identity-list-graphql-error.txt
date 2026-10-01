@@ -1,0 +1,4 @@
+error: Falcon reported an error while answering the Identity Protection query for identities
+code: UPSTREAM_ERROR
+trace_id: synthetic-trace-graphql
+help[2]: "Retry shortly","Quote the trace_id when opening a CrowdStrike support case"

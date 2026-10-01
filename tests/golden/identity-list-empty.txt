@@ -1,0 +1,2 @@
+identities: 0 identities matching user email *@nowhere.test
+help[2]: "Run `falcon-axi identity list` without filters to see the directory","Name and email patterns accept `*` wildcards, for example `--name 'Admin*'`"

@@ -18,7 +18,10 @@ def test_auth_status_reports_the_channel_and_region_without_printing_any_value()
     assert re.search(r"^credential_channel: environment$", stdout, re.MULTILINE)
     assert re.search(r"^tenant: us-1 \(own CID unavailable\)$", stdout, re.MULTILINE)
     assert re.search(
-        r"^scopes: read scopes, plus NGSIEM:write for `search start` and `search stop` alone$", stdout, re.MULTILINE
+        r"^scopes: read scopes, plus NGSIEM:write for `search start` and `search stop`, "
+        r"and Identity Protection GraphQL:write for the `identity` commands, alone$",
+        stdout,
+        re.MULTILINE,
     )
     assert re.search(r"^rate_limit: 5999 of 6000 requests remaining$", stdout, re.MULTILINE)
     assert SECRET not in stdout

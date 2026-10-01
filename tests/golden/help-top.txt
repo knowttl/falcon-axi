@@ -10,6 +10,9 @@ Commands:
   search start              start an NG-SIEM CQL search job
   search status <id>        poll one search job and read its events
   search stop <id>          cancel one search job
+  identity list             list Identity Protection users and endpoints with their risk
+  identity show <id>        one identity's risk, accounts, associations, and open incidents
+  identity timeline <id>    one identity's recent activity
   auth status               whether a credential resolved, and where to
   scopes                    the command-to-scope matrix, with no request made
 
@@ -18,6 +21,8 @@ Global flags:
 
 Regions: us-1, us-2, eu-1, us-gov-1
 
-falcon-axi lists no command that changes a host, a detection, or a policy. It requires
-Alerts:read, Hosts:read, Vulnerabilities:read, Vulnerabilities (Falcon Intelligence):read,
-and NGSIEM:read, plus NGSIEM:write for `search start` and `search stop` alone.
+falcon-axi lists no command that changes a host, a detection, a policy, or an identity. It
+requires Alerts:read, Hosts:read, Vulnerabilities:read, Vulnerabilities (Falcon Intelligence):read,
+NGSIEM:read, Identity Protection Entities:read, and Identity Protection Timeline:read, plus two
+write-labelled scopes: NGSIEM:write for `search start` and `search stop`, and Identity Protection
+GraphQL:write for the `identity` commands, which Falcon requires even for read-only queries.

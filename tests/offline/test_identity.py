@@ -1,0 +1,307 @@
+"""The Identity Protection domain over GraphQL (docs/design/v1.md §4.4, §10.2)."""
+
+import re
+
+from toon_format import decode
+
+from falcon_axi.cli import run
+from falcon_axi.transport.graphql import GRAPHQL_DOCUMENTS
+from falcon_axi.transport.types import RequestArgs
+from tests.support.recorded import CREDENTIAL_ENV, RecordedTransport, fixture, response, serve
+
+GRAPHQL = "api_preempt_proxy_post_graphql"
+ENTITY_ID = "00000000-0000-4000-8000-000000000001"
+LISTED = [serve(GRAPHQL, fixture("identity/entities-page.json"))]
+DETAIL = [serve(GRAPHQL, fixture("identity/entity-detail.json"))]
+TIMELINE = [serve(GRAPHQL, fixture("identity/timeline-page.json"))]
+
+
+def _sent(recorded: RecordedTransport) -> RequestArgs:
+    requests = recorded.operation_requests(GRAPHQL)
+    assert len(requests) == 1
+    return requests[0]
+
+
+def _cursor_of(stdout: str) -> str:
+    match = re.search(r"^continuation_cursor: (\S+)$", stdout, re.MULTILINE)
+    assert match
+    return match.group(1)
+
+
+def test_identity_list_sends_one_registered_document_with_its_filters_as_variables() -> None:
+    recorded = RecordedTransport(LISTED)
+    stdout, exit_code = run(
+        ["identity", "list", "--name", "Admin*", "--email", "*@example.test", "--domain", "EXAMPLE.TEST", "--limit", "2"],
+        recorded,
+        dict(CREDENTIAL_ENV),
+    )
+    assert exit_code == 0
+    sent = _sent(recorded)
+    assert sent.document == "identity_list"
+    assert sent.body is None
+    assert sent.variables == {"first": 2, "name": "Admin*", "email": "*@example.test", "domains": ["EXAMPLE.TEST"]}
+    parsed = decode(stdout)
+    assert parsed["count"] == "2 shown"
+    assert parsed["identities"][0] == {
+        "id": ENTITY_ID,
+        "name": "Synthetic Admin",
+        "secondary": "synthetic.admin@example.test",
+        "type": "USER",
+        "risk": "HIGH (0.82)",
+    }
+    assert parsed["identities"][1]["type"] == "ENDPOINT"
+
+
+def test_identity_list_omits_the_variables_it_was_not_given() -> None:
+    recorded = RecordedTransport(LISTED)
+    run(["identity", "list"], recorded, dict(CREDENTIAL_ENV))
+    assert _sent(recorded).variables == {"first": 20}
+
+
+def test_the_type_flag_selects_a_registered_document_rather_than_building_one() -> None:
+    for kind, document in (("user", "identity_list_users"), ("ENDPOINT", "identity_list_endpoints")):
+        recorded = RecordedTransport(LISTED)
+        _, exit_code = run(["identity", "list", "--type", kind], recorded, dict(CREDENTIAL_ENV))
+        assert exit_code == 0
+        assert _sent(recorded).document == document
+        assert document in GRAPHQL_DOCUMENTS
+
+
+def test_an_unknown_type_a_bare_wildcard_and_an_oversized_limit_are_refused_before_any_request() -> None:
+    for argv, needle in (
+        (["identity", "list", "--type", "group"], "unknown type group"),
+        (["identity", "list", "--name", "*"], "bare wildcard"),
+        (["identity", "list", "--email", " * "], "bare wildcard"),
+        (["identity", "list", "--limit", "201"], "--limit must be an integer from 1 to 200"),
+    ):
+        recorded = RecordedTransport(LISTED)
+        stdout, exit_code = run(argv, recorded, dict(CREDENTIAL_ENV))
+        assert exit_code == 2
+        assert needle in stdout
+        assert recorded.operation_requests(GRAPHQL) == []
+
+
+def test_identity_list_continues_with_an_opaque_cursor_bound_to_its_filters() -> None:
+    first = RecordedTransport(LISTED)
+    stdout, _ = run(["identity", "list", "--name", "Admin*"], first, dict(CREDENTIAL_ENV))
+    cursor = _cursor_of(stdout)
+    assert "synthetic-end-cursor-01" not in stdout
+    assert 'identity list --name \\"Admin*\\" --cursor' in stdout
+
+    second = RecordedTransport(LISTED)
+    run(["identity", "list", "--name", "Admin*", "--cursor", cursor], second, dict(CREDENTIAL_ENV))
+    assert _sent(second).variables == {"first": 20, "name": "Admin*", "after": "synthetic-end-cursor-01"}
+
+    other = RecordedTransport(LISTED)
+    stdout, exit_code = run(["identity", "list", "--name", "Other*", "--cursor", cursor], other, dict(CREDENTIAL_ENV))
+    assert exit_code == 2
+    assert "does not continue the current query" in stdout
+    assert other.operation_requests(GRAPHQL) == []
+
+
+def test_the_last_page_carries_no_cursor_and_an_empty_result_is_a_definitive_statement() -> None:
+    stdout, _ = run(
+        ["identity", "list", "--name", "Nobody*"],
+        RecordedTransport([serve(GRAPHQL, fixture("identity/entities-empty.json"))]),
+        dict(CREDENTIAL_ENV),
+    )
+    assert "continuation_cursor" not in stdout
+    assert re.search(r"^identities: 0 identities matching name Nobody\*$", stdout, re.MULTILINE)
+
+
+def test_identity_show_prints_risk_accounts_associations_and_open_incidents() -> None:
+    recorded = RecordedTransport(DETAIL)
+    stdout, exit_code = run(["identity", "show", ENTITY_ID], recorded, dict(CREDENTIAL_ENV))
+    assert exit_code == 0
+    sent = _sent(recorded)
+    assert (sent.document, sent.variables) == ("identity_show", {"entityIds": [ENTITY_ID]})
+    detail = decode(stdout)["identity"]
+    assert detail["risk"] == "HIGH (0.82)"
+    assert detail["risk_factors"] == [
+        {"type": "WEAK_PASSWORD", "severity": "MEDIUM"},
+        {"type": "STALE_ACCOUNT", "severity": "LOW"},
+    ]
+    assert detail["accounts"][0]["domain"] == "EXAMPLE.TEST"
+    assert detail["accounts"][0]["account"] == "synthetic.admin"
+    assert detail["accounts"][1] == {"source": "SYNTHETIC_SSO", "title": "Synthetic Engineer"}
+    assert [row["name"] for row in detail["associations"]] == [
+        "SYNTH-DC-01",
+        "synthetic-local-admin",
+        "Sampletown, Exampleland",
+    ]
+    assert detail["open_incidents"] == [
+        {
+            "type": "POTENTIAL_RISKY_ACTIVITY",
+            "start": "2026-09-30T08:00:00Z",
+            "end": "unknown",
+            "compromised": "Synthetic Admin",
+        }
+    ]
+    assert f"identity timeline {ENTITY_ID}" in stdout
+
+
+def test_identity_show_caps_a_long_association_list_until_full_is_given() -> None:
+    template = fixture("identity/entity-detail.json")
+    node = template.body["data"]["entities"]["nodes"][0]
+    many = [{"bindingType": "LOCAL_ADMIN", "accountName": f"synthetic-account-{index}"} for index in range(30)]
+    long_body = {"data": {"entities": {"nodes": [{**node, "associations": many}]}}}
+    capped, _ = run(
+        ["identity", "show", ENTITY_ID], RecordedTransport([serve(GRAPHQL, response(200, long_body))]), dict(CREDENTIAL_ENV)
+    )
+    assert decode(capped)["identity"]["associations_total"] == 30
+    assert len(decode(capped)["identity"]["associations"]) == 25
+    assert f"identity show {ENTITY_ID} --full" in capped
+    full, _ = run(
+        ["identity", "show", ENTITY_ID, "--full"],
+        RecordedTransport([serve(GRAPHQL, response(200, long_body))]),
+        dict(CREDENTIAL_ENV),
+    )
+    assert len(decode(full)["identity"]["associations"]) == 30
+    assert "associations_total" not in full
+
+
+def test_identity_show_refuses_a_value_that_is_not_a_guid_and_reports_a_missing_identity() -> None:
+    recorded = RecordedTransport(DETAIL)
+    stdout, exit_code = run(["identity", "show", "synthetic-admin"], recorded, dict(CREDENTIAL_ENV))
+    assert exit_code == 2
+    assert "an identity id must be an entity GUID" in stdout
+    assert recorded.operation_requests(GRAPHQL) == []
+
+    stdout, exit_code = run(
+        ["identity", "show", ENTITY_ID],
+        RecordedTransport([serve(GRAPHQL, fixture("identity/entities-empty.json"))]),
+        dict(CREDENTIAL_ENV),
+    )
+    assert exit_code == 1
+    assert "code: NOT_FOUND" in stdout
+
+
+def test_identity_timeline_sends_its_window_categories_and_page_size_as_variables() -> None:
+    recorded = RecordedTransport(TIMELINE)
+    stdout, exit_code = run(
+        ["identity", "timeline", ENTITY_ID, "--since", "24h", "--category", "threat,audit", "--limit", "2"],
+        recorded,
+        dict(CREDENTIAL_ENV),
+    )
+    assert exit_code == 0
+    sent = _sent(recorded)
+    assert sent.document == "identity_timeline"
+    assert sent.variables is not None
+    assert sent.variables["entityIds"] == [ENTITY_ID]
+    assert sent.variables["categories"] == ["THREAT", "AUDIT"]
+    assert sent.variables["first"] == 2
+    assert re.fullmatch(r"\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}Z", sent.variables["startTime"])
+    assert "after" not in sent.variables
+    parsed = decode(stdout)
+    assert parsed["window"] == "the last 24h"
+    assert parsed["events"][0] == {
+        "time": "2026-09-30T10:15:00Z",
+        "type": "SUCCESSFUL_AUTHENTICATION",
+        "severity": "INFORMATIONAL",
+        "user": "Synthetic Admin",
+        "endpoint": "SYNTH-WS-07",
+        "ip": "192.0.2.10",
+    }
+    # An alert event has no endpoint or address, and the row says so rather than dropping the column.
+    assert parsed["events"][1]["endpoint"] == "unknown"
+    assert parsed["events"][1]["user"] == "Synthetic Admin"
+
+
+def test_identity_timeline_defaults_to_seven_days_and_sends_no_categories() -> None:
+    recorded = RecordedTransport(TIMELINE)
+    run(["identity", "timeline", ENTITY_ID], recorded, dict(CREDENTIAL_ENV))
+    variables = _sent(recorded).variables
+    assert variables is not None
+    assert "categories" not in variables
+
+
+def test_a_timeline_cursor_continues_the_same_window_and_replays_the_identity_id() -> None:
+    first = RecordedTransport(TIMELINE)
+    stdout, _ = run(["identity", "timeline", ENTITY_ID, "--since", "3d"], first, dict(CREDENTIAL_ENV))
+    start = _sent(first).variables["startTime"]  # type: ignore[index]
+    cursor = _cursor_of(stdout)
+    assert f"falcon-axi identity timeline {ENTITY_ID} --since 3d --cursor {cursor}" in stdout
+
+    second = RecordedTransport(TIMELINE)
+    run(["identity", "timeline", ENTITY_ID, "--since", "3d", "--cursor", cursor], second, dict(CREDENTIAL_ENV))
+    variables = _sent(second).variables
+    assert variables is not None
+    assert (variables["startTime"], variables["after"]) == (start, "synthetic-timeline-cursor-01")
+
+
+def test_a_timeline_with_no_events_says_so_and_an_unknown_category_is_refused() -> None:
+    stdout, _ = run(
+        ["identity", "timeline", ENTITY_ID],
+        RecordedTransport([serve(GRAPHQL, fixture("identity/timeline-empty.json"))]),
+        dict(CREDENTIAL_ENV),
+    )
+    assert "events: 0 events for this identity in the last 7d" in stdout
+    recorded = RecordedTransport(TIMELINE)
+    stdout, exit_code = run(["identity", "timeline", ENTITY_ID, "--category", "gossip"], recorded, dict(CREDENTIAL_ENV))
+    assert exit_code == 2
+    assert "valid values for --category: activity, notification, threat, entity, audit, policy, system" in stdout
+    assert recorded.operation_requests(GRAPHQL) == []
+
+
+def test_a_missing_graphql_scope_names_the_write_labelled_scope_and_the_read_scope_honestly() -> None:
+    for argv, read_scope in (
+        (["identity", "list"], "Identity Protection Entities:read"),
+        (["identity", "timeline", ENTITY_ID], "Identity Protection Timeline:read"),
+    ):
+        stdout, exit_code = run(
+            argv, RecordedTransport([serve(GRAPHQL, fixture("identity/graphql-403-scope.json"))]), dict(CREDENTIAL_ENV)
+        )
+        assert exit_code == 1
+        assert "code: SCOPE_DENIED" in stdout
+        assert f"Identity Protection GraphQL:write and {read_scope}" in stdout
+        assert "labelled write because Falcon requires it even for read-only queries" in stdout
+        assert "captain exception N2" in stdout
+        assert "(read only)" not in stdout
+
+
+def test_a_graphql_validation_rejection_is_not_mistaken_for_a_bad_fql_filter() -> None:
+    stdout, exit_code = run(
+        ["identity", "list"], RecordedTransport([serve(GRAPHQL, fixture("identity/graphql-400.json"))]), dict(CREDENTIAL_ENV)
+    )
+    assert exit_code == 1
+    assert "code: UPSTREAM_ERROR" in stdout
+    assert "FQL" not in stdout
+    assert "trace_id: synthetic-trace-graphql-400" in stdout
+    assert "Cannot query field" not in stdout
+
+
+def test_a_graphql_error_on_http_200_is_an_error_and_never_an_empty_result() -> None:
+    for argv in (["identity", "list"], ["identity", "show", ENTITY_ID], ["identity", "timeline", ENTITY_ID]):
+        stdout, exit_code = run(
+            argv, RecordedTransport([serve(GRAPHQL, fixture("identity/graphql-errors-on-200.json"))]), dict(CREDENTIAL_ENV)
+        )
+        assert exit_code == 1
+        assert "code: UPSTREAM_ERROR" in stdout
+        assert "trace_id: synthetic-trace-graphql" in stdout
+        assert "synthetic execution failure" not in stdout
+        assert "0 identities" not in stdout
+
+
+def test_an_error_alongside_partial_data_is_still_an_error() -> None:
+    body = {**fixture("identity/entities-page.json").body, "errors": [{"message": "partial"}]}
+    stdout, exit_code = run(
+        ["identity", "list"], RecordedTransport([serve(GRAPHQL, response(200, body))]), dict(CREDENTIAL_ENV)
+    )
+    assert exit_code == 1
+    assert "code: UPSTREAM_ERROR" in stdout
+
+
+def test_no_identity_command_can_reach_a_document_outside_the_registry() -> None:
+    """Every document an identity command names resolves from the closed registry."""
+    sent: set[str] = set()
+    for argv in (
+        ["identity", "list"],
+        ["identity", "list", "--type", "user"],
+        ["identity", "list", "--type", "endpoint"],
+        ["identity", "show", ENTITY_ID],
+        ["identity", "timeline", ENTITY_ID],
+    ):
+        recorded = RecordedTransport([serve(GRAPHQL, fixture("identity/graphql-400.json"))])
+        run(argv, recorded, dict(CREDENTIAL_ENV))
+        sent.update(args.document for args in recorded.operation_requests(GRAPHQL) if args.document)
+    assert sent == set(GRAPHQL_DOCUMENTS)

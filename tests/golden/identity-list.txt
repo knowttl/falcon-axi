@@ -1,0 +1,6 @@
+count: 2 shown
+continuation_cursor: eyJvcGVyYXRpb24iOiJhcGlfcHJlZW1wdF9wcm94eV9wb3N0X2dyYXBocWwiLCJtb2RlbCI6InRva2VuIiwicG9zaXRpb24iOiJzeW50aGV0aWMtZW5kLWN1cnNvci0wMSIsImZpbmdlcnByaW50IjoiYzE5Yjk0M2Q5NThjNjQwMTU2N2VlOThlYjM2NjA2MzU3ZThiMzAxZGFhZmFkNzBkYTZlZmRmNjYyYzJjY2ZhNiJ9
+identities[2]{id,name,secondary,type,risk}:
+  00000000-0000-4000-8000-000000000001,Synthetic Admin,synthetic.admin@example.test,USER,HIGH (0.82)
+  00000000-0000-4000-8000-000000000002,SYNTH-DC-01,synth-dc-01.example.test,ENDPOINT,NORMAL (0.1)
+help[3]: "Run `falcon-axi identity show <id>` for accounts, risk factors, associations, and open incidents","Run `falcon-axi identity timeline <id>` for recent activity","Run `falcon-axi identity list --limit 2 --name \"Admin*\" --cursor eyJvcGVyYXRpb24iOiJhcGlfcHJlZW1wdF9wcm94eV9wb3N0X2dyYXBocWwiLCJtb2RlbCI6InRva2VuIiwicG9zaXRpb24iOiJzeW50aGV0aWMtZW5kLWN1cnNvci0wMSIsImZpbmdlcnByaW50IjoiYzE5Yjk0M2Q5NThjNjQwMTU2N2VlOThlYjM2NjA2MzU3ZThiMzAxZGFhZmFkNzBkYTZlZmRmNjYyYzJjY2ZhNiJ9` for the next page"

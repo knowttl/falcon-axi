@@ -1,10 +1,13 @@
-posture: read-only except NG-SIEM search start and stop, the one write scope captain exception N1 admits
-scopes[6]{scope,access,commands,required}:
+posture: read-only except two write-labelled scopes: NGSIEM:write for NG-SIEM search start and stop (captain exception N1), and Identity Protection GraphQL:write for fixed read-only identity queries (captain exception N2)
+scopes[9]{scope,access,commands,required}:
   "Alerts:read",read,"detection list, detection show",yes
   "Hosts:read",read,"host list, host show",yes
   "Vulnerabilities:read",read,vuln list,yes
   "Vulnerabilities (Falcon Intelligence):read",read,cve show,yes
   "NGSIEM:write",write,"search start, search stop",yes
   "NGSIEM:read",read,search status,yes
+  "Identity Protection GraphQL:write",write,"identity list, identity show, identity timeline",yes
+  "Identity Protection Entities:read",read,"identity list, identity show",yes
+  "Identity Protection Timeline:read",read,identity timeline,yes
 member_cid_token_scope: unresolved (Flight Control read may be required; see design section 17.7)
-help[3]: "Grant these scopes in the Falcon console under Support and resources > API clients and keys","Grant read access only, apart from NGSIEM:write; falcon-axi needs no other write scope","Omit NGSIEM:write to provision a wholly read-only client, and the `search` commands then fail with SCOPE_DENIED"
+help[5]: "Grant these scopes in the Falcon console under Support and resources > API clients and keys","Grant read access only, apart from NGSIEM:write and Identity Protection GraphQL:write; falcon-axi needs no other write scope","Identity Protection GraphQL:write is labelled write because Falcon requires it even for read-only queries; falcon-axi sends only its own fixed read queries, never caller-supplied GraphQL (captain exception N2)","Omit NGSIEM:write to provision a wholly read-only client, and the `search` commands then fail with SCOPE_DENIED","Omit Identity Protection GraphQL:write and the `identity` commands fail with SCOPE_DENIED"

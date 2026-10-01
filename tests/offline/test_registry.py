@@ -6,6 +6,7 @@ import pytest
 
 from falcon_axi.core import CliError
 from falcon_axi.transport.operations import (
+    GRAPHQL_QUERY_IDS,
     MUTATION_ROUTE_PATTERNS,
     OPERATION_IDS,
     OPERATIONS,
@@ -78,6 +79,13 @@ EXPECTED = {
         "effect": "search-lifecycle",
         "doc_scope": "NGSIEM: WRITE",
     },
+    "api_preempt_proxy_post_graphql": {
+        "method": "POST",
+        "path": "/identity-protection/combined/graphql/v1",
+        "scopes": ("Identity Protection GraphQL:write",),
+        "effect": "graphql-query",
+        "doc_scope": "Identity Protection GraphQL: WRITE",
+    },
 }
 
 
@@ -106,12 +114,15 @@ def test_no_registered_path_matches_a_known_mutation_route() -> None:
             assert pattern.search(descriptor.path) is None, f"{descriptor.id} matches {pattern.pattern}"
 
 
-def test_every_registered_scope_is_a_read_scope_outside_captain_exception_n1() -> None:
+def test_every_registered_scope_is_a_read_scope_outside_the_two_captain_exceptions() -> None:
     assert SEARCH_LIFECYCLE_IDS == {"StartSearchV1", "StopSearchV1"}
+    assert GRAPHQL_QUERY_IDS == {"api_preempt_proxy_post_graphql"}
+    exceptions = SEARCH_LIFECYCLE_IDS | GRAPHQL_QUERY_IDS
     for id in EXPECTED:
         for scope in registered_scopes([id]):
-            assert scope.endswith(":write" if id in SEARCH_LIFECYCLE_IDS else ":read")
+            assert scope.endswith(":write" if id in exceptions else ":read")
     assert registered_scopes(list(SEARCH_LIFECYCLE_IDS)) == ("NGSIEM:write",)
+    assert registered_scopes(list(GRAPHQL_QUERY_IDS)) == ("Identity Protection GraphQL:write",)
 
 
 def test_the_registry_and_every_nested_value_resist_mutation() -> None:

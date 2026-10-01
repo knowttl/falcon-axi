@@ -26,6 +26,9 @@ class RequestArgs:
     body: Any = None
     #: Values interpolated into the route's `{name}` variables, validated before the request is sent.
     path_params: Mapping[str, str] | None = None
+    #: The registered GraphQL document and its variables, for the one GraphQL operation, which takes no `body` (§4.4).
+    document: str | None = None
+    variables: Mapping[str, Any] | None = None
     allow_unknown_origin: bool = False
 
 

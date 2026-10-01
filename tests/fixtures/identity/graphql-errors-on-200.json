@@ -1,0 +1,17 @@
+{
+  "provenance": {
+    "operation": "api_preempt_proxy_post_graphql",
+    "reference": "https://developer.crowdstrike.com/api-reference/collections/identity-protection/",
+    "schema_read": "2026-10-01",
+    "provenance": "synthetic"
+  },
+  "response": {
+    "status": 200,
+    "headers": { "x-ratelimit-limit": "6000", "x-ratelimit-remaining": "5985" },
+    "body": {
+      "data": null,
+      "errors": [{ "message": "synthetic execution failure", "path": ["entities"] }],
+      "meta": { "trace_id": "synthetic-trace-graphql" }
+    }
+  }
+}

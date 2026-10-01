@@ -1,0 +1,6 @@
+window: the last 7d
+count: 2 shown
+events[2]{time,type,severity,user,endpoint,ip}:
+  "2026-09-30T10:15:00Z",SUCCESSFUL_AUTHENTICATION,INFORMATIONAL,Synthetic Admin,SYNTH-WS-07,192.0.2.10
+  "2026-09-30T09:40:00Z",ALERT,HIGH,Synthetic Admin,unknown,unknown
+help[2]: "Run `falcon-axi identity show 00000000-0000-4000-8000-000000000001` for this identity's risk, accounts, and associations","Run `falcon-axi identity timeline 00000000-0000-4000-8000-000000000001 --category threat` to narrow to threat events"

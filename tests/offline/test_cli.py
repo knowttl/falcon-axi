@@ -30,7 +30,8 @@ def test_an_unknown_command_or_subcommand_fails_before_any_request() -> None:
     assert exit_code == 2
     assert (
         "valid commands: detection list, detection show, host list, host show, vuln list, cve show, "
-        "search start, search status, search stop, auth status, scopes" in stdout
+        "search start, search status, search stop, identity list, identity show, identity timeline, "
+        "auth status, scopes" in stdout
     )
     subcommand, _ = run(["detection", "contain"], recorded, dict(CREDENTIAL_ENV))
     assert "valid detection subcommands: list, show" in subcommand
@@ -94,6 +95,9 @@ def test_help_never_advertises_a_command_the_cli_does_not_have() -> None:
         ["search", "start", "--help"],
         ["search", "status", "--help"],
         ["search", "stop", "--help"],
+        ["identity", "list", "--help"],
+        ["identity", "show", "--help"],
+        ["identity", "timeline", "--help"],
         ["auth", "status", "--help"],
         ["scopes", "--help"],
     )
@@ -107,9 +111,10 @@ def test_help_never_advertises_a_command_the_cli_does_not_have() -> None:
         else:
             assert "--fields" not in stdout, f"{' '.join(argv)} advertises --fields"
     top, _ = run(["--help"], RecordedTransport([]), dict(CREDENTIAL_ENV))
-    # The one write scope is named where an operator will see it, and no mutating command is listed.
-    assert "lists no command that changes a host, a detection, or a policy" in top
+    # The two write-labelled scopes are named where an operator will see them, and no mutating command is listed.
+    assert "lists no command that changes a host, a detection, a policy, or an identity" in top
     assert "NGSIEM:write" in top
+    assert "Identity Protection GraphQL:write" in top
     assert VERSION in top
     for command in COMMANDS:
         assert command in top

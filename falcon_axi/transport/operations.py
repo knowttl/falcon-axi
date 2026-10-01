@@ -7,6 +7,10 @@ endpoint table plus another first-party CrowdStrike SDK, not a missing falcon-mc
 Every operation is a read except the two the captain's N1 exception admits: `StartSearchV1` and
 `StopSearchV1` carry `NGSIEM:write`, and the second enforcement tier below is what keeps that
 exception from widening into a general mutation surface (§4.3).
+
+Captain exception N2 adds one more write-labelled scope, `Identity Protection GraphQL:write`, to a
+single operation that falcon-axi uses only for fixed read-only query documents (§4.4). It is the
+third effect, `graphql-query`, and the third enforcement tier below confines it to one id and one scope.
 """
 
 import re
@@ -27,11 +31,12 @@ OperationId = Literal[
     "StartSearchV1",
     "GetSearchStatusV1",
     "StopSearchV1",
+    "api_preempt_proxy_post_graphql",
 ]
 
 OPERATION_IDS: tuple[str, ...] = get_args(OperationId)
 
-Effect = Literal["read", "search-lifecycle"]
+Effect = Literal["read", "search-lifecycle", "graphql-query"]
 EFFECTS: tuple[str, ...] = get_args(Effect)
 
 #: The whole of captain exception N1 (docs/design/v1.md §4.3): the only ids whose effect may be
@@ -41,6 +46,17 @@ SEARCH_LIFECYCLE_IDS: frozenset[str] = frozenset({"StartSearchV1", "StopSearchV1
 
 #: The one write scope the exception admits. No other write scope is representable.
 SEARCH_LIFECYCLE_SCOPES: tuple[str, ...] = ("NGSIEM:write",)
+
+
+#: The whole of captain exception N2 (docs/design/v1.md §4.4): the only id whose effect may be
+#: `graphql-query`. It is write-labelled because Falcon scopes the one Identity Protection GraphQL
+#: endpoint `WRITE` even for a read-only query, and the same endpoint also accepts mutations.
+#: falcon-axi therefore never sends caller-supplied GraphQL: only the fixed query documents in
+#: `falcon_axi/transport/graphql.py` reach it.
+GRAPHQL_QUERY_IDS: frozenset[str] = frozenset({"api_preempt_proxy_post_graphql"})
+
+#: The one write-labelled scope N2 admits. The per-document `:read` scopes live with the documents.
+GRAPHQL_QUERY_SCOPES: tuple[str, ...] = ("Identity Protection GraphQL:write",)
 
 
 @dataclass(frozen=True)
@@ -67,6 +83,7 @@ HOSTS_DOC = "https://developer.crowdstrike.com/api-reference/collections/hosts/"
 SPOTLIGHT_DOC = "https://developer.crowdstrike.com/api-reference/collections/spotlight-vulnerabilities/"
 INTEL_DOC = "https://developer.crowdstrike.com/api-reference/collections/intel/"
 NGSIEM_DOC = "https://developer.crowdstrike.com/api-reference/collections/ngsiem/"
+IDENTITY_PROTECTION_DOC = "https://developer.crowdstrike.com/api-reference/collections/identity-protection/"
 
 CANONICAL: tuple[FalconOperation, ...] = (
     FalconOperation(
@@ -191,6 +208,22 @@ CANONICAL: tuple[FalconOperation, ...] = (
             falcon_mcp="falcon_mcp/common/api_scopes.py maps StopSearchV1 to NGSIEM:write for search_ngsiem cleanup",
         ),
     ),
+    FalconOperation(
+        id="api_preempt_proxy_post_graphql",
+        method="POST",
+        path="/identity-protection/combined/graphql/v1",
+        scopes=GRAPHQL_QUERY_SCOPES,
+        effect="graphql-query",
+        evidence=Evidence(
+            doc_url=IDENTITY_PROTECTION_DOC,
+            doc_scope="Identity Protection GraphQL: WRITE",
+            falcon_mcp=(
+                "falcon_mcp/common/api_scopes.py maps api_preempt_proxy_post_graphql to Identity Protection "
+                "Entities, Timeline, Detections, and Assessment :read plus Identity Protection GraphQL:write "
+                "for idp_investigate_entity, which builds only `query` documents"
+            ),
+        ),
+    ),
 )
 
 #: Routes whose shape marks a Falcon mutation; no registered operation may match one (§3.3 property 5).
@@ -210,11 +243,13 @@ _DOT_SEGMENTS = (".", "..")
 
 
 def _seal_effect(entry: FalconOperation) -> None:
-    """The two enforcement tiers (§3.3 properties 2 and 4).
+    """The three enforcement tiers (§3.3 properties 2 and 4).
 
     A read must cite a `: READ` scope and use a read verb. The `search-lifecycle` tier exists only
     for the ids captain exception N1 names, and each must cite `NGSIEM: WRITE` and carry exactly
-    the one write scope the exception admits, so no second write scope is representable.
+    the one write scope the exception admits. The `graphql-query` tier exists only for the one id
+    captain exception N2 names, which must cite `Identity Protection GraphQL: WRITE`, carry exactly
+    that scope, and be a POST. No other write scope is representable in any tier.
     """
     if entry.effect == "read":
         if not _READ_SCOPE.search(entry.evidence.doc_scope):
@@ -223,6 +258,16 @@ def _seal_effect(entry: FalconOperation) -> None:
             raise ValueError(f"operation {entry.id} has an unsupported method")
         if any(scope.endswith(":write") for scope in entry.scopes):
             raise ValueError(f"operation {entry.id} is a read but declares a write scope")
+        return
+    if entry.effect == "graphql-query":
+        if entry.id not in GRAPHQL_QUERY_IDS:
+            raise ValueError(f"operation {entry.id} is not admitted by captain exception N2")
+        if not _WRITE_SCOPE.search(entry.evidence.doc_scope):
+            raise ValueError(f"operation {entry.id} does not cite the Identity Protection GraphQL write scope")
+        if entry.scopes != GRAPHQL_QUERY_SCOPES:
+            raise ValueError(f"operation {entry.id} declares a scope outside captain exception N2")
+        if entry.method != "POST":
+            raise ValueError(f"operation {entry.id} has an unsupported method")
         return
     if entry.effect != "search-lifecycle":
         raise ValueError(f"operation {entry.id} declares an unknown effect")

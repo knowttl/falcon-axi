@@ -1,0 +1,4 @@
+error: this API client is not permitted to read identities
+code: SCOPE_DENIED
+required_scopes[2]: "Identity Protection GraphQL:write","Identity Protection Entities:read"
+help[4]: "Grant Identity Protection GraphQL:write and Identity Protection Entities:read to the API client in the Falcon console under Support and resources > API clients and keys","The GraphQL scope is labelled write because Falcon requires it even for read-only queries; falcon-axi sends only its own fixed read queries (captain exception N2)","The Identity Protection scopes appear in the console only for tenants licensed for Falcon Identity Protection","Run `falcon-axi scopes` for the matrix"

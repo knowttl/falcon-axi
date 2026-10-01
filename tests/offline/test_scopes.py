@@ -4,6 +4,7 @@ from toon_format import decode
 
 from falcon_axi.cli import COMMANDS, run
 from falcon_axi.scopes import COMMAND_OPERATIONS, scope_rows
+from falcon_axi.transport.graphql import GRAPHQL_DOCUMENTS
 from falcon_axi.transport.operations import OPERATIONS
 from tests.support.recorded import NO_CREDENTIAL_ENV, RecordedTransport
 
@@ -13,24 +14,36 @@ def test_the_matrix_is_local_only_and_needs_no_credential() -> None:
     stdout, exit_code = run(["scopes"], recorded, dict(NO_CREDENTIAL_ENV))
     assert exit_code == 0
     assert recorded.requests == []
-    assert stdout.startswith("posture: read-only except NG-SIEM search start and stop")
+    assert stdout.startswith("posture: read-only except two write-labelled scopes")
 
 
 def test_every_printed_scope_comes_from_the_registry_with_its_access_derived_from_it() -> None:
     stdout, _ = run(["scopes"], RecordedTransport([]), dict(NO_CREDENTIAL_ENV))
     parsed = decode(stdout)
-    registered = {scope for descriptor in OPERATIONS.values() for scope in descriptor.scopes}
+    registered = {scope for descriptor in OPERATIONS.values() for scope in descriptor.scopes} | {
+        scope for entry in GRAPHQL_DOCUMENTS.values() for scope in entry.read_scopes
+    }
     assert {row["scope"] for row in parsed["scopes"]} == registered
     for row in parsed["scopes"]:
         assert row["access"] == ("write" if row["scope"].endswith(":write") else "read")
 
 
-def test_the_only_write_scope_in_the_matrix_is_the_one_captain_exception_n1_admits() -> None:
+def test_the_only_write_scopes_in_the_matrix_are_the_two_the_captain_exceptions_admit() -> None:
     stdout, _ = run(["scopes"], RecordedTransport([]), dict(NO_CREDENTIAL_ENV))
     parsed = decode(stdout)
-    write_rows = [row for row in parsed["scopes"] if row["access"] == "write"]
-    assert [row["scope"] for row in write_rows] == ["NGSIEM:write"]
-    assert write_rows[0]["commands"] == "search start, search stop"
+    write_rows = {row["scope"]: row["commands"] for row in parsed["scopes"] if row["access"] == "write"}
+    assert write_rows == {
+        "NGSIEM:write": "search start, search stop",
+        "Identity Protection GraphQL:write": "identity list, identity show, identity timeline",
+    }
+
+
+def test_the_identity_commands_list_their_per_document_read_scopes() -> None:
+    stdout, _ = run(["scopes"], RecordedTransport([]), dict(NO_CREDENTIAL_ENV))
+    rows = {row["scope"]: row for row in decode(stdout)["scopes"]}
+    assert rows["Identity Protection Entities:read"]["commands"] == "identity list, identity show"
+    assert rows["Identity Protection Timeline:read"]["commands"] == "identity timeline"
+    assert rows["Identity Protection Entities:read"]["access"] == "read"
 
 
 def test_the_matrix_names_only_commands_the_cli_ships() -> None:

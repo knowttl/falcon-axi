@@ -1,0 +1,39 @@
+{
+  "provenance": {
+    "operation": "api_preempt_proxy_post_graphql",
+    "reference": "https://developer.crowdstrike.com/api-reference/collections/identity-protection/",
+    "schema_read": "2026-10-01",
+    "provenance": "synthetic"
+  },
+  "response": {
+    "status": 200,
+    "headers": { "x-ratelimit-limit": "6000", "x-ratelimit-remaining": "5987" },
+    "body": {
+      "data": {
+        "timeline": {
+          "nodes": [
+            {
+              "eventId": "synthetic-event-1",
+              "eventType": "SUCCESSFUL_AUTHENTICATION",
+              "eventSeverity": "INFORMATIONAL",
+              "timestamp": "2026-09-30T10:15:00Z",
+              "sourceEntity": { "entityId": "00000000-0000-4000-8000-000000000001", "primaryDisplayName": "Synthetic Admin" },
+              "targetEntity": { "entityId": "00000000-0000-4000-8000-000000000002", "primaryDisplayName": "SYNTH-DC-01" },
+              "userDisplayName": "Synthetic Admin",
+              "endpointDisplayName": "SYNTH-WS-07",
+              "ipAddress": "192.0.2.10"
+            },
+            {
+              "eventId": "synthetic-event-2",
+              "eventType": "ALERT",
+              "eventSeverity": "HIGH",
+              "timestamp": "2026-09-30T09:40:00Z",
+              "sourceEntity": { "entityId": "00000000-0000-4000-8000-000000000001", "primaryDisplayName": "Synthetic Admin" }
+            }
+          ],
+          "pageInfo": { "hasNextPage": false, "endCursor": null }
+        }
+      }
+    }
+  }
+}

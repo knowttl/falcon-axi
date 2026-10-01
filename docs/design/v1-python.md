@@ -1,6 +1,6 @@
 # falcon-axi C1 design: the Python implementation of the v1 design
 
-Status: commissioned; stage 1 (P1), stage 2 (P2), and the NG-SIEM search surface admitted by captain exception N1 (v1.md §4.3) are implemented.
+Status: commissioned; stage 1 (P1), stage 2 (P2), the NG-SIEM search surface admitted by captain exception N1 (v1.md §4.3), and the Identity Protection GraphQL surface admitted by captain exception N2 (v1.md §4.4) are implemented.
 Decision record, 2026-09-18: implement falcon-axi in Python on falconpy, and commit that design with the build.
 Locked defaults: MIT license, package name `falcon-axi`, and decision D2 accepted.
 §9.1's ship brief is the contract stage 1 was built to; §10's open decisions are answered by those locked defaults.
@@ -12,7 +12,7 @@ This document changes the implementation language and the HTTP client underneath
 It amends v1.md §2 (backend), §3.3 (transport enforcement, restated for Python), §14 (test layout, restated for pytest), and §16 (API client evaluation, now adopting falconpy), and it adds packaging and distribution, which v1.md never specified.
 Every section of v1.md not named here carries over unchanged, and a commissioned build must not narrow or widen the v1 command surface while porting.
 
-Invariant R is binding and carries over from v1.md §0: falcon-axi changes no tenant state and implements no mutating operation, with the single captain exception N1 (v1.md §4.3), starting and stopping an NG-SIEM search job.
+Invariant R is binding and carries over from v1.md §0: falcon-axi changes no tenant state and implements no mutating operation, with the two captain exceptions N1 (v1.md §4.3), starting and stopping an NG-SIEM search job, and N2 (v1.md §4.4), sending fixed read-only query documents through the write-labelled Identity Protection GraphQL scope.
 Nothing in a Python rewrite relaxes it further, and §3 below shows how the guarantee is rebuilt in Python.
 
 ## 1. Decision record
@@ -288,6 +288,12 @@ Tag `v0.3.0`.
 `search start`, `search status`, `search stop`, the three lifecycle operations captain exception N1 admits (v1.md §0, §4.3), with `NGSIEM:write` required on `search start` and `search stop` alone.
 The golden set adds stage 3 scenarios as regression pins, including the forbidden-write registry gate.
 Stage 2 and stage 3 both shipped without cutting a tag, so the next release tag covers all three stages.
+
+**P3b. Identity Protection GraphQL under captain exception N2. Implemented.**
+`identity list`, `identity show`, `identity timeline` over `api_preempt_proxy_post_graphql` (v1.md §0, §4.4), with `Identity Protection GraphQL:write` and a per-document `:read` scope.
+`falcon_axi/transport/graphql.py` holds the closed document registry, and `RequestArgs` carries a registered document name and variables, never a body, for that one operation.
+`graphql-core` is a dev-only dependency used by the offline suite to parse every registered document.
+The golden set adds the identity scenarios as regression pins, and the scopes-bearing documents changed as v1.md's scenarios comment records.
 
 **P4. Setup and delivery surface.**
 `setup` with hook and skill, `--all`, `--max-rows`, `--fields` on detection and host lists, profile configuration, and the opt-in live smoke suite.
