@@ -70,9 +70,7 @@ def test_architecture_allows_the_offline_ci_workflow(tmp_path: Path, monkeypatch
         "Jenkinsfile",
     ],
 )
-def test_architecture_rejects_other_automation(
-    relative: str, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-) -> None:
+def test_architecture_rejects_other_automation(relative: str, tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     workflow = tmp_path / relative
     workflow.parent.mkdir(parents=True, exist_ok=True)
     workflow.write_text("jobs: {release: {steps: [{run: uv build}]}}", encoding="utf-8")
@@ -82,9 +80,7 @@ def test_architecture_rejects_other_automation(
 
 
 @pytest.mark.parametrize("name", ["FALCON_AXI_LIVE", "FALCON_CLIENT_ID", "FALCON_CLIENT_SECRET"])
-def test_architecture_rejects_live_variables_in_ci(
-    name: str, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
-) -> None:
+def test_architecture_rejects_live_variables_in_ci(name: str, tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     workflow = tmp_path / ".github/workflows/ci.yml"
     workflow.parent.mkdir(parents=True)
     workflow.write_text(f"env: {{{name}: synthetic}}", encoding="utf-8")
