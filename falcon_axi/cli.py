@@ -27,6 +27,7 @@ from falcon_axi.fql import (
     HostQuery,
     VulnQuery,
     since_seconds,
+    window,
 )
 from falcon_axi.host import LOGIN_CEILING, LOGIN_DEFAULT_SINCE, host_logins, list_hosts, show_host
 from falcon_axi.host import QUERY_CEILING as HOSTS_CEILING
@@ -292,6 +293,10 @@ def parse(argv: Sequence[str]) -> Parsed:
         _limit_of(flags, command)
     if "fields" in flags:
         parse_fields(str(flags["fields"]))
+    if "filter" in flags and not str(flags["filter"]).strip():
+        raise CliError("VALIDATION_ERROR", "--filter requires a value")
+    if "since" in flags:
+        window(str(flags["since"]))
     if command == "identity list":
         validate_identity_query(_identity_query_of(flags))
     if command in ("identity show", "identity timeline"):

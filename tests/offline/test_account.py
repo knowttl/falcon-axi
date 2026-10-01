@@ -101,4 +101,4 @@ def test_account_commands_are_refused_before_any_request_when_malformed() -> Non
     _, ceiling = run(["account", "list", "--limit", "101"], recorded, dict(CREDENTIAL_ENV))
     _, unknown = run(["account", "delete", "x"], recorded, dict(CREDENTIAL_ENV))
     assert (no_id, ceiling, unknown) == (2, 2, 2)
-    assert recorded.operation_requests("query_accounts") == []
+    assert recorded.requests == []

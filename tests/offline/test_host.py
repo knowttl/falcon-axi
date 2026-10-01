@@ -224,7 +224,7 @@ def test_host_logins_is_refused_before_any_request_without_an_id_or_with_a_bad_w
     _, window = run(["host", "logins", "synthetic-device-01", "--since", "yesterday"], recorded, dict(CREDENTIAL_ENV))
     _, ceiling = run(["host", "logins", "synthetic-device-01", "--limit", "101"], recorded, dict(CREDENTIAL_ENV))
     assert (none, window, ceiling) == (2, 2, 2)
-    assert recorded.operation_requests("QueryDeviceLoginHistoryV2") == []
+    assert recorded.requests == []
 
 
 def test_host_logins_scope_denied_names_hosts_read() -> None:
