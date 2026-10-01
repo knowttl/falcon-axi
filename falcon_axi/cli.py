@@ -916,7 +916,7 @@ def _home_view(transport: Any, flags: Mapping[str, str | bool], env: Mapping[str
         query=DetectionQuery(),
         limit=HOME_ROWS,
         credential=resolved.credential,
-        suggestion="falcon-axi detection list",
+        suggestion=_suggestion_for("detection list", flags),
     )
     return (
         render(
