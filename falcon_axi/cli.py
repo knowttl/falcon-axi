@@ -1017,7 +1017,7 @@ def _followup_help(help: Sequence[str], flags: Mapping[str, str | bool], member_
     for name in ("allow-unknown-origin", "no-member-cid"):
         if flags.get(name):
             suffix += f" --{name}"
-    command = re.compile(r"`(falcon-axi [^`]+)`")
+    command = re.compile(r"`(falcon-axi .*)`", re.DOTALL)
     contextual = tuple(command.sub(lambda match: f"`{match.group(1)}{suffix}`", item) for item in help)
     if member_cid and any(command.search(item) for item in help):
         contextual += ("Supply the same tenant selection used for this invocation when following these suggestions",)

@@ -56,7 +56,7 @@ def test_discovery_empty_states_and_continuations_preserve_context_once(argv, em
     for item in document["help"]:
         if not item.startswith("Run `falcon-axi "):
             continue
-        tokens = shlex.split(item.split("`", 2)[1])
+        tokens = shlex.split(item.partition("`")[2].rpartition("`")[0])
         assert tokens.count("--region") == 1
         assert tokens[tokens.index("--region") + 1] == context[1]
         assert tokens.count("--allow-unknown-origin") == int("--allow-unknown-origin" in context)
@@ -101,9 +101,26 @@ def test_discovery_empty_states_and_continuations_preserve_context_once(argv, em
         ("host", "hostname", "WIN-$backup", False),
         ("host", "hostname", "WIN-$backup", True),
         ("vuln", "filter", "status:'open',status:'closed'", False),
+        ("detection", "filter", "device.hostname:'lab`x'", False),
+        ("detection", "filter", "device.hostname:'lab`x'", True),
+        ("detection", "filter", "device.hostname:'lab`x'\n", False),
+        ("host", "filter", "hostname:'lab`x'", False),
+        ("host", "filter", "hostname:'lab`x'", True),
+        ("host", "hostname", "lab`*", False),
+        ("host", "hostname", "lab`*", True),
+        ("host", "hostname", "lab`x`*", False),
+        ("vuln", "filter", "host_info.hostname:'lab`x'", False),
     ],
 )
-def test_replayed_query_values_survive_shell_parsing_and_reach_the_next_request(noun, flag, value, empty) -> None:
+@pytest.mark.parametrize(
+    "context",
+    [
+        [],
+        ["--region", "us-2", "--no-member-cid"],
+        ["--region", "https://synthetic-cloud.example", "--allow-unknown-origin", "--no-member-cid"],
+    ],
+)
+def test_replayed_query_values_survive_shell_parsing_and_reach_the_next_request(noun, flag, value, empty, context) -> None:
     operation = {
         "detection": "GetQueriesAlertsV2",
         "host": "QueryDevicesByFilter",
@@ -119,17 +136,22 @@ def test_replayed_query_values_survive_shell_parsing_and_reach_the_next_request(
             serve(operation, response(200, {"resources": []}) if empty else page),
             serve("PostEntitiesAlertsV2", fixture("alerts/hydrate-page.json")),
             serve("PostDeviceDetailsV2", fixture("hosts/details-page.json")),
-        ]
+        ],
+        oauth=[response(201, fixture("oauth2/token-success.json").body)],
     )
-    argv = [noun, "list", f"--{flag}", value, "--since", "24h", "--limit", "2"]
+    argv = [noun, "list", f"--{flag}", value, "--since", "24h", "--limit", "2", *context]
     if noun == "detection":
         argv += ["--product", "idp"]
     stdout, exit_code = run(argv, recorded, dict(CREDENTIAL_ENV))
     assert exit_code == 0, stdout
     help = decode(stdout)["help"]
     suggestion = next(item for item in help if ("widen the window" if empty else "--cursor") in item)
-    tokens = shlex.split(suggestion.split("`", 2)[1])
+    tokens = shlex.split(suggestion.partition("`")[2].rpartition("`")[0])
     assert tokens[tokens.index(f"--{flag}") + 1] == value
+    if context:
+        assert tokens[-len(context) :] == context
+        assert tokens.count("--region") == 1
+        assert tokens.count("--no-member-cid") == 1
     stdout, exit_code = run(tokens[1:], recorded, dict(CREDENTIAL_ENV))
     assert exit_code == 0, stdout
     first, second = recorded.operation_requests(operation)
@@ -137,6 +159,10 @@ def test_replayed_query_values_survive_shell_parsing_and_reach_the_next_request(
     if empty:
         expected = expected.replace("now-24h", "now-7d" if noun == "detection" else "now-30d")
     assert second.query["filter"] == expected
+    original, latest = recorded.oauth_requests()
+    assert latest.base_url == original.base_url
+    assert latest.member_cid == original.member_cid
+    assert latest.allow_unknown_origin == original.allow_unknown_origin
     if not empty:
         if noun == "vuln":
             assert second.query["after"] == "synthetic-after-token-2"
