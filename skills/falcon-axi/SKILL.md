@@ -66,8 +66,9 @@ Global flags: `--help`, `--region <us-1|us-2|eu-1|us-gov-1|url>`, `--member-cid 
 `--allow-unknown-origin`.
 
 `detection list --severity` takes `informational`, `low`, `medium`, `high`, `critical`, and its
-`--status` takes `new`, `in_progress`, `closed`, `reopened`, and its `--product` takes `epp` (endpoint),
-`idp` (Identity Protection), `mobile`, `xdr`, `overwatch`, `cwpp`, `ngsiem`, `thirdparty`, `data-protection`.
+`--status` takes `new`, `in_progress`, `closed`, `reopened`.
+Use `--product idp` for Identity Protection or `--product epp` for endpoint alerts; run
+`falcon-axi detection list --help` for the complete product values.
 `host list --platform` takes `windows`, `mac`, `linux`, and its `--status` takes `normal`,
 `containment_pending`, `contained`, `lift_containment_pending`; `--hostname` accepts a wildcard such as
 `WIN-*`.

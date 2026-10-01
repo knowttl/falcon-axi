@@ -211,6 +211,12 @@ Alerts v2 composite detection ids contain the own-tenant or selected child CID a
 when passed to `detection show`.
 NG-SIEM search event CID fields (`cid`, `#repo.cid`) are redacted in output.
 
+Suggestions from successful authenticated commands preserve explicit region, unknown-origin opt-in, and
+`--no-member-cid` flags exactly once.
+When a child tenant is selected, supply the same tenant selection for every suggested command; its CID is
+never printed in suggestions.
+The detailed suggestion-context contract is in [`docs/design/v1.md` §7.2](docs/design/v1.md#72-what-the-cli-exposes).
+
 ## Workflow
 
 1. `falcon-axi auth status` - confirm a credential resolved, from which channel, into which region,
@@ -304,11 +310,8 @@ The account is an objectGUID (`account_id` in `detection show`), a sAMAccountNam
 matched in full, ignoring case.
 Anything else is refused before a request is made, because the value becomes part of the query.
 It prints a job id; poll it with `search status <id>` and stop it with `search stop <id>`.
-Suggestions from successful authenticated commands, including the home view, lists, detection pivots, and
-search lifecycle, preserve explicit region, unknown-origin opt-in, and `--no-member-cid` flags exactly once.
-When a child tenant is selected, supply the same tenant selection for every suggested command; its CID is
-never printed in suggestions.
-It is a search under N1, not a new operation: it needs `NGSIEM:write` like `search start`, and nothing else.
+Use the same [region and tenant](#region-and-tenant) when following the job's suggestions.
+It is a search under N1, not a new operation; see `falcon-axi scopes` for its required permission.
 The identity directory (users, risk scores, associations) is not shipped: its only API route is a GraphQL
 endpoint that requires a write scope even to read.
 
