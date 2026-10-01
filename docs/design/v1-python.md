@@ -233,23 +233,10 @@ It reaches the network, so it is opt-in and never part of `verify`.
 **Build.** `pyproject.toml` with the `hatchling` backend, static version, `[project.scripts] falcon-axi = "falcon_axi.cli:main"`.
 `uv build` produces the wheel and sdist; `uv lock` pins the two dependencies and their transitive closure for reproducible installs.
 
-**Install from the public repository.**
+**Install from git.**
 
-```sh
-# Linux, WSL, macOS
-curl -LsSf https://astral.sh/uv/install.sh | sh
-uv tool install git+https://github.com/knowttl/falcon-axi@v0.2.0
-```
-
-```powershell
-# Windows
-winget install --id astral-sh.uv
-uv tool install git+https://github.com/knowttl/falcon-axi@v0.2.0
-```
-
-Then `FALCON_CLIENT_ID` and `FALCON_CLIENT_SECRET` in the environment or the 0600 credentials file, and `falcon-axi auth status`.
-The install needs no GitHub credentials, registry account, or publish token and pins by tag; `uv tool upgrade falcon-axi` moves to a newer tag.
-For agents without a global install, `uvx --from git+https://github.com/knowttl/falcon-axi falcon-axi ...` is the Python analog of `npx -y` and is the form the generated skill uses (v1.md §12.2).
+The [README's Quick start for agents](../../README.md#quick-start-for-agents) owns the current release pin and install instructions, including invocation without a global install.
+See its [Credentials](../../README.md#credentials) section before running `falcon-axi auth status`.
 
 **Publishing, in order.**
 
@@ -285,14 +272,15 @@ Tag `v0.2.0`.
 **P2. Stage 2 domains. Implemented.**
 `host list`, `host show`, `vuln list`, `scopes`, written against the documented collections rather than copied from falcon-mcp, so no `THIRD_PARTY_NOTICES.md` is owed and `scripts/reference_check.py` is still unwritten; v1.md's §8.3 matrix and §13 cost table already described this surface and needed no change.
 The golden set keeps the stage 1 scenarios as the cross-language parity gate and adds stage 2 scenarios as regression pins from this implementation.
-Tag `v0.3.0`.
+Release timing is recorded under P3 below.
 
 **P3. Stage 3 surface: NG-SIEM search under captain exception N1. Implemented.**
 `search start`, `search status`, `search stop`, the three lifecycle operations captain exception N1 admits (v1.md §0, §4.3).
 The current command-to-scope matrix is projected by `falcon-axi scopes` (v1.md §8.3).
 The golden set adds stage 3 scenarios as regression pins, including the forbidden-write registry gate.
 Identity slice A then added `identity activity` (a fixed `StartSearchV1` search, so `NGSIEM:write` is also required there) and identity-aware detection rendering with `detection list --product`, all in `falcon_axi/identity.py`, `detection.py`, and `fql.py`, with no new operation, scope, or falconpy surface.
-Stage 2 and stage 3 both shipped without cutting a tag, so the next release tag covers all three stages.
+Stage 2 and stage 3 both shipped without cutting a tag.
+The v0.3.0 release covers those stages and the subsequent additions in the [README's shipped command list](../../README.md#status-partial-implementation-of-the-v1-design).
 
 **P3b. Identity Protection GraphQL under captain exception N2. Implemented.**
 `identity list`, `identity show`, `identity timeline` over `api_preempt_proxy_post_graphql` (v1.md §0, §4.4), with `Identity Protection GraphQL:write` and a per-document `:read` scope.
