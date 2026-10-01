@@ -238,8 +238,8 @@ falcon-axi detection list --severity critical       one severity
 falcon-axi detection list --status new --since 24h  one status, one window
 falcon-axi detection list --product idp             Identity Protection detections
 falcon-axi detection list --filter "severity_name:'Critical'+status:'new'"
-falcon-axi detection show "ldt:aid:1234"            one detection
-falcon-axi detection show "ldt:aid:1234" --full     without truncating long fields
+falcon-axi detection show "<composite id>"         one detection; copy the list's id column
+falcon-axi detection show "<composite id>" --full  without truncating long fields
 falcon-axi host list --platform windows             the Windows fleet
 falcon-axi host list --hostname "WIN-*"             hostname search; Hosts filters take wildcards
 falcon-axi host list --status contained             hosts Falcon has contained, as data

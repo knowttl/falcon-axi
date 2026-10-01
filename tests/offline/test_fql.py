@@ -24,9 +24,7 @@ from tests.support.recorded import CREDENTIAL_ENV, RecordedTransport, response, 
 def test_every_shorthand_constrains_the_entire_raw_disjunction(noun, operation, flag, value, term) -> None:
     raw = "status:'new',status:'in_progress'" if noun == "detection" else "status:'open',status:'closed'"
     recorded = RecordedTransport([serve(operation, response(200, {"resources": []}))])
-    stdout, exit_code = run(
-        [noun, "list", f"--{flag}", value, "--filter", raw], recorded, dict(CREDENTIAL_ENV)
-    )
+    stdout, exit_code = run([noun, "list", f"--{flag}", value, "--filter", raw], recorded, dict(CREDENTIAL_ENV))
     assert exit_code == 0, stdout
     assert recorded.operation_requests(operation)[0].query["filter"] == f"{term}+({raw})"
 

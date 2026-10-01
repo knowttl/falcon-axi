@@ -128,7 +128,7 @@ def list_detections(
     cursor: str | None = None,
     rows: int | None = None,
 ) -> CommandOutput:
-    """`detection list`: query ids, hydrate them, and render the four-field schema (§10.2)."""
+    """`detection list`: query ids and hydrate them under the schema contract in docs/design/v1.md §10.2."""
     filter = detection_filter(query)
     context = _cursor_context(session, credential, filter)
     offset = 0 if cursor is None else decode_offset(cursor, context, credential.client_secret)
