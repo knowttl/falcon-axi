@@ -57,10 +57,15 @@ def test_cve_show_selects_the_requested_id_from_a_mixed_response() -> None:
         [
             serve(
                 "GetVulnerabilities",
-                response(200, {"resources": [
-                    {"cve": "CVE-2099-0002", "severity": "WRONG"},
-                    {"cve": "CVE-2099-0001", "severity": "CRITICAL"},
-                ]}),
+                response(
+                    200,
+                    {
+                        "resources": [
+                            {"cve": "CVE-2099-0002", "severity": "WRONG"},
+                            {"cve": "CVE-2099-0001", "severity": "CRITICAL"},
+                        ]
+                    },
+                ),
             )
         ]
     )
