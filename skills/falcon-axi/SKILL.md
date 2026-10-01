@@ -13,7 +13,8 @@ The CLI changes nothing in the tenant except an NG-SIEM search job: it exposes n
 delete, containment, quarantine, release, Real Time Response, ingest, parser, or identity-action operation,
 and that boundary is enforced by a closed transport registry rather than by convention.
 `search start` and `search stop` create and cancel a query job and nothing else.
-The `identity` commands send only fixed read-only GraphQL queries; Falcon labels their scope write, but
+`identity activity` is a canned `search start`, so it creates a query job and nothing else.
+`identity list`, `identity show`, and `identity timeline` send only fixed read-only GraphQL queries; Falcon labels their scope write, but
 falcon-axi cannot send a mutation, password reset, account disable, or any GraphQL a caller supplies.
 If a task needs to change anything else in the tenant, falcon-axi is the wrong tool; say so rather than
 looking for a flag.
@@ -43,17 +44,19 @@ Do not invent them; an unknown flag or command fails loudly.
 ## Commands
 
 `falcon-axi`: the home view - tenant line plus the five newest detections.
-`detection`: `list` (flags `--severity`, `--status`, `--since`, `--filter`, `--limit`, `--cursor`),
+`detection`: `list` (flags `--severity`, `--status`, `--product`, `--since`, `--filter`, `--limit`, `--cursor`),
 `show <composite id>` (flag `--full`).
 `host`: `list` (flags `--hostname`, `--platform`, `--status`, `--since`, `--filter`, `--limit`, `--cursor`),
 `show <device id>`, `logins <device id>` (exactly one host; flags `--since`, `--limit`).
 `account`: `list` (flags `--filter`, `--limit`, `--cursor`), `show <account id>`; Discover accounts, which need the
 license-gated `Assets:read`.
 `vuln`: `list` (flags `--host`, `--severity`, `--status`, `--since`, `--filter`, `--limit`, `--cursor`, `--fields`).
-`cve`: `show <CVE-ID>` only. There is no `cve list`.
+`cve`: `show <CVE-ID>` only.
+There is no `cve list`.
 `search`: `start` (flags `--query`, `--repository`, `--since`), `status <search id>` (flag `--repository`),
 `stop <search id>` (flag `--repository`).
-`identity`: `list` (flags `--name`, `--email`, `--domain`, `--type`, `--limit`, `--cursor`),
+`identity`: `activity <account objectGUID, sAMAccountName, or UPN>` (flag `--since`),
+`list` (flags `--name`, `--email`, `--domain`, `--type`, `--limit`, `--cursor`),
 `show <identity id>` (flag `--full`), `timeline <identity id>` (flags `--since`, `--category`, `--limit`,
 `--cursor`).
 `auth`: `status`.
@@ -64,6 +67,8 @@ Global flags: `--help`, `--region <us-1|us-2|eu-1|us-gov-1|url>`, `--member-cid 
 
 `detection list --severity` takes `informational`, `low`, `medium`, `high`, `critical`, and its
 `--status` takes `new`, `in_progress`, `closed`, `reopened`.
+Use `--product idp` for Identity Protection or `--product epp` for endpoint alerts; run
+`falcon-axi detection list --help` for the complete product values.
 `host list --platform` takes `windows`, `mac`, `linux`, and its `--status` takes `normal`,
 `containment_pending`, `contained`, `lift_containment_pending`; `--hostname` accepts a wildcard such as
 `WIN-*`.
@@ -80,6 +85,7 @@ It requires `Vulnerabilities (Falcon Intelligence):read`, which is license-gated
 Spotlight's `Vulnerabilities:read`.
 `--since` takes a relative window such as `30m`, `24h`, `7d`.
 `--filter` takes raw FQL for that collection, where `+` is AND, `,` is OR, and values are single-quoted.
+A raw filter is grouped when composed with shorthands so those flags constrain every OR branch.
 
 `search start --query` takes CQL, not FQL: it is pipe-based, as in
 `#event_simpleName=ProcessRollup2 | head(5)` or
@@ -93,6 +99,16 @@ The unverified Active Directory account-GUID relationship is recorded in `docs/d
 `identity timeline --since` defaults to `7d` and `--category` takes comma-separated `activity`,
 `notification`, `threat`, `entity`, `audit`, `policy`, `system`.
 These commands are backed by Identity Protection's GraphQL endpoint, not NG-SIEM.
+
+Identity Protection detections are `detection list --product idp`.
+For their account and source-endpoint fields, including missing-value behavior, see
+[`docs/design/v1.md` §10.2](../../docs/design/v1.md#102-default-schemas).
+To see what that account did, run `falcon-axi identity activity <account_id>`; it starts one NG-SIEM job and
+prints a search id, then follow it with `search status <id>` and `search stop <id>` like any other search.
+Follow the README's [region and tenant guidance](../../README.md#region-and-tenant) when using suggestions
+for the detection pivot and search job.
+The account is matched in full, ignoring case, and a value that is not a GUID or a plain account name is
+refused.
 
 These checks are enforced locally, before any request: `vuln list` requires a filter from a shorthand flag or
 `--filter`; a `*` anywhere in a Spotlight filter is refused because Spotlight does not support wildcards;
@@ -113,13 +129,15 @@ is refused because the value reaches a URL path.
    `falcon-axi vuln list --host <device_id>` for that host's exposure.
 6. Run `falcon-axi cve show <CVE-ID>` when the question is what Falcon Intelligence knows about a CVE,
    including a CVE that Spotlight has not evaluated on a host.
-7. When the question is outside the read domains, run `falcon-axi search start --query '<cql>'`, then
+7. For an identity detection (`product: idp`), run `falcon-axi identity activity <account_id>` and follow the
+   job with `search status`.
+8. When the question is not one of those domains, run `falcon-axi search start --query '<cql>'`, then
    poll `falcon-axi search status <id>` until it reports `state: done`, and run
    `falcon-axi search stop <id>` for any job no longer needed.
-8. For who an account or endpoint is, run `falcon-axi identity list --name '<name>'`, then
+9. For who an account or endpoint is, run `falcon-axi identity list --name '<name>'`, then
    `falcon-axi identity show <id>` for its risk, accounts, and associations, and
    `falcon-axi identity timeline <id>` for what it did.
-9. Follow the `help` suggestions in each response for the next read.
+10. Follow the `help` suggestions in each response for the next read.
 
 ## Credentials and API client permissions
 

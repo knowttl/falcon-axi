@@ -1,3 +1,3 @@
 error: unknown command incident
 code: VALIDATION_ERROR
-help[2]: "valid commands: detection list, detection show, host list, host show, host logins, account list, account show, vuln list, cve show, search start, search status, search stop, identity list, identity show, identity timeline, auth status, scopes","Run `falcon-axi --help` for the command list"
+help[2]: "valid commands: detection list, detection show, host list, host show, host logins, account list, account show, vuln list, cve show, identity activity, search start, search status, search stop, identity list, identity show, identity timeline, auth status, scopes","Run `falcon-axi --help` for the command list"

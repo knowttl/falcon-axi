@@ -77,7 +77,7 @@ def test_emitted_pivots_preserve_global_context_without_copying_source_filters(
     assert "synthetic-inherited-child" not in stdout
     assert "synthetic-selected-child" not in stdout
     if explicit_member:
-        assert "Supply the same tenant selection used for this invocation when continuing" in document["help"]
+        assert "Supply the same tenant selection used for this invocation when following these suggestions" in document["help"]
     suggestions = [
         item for item in document["help"] if item.startswith("Run `falcon-axi ") and not item.endswith("for the next page")
     ]

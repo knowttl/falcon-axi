@@ -27,6 +27,9 @@ What is shipped:
 - the Identity Protection directory and timeline: `identity list`, `identity show`, and
   `identity timeline`, sending only fixed read-only GraphQL query documents under captain exception
   N2, the other place falcon-axi asks for a write-labelled scope;
+- identity-aware detections (`detection list --product idp`, with account and source-endpoint
+  fields when present) and `identity activity <account>`, a fixed NG-SIEM search over one account's
+  Identity Protection events that adds no operation and no scope beyond N1's;
 - `falcon-axi scopes`, the command-to-scope matrix, printed from the same operation registry the
   transport enforces and without making a request.
 
@@ -70,11 +73,11 @@ See `docs/design/v1.md` §0, §1.5, §3, §4.3, and §4.4.
 **N2 is not general write authority.**
 Falcon scopes the one Identity Protection GraphQL endpoint `WRITE` even for read-only queries, and the
 same endpoint also accepts mutations.
-So falcon-axi never sends GraphQL a caller supplies: the identity commands name one of a closed set
+So falcon-axi never sends GraphQL a caller supplies: the GraphQL directory and timeline commands name one of a closed set
 of registered `query` documents, every caller value travels as a JSON variable and never inside the
 document text, and the network sink refuses any other body.
-There is no `--query` flag, no GraphQL passthrough, and no password reset, account disable, or any
-other action on an identity.
+The GraphQL commands have no `--query` flag or passthrough, and there is no password reset, account disable,
+or any other action on an identity.
 
 If a task needs containment, a real-time-response session, a detection-status update, NG-SIEM
 ingest, a parser change, an identity action, or any other change to the tenant, falcon-axi is the
@@ -101,7 +104,7 @@ uvx --from git+https://github.com/knowttl/falcon-axi@v0.2.0 falcon-axi detection
 ```
 
 The pinned tag is the last release.
-For commands added after that tag, including host login history, Discover accounts, and CVE intelligence, install from the
+For commands added after that tag, including host login history, Discover accounts, CVE intelligence, and identity activity, install from the
 default branch until a newer tag exists; see the shipped command list above.
 
 Or install the command once and call it directly:
@@ -178,7 +181,7 @@ The Identity Protection scopes are expected to appear in the console only for a 
 Falcon Identity Protection.
 This console visibility requirement is inferred from other license-gated scopes, not verified for
 Identity Protection.
-To enable the `identity` commands, edit the falcon-axi API client and grant `Identity Protection
+To enable `identity list`, `identity show`, and `identity timeline`, edit the falcon-axi API client and grant `Identity Protection
 GraphQL` (the console offers write only), `Identity Protection Entities` (read), and `Identity
 Protection Timeline` (read).
 A command missing required permissions answers `SCOPE_DENIED` naming its required scopes; use
@@ -208,6 +211,12 @@ Alerts v2 composite detection ids contain the own-tenant or selected child CID a
 when passed to `detection show`.
 NG-SIEM search event CID fields (`cid`, `#repo.cid`) are redacted in output.
 
+Suggestions from successful authenticated commands preserve explicit region, unknown-origin opt-in, and
+`--no-member-cid` flags exactly once.
+When a child tenant is selected, supply the same tenant selection for every suggested command; its CID is
+never printed in suggestions.
+The detailed suggestion-context contract is in [`docs/design/v1.md` §7.2](docs/design/v1.md#72-what-the-cli-exposes).
+
 ## Workflow
 
 1. `falcon-axi auth status` - confirm a credential resolved, from which channel, into which region,
@@ -218,10 +227,12 @@ NG-SIEM search event CID fields (`cid`, `#repo.cid`) are redacted in output.
 5. `falcon-axi host show <device_id>` - the host a detection fired on.
 6. `falcon-axi vuln list --host <device_id>` - that host's exposure.
 7. `falcon-axi cve show <CVE-ID>` - what Falcon Intelligence knows about one CVE, which is not host exposure.
-8. `falcon-axi search start --query '<cql>'` - when the question is outside the read domains,
-   ask NG-SIEM directly, then poll with `search status <id>` and cancel with
+8. `falcon-axi detection list --product idp` and `falcon-axi identity activity <account_id>` - for an
+   identity detection, what that account did.
+9. `falcon-axi search start --query '<cql>'` - when the question is not one of the domains
+   above, ask NG-SIEM directly, then poll with `search status <id>` and cancel with
    `search stop <id>`.
-9. `falcon-axi identity list --name 'Admin*'` - who an account is, how risky it is, and (with
+10. `falcon-axi identity list --name 'Admin*'` - who an account is, how risky it is, and (with
    `identity show <id>` and `identity timeline <id>`) what it owns and what it did.
 
 ```
@@ -231,9 +242,10 @@ falcon-axi scopes                                   what to grant the API client
 falcon-axi detection list                           the 20 newest detections
 falcon-axi detection list --severity critical       one severity
 falcon-axi detection list --status new --since 24h  one status, one window
+falcon-axi detection list --product idp             Identity Protection detections
 falcon-axi detection list --filter "severity_name:'Critical'+status:'new'"
-falcon-axi detection show "ldt:aid:1234"            one detection
-falcon-axi detection show "ldt:aid:1234" --full     without truncating long fields
+falcon-axi detection show "<composite id>"         one detection; copy the list's id column
+falcon-axi detection show "<composite id>" --full  without truncating long fields
 falcon-axi host list --platform windows             the Windows fleet
 falcon-axi host list --hostname "WIN-*"             hostname search; Hosts filters take wildcards
 falcon-axi host list --status contained             hosts Falcon has contained, as data
@@ -244,6 +256,7 @@ falcon-axi account show abc123                      one Discover account
 falcon-axi vuln list --severity critical --status open
 falcon-axi vuln list --host abc123                  one host's vulnerabilities
 falcon-axi cve show CVE-2021-44228               Falcon Intelligence detail for one CVE
+falcon-axi identity activity <account_id> --since 7d  an account's identity events
 falcon-axi search start --query '#event_simpleName=ProcessRollup2 | head(5)'
 falcon-axi search status 01JABCDEF                  one poll: running, cancelled, or done
 falcon-axi search stop 01JABCDEF                    cancel a job you no longer need
@@ -253,7 +266,9 @@ falcon-axi identity timeline 00000000-0000-0000-0000-000000000001 --since 24h
 ```
 
 `detection list` takes `--severity` (`informational`, `low`, `medium`, `high`, `critical`),
-`--status` (`new`, `in_progress`, `closed`, `reopened`), and `--since`.
+`--status` (`new`, `in_progress`, `closed`, `reopened`), `--product` (`epp` for endpoint alerts, `idp`
+for Identity Protection), and `--since`.
+Run `falcon-axi detection list --help` for the complete product values.
 `host list` takes `--hostname`, `--platform` (`windows`, `mac`, `linux`), `--status` (`normal`,
 `containment_pending`, `contained`, `lift_containment_pending`), and `--since` on `last_seen`.
 `vuln list` takes `--host`, `--severity` (`low`, `medium`, `high`, `critical`), `--status` (`open`,
@@ -269,7 +284,7 @@ Its rows are recent interactive logins from the Host Timeline, not a full audit 
 directory.
 `--since` takes a relative window such as `30m`, `24h`, or `7d`.
 `--filter` takes raw FQL for that collection, where `+` is AND, `,` is OR, and values are
-single-quoted; it composes with the shorthand flags.
+single-quoted; it is grouped when composed with shorthand flags so those flags constrain every OR branch.
 
 Two domain rules come from the API and are enforced before the request is made:
 `vuln list` requires a filter, from a shorthand flag or `--filter`, and Spotlight filters reject a
@@ -280,6 +295,27 @@ them.
 `host list` and `host show` report containment status as data.
 falcon-axi cannot change it; there is no command that contains, lifts containment on, or otherwise
 touches a host.
+
+### Identity
+
+Identity Protection detections are Alerts with `product:'idp'`, readable under `Alerts:read`.
+They have no device, so a `detection list` page that holds one gains `account`, `account_id`, `device_id`,
+and `product` columns, and `hostname` shows the source endpoint or `n/a`.
+`detection show` prints the same account, source-endpoint, and product fields when present.
+A page of endpoint alerts is unchanged.
+
+`identity activity <account> [--since 24h]` starts one NG-SIEM search over the account's Active Directory,
+SSO, and risk-score events, bounded to the latest 200, newest first.
+The account is an objectGUID (`account_id` in `detection show`), a sAMAccountName, or a UPN, and is
+matched in full, ignoring case.
+Names must follow [the activity query contract](docs/design/v1.md#identity-activity-a-fixed-search-not-a-fourth-operation),
+which defines the allowed characters, event families, and matching fields.
+Other values are refused before a request is made, because the value becomes part of the query.
+It prints a job id; poll it with `search status <id>` and stop it with `search stop <id>`.
+Use the same [region and tenant](#region-and-tenant) when following the job's suggestions.
+It is a search under N1, not a new operation; see `falcon-axi scopes` for its required permission.
+The separately shipped [Identity Protection directory](#identity-protection) uses GraphQL under N2.
+`identity activity` does not use that endpoint or require its scopes.
 
 ### NG-SIEM search
 
@@ -325,7 +361,7 @@ Output is TOON on stdout.
 A non-empty list view prints a `count:` line, a compact domain-specific schema, and a `help[]` array of
 the next commands.
 Empty results are stated explicitly rather than left as ambiguous silence.
-Identity pages report rows shown without a total; their schemas are defined in
+GraphQL identity pages report rows shown without a total; their schemas are defined in
 [the output contract](docs/design/v1.md#102-default-schemas).
 
 ```

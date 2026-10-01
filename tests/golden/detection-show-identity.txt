@@ -1,0 +1,13 @@
+detection:
+  id: "synthetic-cid:ind:synthetic-idp-01:2001"
+  severity: High (70)
+  tactic: Credential Access
+  technique: Kerberoasting
+  hostname: WIN-WS-07
+  device_id: synthetic-agent-07
+  product: idp
+  account: synthetic.user
+  account_id: 00000000-0000-0000-0000-000000000001
+  status: new
+  first_seen: "2026-10-01T08:15:00Z"
+help[1]: "Run `falcon-axi identity activity 00000000-0000-0000-0000-000000000001` to see what this account did"

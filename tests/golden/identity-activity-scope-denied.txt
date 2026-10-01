@@ -1,0 +1,4 @@
+error: this API client is not permitted to run NG-SIEM searches
+code: SCOPE_DENIED
+required_scopes[1]: "NGSIEM:write"
+help[2]: "Grant NGSIEM:write to the API client in the Falcon console under Support and resources > API clients and keys","Run `falcon-axi scopes` for the matrix, including which commands need this write scope"

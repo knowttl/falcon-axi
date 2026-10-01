@@ -248,8 +248,6 @@ def list_vulnerabilities(
         continuation = encode_cursor(next_after, context, credential.client_secret)
         value["continuation_cursor"] = continuation
         help.append(f"Run `{suggestion} --cursor {continuation}` for the next page")
-        if session.member_cid:
-            help.append("Supply the same tenant selection used for this invocation when continuing")
     value["vulnerabilities"] = rows
     note = rate_limit_note(session)
     if note:

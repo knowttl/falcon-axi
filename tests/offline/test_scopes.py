@@ -33,7 +33,7 @@ def test_the_only_write_scopes_in_the_matrix_are_the_two_the_captain_exceptions_
     parsed = decode(stdout)
     write_rows = {row["scope"]: row["commands"] for row in parsed["scopes"] if row["access"] == "write"}
     assert write_rows == {
-        "NGSIEM:write": "search start, search stop",
+        "NGSIEM:write": "identity activity, search start, search stop",
         "Identity Protection GraphQL:write": "identity list, identity show, identity timeline",
     }
 
@@ -42,8 +42,11 @@ def test_provisioning_hints_describe_each_write_scope_without_claiming_the_other
     stdout, exit_code = run(["scopes"], RecordedTransport([]), dict(NO_CREDENTIAL_ENV))
     assert exit_code == 0
     hints = decode(stdout)["help"]
-    assert "Omit NGSIEM:write and `search start` and `search stop` fail with SCOPE_DENIED" in hints
-    assert "Omit Identity Protection GraphQL:write and the `identity` commands fail with SCOPE_DENIED" in hints
+    assert "Omit NGSIEM:write and `search start`, `search stop`, and `identity activity` fail with SCOPE_DENIED" in hints
+    assert (
+        "Omit Identity Protection GraphQL:write and `identity list`, `identity show`, and `identity timeline` "
+        "fail with SCOPE_DENIED" in hints
+    )
     assert not any("wholly read-only client" in hint for hint in hints)
 
 

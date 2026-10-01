@@ -12,6 +12,8 @@ from falcon_axi.core import CliError
 
 SEVERITIES = ("informational", "low", "medium", "high", "critical")
 STATUSES = ("new", "in_progress", "closed", "reopened")
+#: Alerts `product` values, from falcon-mcp's FQL guide (`epp` is endpoint, `idp` is Identity Protection).
+PRODUCTS = ("epp", "idp", "mobile", "xdr", "overwatch", "cwpp", "ngsiem", "thirdparty", "data-protection")
 #: Documented Hosts `platform_name` and `status` filter values (§10.2); containment state is data,
 #: never something falcon-axi can set.
 PLATFORMS = ("windows", "mac", "linux")
@@ -31,6 +33,7 @@ class DetectionQuery:
     severity: str | None = None
     status: str | None = None
     since: str | None = None
+    product: str | None = None
 
 
 @dataclass(frozen=True)
@@ -98,10 +101,10 @@ def _since_term(value: str) -> str:
     return f"created_timestamp:>'{window(value)}'"
 
 
-def _raw_term(value: str) -> str:
+def _raw_term(value: str, *, grouped: bool) -> str:
     if not value.strip():
         raise CliError("VALIDATION_ERROR", "--filter requires a value")
-    return value
+    return f"({value})" if grouped else value
 
 
 def detection_filter(query: DetectionQuery) -> str | None:
@@ -111,10 +114,12 @@ def detection_filter(query: DetectionQuery) -> str | None:
         terms.append(_severity_term(query.severity))
     if query.status is not None:
         terms.append(_status_term(query.status))
+    if query.product is not None:
+        terms.append(f"product:'{_one_of(query.product, PRODUCTS, 'product')}'")
     if query.since is not None:
         terms.append(_since_term(query.since))
     if query.filter is not None:
-        terms.append(_raw_term(query.filter))
+        terms.append(_raw_term(query.filter, grouped=bool(terms)))
     return "+".join(terms) if terms else None
 
 
@@ -125,6 +130,8 @@ def describe_detection_query(query: DetectionQuery) -> str:
         parts.append(f"{query.severity.lower()} severity")
     if query.status:
         parts.append(f"status {query.status.lower()}")
+    if query.product:
+        parts.append(f"product {query.product.lower()}")
     if query.since:
         parts.append(f"in the last {query.since.lower()}")
     if query.filter:
@@ -147,7 +154,7 @@ def host_filter(query: HostQuery) -> str | None:
     if query.since is not None:
         terms.append(f"last_seen:>'{window(query.since)}'")
     if query.filter is not None:
-        terms.append(_raw_term(query.filter))
+        terms.append(_raw_term(query.filter, grouped=bool(terms)))
     return "+".join(terms) if terms else None
 
 
@@ -184,7 +191,7 @@ def vuln_filter(query: VulnQuery) -> str:
     if query.since is not None:
         terms.append(_since_term(query.since))
     if query.filter is not None:
-        terms.append(_raw_term(query.filter))
+        terms.append(_raw_term(query.filter, grouped=bool(terms)))
     if not terms:
         raise CliError(
             "VALIDATION_ERROR",

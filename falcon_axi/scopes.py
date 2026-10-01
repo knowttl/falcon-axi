@@ -23,6 +23,7 @@ COMMAND_OPERATIONS: tuple[tuple[str, tuple[OperationId, ...]], ...] = (
     ("account show", ("get_accounts",)),
     ("vuln list", ("combinedQueryVulnerabilities",)),
     ("cve show", ("GetVulnerabilities",)),
+    ("identity activity", ("StartSearchV1",)),
     ("search start", ("StartSearchV1",)),
     ("search status", ("GetSearchStatusV1",)),
     ("search stop", ("StopSearchV1",)),
@@ -61,7 +62,7 @@ def scope_rows() -> list[dict[str, str]]:
 def scope_matrix() -> CommandOutput:
     value: dict[str, Any] = {
         "posture": raw(
-            "read-only except two write-labelled scopes: NGSIEM:write for NG-SIEM search start and stop "
+            "read-only except two write-labelled scopes: NGSIEM:write for NG-SIEM search start and stop and identity activity "
             "(captain exception N1), and Identity Protection GraphQL:write for fixed read-only identity queries "
             "(captain exception N2)"
         ),
@@ -76,8 +77,9 @@ def scope_matrix() -> CommandOutput:
             "falcon-axi needs no other write scope",
             "Identity Protection GraphQL:write is labelled write because Falcon requires it even for read-only queries; "
             "falcon-axi sends only its own fixed read queries, never caller-supplied GraphQL (captain exception N2)",
-            "Omit NGSIEM:write and `search start` and `search stop` fail with SCOPE_DENIED",
-            "Omit Identity Protection GraphQL:write and the `identity` commands fail with SCOPE_DENIED",
+            "Omit NGSIEM:write and `search start`, `search stop`, and `identity activity` fail with SCOPE_DENIED",
+            "Omit Identity Protection GraphQL:write and `identity list`, `identity show`, and `identity timeline` "
+            "fail with SCOPE_DENIED",
             "Assets:read is license-gated to Falcon Discover or Exposure Management; "
             "omit it and only the `account` commands fail with SCOPE_DENIED",
         ),

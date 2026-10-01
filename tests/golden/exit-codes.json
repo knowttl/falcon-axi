@@ -122,5 +122,13 @@
   "account-list-empty": 0,
   "account-list-scope-denied": 1,
   "account-show": 0,
-  "account-show-not-found": 1
+  "account-show-not-found": 1,
+  "help-identity-activity": 0,
+  "detection-list-identity": 0,
+  "detection-list-unknown-product": 2,
+  "detection-show-identity": 0,
+  "identity-activity-start": 0,
+  "identity-activity-scope-denied": 1,
+  "identity-activity-without-account": 2,
+  "identity-activity-unsafe-account": 2
 }
