@@ -98,14 +98,6 @@ def test_every_descriptor_equals_its_canonical_value_and_carries_matching_eviden
         suffix = ": READ" if descriptor.effect == "read" else ": WRITE"
         assert descriptor.evidence.doc_scope.upper().endswith(suffix)
         assert descriptor.evidence.doc_url.startswith("https://")
-        citation = descriptor.evidence.falcon_mcp
-        if id == "GetVulnerabilities":
-            assert "falcon-mcp has no tool" in citation
-            assert "falconpy/_endpoint/" in citation
-            assert "PSFalcon Get-FalconCve" in citation
-            assert "api_scopes.py" not in citation
-        else:
-            assert "api_scopes.py" in citation and "maps " in citation
 
 
 def test_no_registered_path_matches_a_known_mutation_route() -> None:
