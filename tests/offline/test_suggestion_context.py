@@ -94,7 +94,7 @@ def test_discovery_empty_states_and_continuations_preserve_context_once(argv, em
         ("detection", "filter", "status:'new',status:'in_progress'", False),
         ("detection", "filter", "status:'new',status:'in_progress'", True),
         ("detection", "filter", "device.hostname:'WIN-$backup'", False),
-        ("detection", "filter", 'device.hostname:\'WIN "LAB"\'', False),
+        ("detection", "filter", "device.hostname:'WIN \"LAB\"'", False),
         ("host", "filter", "status:'normal',status:'contained'", False),
         ("host", "filter", "status:'normal',status:'contained'", True),
         ("host", "hostname", "WIN-*", False),
