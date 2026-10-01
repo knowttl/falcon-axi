@@ -103,6 +103,8 @@ def list_accounts(
     ids, count = _query_account_ids(transport, session, filter, limit, offset)
 
     if not ids:
+        if offset > 0:
+            return CommandOutput(value={"accounts": raw("no more accounts")}, help=())
         return CommandOutput(
             value={"accounts": raw("0 accounts matching the supplied filter" if filter else "0 accounts in this tenant")},
             help=("Run `falcon-axi account list` without a filter to see every observed account",),

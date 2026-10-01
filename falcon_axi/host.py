@@ -127,6 +127,8 @@ def list_hosts(
     describe = describe_host_query(query)
 
     if not ids:
+        if offset > 0:
+            return CommandOutput(value={"hosts": raw("no more hosts")}, help=())
         empty_help = (
             (f"Run `{suggestion} --since 30d` to widen the window",)
             if query.since

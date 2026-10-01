@@ -134,6 +134,8 @@ def list_detections(
     describe = describe_detection_query(query)
 
     if not ids:
+        if offset > 0:
+            return CommandOutput(value={"detections": raw("no more detections")}, help=())
         empty_help = (
             (f"Run `{suggestion} --since 7d` to widen the window",)
             if query.since
