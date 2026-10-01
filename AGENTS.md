@@ -98,8 +98,7 @@ Two seams are worth knowing before changing them:
   falcon-axi also mints the OAuth token itself with `allow_redirects=False` (decision D2) rather than letting
   falconpy log in, because falconpy allows redirects on the token path and `requests` replays a POST body on a
   307 or 308.
-  `scripts/architecture_check.py` enforces all of that and also rejects any automation configuration path
-  appearing in the repository.
+  `scripts/architecture_check.py` enforces all of that and the automated boundary in `docs/design/v1.md` §15.4.
 - falconpy folds transport exceptions into a synthetic 500 and returns raw bytes for a body-less redirect, so
   the sink reads status, headers, and body from the `requests.Response` it recorded rather than from falconpy's
   container.
@@ -124,8 +123,8 @@ Two seams are worth knowing before changing them:
   Every fixture under `tests/fixtures/` is wholly synthetic and carries a provenance header that an offline test
   asserts.
 
-The project has no GitHub Actions workflow by captain directive.
-Validation is local, and adding a GitHub Actions workflow requires the captain to lift that directive.
+The only automation is `.github/workflows/ci.yml`, which runs `uv run scripts/verify.py` with no secrets.
+The architecture check allows exactly `.github/workflows/ci.yml`, rejects other CI configurations, and rejects `FALCON_AXI_LIVE`, `FALCON_CLIENT_ID`, or `FALCON_CLIENT_SECRET` in that workflow.
 
 ## Build to the AXI skill
 

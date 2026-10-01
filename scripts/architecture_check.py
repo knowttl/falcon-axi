@@ -21,7 +21,9 @@ NETWORK_MODULES = {"falconpy", "requests", "http", "httpx", "socket", "urllib", 
 ALLOWED_SUBMODULES = {"urllib.parse"}
 PROCESS_MODULES = {"subprocess", "multiprocessing", "pty"}
 NETWORK_REFERENCE = re.compile(r"\.command\s*\(|requests\.\w+\s*\(|urlopen\s*\(")
-AUTOMATION_PATHS = (".github/workflows", ".gitlab-ci.yml", ".circleci", "azure-pipelines.yml", "Jenkinsfile")
+AUTOMATION_PATHS = (".gitlab-ci.yml", ".circleci", "azure-pipelines.yml", "Jenkinsfile")
+WORKFLOW_DIRECTORY = ".github/workflows"
+CREDENTIAL_NAMES = ("FALCON_AXI_LIVE", "FALCON_CLIENT_ID", "FALCON_CLIENT_SECRET")
 
 
 def _sources() -> list[Path]:
@@ -79,11 +81,15 @@ def check() -> bool:
         if NETWORK_REFERENCE.search(text):
             raise AssertionError(f"network reference outside the sealed sink: {path}")
 
-    # The captain's directive bans automation that could carry a credential at all, which is strictly
-    # stronger than scanning those paths for FALCON_AXI_LIVE or the credential variable names (§15.4).
     for relative in AUTOMATION_PATHS:
         if (REPO / relative).exists():
             raise AssertionError(f"automation configuration is not authorized in this repository: {relative}")
+    for workflow in sorted((REPO / WORKFLOW_DIRECTORY).glob("*")):
+        if workflow != REPO / WORKFLOW_DIRECTORY / "ci.yml" or not workflow.is_file():
+            raise AssertionError(f"automation configuration is not authorized in this repository: {workflow}")
+        named = [name for name in CREDENTIAL_NAMES if name in workflow.read_text(encoding="utf-8")]
+        if named:
+            raise AssertionError(f"workflow references a live-suite or credential variable: {workflow} names {named}")
     return True
 
 
