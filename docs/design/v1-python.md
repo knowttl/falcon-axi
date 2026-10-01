@@ -126,10 +126,10 @@ falcon_axi/
   origin.py                    region table, trusted-origin check, autodiscovery retarget
   auth.py                      token mint (D2), session dataclass, rate-limit headers
   fql.py, cursor.py            filter shorthands per domain; the opaque cursor, offset and token models
-  domain.py                    response reading shared by the three domain modules
+  domain.py                    shared domain response reading
   render.py                    the TOON boundary; raw lines and help block hand-formatted
   falcon_error.py              Falcon envelope to v1 §9 codes
-  detection.py, host.py, vuln.py   pure functions: args to request descriptors, responses to rows
+  detection.py, host.py, account.py, vuln.py   pure functions: args to request descriptors, responses to rows
   identity.py                  directory and timeline commands over registered GraphQL documents
   scopes.py                    the §8.3 command-to-scope matrix, projected from the registry
   transport/

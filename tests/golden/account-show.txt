@@ -1,0 +1,17 @@
+account:
+  id: synthetic-account-01
+  username: synthetic-admin
+  account_name: synthetic-admin
+  account_type: Domain
+  login_domain: SYNTHETIC
+  user_sid: S-1-5-21-0-0-0-1001
+  admin_privileges: Yes
+  local_admin_privileges: No
+  password_last_set: "2026-08-14T09:30:00Z"
+  first_seen: "2026-01-04T08:12:55Z"
+  last_login: "2026-09-30T17:45:12Z"
+  last_login_hostname: WIN-DC-01
+  last_login_type: Interactive
+  last_failed_login: "2026-09-12T03:10:44Z"
+  last_failed_login_hostname: WIN-WS-42
+help[2]: "Run `falcon-axi host logins synthetic-device-01` for recent interactive logins on its last login host","Run `falcon-axi account list` to see more accounts"

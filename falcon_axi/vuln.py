@@ -220,6 +220,8 @@ def list_vulnerabilities(
     describe = describe_vuln_query(query)
 
     if not records:
+        if after is not None:
+            return CommandOutput(value={"vulnerabilities": raw("no more vulnerabilities")}, help=())
         return CommandOutput(
             value={"vulnerabilities": raw(f"0 vulnerabilities matching {describe}" if describe else "0 vulnerabilities")},
             help=(

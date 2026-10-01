@@ -7,7 +7,16 @@ from pathlib import Path
 import pytest
 from toon_format import decode
 
-from falcon_axi.cli import COMMAND_FLAGS, COMMANDS, VALUE_FLAGS, _suggestion_for, flag_guard, parse, run
+from falcon_axi.cli import (
+    COMMAND_FLAGS,
+    COMMANDS,
+    VALUE_FLAGS,
+    _contextual_help,
+    _suggestion_for,
+    flag_guard,
+    parse,
+    run,
+)
 from falcon_axi.core import CliError
 from falcon_axi.render import render, truncate
 from falcon_axi.version import VERSION
@@ -30,9 +39,9 @@ def test_an_unknown_command_or_subcommand_fails_before_any_request() -> None:
     stdout, exit_code = run(["incident", "list"], recorded, dict(CREDENTIAL_ENV))
     assert exit_code == 2
     assert (
-        "valid commands: detection list, detection show, host list, host show, vuln list, cve show, "
-        "search start, search status, search stop, identity list, identity show, identity timeline, "
-        "auth status, scopes" in stdout
+        "valid commands: detection list, detection show, host list, host show, host logins, account list, "
+        "account show, vuln list, cve show, search start, search status, search stop, identity list, "
+        "identity show, identity timeline, auth status, scopes" in stdout
     )
     subcommand, _ = run(["detection", "contain"], recorded, dict(CREDENTIAL_ENV))
     assert "valid detection subcommands: list, show" in subcommand
@@ -76,21 +85,24 @@ def test_profile_is_refused_honestly_rather_than_silently_ignored() -> None:
     assert "profile configuration is not implemented in stage 1" in stdout
 
 
-@pytest.mark.parametrize("command", ["detection list", "host list", "vuln list", "identity list", "identity timeline"])
+@pytest.mark.parametrize(
+    "command", ["detection list", "host list", "account list", "vuln list", "identity list", "identity timeline"]
+)
 def test_continuation_arguments_survive_shell_parsing_and_expansion(command: str) -> None:
     value = 'O\'Brien * $HOME "quoted" \\ $(printf expanded); &|<> []\n'
     flags = {name: value for name in ("region", *COMMAND_FLAGS[command]) if name in VALUE_FLAGS and name != "cursor"}
     positionals = (value,) if command == "identity timeline" else ()
-    suggestion = _suggestion_for(command, flags, positionals)
+    help = _contextual_help([f"Run `{_suggestion_for(command, flags, positionals)}` for the next page"], flags)
+    suggestion = help[0].removeprefix("Run `").removesuffix("` for the next page")
     result = subprocess.run(  # noqa: S603
         ["sh", "-c", f"set -- {suggestion}; printf '%s\\0' \"$@\""],  # noqa: S607
         capture_output=True,
         check=True,
     )
     arguments = result.stdout.decode().split("\0")[:-1]
-    assert arguments[: 3 + len(positionals)] == ["falcon-axi", *command.split(), *positionals]
-    replayed = arguments[3 + len(positionals) :]
-    assert dict(zip(replayed[::2], replayed[1::2], strict=True)) == {f"--{name}": value for name in flags}
+    assert arguments[: 5 + len(positionals)] == ["falcon-axi", *command.split(), "--region", value, *positionals]
+    replayed = arguments[5 + len(positionals) :]
+    assert dict(zip(replayed[::2], replayed[1::2], strict=True)) == {f"--{name}": value for name in flags if name != "region"}
 
 
 def test_member_cid_and_no_member_cid_cannot_be_combined() -> None:

@@ -2,7 +2,8 @@
 
 `host list` is the documented two-step read (§2.3): `QueryDevicesByFilter` returns device ids and
 `PostDeviceDetailsV2` hydrates them, with the query-step order reapplied afterwards because an
-entity endpoint may answer in any order. `host show` is the hydrate step alone.
+entity endpoint may answer in any order. `host show` is the hydrate step alone. `host logins` is
+one request: `QueryDeviceLoginHistoryV2` takes the device id in its body.
 """
 
 from collections.abc import Mapping, Sequence
@@ -13,8 +14,8 @@ from falcon_axi.core import CliError
 from falcon_axi.credentials import Credential
 from falcon_axi.cursor import CursorContext, decode_offset, encode_cursor
 from falcon_axi.domain import CommandOutput, rate_limit_note, resources, text, total
-from falcon_axi.falcon_error import translate_falcon_error
-from falcon_axi.fql import HostQuery, describe_host_query, host_filter
+from falcon_axi.falcon_error import falcon_messages, translate_falcon_error
+from falcon_axi.fql import HostQuery, describe_host_query, host_filter, window
 from falcon_axi.render import raw
 from falcon_axi.transport.types import RequestArgs, Transport
 
@@ -23,6 +24,9 @@ QUERY_CEILING = 5_000
 HYDRATE_CHUNK = 5_000
 #: The cited Hosts wall: a captured 400 reads `limit + offset must be less than 10000` (§7.1).
 HOSTS_WALL = 9_999
+LOGIN_CEILING = 100
+#: Falcon's own window when `from` is omitted (documented default `now-7d`).
+LOGIN_DEFAULT_SINCE = "7d"
 
 Device = Mapping[str, Any]
 
@@ -123,6 +127,8 @@ def list_hosts(
     describe = describe_host_query(query)
 
     if not ids:
+        if offset > 0:
+            return CommandOutput(value={"hosts": raw("no more hosts")}, help=())
         empty_help = (
             (f"Run `{suggestion} --since 30d` to widen the window",)
             if query.since
@@ -200,3 +206,68 @@ def show_host(transport: Transport, session: Session, id: str) -> CommandOutput:
             f"Run `falcon-axi detection list --filter \"device.hostname:'{detail['hostname']}'\"` for its detections",
         ),
     )
+
+
+def host_logins(transport: Transport, session: Session, id: str, limit: int, since: str | None = None) -> CommandOutput:
+    """`host logins <device_id>`: recent interactive logins on one host, newest first as Falcon returns them."""
+    query: dict[str, str | int] = {"limit": limit}
+    if since is not None:
+        query["from"] = window(since)
+    rows: list[dict[str, str]] = []
+    saturated = False
+    response = transport.request(
+        "QueryDeviceLoginHistoryV2",
+        RequestArgs(
+            base_url=session.base_url,
+            token=session.token,
+            allow_unknown_origin=session.allow_unknown_origin,
+            query=query,
+            body={"ids": [id]},
+        ),
+    )
+    if response.status == 400 and any("invalid device id" in message for message in falcon_messages(response)):
+        raise CliError(
+            "NOT_FOUND",
+            "no host matched that identifier",
+            [
+                "Run `falcon-axi host list` to see current device identifiers",
+                "A device id is the agent id Falcon calls the AID",
+            ],
+        )
+    if response.status != 200:
+        raise translate_falcon_error(response, "QueryDeviceLoginHistoryV2", "host login history")
+    for entry in resources(response):
+        if not isinstance(entry, Mapping):
+            continue
+        device_id = _device_id_of(entry)
+        logins = entry.get("recent_logins")
+        logins = logins if isinstance(logins, list) else []
+        saturated = saturated or len(logins) >= limit
+        rows.extend(
+            {
+                "device_id": device_id,
+                "user_name": text(login.get("user_name")) or "unknown",
+                "login_time": text(login.get("login_time")) or "unknown",
+            }
+            for login in logins
+            if isinstance(login, Mapping)
+        )
+    if not rows:
+        return CommandOutput(
+            value={"logins": raw(f"0 logins on 1 host in the last {since or LOGIN_DEFAULT_SINCE}")},
+            help=(
+                "Run `falcon-axi host logins <device_id> --since 30d` to widen the window",
+                "Run `falcon-axi host show <device_id>` to check when the host was last seen",
+            ),
+        )
+    help = [
+        f"Run `falcon-axi host show {id}` for full host details",
+        "Run `falcon-axi host list --filter \"last_login_user:'<user_name>'\"` to find where a user last logged in",
+    ]
+    if saturated:
+        help.append(f"The host returned its limit of {limit} logins: raise --limit (ceiling {LOGIN_CEILING}) or narrow --since")
+    value: dict[str, Any] = {"count": raw(f"{len(rows)} logins on 1 host"), "logins": rows}
+    note = rate_limit_note(session)
+    if note:
+        value["rate_limit"] = raw(note)
+    return CommandOutput(value=value, help=tuple(help))

@@ -8,8 +8,8 @@ ends with the commands that are worth running next.
 
 ## Status: partial implementation of the v1 design
 
-The package is real and installable, and it ships the read domains of
-[`docs/design/v1.md`](docs/design/v1.md) plus NG-SIEM search, rather than the whole v1 surface.
+The package is real and installable, and it ships five read domains plus NG-SIEM search.
+The shipped and deferred commands are listed below; [`docs/design/v1.md`](docs/design/v1.md) owns the full v1 design.
 
 What is shipped:
 
@@ -20,8 +20,8 @@ What is shipped:
   operations, and a single permitted network sink;
 - credential resolution through the environment or a `0600` credentials file, region selection and
   `X-Cs-Region` autodiscovery, Flight Control member-CID selection, and `auth status`;
-- the read domains: `falcon-axi`, `detection list`, `detection show`, `host list`,
-  `host show`, `vuln list`, and `cve show`;
+- the home view and five read domains: `falcon-axi`, `detection list`, `detection show`, `host list`,
+  `host show`, `host logins`, `account list`, `account show`, `vuln list`, and `cve show`;
 - NG-SIEM search: `search start`, `search status`, and `search stop`, the three operations captain
   exception N1 admits;
 - the Identity Protection directory and timeline: `identity list`, `identity show`, and
@@ -80,7 +80,8 @@ If a task needs containment, a real-time-response session, a detection-status up
 ingest, a parser change, an identity action, or any other change to the tenant, falcon-axi is the
 wrong tool and will not be persuaded otherwise.
 
-For credential provisioning and missing-scope behavior, see [API client permissions](#api-client-permissions).
+See [API client permissions](#api-client-permissions) for provisioning, including optional search writes
+and license-gated account and CVE access.
 Whether member-CID token minting additionally requires `Flight Control:read` remains an explicitly
 unresolved question in `docs/design/v1.md` §17.7.
 A falcon-axi release that asks for any other write scope is wrong.
@@ -99,9 +100,9 @@ uvx --from git+https://github.com/knowttl/falcon-axi@v0.2.0 falcon-axi auth stat
 uvx --from git+https://github.com/knowttl/falcon-axi@v0.2.0 falcon-axi detection list --severity high --since 24h
 ```
 
-The pinned tag is the last release; `host list`, `host show`, `vuln list`, `cve show`, `scopes`,
-and the three `search` and three `identity` commands are not in it.
-Install from the default branch to use them before a newer tag exists.
+The pinned tag is the last release.
+For commands added after that tag, including host login history, Discover accounts, and CVE intelligence, install from the
+default branch until a newer tag exists; see the shipped command list above.
 
 Or install the command once and call it directly:
 
@@ -122,9 +123,8 @@ bare `falcon-axi` name, so run the equivalent command through whichever invocati
 
 ## Credentials
 
-Provision an API client in the Falcon console under Support and resources > API clients and keys,
-granting only the permissions for the commands you intend to use (see [API client permissions](#api-client-permissions)).
-Supply the credential through one of the two accepted channels:
+Provision an API client as described in [API client permissions](#api-client-permissions).
+Supply it through one of the two accepted channels:
 
 ```sh
 export FALCON_CLIENT_ID=...
@@ -162,6 +162,8 @@ It is projected from the operation and GraphQL document registries the transport
 credential.
 `cve show` requires the license-gated `Vulnerabilities (Falcon Intelligence):read`, not Spotlight's
 `Vulnerabilities:read`.
+`Assets:read` is needed only by the two `account` commands and is license-gated to Falcon Discover or
+Exposure Management; a client that cannot be granted it loses those two commands and nothing else.
 Grant only the scopes for the domains you intend to read: each is independent, and a command whose
 scope is missing fails with `SCOPE_DENIED` naming exactly what to grant.
 
@@ -216,8 +218,8 @@ NG-SIEM search event CID fields (`cid`, `#repo.cid`) are redacted in output.
 5. `falcon-axi host show <device_id>` - the host a detection fired on.
 6. `falcon-axi vuln list --host <device_id>` - that host's exposure.
 7. `falcon-axi cve show <CVE-ID>` - what Falcon Intelligence knows about one CVE, which is not host exposure.
-8. `falcon-axi search start --query '<cql>'` - when the question is not one of the domains
-   above, ask NG-SIEM directly, then poll with `search status <id>` and cancel with
+8. `falcon-axi search start --query '<cql>'` - when the question is outside the read domains,
+   ask NG-SIEM directly, then poll with `search status <id>` and cancel with
    `search stop <id>`.
 9. `falcon-axi identity list --name 'Admin*'` - who an account is, how risky it is, and (with
    `identity show <id>` and `identity timeline <id>`) what it owns and what it did.
@@ -236,6 +238,9 @@ falcon-axi host list --platform windows             the Windows fleet
 falcon-axi host list --hostname "WIN-*"             hostname search; Hosts filters take wildcards
 falcon-axi host list --status contained             hosts Falcon has contained, as data
 falcon-axi host show abc123                         one host
+falcon-axi host logins abc123 --since 24h           recent interactive logins on one host
+falcon-axi account list --filter "admin_privileges:'Yes'"   Discover accounts with admin rights
+falcon-axi account show abc123                      one Discover account
 falcon-axi vuln list --severity critical --status open
 falcon-axi vuln list --host abc123                  one host's vulnerabilities
 falcon-axi cve show CVE-2021-44228               Falcon Intelligence detail for one CVE
@@ -256,6 +261,12 @@ falcon-axi identity timeline 00000000-0000-0000-0000-000000000001 --since 24h
 `vuln list --fields description,base_score` adds those columns to the default
 `id,cve,severity,hostname` row; run `falcon-axi vuln list --help` for the allowed names.
 An unknown name is refused and the valid names are listed.
+`host logins <device_id>` accepts exactly one host and takes `--since` (a relative window) and `--limit`.
+Run `falcon-axi host logins --help` for defaults and limits.
+Its rows are recent interactive logins from the Host Timeline, not a full audit trail.
+`account list` takes `--filter` (raw FQL on Discover account fields), `--limit`, and
+`--cursor`; the accounts are the ones Discover has seen log in on endpoints, not an identity
+directory.
 `--since` takes a relative window such as `30m`, `24h`, or `7d`.
 `--filter` takes raw FQL for that collection, where `+` is AND, `,` is OR, and values are
 single-quoted; it composes with the shorthand flags.
@@ -363,18 +374,18 @@ Ask the command rather than guessing its flags.
 ## Pagination
 
 One call reads one page.
-`--limit N` sets the rows for this call, defaulting to 20, with a ceiling of 10000 on
-`detection list` and 5000 on `host list` and `vuln list`, each the API's own documented maximum, and
-200 on `identity list` and `identity timeline`, which is falcon-mcp's page cap because CrowdStrike
-publishes none for that endpoint.
+`--limit N` sets the rows for this call; `host logins` applies it to the selected host's login window.
+Use the command's `--help` for defaults and ceilings; the detailed limit contract lives in
+[`docs/design/v1.md` §7.3](docs/design/v1.md#73-default-limits).
 A truncated result prints a `continuation_cursor` plus a ready-to-run next-page suggestion that
 replays the same filters.
 Pass it back with `--cursor <token>`.
 
 The cursor is opaque and bound to the credential and the filter that produced it, so it cannot be
 edited, reused across a different query, or shared between tenants.
-It hides the fact that Falcon paginates detections and hosts by offset, vulnerabilities by an
-`after` token, and identities by a GraphQL `endCursor`: the CLI vocabulary is `--cursor` in all four.
+It hides the fact that Falcon paginates detections, hosts, and accounts by offset, vulnerabilities by an
+`after` token, and identities by a GraphQL `endCursor`: the CLI vocabulary is `--cursor` for every paginated command.
+`host logins` has no cursor: a full window warns that more logins may exist rather than claiming completeness.
 `--all` and `--max-rows` do not exist yet: loop on `--cursor` when more than one
 page is genuinely needed.
 Reading past 10000 Alerts results fails with `PAGINATION_LIMIT` and asks for a narrower filter,
@@ -399,9 +410,9 @@ invocation reproduces its expected document byte for byte, with the same exit co
 The stage 1 scenarios there are the cross-language parity gate, whose expected documents were
 generated by the TypeScript implementation this package replaced.
 
-Offline fixtures prove deterministic behavior, not upstream fidelity: they are authored from the
-documented response schemas cited in `docs/design/v1.md` §18, so every error-translation pattern
-stays provisional until a real response confirms it.
+Offline fixtures prove deterministic behavior, not upstream fidelity.
+[`docs/design/v1.md` §9.4](docs/design/v1.md#94-translation-never-passthrough) owns the error-evidence policy
+and points to the recorded endpoint-specific confirmations.
 Live Falcon calls are run by hand and stay outside the required checks; the opt-in live smoke suite
 of §15 is not implemented yet.
 

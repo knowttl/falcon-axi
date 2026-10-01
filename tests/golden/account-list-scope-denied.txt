@@ -1,0 +1,4 @@
+error: this API client is not permitted to read accounts
+code: SCOPE_DENIED
+required_scopes[1]: "Assets:read"
+help[3]: "Grant Assets:read (read only) to the API client in the Falcon console under Support and resources > API clients and keys","Assets:read needs Falcon Discover or Exposure Management; if the scope is absent from the picker, the tenant lacks that subscription","A 403 can also mean the API client is disabled"

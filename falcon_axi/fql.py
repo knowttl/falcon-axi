@@ -88,13 +88,14 @@ def since_seconds(value: str) -> int:
     return int(match.group(1)) * SINCE_UNIT_SECONDS[match.group(2)]
 
 
-def _window(value: str) -> str:
+def window(value: str) -> str:
+    """The `--since` window as Falcon's relative-time token, for FQL terms and `from` parameters."""
     match = _since_match(value)
     return f"now-{match.group(1)}{match.group(2)}"
 
 
 def _since_term(value: str) -> str:
-    return f"created_timestamp:>'{_window(value)}'"
+    return f"created_timestamp:>'{window(value)}'"
 
 
 def _raw_term(value: str) -> str:
@@ -144,7 +145,7 @@ def host_filter(query: HostQuery) -> str | None:
     if query.status is not None:
         terms.append(f"status:'{_one_of(query.status, HOST_STATUSES, 'status')}'")
     if query.since is not None:
-        terms.append(f"last_seen:>'{_window(query.since)}'")
+        terms.append(f"last_seen:>'{window(query.since)}'")
     if query.filter is not None:
         terms.append(_raw_term(query.filter))
     return "+".join(terms) if terms else None

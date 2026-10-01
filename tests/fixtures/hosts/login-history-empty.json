@@ -1,0 +1,17 @@
+{
+  "provenance": {
+    "operation": "QueryDeviceLoginHistoryV2",
+    "reference": "https://developer.crowdstrike.com/api-reference/collections/hosts/",
+    "schema_read": "2026-10-01",
+    "provenance": "synthetic"
+  },
+  "response": {
+    "status": 200,
+    "headers": {},
+    "body": {
+      "meta": { "query_time": 0.011 },
+      "errors": [],
+      "resources": [{ "cid": "synthetic-cid", "device_id": "synthetic-device-01", "recent_logins": [] }]
+    }
+  }
+}

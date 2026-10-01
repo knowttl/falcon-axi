@@ -11,6 +11,10 @@ from falcon_axi.transport.types import FalconResponse
 
 _FILTER_WORDS = re.compile(r"\b(fql|filter|query)\b", re.IGNORECASE)
 
+#: License prerequisites for scope-denied remedies; provisioning guidance lives in README.md.
+#: Console picker visibility is inferred, not observed (docs/design/v1.md §17.17).
+LICENSE_GATED_SCOPES = {"Assets:read": "Falcon Discover or Exposure Management"}
+
 
 def _body_of(response: FalconResponse) -> Mapping[str, Any]:
     return response.body if isinstance(response.body, Mapping) else {}
@@ -58,13 +62,21 @@ def translate_falcon_error(response: FalconResponse, id: OperationId, subject: s
         )
     if response.status == 400:
         if any(_FILTER_WORDS.search(message) for message in messages):
+            if "Assets:read" in scopes:
+                command, example = "account list", "username:'synthetic-user'"
+            elif "Hosts:read" in scopes:
+                command, example = "host list", "hostname:'WIN-*'"
+            elif "Vulnerabilities:read" in scopes:
+                command, example = "vuln list", "status:'open'"
+            else:
+                command, example = "detection list", "severity_name:'High'+status:'new'"
             return CliError(
                 "FQL_INVALID",
                 f"the filter for {subject} was rejected",
                 [
                     "FQL uses + for AND, `,` for OR, and values must be quoted",
-                    "Example: `--filter \"severity_name:'High'+status:'new'\"`",
-                    "Run `falcon-axi detection list --help` for the filterable fields",
+                    f'Example: `--filter "{example}"`',
+                    f"Run `falcon-axi {command} --help` for the filterable fields",
                 ],
             )
         return CliError(
@@ -110,12 +122,14 @@ def translate_falcon_error(response: FalconResponse, id: OperationId, subject: s
                 ],
                 {"required_scopes": list(scopes)},
             )
+        licensed = [f"{scope} needs {LICENSE_GATED_SCOPES[scope]}" for scope in scopes if scope in LICENSE_GATED_SCOPES]
         return CliError(
             "SCOPE_DENIED",
             f"this API client is not permitted to read {subject}",
             [
                 f"Grant {' and '.join(scopes)} (read only) to the API client in the Falcon console "
                 "under Support and resources > API clients and keys",
+                *(f"{note}; if the scope is absent from the picker, the tenant lacks that subscription" for note in licensed),
                 "A 403 can also mean the API client is disabled",
             ],
             {"required_scopes": list(scopes)},
