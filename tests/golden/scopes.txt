@@ -1,8 +1,9 @@
 posture: read-only except NG-SIEM search start and stop, the one write scope captain exception N1 admits
-scopes[5]{scope,access,commands,required}:
+scopes[6]{scope,access,commands,required}:
   "Alerts:read",read,"detection list, detection show",yes
   "Hosts:read",read,"host list, host show",yes
   "Vulnerabilities:read",read,vuln list,yes
+  "Vulnerabilities (Falcon Intelligence):read",read,cve show,yes
   "NGSIEM:write",write,"search start, search stop",yes
   "NGSIEM:read",read,search status,yes
 member_cid_token_scope: unresolved (Flight Control read may be required; see design section 17.7)

@@ -29,7 +29,7 @@ def test_an_unknown_command_or_subcommand_fails_before_any_request() -> None:
     stdout, exit_code = run(["incident", "list"], recorded, dict(CREDENTIAL_ENV))
     assert exit_code == 2
     assert (
-        "valid commands: detection list, detection show, host list, host show, vuln list, "
+        "valid commands: detection list, detection show, host list, host show, vuln list, cve show, "
         "search start, search status, search stop, auth status, scopes" in stdout
     )
     subcommand, _ = run(["detection", "contain"], recorded, dict(CREDENTIAL_ENV))
@@ -46,7 +46,7 @@ def test_the_surface_lists_no_mutating_verb() -> None:
         with pytest.raises(CliError) as first:
             parse([verb])
         assert first.value.code == "VALIDATION_ERROR"
-        for noun in ("detection", "host", "vuln"):
+        for noun in ("detection", "host", "vuln", "cve"):
             with pytest.raises(CliError):
                 parse([noun, verb])
 
@@ -90,6 +90,7 @@ def test_help_never_advertises_a_command_the_cli_does_not_have() -> None:
         ["host", "list", "--help"],
         ["host", "show", "--help"],
         ["vuln", "list", "--help"],
+        ["cve", "show", "--help"],
         ["search", "start", "--help"],
         ["search", "status", "--help"],
         ["search", "stop", "--help"],

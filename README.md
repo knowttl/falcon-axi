@@ -6,9 +6,9 @@ An agent-facing CLI for reading the CrowdStrike Falcon platform from the shell, 
 Output is token-efficient TOON on stdout, errors are structured documents rather than prose, and every view
 ends with the commands that are worth running next.
 
-## Status: stage 3 of the v1 design
+## Status: partial implementation of the v1 design
 
-The package is real and installable, and it ships the three read domains of
+The package is real and installable, and it ships the read domains of
 [`docs/design/v1.md`](docs/design/v1.md) plus NG-SIEM search, rather than the whole v1 surface.
 
 What is shipped:
@@ -20,8 +20,8 @@ What is shipped:
   permitted network sink;
 - credential resolution through the environment or a `0600` credentials file, region selection and
   `X-Cs-Region` autodiscovery, Flight Control member-CID selection, and `auth status`;
-- the three read domains: `falcon-axi`, `detection list`, `detection show`, `host list`,
-  `host show`, and `vuln list`;
+- the read domains: `falcon-axi`, `detection list`, `detection show`, `host list`,
+  `host show`, `vuln list`, and `cve show`;
 - NG-SIEM search: `search start`, `search status`, and `search stop`, the three operations captain
   exception N1 admits and the only place falcon-axi asks for a write scope;
 - `falcon-axi scopes`, the command-to-scope matrix, printed from the same operation registry the
@@ -29,9 +29,10 @@ What is shipped:
 
 What is **not** shipped yet, so no output advertises it:
 
-- every domain `docs/design/v1.md` §1.3 defers, `intel` among them, and every NG-SIEM capability
-  outside the three search lifecycle operations: no ingest, no lookup files, no parser or dashboard
-  writes, and no Charlotte AI;
+- every domain `docs/design/v1.md` §1.3 defers, including intel actors, indicators, and reports,
+  and every NG-SIEM capability outside the three search lifecycle operations: no ingest, no lookup
+  files, no parser or dashboard writes, and no Charlotte AI.
+  `cve show` is the one intel read that ships; there is no `cve list`;
 - `falcon-axi setup`, including the session hook and the generated skill;
 - `--all` and `--max-rows`, and `--fields` on detection and host lists; list pagination takes
   `--limit` and `--cursor` only;
@@ -63,8 +64,11 @@ If a task needs containment, a real-time-response session, a detection-status up
 ingest, a parser change, or any other change to the tenant, falcon-axi is the wrong tool and will
 not be persuaded otherwise.
 
-The registered operations require `Alerts:read`, `Hosts:read`, `Vulnerabilities:read`, and
-`NGSIEM:read`, plus `NGSIEM:write` for `search start` and `search stop` alone.
+The registered operations require `Alerts:read`, `Hosts:read`, `Vulnerabilities:read`,
+`Vulnerabilities (Falcon Intelligence):read`, and `NGSIEM:read`, plus `NGSIEM:write` for
+`search start` and `search stop` alone.
+`Vulnerabilities (Falcon Intelligence):read` is license-gated and is not satisfied by Spotlight's
+`Vulnerabilities:read`.
 Omit `NGSIEM:write` to provision a wholly read-only client: every other command works, and those two
 fail with `SCOPE_DENIED` naming exactly what is missing.
 Whether member-CID token minting additionally requires `Flight Control:read` remains an explicitly
@@ -85,9 +89,9 @@ uvx --from git+https://github.com/knowttl/falcon-axi@v0.2.0 falcon-axi auth stat
 uvx --from git+https://github.com/knowttl/falcon-axi@v0.2.0 falcon-axi detection list --severity high --since 24h
 ```
 
-The pinned tag is the last release; `host list`, `host show`, `vuln list`, `scopes`, and the three
-`search` commands land in the next one, so install from the default branch to use them before that
-tag exists.
+The pinned tag is the last release; `host list`, `host show`, `vuln list`, `cve show`, `scopes`,
+and the three `search` commands are not in it.
+Install from the default branch to use them before a newer tag exists.
 
 Or install the command once and call it directly:
 
@@ -103,15 +107,14 @@ winget install --id astral-sh.uv
 uv tool install git+https://github.com/knowttl/falcon-axi@v0.2.0
 ```
 
-Pin the tag rather than the default branch; suggestions printed by the tool use the bare `falcon-axi`
-name, so run the equivalent command through whichever invocation form is installed.
+For released commands, pin the tag rather than the default branch; suggestions printed by the tool use the
+bare `falcon-axi` name, so run the equivalent command through whichever invocation form is installed.
 
 ## Credentials
 
 Provision an API client in the Falcon console under Support and resources > API clients and keys,
-granting `Alerts:read`, `Hosts:read`, `Vulnerabilities:read`, and `NGSIEM:read`, plus `NGSIEM:write`
-only if the `search start` and `search stop` commands are wanted, and nothing more.
-Supply it through one of the two accepted channels:
+granting only the permissions for the commands you intend to use (see [API client permissions](#api-client-permissions)).
+Supply the credential through one of the two accepted channels:
 
 ```sh
 export FALCON_CLIENT_ID=...
@@ -149,6 +152,7 @@ Create the client in the Falcon console under Support and resources > API client
 | `Alerts:read` | read | The home view, `detection list`, and `detection show`. |
 | `Hosts:read` | read | `host list` and `host show`. |
 | `Vulnerabilities:read` | read | `vuln list`. |
+| `Vulnerabilities (Falcon Intelligence):read` | read | `cve show`. License-gated; Spotlight's `Vulnerabilities:read` does not satisfy it. |
 | `NGSIEM:read` | read | `search status`. |
 | `NGSIEM:write` | write | `search start` and `search stop` only, under captain exception N1. |
 
@@ -198,7 +202,8 @@ NG-SIEM search event CID fields (`cid`, `#repo.cid`) are redacted in output.
 4. `falcon-axi detection show <id>` - one detection in full.
 5. `falcon-axi host show <device_id>` - the host a detection fired on.
 6. `falcon-axi vuln list --host <device_id>` - that host's exposure.
-7. `falcon-axi search start --query '<cql>'` - when the question is not one of the four domains
+7. `falcon-axi cve show <CVE-ID>` - what Falcon Intelligence knows about one CVE, which is not host exposure.
+8. `falcon-axi search start --query '<cql>'` - when the question is not one of the domains
    above, ask NG-SIEM directly, then poll with `search status <id>` and cancel with
    `search stop <id>`.
 
@@ -218,6 +223,7 @@ falcon-axi host list --status contained             hosts Falcon has contained, 
 falcon-axi host show abc123                         one host
 falcon-axi vuln list --severity critical --status open
 falcon-axi vuln list --host abc123                  one host's vulnerabilities
+falcon-axi cve show CVE-2021-44228               Falcon Intelligence detail for one CVE
 falcon-axi search start --query '#event_simpleName=ProcessRollup2 | head(5)'
 falcon-axi search status 01JABCDEF                  one poll: running, cancelled, or done
 falcon-axi search stop 01JABCDEF                    cancel a job you no longer need
@@ -279,6 +285,8 @@ detections[2]{id,severity,tactic,hostname}:
 help[2]: "Run `falcon-axi detection show <id>` for the full detection","Run `falcon-axi detection list --limit 2 --cursor ...` for the next page"
 ```
 
+`cve show` prints `cve`, `severity`, `cvss_v3_score`, `exploit_status`, `publish_date`, `updated`, and
+`description`, and counts related actor, report, threat, and affected-product lists instead of expanding them.
 `host list` prints `hosts[N]{device_id,hostname,platform,last_seen}` and `vuln list` prints
 `vulnerabilities[N]{id,cve,severity,hostname}` by default, in the same shape.
 `vuln list --fields` appends the selected columns.

@@ -9,6 +9,7 @@ from typing import Any, Literal
 
 from falcon_axi.core import CliError
 from falcon_axi.credentials import Credential, resolve_credential, setup_help
+from falcon_axi.cve import show_cve, validate_cve_id
 from falcon_axi.detection import QUERY_CEILING as ALERTS_CEILING
 from falcon_axi.detection import list_detections, show_detection
 from falcon_axi.domain import DEFAULT_LIMIT, CommandOutput
@@ -43,6 +44,7 @@ Command = Literal[
     "host list",
     "host show",
     "vuln list",
+    "cve show",
     "search start",
     "search status",
     "search stop",
@@ -55,6 +57,7 @@ SUBCOMMANDS: Mapping[str, tuple[str, ...]] = {
     "detection": ("list", "show"),
     "host": ("list", "show"),
     "vuln": ("list",),
+    "cve": ("show",),
     "search": ("start", "status", "stop"),
     "auth": ("status",),
 }
@@ -68,6 +71,7 @@ COMMAND_FLAGS: Mapping[str, tuple[str, ...]] = {
     "host list": ("filter", "hostname", "platform", "status", "since", "limit", "cursor"),
     "host show": (),
     "vuln list": ("filter", "host", "severity", "status", "since", "limit", "cursor", "fields"),
+    "cve show": (),
     "search start": ("query", "repository", "since"),
     "search status": ("repository",),
     "search stop": ("repository",),
@@ -86,6 +90,7 @@ LIMIT_CEILINGS: Mapping[str, tuple[int, str]] = {
 SHOW_COMMANDS: Mapping[str, tuple[str, str]] = {
     "detection show": ("detection identifier", "Run `falcon-axi detection list` to see current detection identifiers"),
     "host show": ("device identifier", "Run `falcon-axi host list` to see current device identifiers"),
+    "cve show": ("CVE identifier", "A CVE identifier matches CVE-<year>-<number>, for example CVE-2021-44228"),
     "search status": ("search identifier", "A search identifier comes from `falcon-axi search start --query '<cql>'`"),
     "search stop": ("search identifier", "A search identifier comes from `falcon-axi search start --query '<cql>'`"),
 }
@@ -231,6 +236,8 @@ def parse(argv: Sequence[str]) -> Parsed:
             f"{command} requires exactly one {subject}",
             [remedy],
         )
+    if command == "cve show":
+        validate_cve_id(positionals[0])
     if command not in SHOW_COMMANDS and positionals:
         raise CliError(
             "VALIDATION_ERROR",
@@ -415,6 +422,27 @@ def help_text(command: str) -> str:
                 "This command is read-only and requires only Vulnerabilities:read.",
             ]
         )
+    if command == "cve show":
+        return "\n".join(
+            [
+                "falcon-axi cve show <CVE-ID>",
+                "",
+                "Reads one CVE from Falcon Intelligence. It is not Spotlight host exposure:",
+                "an empty result means CrowdStrike Intelligence has no entry, not that no host is affected.",
+                "A CVE identifier matches CVE-<year>-<number>, for example CVE-2021-44228.",
+                "",
+                "Default fields are cve, severity, cvss_v3_score, exploit_status, publish_date, updated,",
+                "and description. Related actor, report, threat, and affected-product lists are counts.",
+                "This command does not expand those lists, and there is no cve list command.",
+                "",
+                "Example: falcon-axi cve show CVE-2021-44228",
+                "",
+                "This command is read-only and requires Vulnerabilities (Falcon Intelligence):read.",
+                "That scope is license-gated. Spotlight's Vulnerabilities:read does not satisfy it, and a",
+                "scope missing from the API client picker means the tenant has no Falcon Intelligence subscription.",
+                "Whether --member-cid carries this scope is unverified.",
+            ]
+        )
     if command == "search start":
         return "\n".join(
             [
@@ -495,6 +523,7 @@ def help_text(command: str) -> str:
             "  host list                 list hosts from the Falcon Hosts collection",
             "  host show <device id>     the full detail for one host",
             "  vuln list                 list Spotlight vulnerabilities; a filter is required",
+            "  cve show <CVE-ID>         Falcon Intelligence detail for one CVE",
             "  search start              start an NG-SIEM CQL search job",
             "  search status <id>        poll one search job and read its events",
             "  search stop <id>          cancel one search job",
@@ -507,8 +536,8 @@ def help_text(command: str) -> str:
             f"Regions: {', '.join(REGIONS)}",
             "",
             "falcon-axi lists no command that changes a host, a detection, or a policy. It requires",
-            "Alerts:read, Hosts:read, Vulnerabilities:read, and NGSIEM:read, plus NGSIEM:write for",
-            "`search start` and `search stop` alone.",
+            "Alerts:read, Hosts:read, Vulnerabilities:read, Vulnerabilities (Falcon Intelligence):read,",
+            "and NGSIEM:read, plus NGSIEM:write for `search start` and `search stop` alone.",
         ]
     )
 
@@ -592,6 +621,8 @@ def _read(transport: Any, parsed: Parsed, resolved: Resolved) -> CommandOutput:
         )
     if command == "host show":
         return show_host(transport, resolved.session, parsed.positionals[0])
+    if command == "cve show":
+        return show_cve(transport, resolved.session, parsed.positionals[0])
     if command == "search start":
         return start_search(
             transport,
@@ -649,6 +680,7 @@ def _home_view(transport: Any, flags: Mapping[str, str | bool], env: Mapping[str
                 *listed.help,
                 "Run `falcon-axi detection list` to see more detections",
                 "Run `falcon-axi host list --filter \"hostname:'WIN-*'\"` to search hosts",
+                "Run `falcon-axi cve show <CVE-ID>` for Falcon Intelligence on one CVE",
                 "Run `falcon-axi scopes` to see what this API client needs",
             ],
         ),

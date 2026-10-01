@@ -6,6 +6,7 @@ Commands:
   host list                 list hosts from the Falcon Hosts collection
   host show <device id>     the full detail for one host
   vuln list                 list Spotlight vulnerabilities; a filter is required
+  cve show <CVE-ID>         Falcon Intelligence detail for one CVE
   search start              start an NG-SIEM CQL search job
   search status <id>        poll one search job and read its events
   search stop <id>          cancel one search job
@@ -18,5 +19,5 @@ Global flags:
 Regions: us-1, us-2, eu-1, us-gov-1
 
 falcon-axi lists no command that changes a host, a detection, or a policy. It requires
-Alerts:read, Hosts:read, Vulnerabilities:read, and NGSIEM:read, plus NGSIEM:write for
-`search start` and `search stop` alone.
+Alerts:read, Hosts:read, Vulnerabilities:read, Vulnerabilities (Falcon Intelligence):read,
+and NGSIEM:read, plus NGSIEM:write for `search start` and `search stop` alone.

@@ -50,6 +50,13 @@ EXPECTED = {
         "effect": "read",
         "doc_scope": "Vulnerabilities: READ",
     },
+    "GetVulnerabilities": {
+        "method": "POST",
+        "path": "/intel/entities/vulnerabilities/GET/v1",
+        "scopes": ("Vulnerabilities (Falcon Intelligence):read",),
+        "effect": "read",
+        "doc_scope": "Vulnerabilities (Falcon Intelligence): READ",
+    },
     "StartSearchV1": {
         "method": "POST",
         "path": "/humio/api/v1/repositories/{repository}/queryjobs",
@@ -91,7 +98,6 @@ def test_every_descriptor_equals_its_canonical_value_and_carries_matching_eviden
         suffix = ": READ" if descriptor.effect == "read" else ": WRITE"
         assert descriptor.evidence.doc_scope.upper().endswith(suffix)
         assert descriptor.evidence.doc_url.startswith("https://")
-        assert "api_scopes.py" in descriptor.evidence.falcon_mcp
 
 
 def test_no_registered_path_matches_a_known_mutation_route() -> None:

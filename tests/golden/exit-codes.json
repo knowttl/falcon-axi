@@ -87,5 +87,11 @@
   "search-status-not-found": 1,
   "search-stop": 0,
   "search-stop-without-id": 2,
-  "unknown-search-subcommand": 2
+  "unknown-search-subcommand": 2,
+  "help-cve-show": 0,
+  "cve-show": 0,
+  "cve-show-not-found": 0,
+  "cve-show-scope-denied": 1,
+  "cve-show-without-id": 2,
+  "cve-show-bad-id": 2
 }

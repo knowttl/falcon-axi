@@ -18,6 +18,7 @@ COMMAND_OPERATIONS: tuple[tuple[str, tuple[OperationId, ...]], ...] = (
     ("host list", ("QueryDevicesByFilter", "PostDeviceDetailsV2")),
     ("host show", ("PostDeviceDetailsV2",)),
     ("vuln list", ("combinedQueryVulnerabilities",)),
+    ("cve show", ("GetVulnerabilities",)),
     ("search start", ("StartSearchV1",)),
     ("search status", ("GetSearchStatusV1",)),
     ("search stop", ("StopSearchV1",)),
