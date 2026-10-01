@@ -39,6 +39,7 @@ def test_discovery_empty_states_and_continuations_preserve_context_once(argv, em
             serve("QueryDevicesByFilter", empty_page if empty else fixture("hosts/query-page.json")),
             serve("PostDeviceDetailsV2", fixture("hosts/details-page.json")),
             serve("combinedQueryVulnerabilities", empty_page if empty else fixture("spotlight/combined-page.json")),
+            serve("GetVulnerabilities", fixture("intel/vulnerability-one.json")),
         ],
         oauth=[response(201, fixture("oauth2/token-success.json").body)],
     )
@@ -63,7 +64,11 @@ def test_discovery_empty_states_and_continuations_preserve_context_once(argv, em
         assert "--member-cid" not in tokens
         if selection and selection[0] == "--member-cid":
             tokens += selection
-        subjects = {"<id>": details.body["resources"][0]["composite_id"], "<device_id>": "synthetic-device-01"}
+        subjects = {
+            "<id>": details.body["resources"][0]["composite_id"],
+            "<device_id>": "synthetic-device-01",
+            "<CVE-ID>": "CVE-2099-0001",
+        }
         tokens = [subjects.get(token, token) for token in tokens]
         result, exit_code = run(tokens[1:], recorded, env)
         assert exit_code == 0, result
