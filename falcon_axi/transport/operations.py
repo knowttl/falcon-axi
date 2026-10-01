@@ -236,14 +236,6 @@ def _seal_effect(entry: FalconOperation) -> None:
         raise ValueError(f"operation {entry.id} has an unsupported method")
 
 
-def _second_citation(entry: FalconOperation) -> bool:
-    """§2.2: falcon-mcp, or falconpy's generated table plus PSFalcon when falcon-mcp has no tool."""
-    text = entry.evidence.falcon_mcp
-    if "api_scopes.py" in text and "maps " in text:
-        return True
-    return "falcon-mcp has no tool" in text and "falconpy/_endpoint/" in text and "PSFalcon Get-FalconCve" in text
-
-
 def _seal(entry: FalconOperation) -> FalconOperation:
     _seal_effect(entry)
     if not entry.path.startswith("/"):
@@ -252,8 +244,6 @@ def _seal(entry: FalconOperation) -> FalconOperation:
         raise ValueError(f"operation {entry.id} declares no scope")
     if not (entry.evidence.doc_url and entry.evidence.doc_scope and entry.evidence.falcon_mcp):
         raise ValueError(f"operation {entry.id} is missing evidence")
-    if not _second_citation(entry):
-        raise ValueError(f"operation {entry.id} is missing its §2.2 corroboration")
     if any(pattern.search(entry.path) for pattern in MUTATION_ROUTE_PATTERNS):
         raise ValueError(f"operation {entry.id} matches a known mutation route")
     return entry

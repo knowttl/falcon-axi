@@ -48,10 +48,6 @@ def _plain(value: Any) -> str:
     return str(value)
 
 
-def _matching(response_resources: list[Any], requested: str) -> list[Mapping[str, Any]]:
-    return [entry for entry in response_resources if isinstance(entry, Mapping) and entry.get("cve") == requested]
-
-
 def _empty(cve_id: str) -> CommandOutput:
     return CommandOutput(
         value={"vulnerabilities": raw(f"0 vulnerabilities matching {cve_id}")},
@@ -74,8 +70,8 @@ def show_cve(transport: Transport, session: Session, cve_id: str) -> CommandOutp
             body={"ids": [requested]},
         ),
     )
-    matched = _matching(resources(response), requested)
-    if response.status in (200, 404) and not matched:
+    listed = resources(response)
+    if response.status == 404 or (response.status == 200 and not listed):
         return _empty(requested)
     if response.status != 200:
         error = translate_falcon_error(response, "GetVulnerabilities", "CVE intelligence")
@@ -92,6 +88,9 @@ def show_cve(transport: Transport, session: Session, cve_id: str) -> CommandOutp
                 error.details,
             )
         raise error
+    matched = [entry for entry in listed if isinstance(entry, Mapping) and entry.get("cve") == requested]
+    if not matched:
+        raise CliError("UPSTREAM_ERROR", "Falcon returned a CVE intelligence resource without the requested CVE")
     record = matched[0]
     return CommandOutput(
         value={
