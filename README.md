@@ -22,6 +22,9 @@ What is shipped:
   `X-Cs-Region` autodiscovery, Flight Control member-CID selection, and `auth status`;
 - the read domains: `falcon-axi`, `detection list`, `detection show`, `host list`,
   `host show`, `vuln list`, and `cve show`;
+- host login history and the Discover accounts inventory: `host logins`, `account list`, and
+  `account show`, admitted under the falconpy-plus-PSFalcon corroboration `docs/design/v1.md`
+  §2.2 accepts when falcon-mcp has no tool for an operation;
 - NG-SIEM search: `search start`, `search status`, and `search stop`, the three operations captain
   exception N1 admits;
 - the Identity Protection directory and timeline: `identity list`, `identity show`, and
@@ -162,6 +165,8 @@ It is projected from the operation and GraphQL document registries the transport
 credential.
 `cve show` requires the license-gated `Vulnerabilities (Falcon Intelligence):read`, not Spotlight's
 `Vulnerabilities:read`.
+`Assets:read` is needed only by the two `account` commands and is license-gated to Falcon Discover or
+Exposure Management; a client that cannot be granted it loses those two commands and nothing else.
 Grant only the scopes for the domains you intend to read: each is independent, and a command whose
 scope is missing fails with `SCOPE_DENIED` naming exactly what to grant.
 
@@ -236,6 +241,9 @@ falcon-axi host list --platform windows             the Windows fleet
 falcon-axi host list --hostname "WIN-*"             hostname search; Hosts filters take wildcards
 falcon-axi host list --status contained             hosts Falcon has contained, as data
 falcon-axi host show abc123                         one host
+falcon-axi host logins abc123 --since 24h           recent interactive logins on one host
+falcon-axi account list --filter "admin_privileges:'Yes'"   Discover accounts with admin rights
+falcon-axi account show abc123                      one Discover account
 falcon-axi vuln list --severity critical --status open
 falcon-axi vuln list --host abc123                  one host's vulnerabilities
 falcon-axi cve show CVE-2021-44228               Falcon Intelligence detail for one CVE
@@ -256,6 +264,12 @@ falcon-axi identity timeline 00000000-0000-0000-0000-000000000001 --since 24h
 `vuln list --fields description,base_score` adds those columns to the default
 `id,cve,severity,hostname` row; run `falcon-axi vuln list --help` for the allowed names.
 An unknown name is refused and the valid names are listed.
+`host logins <device_id>...` takes `--since` (a relative window, Falcon's own default is `7d`) and
+`--limit` (per host, ceiling 100) and answers ten hosts per request.
+Its rows are recent interactive logins from the Host Timeline, not a full audit trail.
+`account list` takes `--filter` (raw FQL on Discover account fields), `--limit` (ceiling 100), and
+`--cursor`; the accounts are the ones Discover has seen log in on endpoints, not an identity
+directory.
 `--since` takes a relative window such as `30m`, `24h`, or `7d`.
 `--filter` takes raw FQL for that collection, where `+` is AND, `,` is OR, and values are
 single-quoted; it composes with the shorthand flags.
@@ -364,9 +378,10 @@ Ask the command rather than guessing its flags.
 
 One call reads one page.
 `--limit N` sets the rows for this call, defaulting to 20, with a ceiling of 10000 on
-`detection list` and 5000 on `host list` and `vuln list`, each the API's own documented maximum, and
+`detection list` , 5000 on `host list` and `vuln list`, and 100 on `account list`, each the API's own documented maximum, and
 200 on `identity list` and `identity timeline`, which is falcon-mcp's page cap because CrowdStrike
 publishes none for that endpoint.
+`host logins` takes `--limit` per host with a ceiling of 100.
 A truncated result prints a `continuation_cursor` plus a ready-to-run next-page suggestion that
 replays the same filters.
 Pass it back with `--cursor <token>`.

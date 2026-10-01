@@ -8,6 +8,8 @@ from collections.abc import Mapping, Sequence
 from dataclasses import dataclass
 from typing import Any, Literal
 
+from falcon_axi.account import QUERY_CEILING as DISCOVER_CEILING
+from falcon_axi.account import list_accounts, show_account
 from falcon_axi.core import CliError
 from falcon_axi.credentials import Credential, resolve_credential, setup_help
 from falcon_axi.cve import show_cve, validate_cve_id
@@ -26,8 +28,8 @@ from falcon_axi.fql import (
     VulnQuery,
     since_seconds,
 )
+from falcon_axi.host import LOGIN_CEILING, LOGIN_DEFAULT_SINCE, host_logins, list_hosts, show_host
 from falcon_axi.host import QUERY_CEILING as HOSTS_CEILING
-from falcon_axi.host import list_hosts, show_host
 from falcon_axi.identity import DEFAULT_SINCE as IDENTITY_DEFAULT_SINCE
 from falcon_axi.identity import (
     ENTITY_TYPES,
@@ -58,6 +60,9 @@ Command = Literal[
     "detection show",
     "host list",
     "host show",
+    "host logins",
+    "account list",
+    "account show",
     "vuln list",
     "cve show",
     "search start",
@@ -73,7 +78,8 @@ Command = Literal[
 #: The subcommands each noun takes; the valid-command list and every suggestion derive from it (§11.2).
 SUBCOMMANDS: Mapping[str, tuple[str, ...]] = {
     "detection": ("list", "show"),
-    "host": ("list", "show"),
+    "host": ("list", "show", "logins"),
+    "account": ("list", "show"),
     "vuln": ("list",),
     "cve": ("show",),
     "search": ("start", "status", "stop"),
@@ -89,6 +95,9 @@ COMMAND_FLAGS: Mapping[str, tuple[str, ...]] = {
     "detection show": ("full",),
     "host list": ("filter", "hostname", "platform", "status", "since", "limit", "cursor"),
     "host show": (),
+    "host logins": ("since", "limit"),
+    "account list": ("filter", "limit", "cursor"),
+    "account show": (),
     "vuln list": ("filter", "host", "severity", "status", "since", "limit", "cursor", "fields"),
     "cve show": (),
     "search start": ("query", "repository", "since"),
@@ -105,6 +114,8 @@ COMMAND_FLAGS: Mapping[str, tuple[str, ...]] = {
 LIMIT_CEILINGS: Mapping[str, tuple[int, str]] = {
     "detection list": (ALERTS_CEILING, "Alerts query"),
     "host list": (HOSTS_CEILING, "Hosts query"),
+    "host logins": (LOGIN_CEILING, "Hosts login history"),
+    "account list": (DISCOVER_CEILING, "Discover accounts query"),
     "vuln list": (SPOTLIGHT_CEILING, "Spotlight query"),
     "identity list": (IDENTITY_CEILING, "falcon-mcp Identity Protection page"),
     "identity timeline": (IDENTITY_CEILING, "falcon-mcp Identity Protection page"),
@@ -114,6 +125,7 @@ LIMIT_CEILINGS: Mapping[str, tuple[int, str]] = {
 SHOW_COMMANDS: Mapping[str, tuple[str, str]] = {
     "detection show": ("detection identifier", "Run `falcon-axi detection list` to see current detection identifiers"),
     "host show": ("device identifier", "Run `falcon-axi host list` to see current device identifiers"),
+    "account show": ("account identifier", "Run `falcon-axi account list` to see current account identifiers"),
     "cve show": ("CVE identifier", "A CVE identifier matches CVE-<year>-<number>, for example CVE-2021-44228"),
     "search status": ("search identifier", "A search identifier comes from `falcon-axi search start --query '<cql>'`"),
     "search stop": ("search identifier", "A search identifier comes from `falcon-axi search start --query '<cql>'`"),
@@ -268,7 +280,13 @@ def parse(argv: Sequence[str]) -> Parsed:
         )
     if command == "cve show":
         validate_cve_id(positionals[0])
-    if command not in SHOW_COMMANDS and positionals:
+    if command == "host logins" and not positionals:
+        raise CliError(
+            "VALIDATION_ERROR",
+            "host logins requires at least one device identifier",
+            ["Run `falcon-axi host list` to see current device identifiers"],
+        )
+    if command not in SHOW_COMMANDS and command != "host logins" and positionals:
         raise CliError(
             "VALIDATION_ERROR",
             f"`{command}` accepts no positional arguments",
@@ -454,6 +472,58 @@ def help_text(command: str) -> str:
                 "Example: falcon-axi host show abc123",
                 "",
                 "This command is read-only and requires only Hosts:read.",
+            ]
+        )
+    if command == "host logins":
+        return "\n".join(
+            [
+                "falcon-axi host logins <device id>... [--since <window>] [--limit N]",
+                "",
+                "One or more device ids (the AID, as printed by `falcon-axi host list`); Falcon answers ten",
+                "hosts per request and falcon-axi sends as many requests as the ids need.",
+                f"--since      window to read, such as 24h or 7d (default {LOGIN_DEFAULT_SINCE}, Falcon's own default)",
+                f"--limit      logins per host in this call (default {DEFAULT_LIMIT}, ceiling {LOGIN_CEILING})",
+                "",
+                "Reports recent interactive logins from the Host Timeline as device_id, user_name, and",
+                "login_time. It is a window, not a full audit trail: a host that returns its limit may have more.",
+                "Example: falcon-axi host logins abc123 --since 24h",
+                "",
+                "This command is read-only and requires only Hosts:read.",
+            ]
+        )
+    if command == "account list":
+        return "\n".join(
+            [
+                "falcon-axi account list [--filter <FQL>] [--limit N] [--cursor <token>]",
+                "",
+                "--filter     raw FQL; + is AND, `,` is OR, values are single-quoted",
+                f"--limit      rows in this call (default {DEFAULT_LIMIT}, ceiling {DISCOVER_CEILING})",
+                "--cursor     opaque continuation token from a previous call",
+                "",
+                "Lists the accounts Falcon Discover has observed logging in on endpoints, which is an",
+                "endpoint-observed inventory and not an identity directory.",
+                "Filterable fields include username, account_name, account_type, login_domain, user_sid,",
+                "admin_privileges, local_admin_privileges, first_seen_timestamp, password_last_set_timestamp,",
+                "last_successful_login_timestamp, and last_failed_login_timestamp.",
+                "Examples:",
+                "  falcon-axi account list --filter \"admin_privileges:'Yes'\"",
+                "  falcon-axi account list --filter \"username:'svc-*'\"",
+                "",
+                "This command is read-only and requires only Assets:read, which is license-gated to Falcon",
+                "Discover or Exposure Management.",
+            ]
+        )
+    if command == "account show":
+        return "\n".join(
+            [
+                "falcon-axi account show <account id>",
+                "",
+                "The account id is the identifier printed by `falcon-axi account list`.",
+                "",
+                "Example: falcon-axi account show abc123",
+                "",
+                "This command is read-only and requires only Assets:read, which is license-gated to Falcon",
+                "Discover or Exposure Management.",
             ]
         )
     if command == "vuln list":
@@ -646,6 +716,9 @@ def help_text(command: str) -> str:
             "  detection show <id>       the full detail for one detection",
             "  host list                 list hosts from the Falcon Hosts collection",
             "  host show <device id>     the full detail for one host",
+            "  host logins <device id>...  recent interactive logins on one or more hosts",
+            "  account list              list Discover accounts observed on endpoints",
+            "  account show <id>         the full detail for one account",
             "  vuln list                 list Spotlight vulnerabilities; a filter is required",
             "  cve show <CVE-ID>         Falcon Intelligence detail for one CVE",
             "  search start              start an NG-SIEM CQL search job",
@@ -667,6 +740,7 @@ def help_text(command: str) -> str:
             "NGSIEM:read, Identity Protection Entities:read, and Identity Protection Timeline:read, plus two",
             "write-labelled scopes: NGSIEM:write for `search start` and `search stop`, and Identity Protection",
             "GraphQL:write for the `identity` commands, which Falcon requires even for read-only queries.",
+            "The `account` commands also need Assets:read, a license-gated scope that only some tenants can grant.",
         ]
     )
 
@@ -755,6 +829,26 @@ def _read(transport: Any, parsed: Parsed, resolved: Resolved) -> CommandOutput:
         return show_host(transport, resolved.session, parsed.positionals[0])
     if command == "cve show":
         return show_cve(transport, resolved.session, parsed.positionals[0])
+    if command == "host logins":
+        return host_logins(
+            transport,
+            resolved.session,
+            parsed.positionals,
+            limit=_limit_of(flags, command),
+            since=_str(flags.get("since")),
+        )
+    if command == "account list":
+        return list_accounts(
+            transport,
+            resolved.session,
+            filter=_str(flags.get("filter")),
+            limit=_limit_of(flags, command),
+            cursor=_str(flags.get("cursor")),
+            credential=resolved.credential,
+            suggestion=_suggestion_for(command, flags),
+        )
+    if command == "account show":
+        return show_account(transport, resolved.session, parsed.positionals[0])
     if command == "search start":
         return start_search(
             transport,

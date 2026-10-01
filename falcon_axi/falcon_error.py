@@ -11,6 +11,10 @@ from falcon_axi.transport.types import FalconResponse
 
 _FILTER_WORDS = re.compile(r"\b(fql|filter|query)\b", re.IGNORECASE)
 
+#: Scopes whose console picker entry exists only with the matching Falcon subscription, so a 403
+#: cannot be fixed by granting the scope alone (docs/design/v1.md §5.7).
+LICENSE_GATED_SCOPES = {"Assets:read": "Falcon Discover or Exposure Management"}
+
 
 def _body_of(response: FalconResponse) -> Mapping[str, Any]:
     return response.body if isinstance(response.body, Mapping) else {}
@@ -110,12 +114,14 @@ def translate_falcon_error(response: FalconResponse, id: OperationId, subject: s
                 ],
                 {"required_scopes": list(scopes)},
             )
+        licensed = [f"{scope} needs {LICENSE_GATED_SCOPES[scope]}" for scope in scopes if scope in LICENSE_GATED_SCOPES]
         return CliError(
             "SCOPE_DENIED",
             f"this API client is not permitted to read {subject}",
             [
                 f"Grant {' and '.join(scopes)} (read only) to the API client in the Falcon console "
                 "under Support and resources > API clients and keys",
+                *(f"{note}; if the scope is absent from the picker, the tenant lacks that subscription" for note in licensed),
                 "A 403 can also mean the API client is disabled",
             ],
             {"required_scopes": list(scopes)},

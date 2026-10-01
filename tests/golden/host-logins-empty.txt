@@ -1,0 +1,2 @@
+logins: 0 logins on 1 host in the last 7d
+help[2]: "Run `falcon-axi host logins <device_id> --since 30d` to widen the window","Run `falcon-axi host show <device_id>` to check when the host was last seen"

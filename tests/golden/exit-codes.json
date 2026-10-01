@@ -107,5 +107,20 @@
   "vuln-list-page": 0,
   "vuln-list-scope-denied": 1,
   "vuln-list-wildcard": 2,
-  "vuln-list-without-filter": 2
+  "vuln-list-without-filter": 2,
+  "help-host-logins": 0,
+  "help-account-list": 0,
+  "help-account-show": 0,
+  "unknown-account-subcommand": 2,
+  "host-logins-without-id": 2,
+  "account-show-without-id": 2,
+  "host-logins": 0,
+  "host-logins-empty": 0,
+  "host-logins-not-found": 1,
+  "host-logins-scope-denied": 1,
+  "account-list-page": 0,
+  "account-list-empty": 0,
+  "account-list-scope-denied": 1,
+  "account-show": 0,
+  "account-show-not-found": 1
 }

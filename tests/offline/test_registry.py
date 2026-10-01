@@ -15,6 +15,15 @@ from falcon_axi.transport.operations import (
     registered_scopes,
 )
 
+#: Operations whose §2.2 corroboration is falconpy's generated table plus PSFalcon, because falcon-mcp
+#: has no tool for them, mapped to the falconpy endpoint module that lists each one.
+NO_FALCON_MCP_TOOL = {
+    "GetVulnerabilities": "_intel",
+    "QueryDeviceLoginHistoryV2": "_hosts",
+    "query_accounts": "_discover",
+    "get_accounts": "_discover",
+}
+
 EXPECTED = {
     "GetQueriesAlertsV2": {
         "method": "GET",
@@ -57,6 +66,27 @@ EXPECTED = {
         "scopes": ("Vulnerabilities (Falcon Intelligence):read",),
         "effect": "read",
         "doc_scope": "Vulnerabilities (Falcon Intelligence): READ",
+    },
+    "QueryDeviceLoginHistoryV2": {
+        "method": "POST",
+        "path": "/devices/combined/devices/login-history/v2",
+        "scopes": ("Hosts:read",),
+        "effect": "read",
+        "doc_scope": "Hosts: READ",
+    },
+    "query_accounts": {
+        "method": "GET",
+        "path": "/discover/queries/accounts/v1",
+        "scopes": ("Assets:read",),
+        "effect": "read",
+        "doc_scope": "Assets: READ",
+    },
+    "get_accounts": {
+        "method": "GET",
+        "path": "/discover/entities/accounts/v1",
+        "scopes": ("Assets:read",),
+        "effect": "read",
+        "doc_scope": "Assets: READ",
     },
     "StartSearchV1": {
         "method": "POST",
@@ -106,6 +136,14 @@ def test_every_descriptor_equals_its_canonical_value_and_carries_matching_eviden
         suffix = ": READ" if descriptor.effect == "read" else ": WRITE"
         assert descriptor.evidence.doc_scope.upper().endswith(suffix)
         assert descriptor.evidence.doc_url.startswith("https://")
+        citation = descriptor.evidence.falcon_mcp
+        if id in NO_FALCON_MCP_TOOL:
+            assert f"falcon-mcp has no tool for {id}" in citation
+            assert f"falconpy/_endpoint/{NO_FALCON_MCP_TOOL[id]}.py maps {id} to " in citation
+            assert "PSFalcon " in citation
+            assert "api_scopes.py" not in citation
+        else:
+            assert "api_scopes.py" in citation and "maps " in citation
 
 
 def test_no_registered_path_matches_a_known_mutation_route() -> None:
@@ -167,3 +205,22 @@ def test_the_second_enforcement_tier_admits_no_operation_beyond_captain_exceptio
     )
     with pytest.raises(ValueError, match="declares a write scope"):
         _seal(smuggled)
+
+
+def test_the_second_citation_is_falcon_mcp_or_falconpy_plus_psfalcon_and_nothing_weaker() -> None:
+    from falcon_axi.transport.operations import Evidence, _seal
+
+    base = OPERATIONS["query_accounts"]
+    weaker = (
+        "falcon-mcp has no tool for query_accounts.",
+        "falcon-mcp has no tool for query_accounts. PSFalcon Get-FalconAsset -Account wraps it.",
+        "falcon-mcp has no tool for query_accounts. falconpy/_endpoint/_discover.py maps query_accounts "
+        "to GET /discover/queries/accounts/v1.",
+        "falcon-mcp has no tool for query_accounts. falconpy/_endpoint/_discover.py maps query_accounts "
+        "to GET /discover/queries/other/v1. PSFalcon Get-FalconAsset -Account wraps it.",
+        "an unrelated note",
+    )
+    for citation in weaker:
+        evidence = Evidence(base.evidence.doc_url, base.evidence.doc_scope, citation)
+        with pytest.raises(ValueError, match="corroboration"):
+            _seal(dataclasses.replace(base, evidence=evidence))

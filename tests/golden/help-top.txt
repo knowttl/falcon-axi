@@ -5,6 +5,9 @@ Commands:
   detection show <id>       the full detail for one detection
   host list                 list hosts from the Falcon Hosts collection
   host show <device id>     the full detail for one host
+  host logins <device id>...  recent interactive logins on one or more hosts
+  account list              list Discover accounts observed on endpoints
+  account show <id>         the full detail for one account
   vuln list                 list Spotlight vulnerabilities; a filter is required
   cve show <CVE-ID>         Falcon Intelligence detail for one CVE
   search start              start an NG-SIEM CQL search job
@@ -26,3 +29,4 @@ requires Alerts:read, Hosts:read, Vulnerabilities:read, Vulnerabilities (Falcon 
 NGSIEM:read, Identity Protection Entities:read, and Identity Protection Timeline:read, plus two
 write-labelled scopes: NGSIEM:write for `search start` and `search stop`, and Identity Protection
 GraphQL:write for the `identity` commands, which Falcon requires even for read-only queries.
+The `account` commands also need Assets:read, a license-gated scope that only some tenants can grant.

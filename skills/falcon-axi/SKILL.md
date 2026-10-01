@@ -27,14 +27,14 @@ See the README's Quick start for agents for release-install guidance.
 ## When to use
 
 Use falcon-axi to answer what is firing in Falcon right now, to filter detections by severity, status, or
-time window, to read one detection in full, to find hosts and read one host's detail, to read a host's or
+time window, to read one detection in full, to find hosts, read one host's detail, see recent interactive logins, and list Discover accounts, to read a host's or
 the fleet's Spotlight vulnerabilities, to read what Falcon Intelligence knows about one CVE, to run a CQL
 search over NG-SIEM event data when the question is not one of those domains, to look up an Identity Protection
 user or endpoint and its risk, accounts, and activity timeline, and to check whether a Falcon credential
 resolves and into which region and tenant.
 
 `setup` does not exist, and neither do `--all`, `--max-rows`, `--profile`, or `--fields` on detection and host lists.
-Neither does any command for a Falcon domain outside detections, hosts, Spotlight vulnerabilities, `cve show`,
+Neither does any command for a Falcon domain outside detections, hosts, Discover accounts, Spotlight vulnerabilities, `cve show`,
 NG-SIEM search, and the Identity Protection directory and timeline; there is no `cve list`, no intel actor,
 indicator, or report command, and no ingest, lookup-file, parser, dashboard, Charlotte AI, identity incident,
 or identity security-assessment command.
@@ -47,7 +47,9 @@ commands[9 total]:
 `detection`: `list` (flags `--severity`, `--status`, `--since`, `--filter`, `--limit`, `--cursor`),
 `show <composite id>` (flag `--full`).
 `host`: `list` (flags `--hostname`, `--platform`, `--status`, `--since`, `--filter`, `--limit`, `--cursor`),
-`show <device id>`.
+`show <device id>`, `logins <device id>...` (flags `--since`, `--limit` per host).
+`account`: `list` (flags `--filter`, `--limit`, `--cursor`), `show <account id>`; Discover accounts, which need the
+license-gated `Assets:read`.
 `vuln`: `list` (flags `--host`, `--severity`, `--status`, `--since`, `--filter`, `--limit`, `--cursor`, `--fields`).
 `cve`: `show <CVE-ID>` only. There is no `cve list`.
 `search`: `start` (flags `--query`, `--repository`, `--since`), `status <search id>` (flag `--repository`),
@@ -107,7 +109,8 @@ is refused because the value reaches a URL path.
 3. Run `falcon-axi detection list` with `--severity`, `--status`, `--since`, or `--filter` to narrow.
 4. Run `falcon-axi detection show <id>` for one detection, adding `--full` only when a truncated field
    matters.
-5. Run `falcon-axi host show <device_id>` for the host it fired on, and
+5. Run `falcon-axi host show <device_id>` for the host it fired on,
+   `falcon-axi host logins <device_id>` for who recently logged in on it, and
    `falcon-axi vuln list --host <device_id>` for that host's exposure.
 6. Run `falcon-axi cve show <CVE-ID>` when the question is what Falcon Intelligence knows about a CVE,
    including a CVE that Spotlight has not evaluated on a host.
@@ -164,7 +167,8 @@ flags, filterable fields, and examples instead of guessing.
 ## Pagination
 
 One call reads one page: `--limit N` defaults to 20, with a ceiling of 10000 on `detection list` and
-5000 on `host list` and `vuln list`, and 200 on `identity list` and `identity timeline`.
+5000 on `host list` and `vuln list`, 100 on `account list`, and 200 on `identity list` and `identity timeline`.
+`host logins --limit` is per host, ceiling 100.
 `search status` has neither `--limit` nor `--cursor`, because a query job carries no pagination metadata;
 bound the result set in the CQL itself with `| head(N)` or an aggregate.
 A truncated result prints a `continuation_cursor` and a ready-to-run next-page command; pass the token back

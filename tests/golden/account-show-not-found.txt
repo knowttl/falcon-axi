@@ -1,0 +1,3 @@
+error: no account matched that identifier
+code: NOT_FOUND
+help[1]: "Run `falcon-axi account list` to see current account identifiers"

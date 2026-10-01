@@ -1,0 +1,6 @@
+count: 2 of 41 total
+continuation_cursor: eyJvcGVyYXRpb24iOiJxdWVyeV9hY2NvdW50cyIsIm1vZGVsIjoib2Zmc2V0IiwicG9zaXRpb24iOjIsImZpbmdlcnByaW50IjoiMDBlYjJkODEyMjhiNzI2YmNhODQwZGRmM2FkMTNiZGE4NGEwMzA4NTk2NjgxNjA5ZGY0NGY3OGNhMTYxNzVmMSJ9
+accounts[2]{id,username,account_type,login_domain,admin_privileges,last_login}:
+  synthetic-account-01,synthetic-admin,Domain,SYNTHETIC,Yes,"2026-09-30T17:45:12Z"
+  synthetic-account-02,synthetic-user,Local,WIN-WS-42,No,"2026-09-29T08:00:01Z"
+help[2]: "Run `falcon-axi account show <id>` for the full account record","Run `falcon-axi account list --limit 2 --cursor eyJvcGVyYXRpb24iOiJxdWVyeV9hY2NvdW50cyIsIm1vZGVsIjoib2Zmc2V0IiwicG9zaXRpb24iOjIsImZpbmdlcnByaW50IjoiMDBlYjJkODEyMjhiNzI2YmNhODQwZGRmM2FkMTNiZGE4NGEwMzA4NTk2NjgxNjA5ZGY0NGY3OGNhMTYxNzVmMSJ9` for the next page"

@@ -18,6 +18,9 @@ COMMAND_OPERATIONS: tuple[tuple[str, tuple[OperationId, ...]], ...] = (
     ("detection show", ("PostEntitiesAlertsV2",)),
     ("host list", ("QueryDevicesByFilter", "PostDeviceDetailsV2")),
     ("host show", ("PostDeviceDetailsV2",)),
+    ("host logins", ("QueryDeviceLoginHistoryV2",)),
+    ("account list", ("query_accounts", "get_accounts")),
+    ("account show", ("get_accounts",)),
     ("vuln list", ("combinedQueryVulnerabilities",)),
     ("cve show", ("GetVulnerabilities",)),
     ("search start", ("StartSearchV1",)),
@@ -75,5 +78,7 @@ def scope_matrix() -> CommandOutput:
             "falcon-axi sends only its own fixed read queries, never caller-supplied GraphQL (captain exception N2)",
             "Omit NGSIEM:write and `search start` and `search stop` fail with SCOPE_DENIED",
             "Omit Identity Protection GraphQL:write and the `identity` commands fail with SCOPE_DENIED",
+            "Assets:read is license-gated to Falcon Discover or Exposure Management; "
+            "omit it and only the `account` commands fail with SCOPE_DENIED",
         ),
     )

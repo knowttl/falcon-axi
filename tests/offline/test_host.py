@@ -157,3 +157,78 @@ def test_a_scope_failure_on_hosts_names_the_hosts_read_scope() -> None:
     assert "code: SCOPE_DENIED" in stdout
     assert "Hosts:read" in stdout
     assert "Alerts:read" not in stdout
+
+
+LOGINS = [serve("QueryDeviceLoginHistoryV2", fixture("hosts/login-history.json"))]
+
+
+def test_host_logins_renders_one_row_per_login_and_sends_the_documented_request() -> None:
+    recorded = RecordedTransport(LOGINS)
+    stdout, exit_code = run(
+        ["host", "logins", "synthetic-device-01", "synthetic-device-02", "--since", "24h", "--limit", "5"],
+        recorded,
+        dict(CREDENTIAL_ENV),
+    )
+    assert exit_code == 0
+    assert re.search(r"^count: 2 logins across 2 hosts$", stdout, re.MULTILINE)
+    assert "logins[2]{device_id,user_name,login_time}:" in stdout
+    assert 'synthetic-device-01,synthetic-svc-backup,"2026-10-01T13:07:57Z"' in stdout
+    assert "synthetic-cid" not in stdout
+    (request,) = recorded.operation_requests("QueryDeviceLoginHistoryV2")
+    assert request.body == {"ids": ["synthetic-device-01", "synthetic-device-02"]}
+    assert request.query == {"limit": 5, "from": "now-24h"}
+
+
+def test_host_logins_without_since_leaves_falcons_own_window_in_force() -> None:
+    recorded = RecordedTransport(LOGINS)
+    run(["host", "logins", "synthetic-device-01"], recorded, dict(CREDENTIAL_ENV))
+    assert recorded.operation_requests("QueryDeviceLoginHistoryV2")[0].query == {"limit": 20}
+
+
+def test_host_logins_chunks_ten_ids_per_request_and_dedupes() -> None:
+    recorded = RecordedTransport(LOGINS)
+    ids = [f"synthetic-device-{index:02d}" for index in range(12)]
+    run(["host", "logins", *ids, ids[0]], recorded, dict(CREDENTIAL_ENV))
+    bodies = [request.body["ids"] for request in recorded.operation_requests("QueryDeviceLoginHistoryV2")]
+    assert [len(chunk) for chunk in bodies] == [10, 2]
+
+
+def test_a_host_that_returns_its_limit_says_more_may_exist() -> None:
+    recorded = RecordedTransport(LOGINS)
+    stdout, _ = run(["host", "logins", "synthetic-device-01", "--limit", "2"], recorded, dict(CREDENTIAL_ENV))
+    assert "returned its limit of 2 logins" in stdout
+    stdout, _ = run(["host", "logins", "synthetic-device-01", "--limit", "3"], RecordedTransport(LOGINS), dict(CREDENTIAL_ENV))
+    assert "returned its limit" not in stdout
+
+
+def test_an_empty_login_window_states_the_window_that_produced_it() -> None:
+    recorded = RecordedTransport([serve("QueryDeviceLoginHistoryV2", fixture("hosts/login-history-empty.json"))])
+    stdout, exit_code = run(["host", "logins", "synthetic-device-01"], recorded, dict(CREDENTIAL_ENV))
+    assert exit_code == 0
+    assert "logins: 0 logins on 1 host in the last 7d" in stdout
+    assert "--since 30d" in stdout
+
+
+def test_an_unrecognised_device_id_is_not_found_without_echoing_falcons_message() -> None:
+    recorded = RecordedTransport([serve("QueryDeviceLoginHistoryV2", fixture("hosts/login-history-invalid-id.json"))])
+    stdout, exit_code = run(["host", "logins", "synthetic-device-99"], recorded, dict(CREDENTIAL_ENV))
+    assert exit_code == 1
+    assert "code: NOT_FOUND" in stdout
+    assert "invalid device id" not in stdout
+
+
+def test_host_logins_is_refused_before_any_request_without_an_id_or_with_a_bad_window_or_limit() -> None:
+    recorded = RecordedTransport([])
+    _, none = run(["host", "logins"], recorded, dict(CREDENTIAL_ENV))
+    _, window = run(["host", "logins", "synthetic-device-01", "--since", "yesterday"], recorded, dict(CREDENTIAL_ENV))
+    _, ceiling = run(["host", "logins", "synthetic-device-01", "--limit", "101"], recorded, dict(CREDENTIAL_ENV))
+    assert (none, window, ceiling) == (2, 2, 2)
+    assert recorded.operation_requests("QueryDeviceLoginHistoryV2") == []
+
+
+def test_host_logins_scope_denied_names_hosts_read() -> None:
+    recorded = RecordedTransport([serve("QueryDeviceLoginHistoryV2", fixture("errors/403-scope.json"))])
+    stdout, exit_code = run(["host", "logins", "synthetic-device-01"], recorded, dict(CREDENTIAL_ENV))
+    assert exit_code == 1
+    assert "code: SCOPE_DENIED" in stdout
+    assert 'required_scopes[1]: "Hosts:read"' in stdout

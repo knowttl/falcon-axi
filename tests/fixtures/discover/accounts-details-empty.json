@@ -1,0 +1,13 @@
+{
+  "provenance": {
+    "operation": "get_accounts",
+    "reference": "https://developer.crowdstrike.com/api-reference/collections/discover/",
+    "schema_read": "2026-10-01",
+    "provenance": "synthetic"
+  },
+  "response": {
+    "status": 200,
+    "headers": {},
+    "body": { "meta": { "query_time": 0.01 }, "errors": [], "resources": [] }
+  }
+}

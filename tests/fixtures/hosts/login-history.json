@@ -1,0 +1,27 @@
+{
+  "provenance": {
+    "operation": "QueryDeviceLoginHistoryV2",
+    "reference": "https://developer.crowdstrike.com/api-reference/collections/hosts/",
+    "schema_read": "2026-10-01",
+    "provenance": "synthetic"
+  },
+  "response": {
+    "status": 200,
+    "headers": { "x-ratelimit-limit": "6000", "x-ratelimit-remaining": "5990" },
+    "body": {
+      "meta": { "query_time": 0.021, "powered_by": "device-api", "trace_id": "synthetic-trace-logins" },
+      "errors": [],
+      "resources": [
+        {
+          "cid": "synthetic-cid",
+          "device_id": "synthetic-device-01",
+          "recent_logins": [
+            { "user_name": "synthetic-svc-backup", "login_time": "2026-10-01T13:07:57Z" },
+            { "user_name": "synthetic-admin", "login_time": "2026-10-01T12:03:18Z" }
+          ]
+        },
+        { "cid": "synthetic-cid", "device_id": "synthetic-device-02", "recent_logins": [] }
+      ]
+    }
+  }
+}

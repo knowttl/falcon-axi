@@ -1,0 +1,17 @@
+{
+  "provenance": {
+    "operation": "QueryDeviceLoginHistoryV2",
+    "reference": "https://developer.crowdstrike.com/api-reference/collections/hosts/",
+    "schema_read": "2026-10-01",
+    "provenance": "synthetic"
+  },
+  "response": {
+    "status": 400,
+    "headers": {},
+    "body": {
+      "meta": { "trace_id": "synthetic-trace-invalid-id" },
+      "resources": null,
+      "errors": [{ "code": 400, "message": "invalid device id [synthetic-device-99]" }]
+    }
+  }
+}

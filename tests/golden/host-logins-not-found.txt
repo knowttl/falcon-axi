@@ -1,0 +1,3 @@
+error: no host matched one of those identifiers
+code: NOT_FOUND
+help[2]: "Run `falcon-axi host list` to see current device identifiers","A device id is the agent id Falcon calls the AID"

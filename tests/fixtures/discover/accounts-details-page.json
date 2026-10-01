@@ -1,0 +1,47 @@
+{
+  "provenance": {
+    "operation": "get_accounts",
+    "reference": "https://developer.crowdstrike.com/api-reference/collections/discover/",
+    "schema_read": "2026-10-01",
+    "provenance": "synthetic"
+  },
+  "response": {
+    "status": 200,
+    "headers": { "x-ratelimit-limit": "6000", "x-ratelimit-remaining": "5995" },
+    "body": {
+      "meta": { "query_time": 0.027 },
+      "errors": [],
+      "resources": [
+        {
+          "id": "synthetic-account-01",
+          "cid": "synthetic-cid",
+          "username": "synthetic-admin",
+          "account_name": "synthetic-admin",
+          "account_type": "Domain",
+          "login_domain": "SYNTHETIC",
+          "user_sid": "S-1-5-21-0-0-0-1001",
+          "admin_privileges": "Yes",
+          "local_admin_privileges": "No",
+          "password_last_set_timestamp": "2026-08-14T09:30:00Z",
+          "first_seen_timestamp": "2026-01-04T08:12:55Z",
+          "last_successful_login_timestamp": "2026-09-30T17:45:12Z",
+          "last_successful_login_hostname": "WIN-DC-01",
+          "last_successful_login_aid": "synthetic-device-01",
+          "last_successful_login_type": "Interactive",
+          "last_failed_login_timestamp": "2026-09-12T03:10:44Z",
+          "last_failed_login_hostname": "WIN-WS-42"
+        },
+        {
+          "id": "synthetic-account-02",
+          "cid": "synthetic-cid",
+          "username": "synthetic-user",
+          "account_name": "synthetic-user",
+          "account_type": "Local",
+          "login_domain": "WIN-WS-42",
+          "admin_privileges": "No",
+          "last_successful_login_timestamp": "2026-09-29T08:00:01Z"
+        }
+      ]
+    }
+  }
+}

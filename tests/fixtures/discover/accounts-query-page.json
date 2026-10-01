@@ -1,0 +1,17 @@
+{
+  "provenance": {
+    "operation": "query_accounts",
+    "reference": "https://developer.crowdstrike.com/api-reference/collections/discover/",
+    "schema_read": "2026-10-01",
+    "provenance": "synthetic"
+  },
+  "response": {
+    "status": 200,
+    "headers": { "x-ratelimit-limit": "6000", "x-ratelimit-remaining": "5996" },
+    "body": {
+      "meta": { "query_time": 0.018, "pagination": { "offset": 0, "limit": 2, "total": 41 } },
+      "errors": [],
+      "resources": ["synthetic-account-01", "synthetic-account-02"]
+    }
+  }
+}
