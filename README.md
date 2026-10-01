@@ -99,26 +99,24 @@ required.
 Run it with no install at all, which is the Python analog of `npx -y`:
 
 ```sh
-uvx --from git+https://github.com/knowttl/falcon-axi@v0.2.0 falcon-axi auth status
-uvx --from git+https://github.com/knowttl/falcon-axi@v0.2.0 falcon-axi detection list --severity high --since 24h
+uvx --from git+https://github.com/knowttl/falcon-axi@v0.3.0 falcon-axi auth status
+uvx --from git+https://github.com/knowttl/falcon-axi@v0.3.0 falcon-axi detection list --severity high --since 24h
 ```
 
 The pinned tag is the last release.
-For commands added after that tag, including host login history, Discover accounts, CVE intelligence, and identity activity, install from the
-default branch until a newer tag exists; see the shipped command list above.
 
 Or install the command once and call it directly:
 
 ```sh
 # Linux, WSL, macOS
 curl -LsSf https://astral.sh/uv/install.sh | sh
-uv tool install git+https://github.com/knowttl/falcon-axi@v0.2.0
+uv tool install git+https://github.com/knowttl/falcon-axi@v0.3.0
 ```
 
 ```powershell
 # Windows
 winget install --id astral-sh.uv
-uv tool install git+https://github.com/knowttl/falcon-axi@v0.2.0
+uv tool install git+https://github.com/knowttl/falcon-axi@v0.3.0
 ```
 
 For released commands, pin the tag rather than the default branch; suggestions printed by the tool use the

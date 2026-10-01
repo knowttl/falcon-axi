@@ -19,11 +19,8 @@ falcon-axi cannot send a mutation, password reset, account disable, or any Graph
 If a task needs to change anything else in the tenant, falcon-axi is the wrong tool; say so rather than
 looking for a flag.
 
-Invoke it without a global install with
-`uvx --from git+https://github.com/knowttl/falcon-axi@v0.2.0 falcon-axi <command>`.
+Use the release-pinned invocation in the [README's Quick start for agents](../../README.md#quick-start-for-agents) to run without a global install.
 If output suggests a `falcon-axi` command, run the equivalent command through that same invocation form.
-For commands added after that tag, use the default branch until a newer tag exists.
-See the README's Quick start for agents for release-install guidance.
 
 ## When to use
 
