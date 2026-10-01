@@ -42,7 +42,6 @@ Do not invent them; an unknown flag or command fails loudly.
 
 ## Commands
 
-commands[9 total]:
 `falcon-axi`: the home view - tenant line plus the five newest detections.
 `detection`: `list` (flags `--severity`, `--status`, `--since`, `--filter`, `--limit`, `--cursor`),
 `show <composite id>` (flag `--full`).
