@@ -19,6 +19,7 @@ falcon-axi = "falcon_axi.cli:main"
 
 [dependency-groups]
 dev = [
+  "graphql-core>=3.3.0",
   "mypy>=1.13",
   "pytest>=8.3",
   "requests-mock>=1.12",

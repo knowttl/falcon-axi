@@ -1,0 +1,111 @@
+"""
+Synthetic schema for executing the identity detail and timeline request contracts offline.
+Operation: api_preempt_proxy_post_graphql
+Reference: https://developer.crowdstrike.com/api-reference/collections/identity-protection/
+Schema read: 2026-10-01
+Provenance: synthetic, not a live schema capture.
+"""
+scalar UUID
+scalar Cursor
+scalar DateTimeInput
+enum TimelineEventCategory { ACTIVITY NOTIFICATION THREAT ENTITY AUDIT POLICY SYSTEM }
+
+type Query {
+  entities(entityIds: [UUID!], first: Int): EntityConnection
+  timeline(sourceEntityQuery: EntityQuery, startTime: DateTimeInput, categories: [TimelineEventCategory!], sortOrder: SortOrder, first: Int, after: Cursor): TimelineConnection
+}
+input EntityQuery { entityIds: [UUID!] }
+enum SortOrder { DESCENDING }
+type EntityConnection { nodes: [Entity!] }
+type Entity {
+  entityId: UUID
+  primaryDisplayName: String
+  secondaryDisplayName: String
+  type: String
+  riskScore: Float
+  riskScoreSeverity: String
+  riskFactors: [RiskFactor!]
+  associations: [Association!]
+  openIncidents(first: Int): IncidentConnection
+  accounts: [Account!]
+}
+type RiskFactor { type: String severity: String }
+interface Association { bindingType: String }
+type EntityAssociation implements Association { bindingType: String entity: Entity }
+type LocalAdminLocalUserAssociation implements Association { bindingType: String accountName: String }
+type LocalAdminDomainEntityAssociation implements Association { bindingType: String entity: Entity }
+type GeoLocationAssociation implements Association { bindingType: String geoLocation: GeoLocation }
+type GeoLocation { country: String city: String }
+type IncidentConnection { nodes: [Incident!] pageInfo: PageInfo }
+type Incident { type: String startTime: String endTime: String compromisedEntities: [Entity!] }
+type PageInfo { hasNextPage: Boolean endCursor: Cursor }
+union Account = ActiveDirectoryAccountDescriptor | SsoUserAccountDescriptor
+type ActiveDirectoryAccountDescriptor {
+  domain: String
+  samAccountName: String
+  ou: String
+  passwordAttributes: PasswordAttributes
+  expirationTime: String
+}
+type SsoUserAccountDescriptor {
+  dataSource: String
+  mostRecentActivity: String
+  title: String
+  creationTime: String
+  passwordAttributes: PasswordAttributes
+}
+type PasswordAttributes { lastChange: String }
+
+type TimelineConnection { nodes: [TimelineEvent!] pageInfo: PageInfo }
+interface TimelineEvent { eventId: String eventType: String eventSeverity: String timestamp: String }
+type TimelineAlertEvent implements TimelineEvent {
+  eventId: String eventType: String eventSeverity: String timestamp: String
+  sourceEntity: Entity
+}
+type TimelineFileOperationEvent implements TimelineEvent {
+  eventId: String eventType: String eventSeverity: String timestamp: String
+  targetEntity: Entity
+  userDisplayName: String
+  endpointDisplayName: String
+  ipAddress: String
+}
+type TimelineUserOnEndpointActivityEvent implements TimelineEvent {
+  eventId: String eventType: String eventSeverity: String timestamp: String
+  sourceEntity: Entity targetEntity: Entity geoLocation: GeoLocation
+  userDisplayName: String endpointDisplayName: String ipAddress: String
+}
+type TimelineAuthenticationEvent implements TimelineEvent {
+  eventId: String eventType: String eventSeverity: String timestamp: String
+  sourceEntity: Entity targetEntity: Entity geoLocation: GeoLocation
+  userDisplayName: String endpointDisplayName: String ipAddress: String
+}
+type TimelineSuccessfulAuthenticationEvent implements TimelineEvent {
+  eventId: String eventType: String eventSeverity: String timestamp: String
+  sourceEntity: Entity targetEntity: Entity geoLocation: GeoLocation
+  userDisplayName: String endpointDisplayName: String ipAddress: String
+}
+type TimelineFailedAuthenticationEvent implements TimelineEvent {
+  eventId: String eventType: String eventSeverity: String timestamp: String
+  sourceEntity: Entity targetEntity: Entity geoLocation: GeoLocation
+  userDisplayName: String endpointDisplayName: String ipAddress: String
+}
+type TimelineServiceAccessEvent implements TimelineEvent {
+  eventId: String eventType: String eventSeverity: String timestamp: String
+  sourceEntity: Entity targetEntity: Entity geoLocation: GeoLocation
+  userDisplayName: String endpointDisplayName: String ipAddress: String
+}
+type TimelineLdapSearchEvent implements TimelineEvent {
+  eventId: String eventType: String eventSeverity: String timestamp: String
+  sourceEntity: Entity targetEntity: Entity geoLocation: GeoLocation
+  userDisplayName: String endpointDisplayName: String ipAddress: String
+}
+type TimelineDceRpcEvent implements TimelineEvent {
+  eventId: String eventType: String eventSeverity: String timestamp: String
+  sourceEntity: Entity targetEntity: Entity geoLocation: GeoLocation
+  userDisplayName: String endpointDisplayName: String ipAddress: String
+}
+type TimelineRemoteCodeExecutionEvent implements TimelineEvent {
+  eventId: String eventType: String eventSeverity: String timestamp: String
+  sourceEntity: Entity targetEntity: Entity geoLocation: GeoLocation
+  userDisplayName: String endpointDisplayName: String ipAddress: String
+}

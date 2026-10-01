@@ -9,6 +9,7 @@ import time
 from types import MappingProxyType
 
 from falcon_axi.origin import assert_trusted_origin
+from falcon_axi.transport.graphql import request_body
 from falcon_axi.transport.operations import OperationId, operation, path_arguments
 from falcon_axi.transport.retry import MAX_ATTEMPTS, retry_plan
 from falcon_axi.transport.types import (
@@ -59,7 +60,7 @@ class HttpTransport:
                 origin=origin,
                 token=args.token,
                 query=MappingProxyType(dict(args.query or {})),
-                body=args.body,
+                body=request_body(descriptor, args.document, args.variables, args.body),
                 path_params=MappingProxyType(path_arguments(descriptor, dict(args.path_params or {}))),
             )
         )

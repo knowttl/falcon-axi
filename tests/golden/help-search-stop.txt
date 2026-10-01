@@ -7,4 +7,4 @@ detection: the only thing it stops is the job.
 
 Example: falcon-axi search stop abc123
 
-This command requires NGSIEM:write, the one write scope falcon-axi asks for.
+This command requires NGSIEM:write.

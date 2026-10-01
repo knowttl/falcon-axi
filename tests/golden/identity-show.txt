@@ -1,0 +1,27 @@
+identity:
+  id: 00000000-0000-4000-8000-000000000001
+  name: Synthetic Admin
+  secondary: synthetic.admin@example.test
+  type: USER
+  risk: HIGH (0.82)
+  risk_factors[2]{type,severity}:
+    WEAK_PASSWORD,MEDIUM
+    STALE_ACCOUNT,LOW
+  accounts[2]:
+    - domain: EXAMPLE.TEST
+      account: synthetic.admin
+      ou: "OU=Synthetic,DC=example,DC=test"
+      password_last_changed: "2026-06-01T00:00:00Z"
+    - source: SYNTHETIC_SSO
+      title: Synthetic Engineer
+  associations[3]:
+    - binding: OWNERSHIP
+      name: SYNTH-DC-01
+      entity_id: 00000000-0000-4000-8000-000000000002
+    - binding: LOCAL_ADMIN
+      name: synthetic-local-admin
+    - binding: GEO_LOCATION
+      name: "Sampletown, Exampleland"
+  open_incidents[1]{type,start,end,compromised}:
+    POTENTIAL_RISKY_ACTIVITY,"2026-09-30T08:00:00Z",unknown,Synthetic Admin
+help[1]: "Run `falcon-axi identity timeline 00000000-0000-4000-8000-000000000001` for this identity's recent activity"

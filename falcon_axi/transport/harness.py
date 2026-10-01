@@ -17,7 +17,8 @@ import requests
 from falconpy import APIHarnessV2
 
 from falcon_axi.core import CliError
-from falcon_axi.transport.operations import operation
+from falcon_axi.transport.graphql import is_registered_query
+from falcon_axi.transport.operations import GRAPHQL_QUERY_IDS, operation
 from falcon_axi.transport.types import FalconResponse, PreparedOperation, PreparedToken
 from falcon_axi.version import user_agent
 
@@ -156,6 +157,14 @@ def send_permitted_request(prepared: PreparedOperation | PreparedToken, permit: 
             )
 
         descriptor = operation(prepared.operation_id)
+        if descriptor.id in GRAPHQL_QUERY_IDS and not is_registered_query(prepared.body):
+            # The last check before the network: the GraphQL endpoint also accepts mutations (§4.4),
+            # so nothing but a registered document may reach it, whatever built the prepared request.
+            raise CliError(
+                "READ_ONLY_VIOLATION",
+                "a graphql request reached the network sink with a document that is not registered",
+                ["falcon-axi sends only the query documents in its closed registry; report this as a bug"],
+            )
         path_params = dict(prepared.path_params)
         if descriptor.id == "GetSearchStatusV1":
             # falconpy's uber path-variable map for this one operation lists `search_id` beside

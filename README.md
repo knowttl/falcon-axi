@@ -16,22 +16,27 @@ What is shipped:
 - the package foundation: a Python package, the `falcon-axi` console script, and one offline
   `uv run scripts/verify.py` entry point;
 - the sealed transport and its closed operation registry, with evidence carried per operation, a
-  second enforcement tier confining the one write scope to two named operations, and a single
-  permitted network sink;
+  second and third enforcement tier confining the two write-labelled scopes to three named
+  operations, and a single permitted network sink;
 - credential resolution through the environment or a `0600` credentials file, region selection and
   `X-Cs-Region` autodiscovery, Flight Control member-CID selection, and `auth status`;
 - the read domains: `falcon-axi`, `detection list`, `detection show`, `host list`,
   `host show`, `vuln list`, and `cve show`;
 - NG-SIEM search: `search start`, `search status`, and `search stop`, the three operations captain
-  exception N1 admits and the only place falcon-axi asks for a write scope;
+  exception N1 admits;
+- the Identity Protection directory and timeline: `identity list`, `identity show`, and
+  `identity timeline`, sending only fixed read-only GraphQL query documents under captain exception
+  N2, the other place falcon-axi asks for a write-labelled scope;
 - `falcon-axi scopes`, the command-to-scope matrix, printed from the same operation registry the
   transport enforces and without making a request.
 
 What is **not** shipped yet, so no output advertises it:
 
 - every domain `docs/design/v1.md` §1.3 defers, including intel actors, indicators, and reports,
-  and every NG-SIEM capability outside the three search lifecycle operations: no ingest, no lookup
-  files, no parser or dashboard writes, and no Charlotte AI.
+  every NG-SIEM capability outside the three search lifecycle operations (no ingest, no lookup
+  files, no parser or dashboard writes, and no Charlotte AI), and every Identity Protection capability
+  beyond the directory and timeline: no standalone incident or security-assessment queries, no policy rules,
+  and no GraphQL mutation of any kind.
   `cve show` is the one intel read that ships; there is no `cve list`;
 - `falcon-axi setup`, including the session hook and the generated skill;
 - `--all` and `--max-rows`, and `--fields` on detection and host lists; list pagination takes
@@ -45,32 +50,37 @@ still open. Nothing here answers one of them.
 layout, and packaging: falcon-axi is pure Python on `crowdstrike-falconpy`, with no Node runtime and
 no MCP process anywhere.
 
-## Read-only, with one captain-granted exception
+## Read-only, with two captain-granted exceptions
 
 **falcon-axi v1 changes no state in a Falcon tenant, apart from starting and stopping an NG-SIEM
-search job.**
+search job, and sending fixed read-only queries through a write-labelled Identity Protection scope.**
 It implements no write, create, update, delete, execute, containment, quarantine, release, or
 response operation of any other kind.
 
 This is an architectural invariant, not a default posture.
 It is enforced at the transport layer through a closed registry rather than by convention: every
-registered operation is a read except `StartSearchV1` and `StopSearchV1`, and a second enforcement
-tier confines that exception to those two ids and to the single scope `NGSIEM:write`, so a third
+registered operation is a read except `StartSearchV1` and `StopSearchV1` (captain exception N1) and
+`api_preempt_proxy_post_graphql` (captain exception N2).
+A second enforcement tier confines N1 to those two ids and to the single scope `NGSIEM:write`, and a
+third confines N2 to its one id and the single scope `Identity Protection GraphQL:write`, so another
 write operation cannot be added without editing the allowlist in the transport itself.
 The excluded capability classes are named explicitly in the design.
-See `docs/design/v1.md` §0, §1.5, §3, and §4.3.
+See `docs/design/v1.md` §0, §1.5, §3, §4.3, and §4.4.
+
+**N2 is not general write authority.**
+Falcon scopes the one Identity Protection GraphQL endpoint `WRITE` even for read-only queries, and the
+same endpoint also accepts mutations.
+So falcon-axi never sends GraphQL a caller supplies: the identity commands name one of a closed set
+of registered `query` documents, every caller value travels as a JSON variable and never inside the
+document text, and the network sink refuses any other body.
+There is no `--query` flag, no GraphQL passthrough, and no password reset, account disable, or any
+other action on an identity.
 
 If a task needs containment, a real-time-response session, a detection-status update, NG-SIEM
-ingest, a parser change, or any other change to the tenant, falcon-axi is the wrong tool and will
-not be persuaded otherwise.
+ingest, a parser change, an identity action, or any other change to the tenant, falcon-axi is the
+wrong tool and will not be persuaded otherwise.
 
-The registered operations require `Alerts:read`, `Hosts:read`, `Vulnerabilities:read`,
-`Vulnerabilities (Falcon Intelligence):read`, and `NGSIEM:read`, plus `NGSIEM:write` for
-`search start` and `search stop` alone.
-`Vulnerabilities (Falcon Intelligence):read` is license-gated and is not satisfied by Spotlight's
-`Vulnerabilities:read`.
-Omit `NGSIEM:write` to provision a wholly read-only client: every other command works, and those two
-fail with `SCOPE_DENIED` naming exactly what is missing.
+For credential provisioning and missing-scope behavior, see [API client permissions](#api-client-permissions).
 Whether member-CID token minting additionally requires `Flight Control:read` remains an explicitly
 unresolved question in `docs/design/v1.md` §17.7.
 A falcon-axi release that asks for any other write scope is wrong.
@@ -90,7 +100,7 @@ uvx --from git+https://github.com/knowttl/falcon-axi@v0.2.0 falcon-axi detection
 ```
 
 The pinned tag is the last release; `host list`, `host show`, `vuln list`, `cve show`, `scopes`,
-and the three `search` commands are not in it.
+and the three `search` and three `identity` commands are not in it.
 Install from the default branch to use them before a newer tag exists.
 
 Or install the command once and call it directly:
@@ -147,27 +157,30 @@ unread.
 
 Create the client in the Falcon console under Support and resources > API clients and keys.
 
-| Scope | Access | Why |
-| --- | --- | --- |
-| `Alerts:read` | read | The home view, `detection list`, and `detection show`. |
-| `Hosts:read` | read | `host list` and `host show`. |
-| `Vulnerabilities:read` | read | `vuln list`. |
-| `Vulnerabilities (Falcon Intelligence):read` | read | `cve show`. License-gated; Spotlight's `Vulnerabilities:read` does not satisfy it. |
-| `NGSIEM:read` | read | `search status`. |
-| `NGSIEM:write` | write | `search start` and `search stop` only, under captain exception N1. |
-
-Run `falcon-axi scopes` for the same matrix from the tool itself; it is printed from the operation
-registry the transport enforces, so it cannot drift from what falcon-axi actually calls, and it
-needs no credential.
+Run `falcon-axi scopes` for the authoritative command-to-scope matrix.
+It is projected from the operation and GraphQL document registries the transport enforces and needs no
+credential.
+`cve show` requires the license-gated `Vulnerabilities (Falcon Intelligence):read`, not Spotlight's
+`Vulnerabilities:read`.
 Grant only the scopes for the domains you intend to read: each is independent, and a command whose
 scope is missing fails with `SCOPE_DENIED` naming exactly what to grant.
 
 **Never grant a write, response, containment, Real Time Response, or otherwise mutating scope other
-than `NGSIEM:write`.**
+than `NGSIEM:write` and `Identity Protection GraphQL:write`.**
 falcon-axi requests none of them, would refuse to use one, and a client provisioned with one is the
 wrong client for this tool.
-`NGSIEM:write` is the single exception, it is required by `search start` and `search stop` alone,
-and leaving it ungranted is a supported configuration.
+`NGSIEM:write` and `Identity Protection GraphQL:write` are the two exceptions, each is required by its
+commands alone, and leaving either ungranted is a supported configuration.
+
+The Identity Protection scopes are expected to appear in the console only for a tenant licensed for
+Falcon Identity Protection.
+This console visibility requirement is inferred from other license-gated scopes, not verified for
+Identity Protection.
+To enable the `identity` commands, edit the falcon-axi API client and grant `Identity Protection
+GraphQL` (the console offers write only), `Identity Protection Entities` (read), and `Identity
+Protection Timeline` (read).
+A command missing required permissions answers `SCOPE_DENIED` naming its required scopes; use
+`falcon-axi scopes` for the per-command requirements.
 
 Whether minting a member-CID token additionally requires `Flight Control:read` is an open design
 question (`docs/design/v1.md` §17.7), not a settled requirement.
@@ -206,6 +219,8 @@ NG-SIEM search event CID fields (`cid`, `#repo.cid`) are redacted in output.
 8. `falcon-axi search start --query '<cql>'` - when the question is not one of the domains
    above, ask NG-SIEM directly, then poll with `search status <id>` and cancel with
    `search stop <id>`.
+9. `falcon-axi identity list --name 'Admin*'` - who an account is, how risky it is, and (with
+   `identity show <id>` and `identity timeline <id>`) what it owns and what it did.
 
 ```
 falcon-axi                                          what is firing right now
@@ -227,6 +242,9 @@ falcon-axi cve show CVE-2021-44228               Falcon Intelligence detail for 
 falcon-axi search start --query '#event_simpleName=ProcessRollup2 | head(5)'
 falcon-axi search status 01JABCDEF                  one poll: running, cancelled, or done
 falcon-axi search stop 01JABCDEF                    cancel a job you no longer need
+falcon-axi identity list --name 'Admin*' --type user   Identity Protection users, with risk
+falcon-axi identity show 00000000-0000-0000-0000-000000000001      one identity in full
+falcon-axi identity timeline 00000000-0000-0000-0000-000000000001 --since 24h
 ```
 
 `detection list` takes `--severity` (`informational`, `low`, `medium`, `high`, `critical`),
@@ -270,11 +288,34 @@ the result set in the query itself with `| head(N)` or an aggregate.
 Compare it with the query sent: NG-SIEM demotes an unrecognised word to a free-text stage instead of
 erroring, so a malformed pipe returns the wrong rows silently rather than failing.
 
+### Identity Protection
+
+`identity list` reads the Falcon Identity Protection directory, users and endpoints with their risk
+severity.
+It takes `--name` and `--email` patterns (`*` is a wildcard, a bare `*` is refused), `--domain`,
+`--type user|endpoint`, `--limit` (ceiling 200), and `--cursor`.
+`identity show <id>` prints one identity's risk factors, accounts, associations, and open incidents,
+and `identity timeline <id>` prints its recent activity newest first, from `--since` (default `7d`)
+and narrowed with `--category` (`activity`, `notification`, `threat`, `entity`, `audit`, `policy`,
+`system`; comma-separated).
+An identity id is an entity GUID, as printed by `identity list`.
+For detail bounds and truncation markers, see [the output contract](docs/design/v1.md#102-default-schemas).
+
+These commands are backed by Identity Protection's GraphQL endpoint, not NG-SIEM, and they send only
+fixed, read-only query documents (captain exception N2, above).
+The schema CrowdStrike publishes for it is not public, so the documents follow CrowdStrike's and
+falcon-mcp's own queries; `docs/design/v1.md` §17 records that they are not yet validated against a
+live tenant.
+A GraphQL error reported on an HTTP 200 is an `UPSTREAM_ERROR`, never an empty result.
+
 ## Output and errors
 
 Output is TOON on stdout.
-A list view prints a definitive `count:` line, a compact default four-field schema, and a `help[]` array of
-the next commands, so an empty result is an answer rather than an ambiguous silence.
+A non-empty list view prints a `count:` line, a compact domain-specific schema, and a `help[]` array of
+the next commands.
+Empty results are stated explicitly rather than left as ambiguous silence.
+Identity pages report rows shown without a total; their schemas are defined in
+[the output contract](docs/design/v1.md#102-default-schemas).
 
 ```
 count: 2 of 384 total
@@ -323,15 +364,17 @@ Ask the command rather than guessing its flags.
 
 One call reads one page.
 `--limit N` sets the rows for this call, defaulting to 20, with a ceiling of 10000 on
-`detection list` and 5000 on `host list` and `vuln list`, each the API's own documented maximum.
+`detection list` and 5000 on `host list` and `vuln list`, each the API's own documented maximum, and
+200 on `identity list` and `identity timeline`, which is falcon-mcp's page cap because CrowdStrike
+publishes none for that endpoint.
 A truncated result prints a `continuation_cursor` plus a ready-to-run next-page suggestion that
 replays the same filters.
 Pass it back with `--cursor <token>`.
 
 The cursor is opaque and bound to the credential and the filter that produced it, so it cannot be
 edited, reused across a different query, or shared between tenants.
-It hides the fact that Falcon paginates detections and hosts by offset and vulnerabilities by an
-`after` token: the CLI vocabulary is `--cursor` in all three.
+It hides the fact that Falcon paginates detections and hosts by offset, vulnerabilities by an
+`after` token, and identities by a GraphQL `endCursor`: the CLI vocabulary is `--cursor` in all four.
 `--all` and `--max-rows` do not exist yet: loop on `--cursor` when more than one
 page is genuinely needed.
 Reading past 10000 Alerts results fails with `PAGINATION_LIMIT` and asks for a narrower filter,

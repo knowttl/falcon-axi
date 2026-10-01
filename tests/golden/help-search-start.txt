@@ -11,5 +11,5 @@ Examples:
   falcon-axi search start --query '#event_simpleName=ProcessRollup2 | head(5)'
   falcon-axi search start --query '#event_simpleName=ProcessRollup2 | groupBy([ComputerName], function=count())' --since 7d
 
-This command starts a job on the tenant and requires NGSIEM:write, the one write scope
-falcon-axi asks for. Poll it with `falcon-axi search status <id>`.
+This command starts a job on the tenant and requires NGSIEM:write.
+Poll it with `falcon-axi search status <id>`.

@@ -1,0 +1,16 @@
+{
+  "provenance": {
+    "operation": "api_preempt_proxy_post_graphql",
+    "reference": "https://developer.crowdstrike.com/api-reference/collections/identity-protection/",
+    "schema_read": "2026-10-01",
+    "provenance": "synthetic"
+  },
+  "response": {
+    "status": 403,
+    "headers": {},
+    "body": {
+      "meta": { "trace_id": "synthetic-trace-graphql-scope" },
+      "errors": [{ "code": 403, "message": "access denied, scope not permitted" }]
+    }
+  }
+}

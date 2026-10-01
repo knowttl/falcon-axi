@@ -1,0 +1,37 @@
+{
+  "provenance": {
+    "operation": "api_preempt_proxy_post_graphql",
+    "reference": "https://developer.crowdstrike.com/api-reference/collections/identity-protection/",
+    "schema_read": "2026-10-01",
+    "provenance": "synthetic"
+  },
+  "response": {
+    "status": 200,
+    "headers": { "x-ratelimit-limit": "6000", "x-ratelimit-remaining": "5990" },
+    "body": {
+      "data": {
+        "entities": {
+          "nodes": [
+            {
+              "entityId": "00000000-0000-4000-8000-000000000001",
+              "primaryDisplayName": "Synthetic Admin",
+              "secondaryDisplayName": "synthetic.admin@example.test",
+              "type": "USER",
+              "riskScore": 0.82,
+              "riskScoreSeverity": "HIGH"
+            },
+            {
+              "entityId": "00000000-0000-4000-8000-000000000002",
+              "primaryDisplayName": "SYNTH-DC-01",
+              "secondaryDisplayName": "synth-dc-01.example.test",
+              "type": "ENDPOINT",
+              "riskScore": 0.1,
+              "riskScoreSeverity": "NORMAL"
+            }
+          ],
+          "pageInfo": { "hasNextPage": true, "endCursor": "synthetic-end-cursor-01" }
+        }
+      }
+    }
+  }
+}

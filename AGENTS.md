@@ -4,14 +4,16 @@ This file is the project's committed home for project-intrinsic agent knowledge:
 
 - Add durable project-specific notes here as they are discovered through real work.
 
-## v1 is read-only, with exactly one captain-granted exception
+## v1 is read-only, with exactly two captain-granted exceptions
 
 **falcon-axi v1 changes no state in a Falcon tenant and implements no write, create, update, delete, execute,
 containment, quarantine, release, or response operation, apart from starting and stopping an NG-SIEM search
-job under captain exception N1.**
+job under captain exception N1.
+Captain exception N2 additionally admits the Identity Protection GraphQL write-labelled scope, solely for fixed
+read-only query documents; it is not general write authority.**
 This is a captain-confirmed, binding architectural invariant.
-Relaxing it further is a captain decision, never an agent's; N1 is not a precedent to extend, and if a task
-seems to require any other mutation, stop and escalate.
+Relaxing it further is a captain decision, never an agent's; N1 and N2 are not precedents to extend, and if a
+task seems to require any other mutation, stop and escalate.
 
 Three consequences that catch people out:
 
@@ -24,16 +26,19 @@ Three consequences that catch people out:
   scope, and falcon-mcp's treatment of it as corroboration, or, when falcon-mcp has no tool, falconpy's
   generated endpoint table plus another first-party CrowdStrike SDK (§2.2).
   The transport's operation registry carries that evidence as a required field and the local required-check
-  set asserts it, per tier: a `: READ` doc scope for a read, a `: WRITE` one for the exception.
-- **The exception is closed by an id allowlist, not by discipline.**
+  set asserts it, per tier: a `: READ` doc scope for a read, a `: WRITE` one for each exception.
+- **The exceptions are closed by id allowlists, not by discipline.**
   `SEARCH_LIFECYCLE_IDS` in `falcon_axi/transport/operations.py` is exactly `StartSearchV1` and `StopSearchV1`,
   and registry sealing rejects any other descriptor claiming `effect: "search-lifecycle"`, any scope other than
   `NGSIEM:write` on one, and any `:write` scope on a `read` descriptor.
-  Admitting a third write operation means editing that allowlist, which is the reviewable diff §1.6 demands.
+  `GRAPHQL_QUERY_IDS` is exactly `api_preempt_proxy_post_graphql`, sealed the same way to
+  `Identity Protection GraphQL:write`, and GraphQL text reaches it only as a registered document from
+  `falcon_axi/transport/graphql.py`, never as caller input.
+  Admitting a further write operation means editing those allowlists, which is the reviewable diff §1.6 demands.
 
 See `docs/design/v1.md` §0 (the invariant), §1.5 (excluded capability classes), §2.2 (the two-citation rule),
-§3 (transport enforcement), §4.3 (captain exception N1 and its boundary), §5.7 (provisioning), and §15
-(live-test boundary).
+§3 (transport enforcement), §4.3 and §4.4 (captain exceptions N1 and N2 and their boundaries), §5.7
+(provisioning), and §15 (live-test boundary).
 
 ## The v1 design is authoritative
 
@@ -53,7 +58,8 @@ There is no Node runtime, no MCP process, and no `falcon-mcp` dependency anywher
 The implemented surface includes the package foundation, the sealed transport and its closed registry,
 credential resolution with `auth status`, the read domains (`detection list`, `detection show`,
 `host list`, `host show`, `vuln list`, `cve show`), the NG-SIEM search lifecycle (`search start`, `search status`,
-`search stop`), plus the `scopes` matrix and the home view.
+`search stop`), the Identity Protection GraphQL reads (`identity list`, `identity show`, `identity timeline`),
+plus the `scopes` matrix and the home view.
 The README's status section is the authoritative list of what is shipped and what is deliberately absent, and
 no help text, suggestion, or skill may advertise an unshipped command.
 `uv run scripts/verify.py` is the single local entry point for the complete offline required-check set

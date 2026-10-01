@@ -1,0 +1,67 @@
+{
+  "provenance": {
+    "operation": "api_preempt_proxy_post_graphql",
+    "reference": "https://developer.crowdstrike.com/api-reference/collections/identity-protection/",
+    "schema_read": "2026-10-01",
+    "provenance": "synthetic"
+  },
+  "response": {
+    "status": 200,
+    "headers": { "x-ratelimit-limit": "6000", "x-ratelimit-remaining": "5988" },
+    "body": {
+      "data": {
+        "entities": {
+          "nodes": [
+            {
+              "entityId": "00000000-0000-4000-8000-000000000001",
+              "primaryDisplayName": "Synthetic Admin",
+              "secondaryDisplayName": "synthetic.admin@example.test",
+              "type": "USER",
+              "riskScore": 0.82,
+              "riskScoreSeverity": "HIGH",
+              "riskFactors": [
+                { "type": "WEAK_PASSWORD", "severity": "MEDIUM" },
+                { "type": "STALE_ACCOUNT", "severity": "LOW" }
+              ],
+              "associations": [
+                {
+                  "bindingType": "OWNERSHIP",
+                  "entity": { "entityId": "00000000-0000-4000-8000-000000000002", "primaryDisplayName": "SYNTH-DC-01" }
+                },
+                { "bindingType": "LOCAL_ADMIN", "accountName": "synthetic-local-admin" },
+                { "bindingType": "GEO_LOCATION", "geoLocation": { "country": "Exampleland", "city": "Sampletown" } }
+              ],
+              "openIncidents": {
+                "nodes": [
+                  {
+                    "type": "POTENTIAL_RISKY_ACTIVITY",
+                    "startTime": "2026-09-30T08:00:00Z",
+                    "endTime": null,
+                    "compromisedEntities": [
+                      { "entityId": "00000000-0000-4000-8000-000000000001", "primaryDisplayName": "Synthetic Admin" }
+                    ]
+                  }
+                ],
+                "pageInfo": { "hasNextPage": false }
+              },
+              "accounts": [
+                {
+                  "domain": "EXAMPLE.TEST",
+                  "samAccountName": "synthetic.admin",
+                  "ou": "OU=Synthetic,DC=example,DC=test",
+                  "passwordAttributes": { "lastChange": "2026-06-01T00:00:00Z" },
+                  "expirationTime": null
+                },
+                {
+                  "dataSource": "SYNTHETIC_SSO",
+                  "title": "Synthetic Engineer",
+                  "passwordAttributes": { "lastChange": null }
+                }
+              ]
+            }
+          ]
+        }
+      }
+    }
+  }
+}

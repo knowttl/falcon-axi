@@ -1,0 +1,2 @@
+events: 0 events for this identity in the last 24h
+help[2]: "Run `falcon-axi identity timeline 00000000-0000-4000-8000-000000000001 --since 30d` to widen the window","Run `falcon-axi identity show 00000000-0000-4000-8000-000000000001` to confirm the identity exists"

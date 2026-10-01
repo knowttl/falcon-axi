@@ -1,12 +1,13 @@
 import json
 import re
+import subprocess
 import tomllib
 from pathlib import Path
 
 import pytest
 from toon_format import decode
 
-from falcon_axi.cli import COMMANDS, flag_guard, parse, run
+from falcon_axi.cli import COMMAND_FLAGS, COMMANDS, VALUE_FLAGS, _suggestion_for, flag_guard, parse, run
 from falcon_axi.core import CliError
 from falcon_axi.render import render, truncate
 from falcon_axi.version import VERSION
@@ -30,7 +31,8 @@ def test_an_unknown_command_or_subcommand_fails_before_any_request() -> None:
     assert exit_code == 2
     assert (
         "valid commands: detection list, detection show, host list, host show, vuln list, cve show, "
-        "search start, search status, search stop, auth status, scopes" in stdout
+        "search start, search status, search stop, identity list, identity show, identity timeline, "
+        "auth status, scopes" in stdout
     )
     subcommand, _ = run(["detection", "contain"], recorded, dict(CREDENTIAL_ENV))
     assert "valid detection subcommands: list, show" in subcommand
@@ -74,6 +76,23 @@ def test_profile_is_refused_honestly_rather_than_silently_ignored() -> None:
     assert "profile configuration is not implemented in stage 1" in stdout
 
 
+@pytest.mark.parametrize("command", ["detection list", "host list", "vuln list", "identity list", "identity timeline"])
+def test_continuation_arguments_survive_shell_parsing_and_expansion(command: str) -> None:
+    value = 'O\'Brien * $HOME "quoted" \\ $(printf expanded); &|<> []\n'
+    flags = {name: value for name in ("region", *COMMAND_FLAGS[command]) if name in VALUE_FLAGS and name != "cursor"}
+    positionals = (value,) if command == "identity timeline" else ()
+    suggestion = _suggestion_for(command, flags, positionals)
+    result = subprocess.run(  # noqa: S603
+        ["sh", "-c", f"set -- {suggestion}; printf '%s\\0' \"$@\""],  # noqa: S607
+        capture_output=True,
+        check=True,
+    )
+    arguments = result.stdout.decode().split("\0")[:-1]
+    assert arguments[: 3 + len(positionals)] == ["falcon-axi", *command.split(), *positionals]
+    replayed = arguments[3 + len(positionals) :]
+    assert dict(zip(replayed[::2], replayed[1::2], strict=True)) == {f"--{name}": value for name in flags}
+
+
 def test_member_cid_and_no_member_cid_cannot_be_combined() -> None:
     stdout, exit_code = run(
         ["auth", "status", "--member-cid", "cid", "--no-member-cid"], RecordedTransport([]), dict(CREDENTIAL_ENV)
@@ -94,6 +113,9 @@ def test_help_never_advertises_a_command_the_cli_does_not_have() -> None:
         ["search", "start", "--help"],
         ["search", "status", "--help"],
         ["search", "stop", "--help"],
+        ["identity", "list", "--help"],
+        ["identity", "show", "--help"],
+        ["identity", "timeline", "--help"],
         ["auth", "status", "--help"],
         ["scopes", "--help"],
     )
@@ -107,9 +129,10 @@ def test_help_never_advertises_a_command_the_cli_does_not_have() -> None:
         else:
             assert "--fields" not in stdout, f"{' '.join(argv)} advertises --fields"
     top, _ = run(["--help"], RecordedTransport([]), dict(CREDENTIAL_ENV))
-    # The one write scope is named where an operator will see it, and no mutating command is listed.
-    assert "lists no command that changes a host, a detection, or a policy" in top
+    # The two write-labelled scopes are named where an operator will see them, and no mutating command is listed.
+    assert "lists no command that changes a host, a detection, a policy, or an identity" in top
     assert "NGSIEM:write" in top
+    assert "Identity Protection GraphQL:write" in " ".join(top.split())
     assert VERSION in top
     for command in COMMANDS:
         assert command in top
