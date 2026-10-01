@@ -86,9 +86,8 @@ SUBCOMMANDS: Mapping[str, tuple[str, ...]] = {
     "account": ("list", "show"),
     "vuln": ("list",),
     "cve": ("show",),
-    "identity": ("activity",),
+    "identity": ("activity", "list", "show", "timeline"),
     "search": ("start", "status", "stop"),
-    "identity": ("list", "show", "timeline"),
     "auth": ("status",),
 }
 
@@ -454,7 +453,7 @@ def help_text(command: str) -> str:
                 "Filterable fields include severity_name, status, product, tactic, technique, created_timestamp,",
                 "and device.hostname.",
                 "Identity Protection alerts have no device: their rows show the endpoint they came from as hostname",
-                "(or `n/a`) and add account and product columns when the page holds any.",
+                "(or `n/a`) and add account, account_id, device_id, and product columns when the page holds any.",
                 "Examples:",
                 "  falcon-axi detection list --severity high --since 24h",
                 "  falcon-axi detection list --product idp --since 7d",
@@ -1009,6 +1008,21 @@ def _home_view(transport: Any, flags: Mapping[str, str | bool], env: Mapping[str
     )
 
 
+def _followup_help(output: CommandOutput, flags: Mapping[str, str | bool], member_cid: str | None) -> tuple[str, ...]:
+    suffix = ""
+    region = _str(flags.get("region"))
+    if region:
+        suffix += f" --region {shlex.quote(region)}"
+    for name in ("allow-unknown-origin", "no-member-cid"):
+        if flags.get(name):
+            suffix += f" --{name}"
+    command = re.compile(r"`(falcon-axi [^`]+)`")
+    help = tuple(command.sub(lambda match: f"`{match.group(1)}{suffix}`", item) for item in output.help)
+    if member_cid and any(command.search(item) for item in output.help):
+        help += ("Supply the same tenant selection used for this invocation when following these suggestions",)
+    return help
+
+
 def run(
     argv: Sequence[str],
     transport: Any = None,
@@ -1037,7 +1051,12 @@ def run(
             return render(value, _contextual_help(help, flags)), 0
         resolved = _session(transport, parsed.flags, values)
         output = _read(transport, parsed, resolved)
-        return render(output.value, _contextual_help(output.help, flags)), 0
+        help = output.help
+        if parsed.command in ("detection show", "identity activity", "search start", "search status", "search stop"):
+            help = _followup_help(output, parsed.flags, resolved.session.member_cid)
+        else:
+            help = _contextual_help(help, flags)
+        return render(output.value, help), 0
     except Exception as error:
         known = error if isinstance(error, CliError) else CliError("UNKNOWN", "an unexpected error occurred")
         return (

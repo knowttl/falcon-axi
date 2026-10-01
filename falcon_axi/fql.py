@@ -101,10 +101,10 @@ def _since_term(value: str) -> str:
     return f"created_timestamp:>'{window(value)}'"
 
 
-def _raw_term(value: str) -> str:
+def _raw_term(value: str, *, grouped: bool) -> str:
     if not value.strip():
         raise CliError("VALIDATION_ERROR", "--filter requires a value")
-    return value
+    return f"({value})" if grouped else value
 
 
 def detection_filter(query: DetectionQuery) -> str | None:
@@ -119,7 +119,7 @@ def detection_filter(query: DetectionQuery) -> str | None:
     if query.since is not None:
         terms.append(_since_term(query.since))
     if query.filter is not None:
-        terms.append(_raw_term(query.filter))
+        terms.append(_raw_term(query.filter, grouped=bool(terms)))
     return "+".join(terms) if terms else None
 
 
@@ -154,7 +154,7 @@ def host_filter(query: HostQuery) -> str | None:
     if query.since is not None:
         terms.append(f"last_seen:>'{window(query.since)}'")
     if query.filter is not None:
-        terms.append(_raw_term(query.filter))
+        terms.append(_raw_term(query.filter, grouped=bool(terms)))
     return "+".join(terms) if terms else None
 
 
@@ -191,7 +191,7 @@ def vuln_filter(query: VulnQuery) -> str:
     if query.since is not None:
         terms.append(_since_term(query.since))
     if query.filter is not None:
-        terms.append(_raw_term(query.filter))
+        terms.append(_raw_term(query.filter, grouped=bool(terms)))
     if not terms:
         raise CliError(
             "VALIDATION_ERROR",

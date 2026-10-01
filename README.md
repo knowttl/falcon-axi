@@ -278,7 +278,7 @@ Its rows are recent interactive logins from the Host Timeline, not a full audit 
 directory.
 `--since` takes a relative window such as `30m`, `24h`, or `7d`.
 `--filter` takes raw FQL for that collection, where `+` is AND, `,` is OR, and values are
-single-quoted; it composes with the shorthand flags.
+single-quoted; it is grouped when composed with shorthand flags so those flags constrain every OR branch.
 
 Two domain rules come from the API and are enforced before the request is made:
 `vuln list` requires a filter, from a shorthand flag or `--filter`, and Spotlight filters reject a
@@ -293,9 +293,9 @@ touches a host.
 ### Identity
 
 Identity Protection detections are Alerts with `product:'idp'`, readable under `Alerts:read`.
-They have no device, so a `detection list` page that holds one gains `account` and `product` columns,
-and `hostname` shows the endpoint the alert came from or `n/a`; `detection show` prints `account`,
-`account_id`, `source_ip`, and `product` when present.
+They have no device, so a `detection list` page that holds one gains `account`, `account_id`, `device_id`,
+and `product` columns, and `hostname` shows the source endpoint or `n/a`.
+`detection show` prints the same account, source-endpoint, and product fields when present.
 A page of endpoint alerts is unchanged.
 
 `identity activity <account> [--since 24h]` starts one NG-SIEM search over the account's Active Directory,
@@ -304,6 +304,10 @@ The account is an objectGUID (`account_id` in `detection show`), a sAMAccountNam
 matched in full, ignoring case.
 Anything else is refused before a request is made, because the value becomes part of the query.
 It prints a job id; poll it with `search status <id>` and stop it with `search stop <id>`.
+Detection pivots and search lifecycle suggestions preserve explicit region, unknown-origin opt-in, and
+`--no-member-cid` flags.
+When a child tenant is selected, supply the same tenant selection for every suggested command; its CID is
+never printed in suggestions.
 It is a search under N1, not a new operation: it needs `NGSIEM:write` like `search start`, and nothing else.
 The identity directory (users, risk scores, associations) is not shipped: its only API route is a GraphQL
 endpoint that requires a write scope even to read.

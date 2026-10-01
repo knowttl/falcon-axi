@@ -11,7 +11,7 @@ falcon-axi detection list [--severity <name>] [--status <name>] [--product <name
 Filterable fields include severity_name, status, product, tactic, technique, created_timestamp,
 and device.hostname.
 Identity Protection alerts have no device: their rows show the endpoint they came from as hostname
-(or `n/a`) and add account and product columns when the page holds any.
+(or `n/a`) and add account, account_id, device_id, and product columns when the page holds any.
 Examples:
   falcon-axi detection list --severity high --since 24h
   falcon-axi detection list --product idp --since 7d

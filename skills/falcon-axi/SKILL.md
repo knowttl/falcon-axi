@@ -84,6 +84,7 @@ It requires `Vulnerabilities (Falcon Intelligence):read`, which is license-gated
 Spotlight's `Vulnerabilities:read`.
 `--since` takes a relative window such as `30m`, `24h`, `7d`.
 `--filter` takes raw FQL for that collection, where `+` is AND, `,` is OR, and values are single-quoted.
+A raw filter is grouped when composed with shorthands so those flags constrain every OR branch.
 
 `search start --query` takes CQL, not FQL: it is pipe-based, as in
 `#event_simpleName=ProcessRollup2 | head(5)` or
@@ -99,10 +100,14 @@ The unverified Active Directory account-GUID relationship is recorded in `docs/d
 These commands are backed by Identity Protection's GraphQL endpoint, not NG-SIEM.
 
 Identity Protection detections are `detection list --product idp`.
-They have no device, so their rows add `account` and `product` columns and `hostname` is the source endpoint
-or `n/a`, and `detection show` prints `account`, `account_id`, `source_ip`, and `product`.
+They have no device, so their rows add `account`, `account_id`, `device_id`, and `product` columns and
+`hostname` is the source endpoint or `n/a`.
+`detection show` prints the same account, source-endpoint, and product fields when present.
 To see what that account did, run `falcon-axi identity activity <account_id>`; it starts one NG-SIEM job and
 prints a search id, then follow it with `search status <id>` and `search stop <id>` like any other search.
+Detection pivots and search lifecycle suggestions preserve explicit region, unknown-origin opt-in, and
+`--no-member-cid` flags.
+Supply the same tenant selection when following suggestions for a child tenant; they never print its CID.
 The account is matched in full, ignoring case, and a value that is not a GUID or a plain account name is
 refused.
 
@@ -161,7 +166,7 @@ Nonempty list views print a definitive `count:` line and compact rows, with cont
 Empty results state the answer rather than leaving a silence to re-query.
 Default schemas, including login and account rows, are specified in `docs/design/v1.md` §10.2.
 Identity pages report rows shown without a total.
-A `detection list` page holding an identity alert adds `account` and `product` columns.
+A `detection list` page holding an identity alert adds `account`, `account_id`, `device_id`, and `product` columns.
 `vuln list --fields` appends the selected columns.
 `search status` has no fixed schema, because a CQL result set's columns are whatever the query projected.
 For identity row schemas, counts, and detail truncation, see `docs/design/v1.md` §10.2.

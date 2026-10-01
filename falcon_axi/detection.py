@@ -1,5 +1,6 @@
 """The detections domain: pure functions from arguments to requests and responses to rows."""
 
+import shlex
 from collections.abc import Mapping, Sequence
 from typing import Any
 
@@ -159,8 +160,6 @@ def list_detections(
         return CommandOutput(value={"detections": raw(detections)}, help=empty_help)
 
     alerts = _hydrate_alerts(transport, session, ids)
-    # Identity alerts have no device, so a page holding any gains `account` and `product` columns,
-    # and an identity row without an endpoint reads `-` rather than the EDR placeholder `unknown`.
     with_identity = any(_is_identity(alert) for alert in alerts)
     all_rows = []
     for alert in alerts:
@@ -172,6 +171,8 @@ def list_detections(
         }
         if with_identity:
             row["account"] = _account_of(alert) or "n/a"
+            row["account_id"] = _account_id_of(alert) or "n/a"
+            row["device_id"] = _device_id_of(alert) or "n/a"
             row["product"] = text(alert.get("product")) or "n/a"
         all_rows.append(row)
     shown = all_rows if rows is None else all_rows[:rows]
@@ -224,7 +225,6 @@ def show_detection(transport: Transport, session: Session, id: str, full: bool) 
     device = _device_id_of(alert)
     account = _account_of(alert)
     account_id = _account_id_of(alert)
-    source_ip = text(alert.get("source_endpoint_ip_address"))
     hostname = _hostname_of(alert)
     detail: dict[str, Any] = {
         "id": _id_of(alert),
@@ -236,8 +236,6 @@ def show_detection(transport: Transport, session: Session, id: str, full: bool) 
         detail["hostname"] = hostname or "unknown"
     if device:
         detail["device_id"] = device
-    if source_ip:
-        detail["source_ip"] = source_ip
     if text(alert.get("product")):
         detail["product"] = text(alert.get("product"))
     if account:
@@ -246,7 +244,7 @@ def show_detection(transport: Transport, session: Session, id: str, full: bool) 
         detail["account_id"] = account_id
     pivot = account_id or (account if account and is_account_subject(account) else None)
     if pivot:
-        help.append(f"Run `falcon-axi identity activity {pivot}` to see what this account did")
+        help.append(f"Run `falcon-axi identity activity {shlex.quote(pivot)}` to see what this account did")
     detail["status"] = text(alert.get("status")) or "unknown"
     detail["first_seen"] = text(alert.get("created_timestamp")) or "unknown"
     if rendered is not None:

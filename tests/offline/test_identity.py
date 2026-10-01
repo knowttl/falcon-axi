@@ -629,11 +629,13 @@ def test_identity_rows_show_the_account_product_and_source_endpoint_instead_of_u
     recorded = RecordedTransport([serve("GetQueriesAlertsV2", IDENTITY_QUERY), serve("PostEntitiesAlertsV2", IDENTITY_HYDRATE)])
     stdout, exit_code = run(["detection", "list", "--product", "idp"], recorded, dict(CREDENTIAL_ENV))
     assert exit_code == 0
-    assert re.search(r"^detections\[2\]\{id,severity,tactic,hostname,account,product\}:$", stdout, re.MULTILINE)
+    assert re.search(
+        r"^detections\[2\]\{id,severity,tactic,hostname,account,account_id,device_id,product\}:$", stdout, re.MULTILINE
+    )
     assert "unknown" not in stdout.replace("unknown total", "")
-    assert re.search(r",WIN-WS-07,synthetic\.user,idp$", stdout, re.MULTILINE)
+    assert re.search(rf",WIN-WS-07,synthetic\.user,{GUID},synthetic-agent-07,idp$", stdout, re.MULTILINE)
     # No endpoint on the second alert, and its account falls back to the UPN.
-    assert re.search(r",n/a,synthetic\.svc@example\.test,idp$", stdout, re.MULTILINE)
+    assert re.search(r",n/a,synthetic\.svc@example\.test,n/a,n/a,idp$", stdout, re.MULTILINE)
 
 
 def test_a_page_without_identity_alerts_keeps_the_four_column_schema() -> None:
@@ -655,7 +657,8 @@ def test_detection_show_prints_the_identity_fields_and_suggests_the_activity_piv
     assert exit_code == 0
     assert "hostname: WIN-WS-07" in stdout
     assert "device_id: synthetic-agent-07" in stdout
-    assert "source_ip: 192.0.2.17" in stdout
+    assert "source_ip" not in stdout
+    assert "192.0.2.17" not in stdout
     assert "product: idp" in stdout
     assert "account: synthetic.user" in stdout
     assert f"account_id: {GUID}" in stdout
@@ -670,3 +673,103 @@ def test_detection_show_for_an_identity_alert_with_no_endpoint_omits_hostname() 
     assert "account: synthetic.svc@example.test" in stdout
     # An account name or UPN is a valid subject, so the pivot is offered without a GUID.
     assert "falcon-axi identity activity synthetic.svc@example.test" in stdout
+
+
+@pytest.mark.parametrize("argv", [[], ["detection", "list"]])
+def test_mixed_identity_pages_keep_identifiers_for_both_products(argv: list[str]) -> None:
+    identity = IDENTITY_HYDRATE.body["resources"][0]
+    endpoint = fixture("alerts/hydrate-page.json").body["resources"][0]
+    ids = [identity["composite_id"], endpoint["composite_id"]]
+    recorded = RecordedTransport(
+        [
+            serve("GetQueriesAlertsV2", response(200, {"resources": ids, "meta": {"pagination": {"total": 2}}})),
+            serve("PostEntitiesAlertsV2", response(200, {"resources": [endpoint, identity]})),
+        ]
+    )
+    stdout, exit_code = run(argv, recorded, dict(CREDENTIAL_ENV))
+    assert exit_code == 0
+    rows = [line for line in stdout.splitlines() if line.startswith('  "')]
+    assert f",synthetic.user,{GUID},synthetic-agent-07,idp" in rows[0]
+    assert f",n/a,n/a,{endpoint['device']['device_id']},n/a" in rows[1]
+
+
+@pytest.mark.parametrize("subject", [GUID, "svc$backup", "$svc.backup$"])
+@pytest.mark.parametrize("selection", [["--member-cid", "synthetic-child"], ["--no-member-cid"]])
+def test_activity_pivot_preserves_the_literal_subject_and_invocation_context(subject: str, selection: list[str]) -> None:
+    alert = dict(IDENTITY_HYDRATE.body["resources"][0])
+    alert.pop("source_account_object_guid")
+    if subject == GUID:
+        alert["source_account_object_guid"] = subject
+    else:
+        alert["source_account_name"] = subject
+    recorded = RecordedTransport([serve("PostEntitiesAlertsV2", response(200, {"resources": [alert]})), *STARTED])
+    env = {**CREDENTIAL_ENV, "FALCON_MEMBER_CID": "synthetic-inherited-child"}
+    context = ["--region", "https://synthetic-cloud.example", "--allow-unknown-origin", *selection]
+    stdout, exit_code = run(["detection", "show", alert["composite_id"], *context], recorded, env)
+    assert exit_code == 0
+    command = re.findall(r"`(falcon-axi identity activity [^`]+)`", stdout)[0]
+    assert command.startswith(f"falcon-axi identity activity {shlex.quote(subject)} ")
+    expanded = shlex.split(command)
+    assert expanded[3] == subject
+    if selection[0] == "--member-cid":
+        assert "Supply the same tenant selection" in stdout
+        assert "synthetic-child" not in stdout
+        expanded += selection
+    else:
+        assert "--no-member-cid" in expanded
+    result, exit_code = run(expanded[1:], recorded, env)
+    assert exit_code == 0, result
+    assert recorded.oauth_requests()[0].member_cid == recorded.oauth_requests()[1].member_cid
+    assert recorded.oauth_requests()[0].base_url == recorded.oauth_requests()[1].base_url
+    assert recorded.oauth_requests()[1].allow_unknown_origin is True
+    assert recorded.operation_requests("StartSearchV1")[0].body["queryString"] == activity_query(subject)
+
+
+@pytest.mark.parametrize(
+    ("argv", "operation", "answer"),
+    [
+        (["identity", "activity", GUID], "StartSearchV1", fixture("ngsiem/start-search.json")),
+        (
+            ["search", "start", "--query", "#event_simpleName=ProcessRollup2 | head(1)"],
+            "StartSearchV1",
+            fixture("ngsiem/start-search.json"),
+        ),
+        (
+            ["search", "status", "synthetic-job"],
+            "GetSearchStatusV1",
+            fixture("ngsiem/search-status-running.json"),
+        ),
+        (["search", "status", "synthetic-job"], "GetSearchStatusV1", response(200, {"cancelled": True})),
+        (["search", "stop", "synthetic-job"], "StopSearchV1", fixture("ngsiem/stop-search.json")),
+    ],
+)
+@pytest.mark.parametrize("selection", [["--member-cid", "synthetic-child"], ["--no-member-cid"]])
+def test_search_lifecycle_suggestions_keep_region_and_tenant_selection(argv, operation, answer, selection) -> None:
+    recorded = RecordedTransport(
+        [
+            serve(operation, answer),
+            *STARTED,
+            serve("GetSearchStatusV1", fixture("ngsiem/search-status-running.json")),
+            serve("StopSearchV1", fixture("ngsiem/stop-search.json")),
+        ],
+        oauth=[response(201, fixture("oauth2/token-success.json").body, {"x-cs-region": "us-2"})],
+    )
+    env = {**CREDENTIAL_ENV, "FALCON_MEMBER_CID": "synthetic-inherited-child"}
+    stdout, exit_code = run([*argv, "--region", "us-2", *selection], recorded, env)
+    assert exit_code == 0
+    commands = re.findall(r"`(falcon-axi [^`]+)`", stdout)
+    assert commands
+    for command in commands:
+        followup = shlex.split(command)
+        suffix = ["--region", "us-2"]
+        if selection[0] == "--no-member-cid":
+            suffix += selection
+        assert followup[-len(suffix) :] == suffix
+        if selection[0] == "--member-cid":
+            followup += selection
+        result, exit_code = run(followup[1:], recorded, env)
+        assert exit_code == 0, result
+        assert recorded.oauth_requests()[-1].member_cid == recorded.oauth_requests()[0].member_cid
+        assert recorded.oauth_requests()[-1].base_url == recorded.oauth_requests()[0].base_url
+    assert "synthetic-child" not in stdout
+    assert ("Supply the same tenant selection" in stdout) == (selection[0] == "--member-cid")
