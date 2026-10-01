@@ -136,6 +136,7 @@ SHOW_COMMANDS: Mapping[str, tuple[str, str]] = {
 
 #: The valid-command list every suggestion derives from, so none can name a command that does not exist.
 COMMANDS: tuple[str, ...] = tuple(name for name in COMMAND_FLAGS if name != "home")
+_HELP_COMMAND = re.compile(r"`falcon-axi (?:" + "|".join(re.escape(command) for command in COMMANDS) + r")(?= |`)")
 
 VALUE_FLAGS = frozenset(
     {
@@ -366,10 +367,9 @@ def _identity_query_of(flags: Mapping[str, str | bool]) -> IdentityQuery:
 
 
 def _suggestion_for(command: str, flags: Mapping[str, str | bool], positionals: Sequence[str] = ()) -> str:
-    """Replays every non-sensitive flag of this invocation into a next-page suggestion (§7.2)."""
+    """Replays query-shaping flags into a next-page suggestion (§7.2)."""
     parts = ["falcon-axi", *command.split(), *positionals]
     for name in (
-        "region",
         "filter",
         "hostname",
         "platform",
@@ -388,10 +388,27 @@ def _suggestion_for(command: str, flags: Mapping[str, str | bool], positionals: 
         value = flags.get(name)
         if isinstance(value, str):
             parts.extend((f"--{name}", value))
+    return shlex.join(parts)
+
+
+def _contextual_help(help: Sequence[str], flags: Mapping[str, str | bool]) -> tuple[str, ...]:
+    context = ""
+    region = _str(flags.get("region"))
+    if region is not None:
+        context += f" --region {shlex.quote(region)}"
     for name in ("allow-unknown-origin", "no-member-cid"):
         if flags.get(name):
-            parts.append(f"--{name}")
-    return shlex.join(parts)
+            context += f" --{name}"
+    items: list[str] = []
+    has_command = False
+    for item in help:
+        contextual, count = _HELP_COMMAND.subn(lambda match: f"{match.group(0)}{context}", item, count=1)
+        items.append(contextual)
+        has_command = has_command or bool(count)
+    reminder = "Supply the same tenant selection used for this invocation when continuing"
+    if flags.get("member-cid") and has_command and reminder not in items:
+        items.append(reminder)
+    return tuple(items)
 
 
 def _member_cid_of(flags: Mapping[str, str | bool], env: Mapping[str, str]) -> str | None:
@@ -908,7 +925,10 @@ def _home_view(transport: Any, flags: Mapping[str, str | bool], env: Mapping[str
         resolved = _session(transport, flags, env)
     except Exception as error:
         known = error if isinstance(error, CliError) else CliError("UNKNOWN", "an unexpected error occurred")
-        return render({**head, "error": known.message, "code": known.code, **known.details}, known.help), known.exit_code
+        return (
+            render({**head, "error": known.message, "code": known.code, **known.details}, _contextual_help(known.help, flags)),
+            known.exit_code,
+        )
     head["tenant"] = raw(_tenant_line(resolved.session))
     listed = list_detections(
         transport,
@@ -921,13 +941,16 @@ def _home_view(transport: Any, flags: Mapping[str, str | bool], env: Mapping[str
     return (
         render(
             {**head, **listed.value},
-            [
-                *listed.help,
-                "Run `falcon-axi detection list` to see more detections",
-                "Run `falcon-axi host list --filter \"hostname:'WIN-*'\"` to search hosts",
-                "Run `falcon-axi cve show <CVE-ID>` for Falcon Intelligence on one CVE",
-                "Run `falcon-axi scopes` to see what this API client needs",
-            ],
+            _contextual_help(
+                [
+                    *listed.help,
+                    "Run `falcon-axi detection list` to see more detections",
+                    "Run `falcon-axi host list --filter \"hostname:'WIN-*'\"` to search hosts",
+                    "Run `falcon-axi cve show <CVE-ID>` for Falcon Intelligence on one CVE",
+                    "Run `falcon-axi scopes` to see what this API client needs",
+                ],
+                flags,
+            ),
         ),
         0,
     )
@@ -945,24 +968,29 @@ def run(
         from falcon_axi.transport import http_transport
 
         transport = http_transport
+    flags: Mapping[str, str | bool] = {}
     try:
         parsed = parse(argv)
+        flags = parsed.flags
         if parsed.flags.get("help"):
             return f"{help_text(parsed.command)}\n", 0
         if parsed.command == "home":
             return _home_view(transport, parsed.flags, values, bin or "falcon-axi")
         if parsed.command == "scopes":
             matrix = scope_matrix()
-            return render(matrix.value, matrix.help), 0
+            return render(matrix.value, _contextual_help(matrix.help, flags)), 0
         if parsed.command == "auth status":
             value, help = _auth_status(transport, parsed.flags, values)
-            return render(value, help), 0
+            return render(value, _contextual_help(help, flags)), 0
         resolved = _session(transport, parsed.flags, values)
         output = _read(transport, parsed, resolved)
-        return render(output.value, output.help), 0
+        return render(output.value, _contextual_help(output.help, flags)), 0
     except Exception as error:
         known = error if isinstance(error, CliError) else CliError("UNKNOWN", "an unexpected error occurred")
-        return render({"error": known.message, "code": known.code, **known.details}, known.help), known.exit_code
+        return (
+            render({"error": known.message, "code": known.code, **known.details}, _contextual_help(known.help, flags)),
+            known.exit_code,
+        )
 
 
 def main() -> int:

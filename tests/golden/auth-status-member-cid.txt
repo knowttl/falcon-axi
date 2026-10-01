@@ -3,4 +3,4 @@ credential_channel: environment
 tenant: us-1 member CID …a3b4
 scopes: read scopes, plus NGSIEM:write for `search start` and `search stop`, and Identity Protection GraphQL:write for the `identity` commands, alone
 rate_limit: 5999 of 6000 requests remaining
-help[1]: "Run `falcon-axi detection list` to read detections with this credential"
+help[2]: "Run `falcon-axi detection list` to read detections with this credential","Supply the same tenant selection used for this invocation when continuing"

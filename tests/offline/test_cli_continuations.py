@@ -34,7 +34,7 @@ from tests.support.recorded import CREDENTIAL_ENV, RecordedTransport, fixture, s
                 ("GetQueriesAlertsV2", "alerts/query-page.json"),
                 ("PostEntitiesAlertsV2", "alerts/hydrate-page.json"),
             ],
-            "device.hostname:'synthetic $USER \"host\" \\ name'",
+            "device.hostname:'synthetic $USER \"host\" \\ name `falcon-axi host list`'",
             [],
             2,
         ),
