@@ -35,7 +35,7 @@ What is **not** shipped yet, so no output advertises it:
 - every domain `docs/design/v1.md` §1.3 defers, including intel actors, indicators, and reports,
   every NG-SIEM capability outside the three search lifecycle operations (no ingest, no lookup
   files, no parser or dashboard writes, and no Charlotte AI), and every Identity Protection capability
-  beyond the directory and timeline: no GraphQL incidents or security assessment, no policy rules,
+  beyond the directory and timeline: no standalone incident or security-assessment queries, no policy rules,
   and no GraphQL mutation of any kind.
   `cve show` is the one intel read that ships; there is no `cve list`;
 - `falcon-axi setup`, including the session hook and the generated skill;
@@ -80,15 +80,7 @@ If a task needs containment, a real-time-response session, a detection-status up
 ingest, a parser change, an identity action, or any other change to the tenant, falcon-axi is the
 wrong tool and will not be persuaded otherwise.
 
-The registered operations require `Alerts:read`, `Hosts:read`, `Vulnerabilities:read`,
-`Vulnerabilities (Falcon Intelligence):read`, `NGSIEM:read`, `Identity Protection Entities:read`,
-and `Identity Protection Timeline:read`, plus `NGSIEM:write` for `search start` and `search stop`
-alone and `Identity Protection GraphQL:write` for the three `identity` commands alone.
-`Vulnerabilities (Falcon Intelligence):read` is license-gated and is not satisfied by Spotlight's
-`Vulnerabilities:read`.
-Omit `NGSIEM:write` and those two search commands fail with `SCOPE_DENIED` naming exactly what is
-missing; omit `Identity Protection GraphQL:write` and the `identity` commands do; every other command
-works either way.
+For credential provisioning and missing-scope behavior, see [API client permissions](#api-client-permissions).
 Whether member-CID token minting additionally requires `Flight Control:read` remains an explicitly
 unresolved question in `docs/design/v1.md` §17.7.
 A falcon-axi release that asks for any other write scope is wrong.
@@ -108,7 +100,7 @@ uvx --from git+https://github.com/knowttl/falcon-axi@v0.2.0 falcon-axi detection
 ```
 
 The pinned tag is the last release; `host list`, `host show`, `vuln list`, `cve show`, `scopes`,
-and the three `search` commands are not in it.
+and the three `search` and three `identity` commands are not in it.
 Install from the default branch to use them before a newer tag exists.
 
 Or install the command once and call it directly:
@@ -165,21 +157,11 @@ unread.
 
 Create the client in the Falcon console under Support and resources > API clients and keys.
 
-| Scope | Access | Why |
-| --- | --- | --- |
-| `Alerts:read` | read | The home view, `detection list`, and `detection show`. |
-| `Hosts:read` | read | `host list` and `host show`. |
-| `Vulnerabilities:read` | read | `vuln list`. |
-| `Vulnerabilities (Falcon Intelligence):read` | read | `cve show`. License-gated; Spotlight's `Vulnerabilities:read` does not satisfy it. |
-| `NGSIEM:read` | read | `search status`. |
-| `NGSIEM:write` | write | `search start` and `search stop` only, under captain exception N1. |
-| `Identity Protection GraphQL:write` | write | The three `identity` commands only, under captain exception N2. Falcon requires it even for read-only GraphQL queries. |
-| `Identity Protection Entities:read` | read | `identity list` and `identity show`. |
-| `Identity Protection Timeline:read` | read | `identity timeline`. |
-
-Run `falcon-axi scopes` for the same matrix from the tool itself; it is printed from the operation
-registry the transport enforces, so it cannot drift from what falcon-axi actually calls, and it
-needs no credential.
+Run `falcon-axi scopes` for the authoritative command-to-scope matrix.
+It is projected from the operation and GraphQL document registries the transport enforces and needs no
+credential.
+`cve show` requires the license-gated `Vulnerabilities (Falcon Intelligence):read`, not Spotlight's
+`Vulnerabilities:read`.
 Grant only the scopes for the domains you intend to read: each is independent, and a command whose
 scope is missing fails with `SCOPE_DENIED` naming exactly what to grant.
 
@@ -234,7 +216,7 @@ NG-SIEM search event CID fields (`cid`, `#repo.cid`) are redacted in output.
 8. `falcon-axi search start --query '<cql>'` - when the question is not one of the domains
    above, ask NG-SIEM directly, then poll with `search status <id>` and cancel with
    `search stop <id>`.
-8. `falcon-axi identity list --name 'Admin*'` - who an account is, how risky it is, and (with
+9. `falcon-axi identity list --name 'Admin*'` - who an account is, how risky it is, and (with
    `identity show <id>` and `identity timeline <id>`) what it owns and what it did.
 
 ```
@@ -313,11 +295,8 @@ It takes `--name` and `--email` patterns (`*` is a wildcard, a bare `*` is refus
 and `identity timeline <id>` prints its recent activity newest first, from `--since` (default `7d`)
 and narrowed with `--category` (`activity`, `notification`, `threat`, `entity`, `audit`, `policy`,
 `system`; comma-separated).
-An identity id is an entity GUID, as printed by `identity list`; for an Active Directory user it is
-the account object GUID.
-Open incidents are limited to the first 10; when more exist, the detail reports
-`open_incidents_partial: true` and discloses the cap.
-`--full` expands associations only, not incidents.
+An identity id is an entity GUID, as printed by `identity list`.
+For detail bounds and truncation markers, see [the output contract](docs/design/v1.md#102-default-schemas).
 
 These commands are backed by Identity Protection's GraphQL endpoint, not NG-SIEM, and they send only
 fixed, read-only query documents (captain exception N2, above).
@@ -329,8 +308,11 @@ A GraphQL error reported on an HTTP 200 is an `UPSTREAM_ERROR`, never an empty r
 ## Output and errors
 
 Output is TOON on stdout.
-A list view prints a definitive `count:` line, a compact default four-field schema, and a `help[]` array of
-the next commands, so an empty result is an answer rather than an ambiguous silence.
+A non-empty list view prints a `count:` line, a compact domain-specific schema, and a `help[]` array of
+the next commands.
+Empty results are stated explicitly rather than left as ambiguous silence.
+Identity pages report rows shown without a total; their schemas are defined in
+[the output contract](docs/design/v1.md#102-default-schemas).
 
 ```
 count: 2 of 384 total

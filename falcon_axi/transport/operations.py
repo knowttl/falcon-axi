@@ -4,13 +4,9 @@ The union is closed: adding a member requires both §2.2 citations in the same c
 When falcon-mcp has no tool for the operation, the second citation is falconpy's generated
 endpoint table plus another first-party CrowdStrike SDK, not a missing falcon-mcp row.
 
-Every operation is a read except the two the captain's N1 exception admits: `StartSearchV1` and
-`StopSearchV1` carry `NGSIEM:write`, and the second enforcement tier below is what keeps that
-exception from widening into a general mutation surface (§4.3).
-
-Captain exception N2 adds one more write-labelled scope, `Identity Protection GraphQL:write`, to a
-single operation that falcon-axi uses only for fixed read-only query documents (§4.4). It is the
-third effect, `graphql-query`, and the third enforcement tier below confines it to one id and one scope.
+The read tier admits only read-scoped operations. Captain exceptions N1 and N2 admit the two
+write-labelled effects defined below (docs/design/v1.md §4.3, §4.4); each is confined to its own
+id allowlist and scope, and N2 additionally requires fixed read-only query documents.
 """
 
 import re
@@ -44,7 +40,7 @@ EFFECTS: tuple[str, ...] = get_args(Effect)
 #: a member because it is an ordinary `NGSIEM:read` read of a job falcon-axi already started.
 SEARCH_LIFECYCLE_IDS: frozenset[str] = frozenset({"StartSearchV1", "StopSearchV1"})
 
-#: The one write scope the exception admits. No other write scope is representable.
+#: The one write scope N1 admits; the N2 scope is confined to the separate GraphQL tier.
 SEARCH_LIFECYCLE_SCOPES: tuple[str, ...] = ("NGSIEM:write",)
 
 

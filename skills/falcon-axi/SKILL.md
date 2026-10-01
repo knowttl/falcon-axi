@@ -21,8 +21,8 @@ looking for a flag.
 Invoke it without a global install with
 `uvx --from git+https://github.com/knowttl/falcon-axi@v0.2.0 falcon-axi <command>`.
 If output suggests a `falcon-axi` command, run the equivalent command through that same invocation form.
-The `host`, `vuln`, `cve`, `search`, `identity`, and `scopes` commands are not in that tag, so use the default
-branch instead of `@v0.2.0` until a newer tag exists.
+For commands added after that tag, use the default branch until a newer tag exists.
+See the README's Quick start for agents for release-install guidance.
 
 ## When to use
 
@@ -87,8 +87,8 @@ Its `--since` defaults to `24h` and its `--repository` defaults to `search-all`.
 
 `identity list` takes `--name` and `--email` patterns where `*` is a wildcard and a bare `*` is refused,
 `--domain`, and `--type` (`user` or `endpoint`).
-An identity id is a GUID, as printed by `identity list`; for an Active Directory user it is the account object
-GUID, which an identity detection carries as `source_account_object_guid`.
+An identity id is an entity GUID, as printed by `identity list`.
+The unverified Active Directory account-GUID relationship is recorded in `docs/design/v1.md` §17.15.
 `identity timeline --since` defaults to `7d` and `--category` takes comma-separated `activity`,
 `notification`, `threat`, `entity`, `audit`, `policy`, `system`.
 These commands are backed by Identity Protection's GraphQL endpoint, not NG-SIEM.
@@ -130,25 +130,10 @@ An Alerts v2 composite detection id contains the own-tenant or selected child CI
 `detection show` as printed.
 `FALCON_BASE_URL`, `FALCON_MEMBER_CID`, and `FALCON_AXI_CREDENTIALS_FILE` are also read.
 
-Create the API client in the Falcon console under Support and resources > API clients and keys, with read
-scopes plus only the write-labelled scopes below, and run `falcon-axi scopes` for the matrix from the tool itself:
-
-- `Alerts:read` for the home view, `detection list`, and `detection show`.
-- `Hosts:read` for `host list` and `host show`.
-- `Vulnerabilities:read` for `vuln list`.
-- `Vulnerabilities (Falcon Intelligence):read` for `cve show`. It is license-gated. Spotlight's
-  `Vulnerabilities:read` does not satisfy it. If the scope is missing from the picker, the tenant has no
-  Falcon Intelligence subscription.
-- `NGSIEM:read` for `search status`.
-- `NGSIEM:write` for `search start` and `search stop` only. This is one of the two write-labelled scopes
-  falcon-axi asks for; omit it and those two commands fail with `SCOPE_DENIED`.
-- `Identity Protection Entities:read` for `identity list` and `identity show`, and
-  `Identity Protection Timeline:read` for `identity timeline`.
-- `Identity Protection GraphQL:write` for the three `identity` commands only. This is the other write-labelled
-  scope: Falcon requires it even for read-only GraphQL queries, and falcon-axi sends only its own fixed read
-  queries. Omit it and the `identity` commands fail with `SCOPE_DENIED` naming the scopes to grant; the
-  Identity Protection scopes exist only for a tenant licensed for Falcon Identity Protection.
-- Never grant any other write, response, containment, or Real Time Response scope; falcon-axi requests none.
+Run `falcon-axi scopes` for the authoritative command-to-scope matrix; it needs no credential.
+Follow the README's API client permissions section for provisioning, license-gated scopes, and the two
+write-labelled exceptions.
+Never grant any other write, response, containment, or Real Time Response scope.
 
 Whether `--member-cid` additionally requires `Flight Control:read` is an open design question rather than a
 settled requirement.
@@ -156,15 +141,14 @@ settled requirement.
 ## Output and errors
 
 Output is TOON on stdout.
-A list view prints a definitive `count:` line, a compact default four-field schema -
+Detection, host, and vulnerability lists use compact default four-field schemas -
 `detections[N]{id,severity,tactic,hostname}`, `hosts[N]{device_id,hostname,platform,last_seen}`, or
-`vulnerabilities[N]{id,cve,severity,hostname}` - and a `help[]` array, so an empty result is an answer
-rather than a silence to re-query.
+`vulnerabilities[N]{id,cve,severity,hostname}`.
+Non-empty results include a count and next-step help; empty results are stated explicitly rather than left
+as silence to re-query.
 `vuln list --fields` appends the selected columns.
 `search status` has no fixed schema, because a CQL result set's columns are whatever the query projected.
-`identity list` prints `identities[N]{id,name,secondary,type,risk}` and `identity timeline` prints
-`events[N]{time,type,severity,user,endpoint,ip}`; neither has a total, only `count: N shown` and a
-`continuation_cursor` when more remain.
+For identity row schemas, counts, and detail truncation, see `docs/design/v1.md` §10.2.
 A GraphQL error is an `UPSTREAM_ERROR`, never an empty list.
 Errors are TOON documents on stdout too, carrying a stable `code` such as `AUTH_REQUIRED`, `AUTH_FAILED`,
 `SCOPE_DENIED`, `TENANT_DENIED`, `VALIDATION_ERROR`, `PAGINATION_LIMIT`, or `RATE_LIMITED`, plus actionable

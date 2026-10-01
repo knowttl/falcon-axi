@@ -61,12 +61,13 @@ falconpy's Service Classes cover every Falcon mutation, and the architecture che
 
 ## 3. Transport enforcement in Python (amends v1.md §3.3)
 
-v1.md §3.3 states seven properties of the sealed transport.
+v1.md §3.3 states the properties of the sealed transport.
 They hold in Python as follows.
 
 ### 3.1 The closed registry
 
-`falcon_axi/transport/operations.py` holds the same five descriptors as stage 1, as frozen dataclasses with `effect: Literal["read"]`, the scopes, and the required two-citation `evidence` block.
+`falcon_axi/transport/operations.py` holds the descriptors specified by v1.md §2.1 as frozen dataclasses with a closed `Effect` union and the required two-citation `evidence` block.
+The exception boundaries and GraphQL document contract are owned by v1.md §3.3, §4.3, and §4.4.
 `OperationId` is a `Literal[...]` union, so an unknown ID is a type error at check time and a `READ_ONLY_VIOLATION` at run time, exactly as `operation()` behaves today.
 `MUTATION_ROUTE_PATTERNS` and the `seal()` checks port verbatim.
 Registry growth still requires both citations in the same change (v1.md §2.2).
@@ -129,10 +130,12 @@ falcon_axi/
   render.py                    the TOON boundary; raw lines and help block hand-formatted
   falcon_error.py              Falcon envelope to v1 §9 codes
   detection.py, host.py, vuln.py   pure functions: args to request descriptors, responses to rows
+  identity.py                  directory and timeline commands over registered GraphQL documents
   scopes.py                    the §8.3 command-to-scope matrix, projected from the registry
   transport/
     __init__.py                sealed request() and request_oauth_token(); mints permits
     operations.py              the closed registry with evidence
+    graphql.py                 the closed query-document registry and request-body gate
     harness.py                 the only falconpy import; send_permitted_request
     retry.py                   429 and RetryAfter
     types.py                   Transport protocol, FalconResponse, request args
@@ -293,7 +296,7 @@ Stage 2 and stage 3 both shipped without cutting a tag, so the next release tag 
 `identity list`, `identity show`, `identity timeline` over `api_preempt_proxy_post_graphql` (v1.md §0, §4.4), with `Identity Protection GraphQL:write` and a per-document `:read` scope.
 `falcon_axi/transport/graphql.py` holds the closed document registry, and `RequestArgs` carries a registered document name and variables, never a body, for that one operation.
 `graphql-core` is a dev-only dependency used by the offline suite to parse every registered document.
-The golden set adds the identity scenarios as regression pins, and the scopes-bearing documents changed as v1.md's scenarios comment records.
+The golden set adds the identity scenarios as regression pins, and `tests/golden/scenarios.json` records which existing documents changed and why.
 
 **P4. Setup and delivery surface.**
 `setup` with hook and skill, `--all`, `--max-rows`, `--fields` on detection and host lists, profile configuration, and the opt-in live smoke suite.
