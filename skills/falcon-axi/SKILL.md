@@ -31,7 +31,7 @@ search over NG-SIEM event data when the question is not one of those domains, to
 user or endpoint and its risk, accounts, and activity timeline, and to check whether a Falcon credential
 resolves and into which region and tenant.
 
-`setup` does not exist, and neither do `--all`, `--max-rows`, `--profile`, or `--fields` on detection and host lists.
+`setup` does not exist, and neither do `--all`, `--max-rows`, or `--fields` on detection and host lists.
 Neither does any command for a Falcon domain outside detections, hosts, Discover accounts, Spotlight vulnerabilities, `cve show`,
 NG-SIEM search, and the Identity Protection directory and timeline; there is no `cve list`, no intel actor,
 indicator, or report command, and no ingest, lookup-file, parser, dashboard, Charlotte AI, identity incident,
@@ -138,14 +138,19 @@ is refused because the value reaches a URL path.
 
 ## Credentials and API client permissions
 
-Credentials belong in `FALCON_CLIENT_ID` and `FALCON_CLIENT_SECRET`, or in a `0600` credentials file at
-`~/.config/falcon-axi/credentials`, never on the command line.
+Credentials belong in `FALCON_AXI_CLIENT_ID` and `FALCON_AXI_CLIENT_SECRET`, or in a named AXI profile
+with a `clientSecret` env/file SecretRef, never on the command line.
+Run `falcon-axi config path` for the current config path and `falcon-axi profile list` for configured names.
+Use `--config` and `--profile` to select a configuration explicitly.
+The old dotenv credentials file is refused with `CONFIG_MOVED` when no new config exists.
 Never put a client secret or bearer token in a command, suggestion, fixture, or commit.
 The `--member-cid` flag is allowed for child-tenant selection; do not echo its standalone value in generated
 suggestions, fixtures, or commits.
 An Alerts v2 composite detection id contains the own-tenant or selected child CID and may be passed to
 `detection show` as printed.
-`FALCON_BASE_URL`, `FALCON_MEMBER_CID`, and `FALCON_AXI_CREDENTIALS_FILE` are also read.
+`FALCON_AXI_REGION` and `FALCON_AXI_MEMBER_CID` configure the environment profile.
+`FALCON_BASE_URL` is a deprecated alias for `FALCON_AXI_REGION` for one minor release.
+`FALCON_AXI_READ_ONLY=1` blocks search lifecycle changes.
 
 Run `falcon-axi scopes` for the authoritative command-to-scope matrix; it needs no credential.
 Follow the README's API client permissions section for provisioning, license-gated scopes, and the two

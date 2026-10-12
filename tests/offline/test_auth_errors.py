@@ -28,13 +28,11 @@ def test_auth_status_reports_the_channel_and_region_without_printing_any_value()
     assert "synthetic-access-token" not in stdout
 
 
-def test_auth_status_without_a_credential_reports_the_setup_paths_and_exits_0() -> None:
-    stdout, exit_code = run(
-        ["auth", "status"], RecordedTransport([]), {"FALCON_AXI_CREDENTIALS_FILE": "/nonexistent/credentials"}
-    )
-    assert exit_code == 0
-    assert re.search(r"^credential_resolved: false$", stdout, re.MULTILINE)
-    assert "FALCON_CLIENT_ID" in stdout
+def test_auth_status_without_a_profile_reports_the_setup_paths() -> None:
+    stdout, exit_code = run(["auth", "status"], RecordedTransport([]), {})
+    assert exit_code == 1
+    assert re.search(r"^code: PROFILE_REQUIRED$", stdout, re.MULTILINE)
+    assert "FALCON_AXI_CLIENT_ID" in stdout
 
 
 def test_a_member_cid_is_selected_at_token_mint_and_only_its_masked_suffix_is_printed() -> None:

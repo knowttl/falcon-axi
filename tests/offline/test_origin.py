@@ -48,9 +48,8 @@ def test_allow_unknown_origin_relaxes_only_the_host_allowlist() -> None:
     assert _rejection("https://api.unknown-cloud.example/path", True).details["invalid_component"] == "path"
 
 
-def test_region_precedence_is_flag_then_environment_then_the_default_cloud() -> None:
-    assert resolve_base_url(region="eu-1", env_base_url="https://api.us-2.crowdstrike.com") == REGIONS["eu-1"]
-    assert resolve_base_url(env_base_url="https://api.us-2.crowdstrike.com") == "https://api.us-2.crowdstrike.com"
+def test_selected_region_resolves_by_name_or_url_with_a_default_cloud() -> None:
+    assert resolve_base_url(region="eu-1") == REGIONS["eu-1"]
     assert resolve_base_url() == REGIONS["us-1"]
     assert resolve_base_url(region="https://api.laggar.gcw.crowdstrike.com") == "https://api.laggar.gcw.crowdstrike.com"
     with pytest.raises(CliError) as error:

@@ -22,6 +22,14 @@ def test_the_architecture_boundary_check_passes() -> None:
     assert check() is True
 
 
+def test_architecture_rejects_dynamic_acl_commands(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+    path = tmp_path / "private_file.py"
+    path.write_text((REPO / "falcon_axi/private_file.py").read_text().replace('"powershell.exe"', '"sh"'))
+    monkeypatch.setattr(architecture_check, "PACKAGE", tmp_path)
+    with pytest.raises(AssertionError, match="ACL command must be fixed"):
+        check()
+
+
 def test_the_sink_refuses_a_prepared_request_without_a_valid_permit() -> None:
     for forged in (object(), None, mint_permit().__class__()):
         with pytest.raises(CliError) as error:
@@ -79,7 +87,9 @@ def test_architecture_rejects_other_automation(relative: str, tmp_path: Path, mo
         check()
 
 
-@pytest.mark.parametrize("name", ["FALCON_AXI_LIVE", "FALCON_CLIENT_ID", "FALCON_CLIENT_SECRET"])
+@pytest.mark.parametrize(
+    "name", ["FALCON_AXI_LIVE", "FALCON_CLIENT_ID", "FALCON_CLIENT_SECRET", "FALCON_AXI_CLIENT_ID", "FALCON_AXI_CLIENT_SECRET"]
+)
 def test_architecture_rejects_live_variables_in_ci(name: str, tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     workflow = tmp_path / ".github/workflows/ci.yml"
     workflow.parent.mkdir(parents=True)

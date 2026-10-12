@@ -18,10 +18,13 @@ Commands:
   identity show <id>        one identity's risk, accounts, associations, and open incidents
   identity timeline <id>    one identity's recent activity
   auth status               whether a credential resolved, and where to
+  profile list              configured profile names, without reading secrets
+  config path               config and write-journal paths
   scopes                    the command-to-scope matrix, with no request made
 
 Global flags:
   --help, --region <name|url>, --allow-unknown-origin, --member-cid <cid>, --no-member-cid
+  --config <path>, --profile <name>
 
 Regions: us-1, us-2, eu-1, us-gov-1
 

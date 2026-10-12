@@ -4,6 +4,8 @@ import re
 from collections.abc import Mapping, Sequence
 from typing import Any, NamedTuple
 
+from falcon_axi.redaction import redact_text
+
 #: Keys redacted on every stream. The first five match falconpy's `sanitize_dictionary` (§5.5).
 #: `cid` and `#repo.cid` are NG-SIEM event fields that carry the tenant CID.
 REDACTED_KEYS = frozenset(
@@ -16,6 +18,11 @@ REDACTED_KEYS = frozenset(
         "authorization",
         "cid",
         "#repo.cid",
+        "clientsecret",
+        "clientid",
+        "membercid",
+        "refresh_token",
+        "privatekey",
     }
 )
 
@@ -32,10 +39,22 @@ def raw(text: str) -> Raw:
 
 def redact(value: Any) -> Any:
     if isinstance(value, Mapping):
-        return {key: "[redacted]" if str(key).lower() in REDACTED_KEYS else redact(entry) for key, entry in value.items()}
+        return {
+            redact_text(str(key)): "[redacted]" if str(key).lower() in REDACTED_KEYS else redact(entry)
+            for key, entry in value.items()
+        }
     if isinstance(value, (list, tuple)):
         return [redact(entry) for entry in value]
+    if isinstance(value, str):
+        return _SECRET_PATTERN.sub("[redacted]", redact_text(value))
     return value
+
+
+_SECRET_PATTERN = re.compile(
+    r"-----BEGIN [A-Z ]*PRIVATE KEY-----[\s\S]*?-----END [A-Z ]*PRIVATE KEY-----"
+    r"|\beyJ[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+"
+    r"|(?i:AccountKey=)[^;\s]+|(?i:sig=)[A-Za-z0-9%+/=]+"
+)
 
 
 def mask_cid(cid: str) -> str:
@@ -59,7 +78,7 @@ def _escape(value: str) -> str:
 def _help_block(help: Sequence[str]) -> str:
     if not help:
         return ""
-    items = ",".join(f'"{_escape(item)}"' for item in help)
+    items = ",".join(f'"{_escape(redact_text(item))}"' for item in help)
     return f"help[{len(help)}]: {items}\n"
 
 

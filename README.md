@@ -18,8 +18,8 @@ What is shipped:
 - the sealed transport and its closed operation registry, with evidence carried per operation, a
   second and third enforcement tier confining the two write-labelled scopes to three named
   operations, and a single permitted network sink;
-- credential resolution through the environment or a `0600` credentials file, region selection and
-  `X-Cs-Region` autodiscovery, Flight Control member-CID selection, and `auth status`;
+- AXI credential profiles and SecretRefs, per-call XDG paths, region selection and
+  `X-Cs-Region` autodiscovery, Flight Control member-CID selection, `auth status`, `profile list`, and `config path`;
 - the home view and five read domains: `falcon-axi`, `detection list`, `detection show`, `host list`,
   `host show`, `host logins`, `account list`, `account show`, `vuln list`, and `cve show`;
 - NG-SIEM search: `search start`, `search status`, and `search stop`, the three operations captain
@@ -44,8 +44,6 @@ What is **not** shipped yet, so no output advertises it:
 - `falcon-axi setup`, including the session hook and the generated skill;
 - `--all` and `--max-rows`, and `--fields` on detection and host lists; list pagination takes
   `--limit` and `--cursor` only;
-- profile configuration in `~/.config/falcon-axi/config.json`; `--profile` is refused by name rather
-  than silently ignored.
 
 `docs/design/v1.md` remains the authority for the full v1 surface, and its §17 open questions are
 still open. Nothing here answers one of them.
@@ -125,34 +123,75 @@ bare `falcon-axi` name, so run the equivalent command through whichever invocati
 ## Credentials
 
 Provision an API client as described in [API client permissions](#api-client-permissions).
-Supply it through one of the two accepted channels:
+Supply it using the [AXI credential standard](https://github.com/knowttl/artium-axi/blob/main/docs/credential-standard.md).
+For an environment profile:
 
 ```sh
-export FALCON_CLIENT_ID=...
-export FALCON_CLIENT_SECRET=...
+export FALCON_AXI_CLIENT_ID=...
+export FALCON_AXI_CLIENT_SECRET=...
 ```
 
-```sh
-mkdir -p ~/.config/falcon-axi
-install -m 0600 /dev/null ~/.config/falcon-axi/credentials
-printf 'FALCON_CLIENT_ID=%s\nFALCON_CLIENT_SECRET=%s\n' "$id" "$secret" > ~/.config/falcon-axi/credentials
+Or create `config.json` in `$XDG_CONFIG_HOME/falcon-axi/` (absolute XDG paths only),
+falling back to `~/.config/falcon-axi/` on Linux/macOS.
+Windows uses `%APPDATA%\falcon-axi\` and ignores XDG variables.
+Paths are resolved on every invocation.
+
+```json
+{
+  "version": 1,
+  "defaultProfile": "production",
+  "profiles": {
+    "production": {
+      "region": "us-1",
+      "clientId": "<client-id>",
+      "clientSecret": {"env": "FALCON_AXI_CLIENT_SECRET"}
+    }
+  }
+}
 ```
 
 **No secret is ever accepted as a command-line argument**, and a flag whose name looks like a secret
 is rejected at registration rather than at runtime.
-The environment wins over the file, and a half-configured environment fails with
-`CREDENTIAL_INCOMPLETE` rather than silently falling through to the file and selecting the wrong
-identity.
-The credentials file must be a regular file owned by the caller with mode `0600`, or it is refused
-unread.
+`clientSecret` accepts `{"env":"NAME"}` or `{"file":"/absolute/local/path"}`.
+Omitting it defaults to `FALCON_AXI_CLIENT_SECRET`; inline secrets and stored references are rejected.
+File contents are UTF-8 with a leading BOM and trailing whitespace removed.
+On POSIX, config files must be owned by the caller, regular, and not group/world writable;
+secret files must have no group/world permissions (0400 and 0600 both work).
+On Windows, reads reject reparse points, including symlinks and junctions;
+`auth status` additionally verifies a protected DACL granting FullControl only to the current user, SYSTEM, and Administrators.
+No file-writing command or persistent token cache exists.
+
+Selection order is `--profile`, `FALCON_AXI_PROFILE`, a complete environment profile,
+`defaultProfile`, then the only configured profile.
+A partial environment profile fails with `CONFIG_INVALID`.
+Selected file profiles ignore environment profile fields, except variables explicitly named by SecretRefs.
+`--region`, `--member-cid`, and `--no-member-cid` override selected profile fields.
+Unknown keys and invalid profile names are rejected.
+`profile list` lists names without resolving secrets; `config path` reports paths.
+The packaged `falcon_axi/axi-credential.schema.json` describes one profile for hosts.
+
+The old dotenv credentials file is never read.
+If it exists and the new config does not, `CONFIG_MOVED` names both paths and the new format.
+Vendor-native `FALCON_CLIENT_ID`, `FALCON_CLIENT_SECRET`, `FALCON_MEMBER_CID`, `FALCON_BASE_URL`,
+and `FALCON_PROXY_URL` remain deprecated aliases for one minor release, with a stderr notice.
+`FALCON_BASE_URL` aliases `FALCON_AXI_REGION`; the other replacements insert `_AXI` after `FALCON`.
+The new variable wins when both are set.
 
 | Variable | Meaning |
 | --- | --- |
-| `FALCON_CLIENT_ID` | API client id |
-| `FALCON_CLIENT_SECRET` | API client secret |
-| `FALCON_BASE_URL` | Falcon cloud base URL, instead of `--region` |
-| `FALCON_MEMBER_CID` | Flight Control child tenant to read, instead of `--member-cid` |
-| `FALCON_AXI_CREDENTIALS_FILE` | Credentials file path, default `~/.config/falcon-axi/credentials` |
+| `FALCON_AXI_CLIENT_ID` | Environment profile API client id |
+| `FALCON_AXI_CLIENT_SECRET` | Environment profile secret, or the default SecretRef |
+| `FALCON_AXI_REGION` | Environment profile region name or URL |
+| `FALCON_AXI_MEMBER_CID` | Environment profile Flight Control child tenant |
+| `FALCON_AXI_PROXY_URL` | HTTPS proxy URL |
+| `FALCON_AXI_CONFIG` | Config path; `--config` takes precedence |
+| `FALCON_AXI_PROFILE` | Selected profile; `--profile` takes precedence |
+| `FALCON_AXI_READ_ONLY` | `1`/`true` blocks search start/stop and identity activity; `0`/`false` allows the existing exceptions |
+| `FALCON_AXI_WRITE_LOG` | Journal path reported by `config path`; no journal is written |
+
+The default journal path is `$XDG_STATE_HOME/falcon-axi/writes.log`, or
+`~/.local/state/falcon-axi/writes.log`; Windows uses `%LOCALAPPDATA%\falcon-axi\writes.log`.
+Invalid boolean values fail closed with `CONFIG_INVALID`.
 
 ## API client permissions
 
@@ -201,7 +240,7 @@ An origin outside the trusted Falcon hosts is refused as `ORIGIN_NOT_ALLOWED` un
 `--allow-unknown-origin` is passed deliberately.
 
 `--member-cid <cid>` reads one Flight Control child tenant for that invocation, and
-`--no-member-cid` clears an inherited `FALCON_MEMBER_CID`.
+`--no-member-cid` clears the selected profile's inherited member CID.
 The two cannot be combined.
 A standalone member-CID value is sensitive: auth status, suggestions, URLs, and logs mask it or do not print it.
 The `--member-cid` flag remains available for child-tenant selection, but its value is never echoed into output.
@@ -209,11 +248,8 @@ Alerts v2 composite detection ids contain the own-tenant or selected child CID a
 when passed to `detection show`.
 NG-SIEM search event CID fields (`cid`, `#repo.cid`) are redacted in output.
 
-Suggestions from successful authenticated commands preserve explicit region, unknown-origin opt-in, and
-`--no-member-cid` flags exactly once.
-When a child tenant is selected, supply the same tenant selection for every suggested command; its CID is
-never printed in suggestions.
-The detailed suggestion-context contract is in [`docs/design/v1.md` §7.2](docs/design/v1.md#72-what-the-cli-exposes).
+Suggestions preserve invocation context as specified in
+[`docs/design/v1.md` §7.2](docs/design/v1.md#72-what-the-cli-exposes).
 
 ## Workflow
 
@@ -389,9 +425,10 @@ help[2]: "The API client has no scopes granted, or is disabled","Grant `Alerts:r
 ```
 
 Exit codes distinguish the caller's mistake from the run's failure: `0` on success, `2` for usage
-errors (`VALIDATION_ERROR`, `CREDENTIAL_INCOMPLETE`, `FQL_INVALID`), and `1` for every other
+errors (`VALIDATION_ERROR`, `CONFIG_INVALID`, `FQL_INVALID`), and `1` for every other
 failure.
-The stable codes are `VALIDATION_ERROR`, `CREDENTIAL_INCOMPLETE`, `FQL_INVALID`, `AUTH_REQUIRED`,
+The stable codes are `VALIDATION_ERROR`, `CONFIG_INVALID`, `CONFIG_INSECURE`, `CONFIG_MOVED`,
+`PROFILE_REQUIRED`, `PROFILE_AMBIGUOUS`, `PROFILE_NOT_FOUND`, `FQL_INVALID`, `AUTH_REQUIRED`,
 `AUTH_FAILED`, `SCOPE_DENIED`, `TENANT_DENIED`, `ORIGIN_NOT_ALLOWED`, `REGION_MISMATCH`, `NOT_FOUND`,
 `PAGINATION_LIMIT`, `RATE_LIMITED`, `UPSTREAM_ERROR`, `UPSTREAM_UNAVAILABLE`, `NETWORK_UNREACHABLE`,
 `TLS_UNTRUSTED`, `READ_ONLY_VIOLATION`, and `UNKNOWN`.

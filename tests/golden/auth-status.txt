@@ -1,5 +1,8 @@
 credential_resolved: true
 credential_channel: environment
+profile: env
+endpoint: "https://api.crowdstrike.com"
+client_secret_source: "env:FALCON_CLIENT_SECRET"
 tenant: us-1 (own CID unavailable)
 scopes: read scopes, plus NGSIEM:write for `search start`, `search stop`, and `identity activity`, and Identity Protection GraphQL:write for `identity list`, `identity show`, and `identity timeline`, alone
 rate_limit: 5999 of 6000 requests remaining

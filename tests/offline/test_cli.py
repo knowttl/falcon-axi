@@ -32,7 +32,7 @@ def test_an_unknown_command_or_subcommand_fails_before_any_request() -> None:
     assert (
         "valid commands: detection list, detection show, host list, host show, host logins, account list, "
         "account show, vuln list, cve show, identity activity, search start, search status, search stop, identity list, "
-        "identity show, identity timeline, auth status, scopes" in stdout
+        "identity show, identity timeline, auth status, profile list, config path, scopes" in stdout
     )
     subcommand, _ = run(["detection", "contain"], recorded, dict(CREDENTIAL_ENV))
     assert "valid detection subcommands: list, show" in subcommand
@@ -70,10 +70,10 @@ def test_limit_above_the_documented_ceiling_is_a_validation_error_naming_it() ->
         assert "--limit must be an integer from 1 to 5000" in capped
 
 
-def test_profile_is_refused_honestly_rather_than_silently_ignored() -> None:
+def test_unknown_profile_is_refused_rather_than_silently_ignored() -> None:
     stdout, exit_code = run(["detection", "list", "--profile", "prod"], RecordedTransport([]), dict(CREDENTIAL_ENV))
-    assert exit_code == 2
-    assert "profile configuration is not implemented in stage 1" in stdout
+    assert exit_code == 1
+    assert "PROFILE_NOT_FOUND" in stdout
 
 
 @pytest.mark.parametrize(
