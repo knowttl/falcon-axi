@@ -7,6 +7,7 @@ import pytest
 from falcon_axi.core import CliError
 from falcon_axi.credentials import resolve_credential
 
+
 def test_both_environment_variables_resolve_as_one_atomic_pair() -> None:
     credential = resolve_credential({"FALCON_CLIENT_ID": "id", "FALCON_CLIENT_SECRET": "secret"})
     assert credential is not None

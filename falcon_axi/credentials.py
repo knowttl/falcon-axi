@@ -21,7 +21,7 @@ ALIASES = {
     "FALCON_CLIENT_ID": "FALCON_AXI_CLIENT_ID",
     "FALCON_CLIENT_SECRET": "FALCON_AXI_CLIENT_SECRET",
     "FALCON_MEMBER_CID": "FALCON_AXI_MEMBER_CID",
-    "FALCON_BASE_URL": "FALCON_AXI_BASE_URL",
+    "FALCON_BASE_URL": "FALCON_AXI_REGION",
     "FALCON_PROXY_URL": "FALCON_AXI_PROXY_URL",
 }
 
@@ -192,7 +192,7 @@ def resolve_credential(
                 client_id,
                 secret,
                 "environment",
-                region=values.get("FALCON_AXI_REGION") or values.get("FALCON_AXI_BASE_URL"),
+                region=values.get("FALCON_AXI_REGION"),
                 member_cid=values.get("FALCON_AXI_MEMBER_CID"),
                 secret_source=f"env:{_source_name('FALCON_AXI_CLIENT_SECRET', original)}",
             )

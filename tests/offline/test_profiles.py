@@ -64,6 +64,7 @@ def test_explicit_profile_ignores_env_fields_and_partial_env(profiles: dict[str,
             "FALCON_AXI_PROFILE": "two",
             "FALCON_AXI_CLIENT_ID": "other",
             "FALCON_AXI_REGION": "eu-1",
+            "FALCON_BASE_URL": "https://api.eu-1.crowdstrike.com",
             "FALCON_AXI_MEMBER_CID": "other",
         },
         profile="one",
@@ -102,18 +103,13 @@ def test_env_auth_ignores_malformed_unused_config(command: list[str], config_sou
 
 @pytest.mark.parametrize("command", [[], ["auth", "status"], ["detection", "list"], ["profile", "list"]])
 @pytest.mark.parametrize("env_profile", [False, True])
-def test_fixed_legacy_path_cannot_be_hidden_by_obsolete_override(
-    command: list[str], env_profile: bool, tmp_path: Path
-) -> None:
+def test_fixed_legacy_path_requires_migration(command: list[str], env_profile: bool, tmp_path: Path) -> None:
     legacy = Path.home() / ".config/falcon-axi/credentials"
     legacy.parent.mkdir(parents=True)
     legacy.write_text("FALCON_CLIENT_SECRET=legacy-secret")
     legacy.chmod(0o000)
     config = tmp_path / "absent.json"
-    values = {
-        "FALCON_AXI_CONFIG": str(config),
-        "FALCON_AXI_CREDENTIALS_FILE": str(tmp_path / "absent-credentials"),
-    }
+    values = {"FALCON_AXI_CONFIG": str(config)}
     if env_profile:
         values.update(FALCON_AXI_CLIENT_ID="env-id", FALCON_AXI_CLIENT_SECRET="env-secret")
     recorded = RecordedTransport([])
@@ -148,6 +144,30 @@ def test_env_aliases_warn_and_new_name_wins(capsys: pytest.CaptureFixture[str]) 
     notice = capsys.readouterr().err
     assert "FALCON_CLIENT_ID is deprecated; use FALCON_AXI_CLIENT_ID" in notice
     assert "old-secret" not in notice
+
+
+@pytest.mark.parametrize(
+    "region,flags,expected",
+    [
+        ({}, [], "https://api.us-2.crowdstrike.com"),
+        ({"FALCON_AXI_REGION": "eu-1"}, [], "https://api.eu-1.crowdstrike.com"),
+        ({"FALCON_AXI_REGION": "eu-1"}, ["--region", "us-1"], "https://api.crowdstrike.com"),
+    ],
+)
+def test_deprecated_base_url_alias_uses_region_precedence(
+    region: dict[str, str], flags: list[str], expected: str, capsys: pytest.CaptureFixture[str]
+) -> None:
+    values = {
+        "FALCON_AXI_CLIENT_ID": "env-id",
+        "FALCON_AXI_CLIENT_SECRET": "env-secret",
+        "FALCON_BASE_URL": "https://api.us-2.crowdstrike.com",
+        **region,
+    }
+    recorded = RecordedTransport([])
+    _, code = run(["auth", "status", *flags], recorded, values)
+    assert code == 0
+    assert recorded.oauth_requests()[0].base_url == expected
+    assert "FALCON_BASE_URL is deprecated; use FALCON_AXI_REGION" in capsys.readouterr().err
 
 
 def test_secret_ref_can_name_an_alias_explicitly(profiles: dict[str, str]) -> None:

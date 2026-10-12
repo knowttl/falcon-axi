@@ -148,7 +148,8 @@ The `--member-cid` flag is allowed for child-tenant selection; do not echo its s
 suggestions, fixtures, or commits.
 An Alerts v2 composite detection id contains the own-tenant or selected child CID and may be passed to
 `detection show` as printed.
-`FALCON_AXI_REGION`, `FALCON_AXI_BASE_URL`, and `FALCON_AXI_MEMBER_CID` configure the environment profile.
+`FALCON_AXI_REGION` and `FALCON_AXI_MEMBER_CID` configure the environment profile.
+`FALCON_BASE_URL` is a deprecated alias for `FALCON_AXI_REGION` for one minor release.
 `FALCON_AXI_READ_ONLY=1` blocks search lifecycle changes.
 
 Run `falcon-axi scopes` for the authoritative command-to-scope matrix; it needs no credential.

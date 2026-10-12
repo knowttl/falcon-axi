@@ -174,6 +174,7 @@ The old dotenv credentials file is never read.
 If it exists and the new config does not, `CONFIG_MOVED` names both paths and the new format.
 Vendor-native `FALCON_CLIENT_ID`, `FALCON_CLIENT_SECRET`, `FALCON_MEMBER_CID`, `FALCON_BASE_URL`,
 and `FALCON_PROXY_URL` remain deprecated aliases for one minor release, with a stderr notice.
+`FALCON_BASE_URL` aliases `FALCON_AXI_REGION`; the other replacements insert `_AXI` after `FALCON`.
 The new variable wins when both are set.
 
 | Variable | Meaning |
@@ -181,7 +182,6 @@ The new variable wins when both are set.
 | `FALCON_AXI_CLIENT_ID` | Environment profile API client id |
 | `FALCON_AXI_CLIENT_SECRET` | Environment profile secret, or the default SecretRef |
 | `FALCON_AXI_REGION` | Environment profile region name or URL |
-| `FALCON_AXI_BASE_URL` | Environment profile base URL when REGION is unset |
 | `FALCON_AXI_MEMBER_CID` | Environment profile Flight Control child tenant |
 | `FALCON_AXI_PROXY_URL` | HTTPS proxy URL |
 | `FALCON_AXI_CONFIG` | Config path; `--config` takes precedence |
