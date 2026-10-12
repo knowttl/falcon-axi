@@ -23,7 +23,13 @@ PROCESS_MODULES = {"subprocess", "multiprocessing", "pty"}
 NETWORK_REFERENCE = re.compile(r"\.command\s*\(|requests\.\w+\s*\(|urlopen\s*\(")
 AUTOMATION_PATHS = (".gitlab-ci.yml", ".circleci", "azure-pipelines.yml", "Jenkinsfile")
 WORKFLOW_DIRECTORY = ".github/workflows"
-CREDENTIAL_NAMES = ("FALCON_AXI_LIVE", "FALCON_CLIENT_ID", "FALCON_CLIENT_SECRET")
+CREDENTIAL_NAMES = (
+    "FALCON_AXI_LIVE",
+    "FALCON_CLIENT_ID",
+    "FALCON_CLIENT_SECRET",
+    "FALCON_AXI_CLIENT_ID",
+    "FALCON_AXI_CLIENT_SECRET",
+)
 
 
 def _sources() -> list[Path]:
@@ -57,8 +63,56 @@ def check() -> bool:
         tree = ast.parse(text)
         imported = _imported_modules(tree)
         forbidden = {module for module in imported if module.split(".")[0] in PROCESS_MODULES}
-        if forbidden:
+        if forbidden and path != PACKAGE / "private_file.py":
             raise AssertionError(f"process execution is forbidden: {path} imports {', '.join(sorted(forbidden))}")
+        if path == PACKAGE / "private_file.py":
+            process_imports = [
+                node
+                for node in ast.walk(tree)
+                if isinstance(node, (ast.Import, ast.ImportFrom))
+                and any(name.split(".")[0] in PROCESS_MODULES for name in _imported_modules(node))
+            ]
+            if (
+                len(process_imports) != 1
+                or not isinstance(process_imports[0], ast.Import)
+                or [(alias.name, alias.asname) for alias in process_imports[0].names] != [("subprocess", None)]
+            ):
+                raise AssertionError("private file checks may import only subprocess without aliases")
+            scripts = [
+                node.value
+                for node in tree.body
+                if isinstance(node, ast.Assign)
+                and any(isinstance(target, ast.Name) and target.id == "ACL_SCRIPT" for target in node.targets)
+            ]
+            if len(scripts) != 1 or not isinstance(scripts[0], ast.Constant) or not isinstance(scripts[0].value, str):
+                raise AssertionError("the ACL diagnostic must be a literal script")
+            calls = [
+                node
+                for node in ast.walk(tree)
+                if isinstance(node, ast.Call)
+                and isinstance(node.func, ast.Attribute)
+                and isinstance(node.func.value, ast.Name)
+                and node.func.value.id == "subprocess"
+            ]
+            runs = [node for node in calls if isinstance(node.func, ast.Attribute) and node.func.attr == "run"]
+            if len(runs) != 1 or any(
+                isinstance(node.func, ast.Attribute) and node.func.attr not in {"run", "TimeoutExpired"} for node in calls
+            ):
+                raise AssertionError("private file checks permit only one fixed PowerShell invocation")
+            args = runs[0].args[0]
+            if (
+                not isinstance(args, ast.List)
+                or [ast.literal_eval(item) for item in args.elts[:-1]]
+                != [
+                    "powershell.exe",
+                    "-NoProfile",
+                    "-NonInteractive",
+                    "-Command",
+                ]
+                or not isinstance(args.elts[-1], ast.Name)
+                or args.elts[-1].id != "ACL_SCRIPT"
+            ):
+                raise AssertionError("private file ACL command must be fixed")
         if path == NETWORK_SINK:
             # falconpy's command() accepts every Falcon operation id, mutating ones included, so
             # exactly one name may be imported from it, and only this function may call it.

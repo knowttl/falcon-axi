@@ -4,8 +4,13 @@ from collections.abc import Mapping, Sequence
 from typing import Any, Literal
 
 ErrorCode = Literal[
+    "CONFIG_INVALID",
+    "CONFIG_INSECURE",
+    "CONFIG_MOVED",
+    "PROFILE_REQUIRED",
+    "PROFILE_AMBIGUOUS",
+    "PROFILE_NOT_FOUND",
     "VALIDATION_ERROR",
-    "CREDENTIAL_INCOMPLETE",
     "FQL_INVALID",
     "AUTH_REQUIRED",
     "AUTH_FAILED",
@@ -24,7 +29,7 @@ ErrorCode = Literal[
     "UNKNOWN",
 ]
 
-USAGE_CODES: frozenset[str] = frozenset({"VALIDATION_ERROR", "CREDENTIAL_INCOMPLETE", "FQL_INVALID"})
+USAGE_CODES: frozenset[str] = frozenset({"VALIDATION_ERROR", "FQL_INVALID", "CONFIG_INVALID"})
 
 
 class CliError(Exception):

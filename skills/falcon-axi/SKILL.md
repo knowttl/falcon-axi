@@ -138,14 +138,18 @@ is refused because the value reaches a URL path.
 
 ## Credentials and API client permissions
 
-Credentials belong in `FALCON_CLIENT_ID` and `FALCON_CLIENT_SECRET`, or in a `0600` credentials file at
-`~/.config/falcon-axi/credentials`, never on the command line.
+Credentials belong in `FALCON_AXI_CLIENT_ID` and `FALCON_AXI_CLIENT_SECRET`, or in a named AXI profile
+with a `clientSecret` env/file SecretRef, never on the command line.
+Run `falcon-axi config path` for the current config path and `falcon-axi profile list` for configured names.
+Use `--config` and `--profile` to select a configuration explicitly.
+The old dotenv credentials file is refused with `CONFIG_MOVED` when no new config exists.
 Never put a client secret or bearer token in a command, suggestion, fixture, or commit.
 The `--member-cid` flag is allowed for child-tenant selection; do not echo its standalone value in generated
 suggestions, fixtures, or commits.
 An Alerts v2 composite detection id contains the own-tenant or selected child CID and may be passed to
 `detection show` as printed.
-`FALCON_BASE_URL`, `FALCON_MEMBER_CID`, and `FALCON_AXI_CREDENTIALS_FILE` are also read.
+`FALCON_AXI_REGION`, `FALCON_AXI_BASE_URL`, and `FALCON_AXI_MEMBER_CID` configure the environment profile.
+`FALCON_AXI_READ_ONLY=1` blocks search lifecycle changes.
 
 Run `falcon-axi scopes` for the authoritative command-to-scope matrix; it needs no credential.
 Follow the README's API client permissions section for provisioning, license-gated scopes, and the two

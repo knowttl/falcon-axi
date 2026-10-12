@@ -210,6 +210,6 @@ def test_the_home_view_caps_at_five_rows_and_names_the_domains_it_reads() -> Non
 def test_the_home_view_without_a_credential_is_the_setup_instruction() -> None:
     stdout, exit_code = run([], RecordedTransport([]), {"FALCON_AXI_CREDENTIALS_FILE": "/nonexistent/credentials"})
     assert exit_code == 1
-    assert re.search(r"^code: AUTH_REQUIRED$", stdout, re.MULTILINE)
+    assert re.search(r"^code: PROFILE_REQUIRED$", stdout, re.MULTILINE)
     assert re.search(r"^bin: ", stdout, re.MULTILINE)
-    assert "FALCON_CLIENT_ID and FALCON_CLIENT_SECRET" in stdout
+    assert "FALCON_AXI_CLIENT_ID and FALCON_AXI_CLIENT_SECRET" in stdout

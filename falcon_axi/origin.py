@@ -88,10 +88,7 @@ def region_of(base_url: str) -> str | None:
 
 
 def resolve_base_url(region: str | None = None, env_base_url: str | None = None) -> str:
-    """Region precedence: `--region`, then FALCON_BASE_URL, then the default cloud (§6.2).
-
-    Profile configuration is not implemented in stage 1; see README.
-    """
+    """Resolve the flag or selected profile's region, then the default cloud (§6.2)."""
     if region is not None:
         known = REGIONS.get(region)
         if known:

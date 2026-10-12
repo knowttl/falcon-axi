@@ -8,6 +8,7 @@ from falcon_axi.core import CliError
 from falcon_axi.credentials import Credential
 from falcon_axi.falcon_error import translate_falcon_error
 from falcon_axi.origin import REGIONS, region_of
+from falcon_axi.redaction import register_secret
 from falcon_axi.transport.types import FalconResponse, OAuthTokenArgs, Transport
 
 
@@ -57,6 +58,7 @@ def _token_of(response: FalconResponse) -> str:
             "the Falcon token response carried no access token",
             ["Retry shortly", "Run `falcon-axi auth status` to re-check the credential"],
         )
+    register_secret(token)
     return token
 
 

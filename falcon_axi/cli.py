@@ -11,7 +11,14 @@ from typing import Any, Literal
 from falcon_axi.account import QUERY_CEILING as DISCOVER_CEILING
 from falcon_axi.account import list_accounts, show_account
 from falcon_axi.core import CliError
-from falcon_axi.credentials import Credential, resolve_credential, setup_help
+from falcon_axi.credentials import (
+    Credential,
+    config_path,
+    load_profiles,
+    read_only,
+    resolve_credential,
+    write_log_path,
+)
 from falcon_axi.cve import show_cve, validate_cve_id
 from falcon_axi.detection import QUERY_CEILING as ALERTS_CEILING
 from falcon_axi.detection import list_detections, show_detection
@@ -49,6 +56,7 @@ from falcon_axi.identity import (
 )
 from falcon_axi.identity import QUERY_CEILING as IDENTITY_CEILING
 from falcon_axi.origin import REGIONS, assert_trusted_origin, resolve_base_url
+from falcon_axi.redaction import redact_text, redaction_scope
 from falcon_axi.render import mask_cid, raw, render
 from falcon_axi.scopes import scope_matrix
 from falcon_axi.search import DEFAULT_REPOSITORY, DEFAULT_SINCE, search_status, start_search, stop_search
@@ -78,6 +86,8 @@ Command = Literal[
     "identity show",
     "identity timeline",
     "auth status",
+    "profile list",
+    "config path",
     "scopes",
 ]
 
@@ -91,9 +101,11 @@ SUBCOMMANDS: Mapping[str, tuple[str, ...]] = {
     "identity": ("activity", "list", "show", "timeline"),
     "search": ("start", "status", "stop"),
     "auth": ("status",),
+    "profile": ("list",),
+    "config": ("path",),
 }
 
-GLOBAL_FLAGS = ("help", "region", "allow-unknown-origin", "member-cid", "no-member-cid")
+GLOBAL_FLAGS = ("help", "region", "allow-unknown-origin", "member-cid", "no-member-cid", "config", "profile")
 
 COMMAND_FLAGS: Mapping[str, tuple[str, ...]] = {
     "home": (),
@@ -114,6 +126,8 @@ COMMAND_FLAGS: Mapping[str, tuple[str, ...]] = {
     "identity show": ("full",),
     "identity timeline": ("since", "category", "limit", "cursor"),
     "auth status": (),
+    "profile list": (),
+    "config path": (),
     "scopes": (),
 }
 
@@ -151,6 +165,8 @@ COMMANDS: tuple[str, ...] = tuple(name for name in COMMAND_FLAGS if name != "hom
 VALUE_FLAGS = frozenset(
     {
         "region",
+        "config",
+        "profile",
         "member-cid",
         "filter",
         "severity",
@@ -255,12 +271,6 @@ def parse(argv: Sequence[str]) -> Parsed:
             index += 1
             continue
         name, separator, inline = token[2:].partition("=")
-        if name == "profile":
-            raise CliError(
-                "VALIDATION_ERROR",
-                "profile configuration is not implemented in stage 1",
-                ["Select a region with `--region` and a tenant with `--member-cid` or FALCON_MEMBER_CID"],
-            )
         if name not in GLOBAL_FLAGS and name not in COMMAND_FLAGS[command]:
             raise _unknown_flag(name, command)
         if name in VALUE_FLAGS:
@@ -413,10 +423,19 @@ def _suggestion_for(command: str, flags: Mapping[str, str | bool], positionals: 
 def _member_cid_of(flags: Mapping[str, str | bool], env: Mapping[str, str]) -> str | None:
     if flags.get("no-member-cid"):
         return None
-    return _str(flags.get("member-cid")) or env.get("FALCON_MEMBER_CID") or None
+    return _str(flags.get("member-cid")) or env.get("FALCON_AXI_MEMBER_CID", env.get("FALCON_MEMBER_CID")) or None
 
 
 def help_text(command: str) -> str:
+    if command == "config path":
+        return (
+            "falcon-axi config path [--config <path>]\nReports config and write-journal paths.\nExample: falcon-axi config path"
+        )
+    if command == "profile list":
+        return (
+            "falcon-axi profile list [--config <path>]\nLists profile names without resolving secrets.\n"
+            "Example: falcon-axi profile list"
+        )
     if command == "detection list":
         return "\n".join(
             [
@@ -765,10 +784,13 @@ def help_text(command: str) -> str:
             "  identity show <id>        one identity's risk, accounts, associations, and open incidents",
             "  identity timeline <id>    one identity's recent activity",
             "  auth status               whether a credential resolved, and where to",
+            "  profile list              configured profile names, without reading secrets",
+            "  config path               config and write-journal paths",
             "  scopes                    the command-to-scope matrix, with no request made",
             "",
             "Global flags:",
             "  --help, --region <name|url>, --allow-unknown-origin, --member-cid <cid>, --no-member-cid",
+            "  --config <path>, --profile <name>",
             "",
             f"Regions: {', '.join(REGIONS)}",
             "",
@@ -789,21 +811,24 @@ class Resolved:
     credential: Credential
 
 
-def _session(transport: Any, flags: Mapping[str, str | bool], env: Mapping[str, str]) -> Resolved:
+def _session(
+    transport: Any,
+    flags: Mapping[str, str | bool],
+    env: Mapping[str, str],
+    credential: Credential | None = None,
+) -> Resolved:
     from falcon_axi.auth import authenticate
 
-    credential = resolve_credential(env)
-    if not credential:
-        raise CliError("AUTH_REQUIRED", "no Falcon credential found", setup_help(env))
+    credential = credential or resolve_credential(env, config=_str(flags.get("config")), profile=_str(flags.get("profile")))
     allow_unknown_origin = bool(flags.get("allow-unknown-origin"))
-    base_url = resolve_base_url(region=_str(flags.get("region")), env_base_url=env.get("FALCON_BASE_URL"))
+    base_url = resolve_base_url(region=_str(flags.get("region")) or credential.region)
     assert_trusted_origin(base_url, allow_unknown_origin)
     return Resolved(
         session=authenticate(
             transport,
             credential=credential,
             base_url=base_url,
-            member_cid=_member_cid_of(flags, env),
+            member_cid=None if flags.get("no-member-cid") else _str(flags.get("member-cid")) or credential.member_cid,
             allow_unknown_origin=allow_unknown_origin,
         ),
         credential=credential,
@@ -819,13 +844,19 @@ def _tenant_line(active: Any) -> str:
 
 
 def _auth_status(transport: Any, flags: Mapping[str, str | bool], env: Mapping[str, str]) -> tuple[dict[str, Any], list[str]]:
-    credential = resolve_credential(env)
-    if not credential:
-        return {"credential_resolved": False}, list(setup_help(env))
-    resolved = _session(transport, flags, env)
+    credential = resolve_credential(
+        env,
+        config=_str(flags.get("config")),
+        profile=_str(flags.get("profile")),
+        diagnostic=True,
+    )
+    resolved = _session(transport, flags, env, credential)
     limit = resolved.session.rate_limit.limit
     remaining = resolved.session.rate_limit.remaining
     value: dict[str, Any] = {"credential_resolved": True, "credential_channel": credential.channel}
+    value["profile"] = credential.profile
+    value["endpoint"] = resolved.session.base_url
+    value["client_secret_source"] = credential.secret_source
     if credential.path:
         value["credential_path"] = credential.path
     value["tenant"] = raw(_tenant_line(resolved.session))
@@ -999,6 +1030,10 @@ def _followup_help(help: Sequence[str], flags: Mapping[str, str | bool], member_
     region = _str(flags.get("region"))
     if region:
         suffix += f" --region {shlex.quote(region)}"
+    for name in ("config", "profile"):
+        value = _str(flags.get(name))
+        if value:
+            suffix += f" --{name} {shlex.quote(value)}"
     for name in ("allow-unknown-origin", "no-member-cid"):
         if flags.get(name):
             suffix += f" --{name}"
@@ -1009,7 +1044,7 @@ def _followup_help(help: Sequence[str], flags: Mapping[str, str | bool], member_
     return contextual
 
 
-def run(
+def _run(
     argv: Sequence[str],
     transport: Any = None,
     env: Mapping[str, str] | None = None,
@@ -1027,6 +1062,14 @@ def run(
         flags = parsed.flags
         if parsed.flags.get("help"):
             return f"{help_text(parsed.command)}\n", 0
+        forced_read_only = read_only(values)
+        if forced_read_only and parsed.command in ("search start", "search stop", "identity activity"):
+            raise CliError("READ_ONLY_VIOLATION", "FALCON_AXI_READ_ONLY forbids search lifecycle changes")
+        if parsed.command == "config path":
+            return render({"config": config_path(values, _str(flags.get("config"))), "write_log": write_log_path(values)}), 0
+        if parsed.command == "profile list":
+            document = load_profiles(values, _str(flags.get("config")))
+            return render({"profiles": list(document["profiles"]), "default_profile": document.get("defaultProfile")}), 0
         if parsed.command == "home":
             return _home_view(transport, parsed.flags, values, bin or "falcon-axi")
         if parsed.command == "scopes":
@@ -1047,6 +1090,17 @@ def run(
             ),
             known.exit_code,
         )
+
+
+def run(
+    argv: Sequence[str],
+    transport: Any = None,
+    env: Mapping[str, str] | None = None,
+    bin: str | None = None,
+) -> tuple[str, int]:
+    with redaction_scope():
+        stdout, exit_code = _run(argv, transport, env, bin)
+        return redact_text(stdout), exit_code
 
 
 def main() -> int:

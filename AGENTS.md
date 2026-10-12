@@ -56,7 +56,7 @@ built.
 There is no Node runtime, no MCP process, and no `falcon-mcp` dependency anywhere in the tree.
 
 The implemented surface includes the package foundation, the sealed transport and its closed registry,
-credential resolution with `auth status`, the read domains (`detection list`, `detection show`,
+AXI credential profiles with `auth status`, `profile list`, and `config path`, the read domains (`detection list`, `detection show`,
 `host list`, `host show`, `host logins`, `account list`, `account show`, `vuln list`, `cve show`), the NG-SIEM search lifecycle (`search start`, `search status`,
 `search stop`), the Identity Protection GraphQL reads (`identity list`, `identity show`, `identity timeline`),
 plus the `scopes` matrix and the home view.
@@ -107,7 +107,8 @@ Two seams are worth knowing before changing them:
 
 ## Credential rules
 
-- Secrets reach falcon-axi through the environment or a `0600` file, **never** through `argv`.
+- Secrets reach falcon-axi through the environment or an env/file SecretRef in `config.json`, **never** through `argv`.
+  POSIX secret files permit 0400 or 0600; config files prohibit group/world writes.
   A flag-registration guard rejects any flag whose name looks like a secret.
 - Redaction covers `access_token`, `client_id`, `client_secret`, `member_cid`, `token`, `Authorization`, `cid`, and `#repo.cid`,
   on stdout and on stderr.
@@ -124,7 +125,7 @@ Two seams are worth knowing before changing them:
   asserts.
 
 The only automation is `.github/workflows/ci.yml`, which runs `uv run scripts/verify.py` with no secrets.
-The architecture check allows exactly `.github/workflows/ci.yml`, rejects other CI configurations, and rejects `FALCON_AXI_LIVE`, `FALCON_CLIENT_ID`, or `FALCON_CLIENT_SECRET` in that workflow.
+The architecture check allows exactly `.github/workflows/ci.yml`, rejects other CI configurations, and rejects `FALCON_AXI_LIVE`, both credential environment names, and their deprecated aliases in that workflow.
 
 ## Build to the AXI skill
 

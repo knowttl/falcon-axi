@@ -42,8 +42,11 @@ def mint_permit() -> Permit:
 
 
 def _proxy() -> dict[str, str] | None:
-    """FALCON_PROXY_URL is the variable name falcon-mcp uses, so one environment serves both."""
-    url = os.environ.get("FALCON_PROXY_URL")
+    """The vendor-native name remains an alias for one minor release."""
+    from falcon_axi.credentials import normalized_environment
+
+    values = {key: os.environ[key] for key in ("FALCON_PROXY_URL", "FALCON_AXI_PROXY_URL") if key in os.environ}
+    url = normalized_environment(values).get("FALCON_AXI_PROXY_URL")
     return {"https": url} if url else None
 
 
