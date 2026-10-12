@@ -251,9 +251,7 @@ def test_profile_region_and_tenant_reach_token_request_and_flags_override(
 @pytest.mark.parametrize("variable", ["FALCON_AXI_MEMBER_CID", "FALCON_MEMBER_CID"])
 def test_auth_status_ignores_environment_tenant_guidance_for_file_profile(profiles: dict[str, str], variable: str) -> None:
     recorded = RecordedTransport([])
-    stdout, code = run(
-        ["auth", "status", "--profile", "two"], recorded, {**profiles, variable: "synthetic-ignored-child"}
-    )
+    stdout, code = run(["auth", "status", "--profile", "two"], recorded, {**profiles, variable: "synthetic-ignored-child"})
     assert code == 0
     assert recorded.oauth_requests()[0].member_cid is None
     assert (
