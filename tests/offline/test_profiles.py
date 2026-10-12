@@ -82,6 +82,37 @@ def test_complete_env_precedes_file_default(profiles: dict[str, str]) -> None:
     assert credential.client_id == "env-id"
 
 
+@pytest.mark.parametrize("command", [[], ["detection", "list"], ["auth", "status"]])
+@pytest.mark.parametrize("empty_profiles", [False, True])
+def test_setup_guidance_preserves_explicit_config_path(command: list[str], empty_profiles: bool, tmp_path: Path) -> None:
+    path = tmp_path / "chosen.json"
+    if empty_profiles:
+        path.write_text(json.dumps({"version": 1, "profiles": {}}))
+        path.chmod(0o600)
+    values = {"FALCON_AXI_CONFIG": str(tmp_path / "ignored.json"), "TEST_SECRET": "synthetic-secret"}
+    recorded = RecordedTransport([serve("GetQueriesAlertsV2", fixture("alerts/query-empty.json"))])
+    argv = [*command, "--config", str(path)]
+    stdout, code = run(argv, recorded, values)
+    document = decode(stdout)
+    assert code == 1
+    assert document["code"] == "PROFILE_REQUIRED"
+    assert f"Or configure a profile with a clientSecret SecretRef in {path}" in document["help"]
+    assert recorded.requests == []
+
+    path.write_text(
+        json.dumps(
+            {
+                "version": 1,
+                "profiles": {"test": {"clientId": "synthetic-id", "clientSecret": {"env": "TEST_SECRET"}}},
+            }
+        )
+    )
+    path.chmod(0o600)
+    _, code = run(argv, recorded, values)
+    assert code == 0
+    assert recorded.oauth_requests()[0].client_id == "synthetic-id"
+
+
 @pytest.mark.parametrize("command", [[], ["auth", "status"], ["detection", "list"]])
 @pytest.mark.parametrize("config_source", ["flag", "env", "default"])
 def test_env_auth_ignores_malformed_unused_config(command: list[str], config_source: str, tmp_path: Path) -> None:

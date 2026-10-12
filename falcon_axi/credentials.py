@@ -87,10 +87,10 @@ def read_only(env: Mapping[str, str]) -> bool:
     return value in ("true", "1")
 
 
-def setup_help(env: Mapping[str, str] | None = None) -> tuple[str, ...]:
+def setup_help(path: str) -> tuple[str, ...]:
     return (
         "Set FALCON_AXI_CLIENT_ID and FALCON_AXI_CLIENT_SECRET in the environment",
-        f"Or configure a profile with a clientSecret SecretRef in {config_path(env)}",
+        f"Or configure a profile with a clientSecret SecretRef in {path}",
         "Provision an API client with read scopes; only `search start`, `search stop`, and `identity activity` "
         "need NGSIEM:write",
     )
@@ -181,7 +181,8 @@ def resolve_credential(
     original = os.environ if env is None else env
     values = normalized_environment(original)
     read_only(values)
-    _check_legacy_config(config_path(values, config))
+    path = config_path(values, config)
+    _check_legacy_config(path)
     selected = profile or values.get("FALCON_AXI_PROFILE")
     if selected is None:
         client_id, secret = values.get("FALCON_AXI_CLIENT_ID"), values.get("FALCON_AXI_CLIENT_SECRET")
@@ -209,7 +210,7 @@ def resolve_credential(
             elif profiles:
                 raise CliError("PROFILE_AMBIGUOUS", "select a profile with --profile or FALCON_AXI_PROFILE")
             else:
-                raise CliError("PROFILE_REQUIRED", "no Falcon profile configured", setup_help(values))
+                raise CliError("PROFILE_REQUIRED", "no Falcon profile configured", setup_help(path))
     if selected not in profiles:
         raise CliError("PROFILE_NOT_FOUND", "selected profile does not exist", ["Run `falcon-axi profile list`"])
     settings = profiles[selected]
