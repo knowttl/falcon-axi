@@ -1,6 +1,5 @@
 import json
 import os
-import tempfile
 from pathlib import Path
 
 import pytest
@@ -8,15 +7,8 @@ import pytest
 from falcon_axi.core import CliError
 from falcon_axi.credentials import resolve_credential
 
-MISSING = str(Path(tempfile.gettempdir()) / "falcon-axi-absent" / "credentials")
-
-
-def env(**values: str) -> dict[str, str]:
-    return {"FALCON_AXI_CREDENTIALS_FILE": MISSING, **values}
-
-
 def test_both_environment_variables_resolve_as_one_atomic_pair() -> None:
-    credential = resolve_credential(env(FALCON_CLIENT_ID="id", FALCON_CLIENT_SECRET="secret"))
+    credential = resolve_credential({"FALCON_CLIENT_ID": "id", "FALCON_CLIENT_SECRET": "secret"})
     assert credential is not None
     assert credential.channel == "environment"
     assert credential.client_id == "id"
@@ -25,7 +17,7 @@ def test_both_environment_variables_resolve_as_one_atomic_pair() -> None:
 def test_half_an_environment_credential_stops_resolution_and_names_the_missing_half() -> None:
     for present, missing in (("FALCON_CLIENT_ID", "FALCON_CLIENT_SECRET"), ("FALCON_CLIENT_SECRET", "FALCON_CLIENT_ID")):
         with pytest.raises(CliError) as error:
-            resolve_credential(env(**{present: "value"}))
+            resolve_credential({present: "value"})
         assert error.value.code == "CONFIG_INVALID"
         assert error.value.exit_code == 2
         assert missing.replace("FALCON_", "FALCON_AXI_") in error.value.message
@@ -33,7 +25,7 @@ def test_half_an_environment_credential_stops_resolution_and_names_the_missing_h
 
 def test_no_credential_anywhere_requires_a_profile() -> None:
     with pytest.raises(CliError) as error:
-        resolve_credential(env())
+        resolve_credential({})
     assert error.value.code == "PROFILE_REQUIRED"
 
 
@@ -55,7 +47,7 @@ def test_a_protected_credentials_file_is_read_and_a_loose_one_is_refused_unread(
             }
         )
     )
-    values = env(FALCON_AXI_CONFIG=str(config))
+    values = {"FALCON_AXI_CONFIG": str(config)}
     config.chmod(0o600)
     credential = resolve_credential(values)
     assert credential is not None
@@ -90,10 +82,11 @@ def test_a_protected_credentials_file_is_read_and_a_loose_one_is_refused_unread(
     assert linked.value.code == "CONFIG_INSECURE"
 
 
-def test_legacy_credentials_are_never_read(tmp_path: Path) -> None:
-    path = tmp_path / "credentials"
+def test_legacy_credentials_are_never_read() -> None:
+    path = Path.home() / ".config/falcon-axi/credentials"
+    path.parent.mkdir(parents=True)
     path.write_text("FALCON_CLIENT_ID=file-id\n", encoding="utf-8")
     path.chmod(0o600)
     with pytest.raises(CliError) as error:
-        resolve_credential(env(FALCON_AXI_CREDENTIALS_FILE=str(path)))
+        resolve_credential({})
     assert error.value.code == "CONFIG_MOVED"

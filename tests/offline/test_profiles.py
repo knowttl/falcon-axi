@@ -12,7 +12,7 @@ from falcon_axi.cli import run
 from falcon_axi.core import CliError
 from falcon_axi.credentials import config_path, load_profiles, resolve_credential, tool_directory
 from falcon_axi.private_file import read_private_file, verify_windows_acl
-from tests.support.recorded import RecordedTransport, fixture
+from tests.support.recorded import RecordedTransport, fixture, serve
 
 
 @pytest.fixture
@@ -78,6 +78,52 @@ def test_complete_env_precedes_file_default(profiles: dict[str, str]) -> None:
     assert credential is not None
     assert credential.profile == "env"
     assert credential.client_id == "env-id"
+
+
+@pytest.mark.parametrize("command", [[], ["auth", "status"], ["detection", "list"]])
+@pytest.mark.parametrize("config_source", ["flag", "env", "default"])
+def test_env_auth_ignores_malformed_unused_config(command: list[str], config_source: str, tmp_path: Path) -> None:
+    path = tmp_path / "config.json" if config_source != "default" else Path.home() / ".config/falcon-axi/config.json"
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_text("{invalid JSON")
+    path.chmod(0o600)
+    values = {"FALCON_AXI_CLIENT_ID": "env-id", "FALCON_AXI_CLIENT_SECRET": "env-secret"}
+    flags = []
+    if config_source == "flag":
+        flags = ["--config", str(path)]
+    elif config_source == "env":
+        values["FALCON_AXI_CONFIG"] = str(path)
+    recorded = RecordedTransport([serve("GetQueriesAlertsV2", fixture("alerts/query-empty.json"))])
+    stdout, code = run([*command, *flags], recorded, values)
+    assert code == 0
+    assert recorded.oauth_requests()[0].client_id == "env-id"
+    assert "env-secret" not in stdout
+
+
+@pytest.mark.parametrize("command", [[], ["auth", "status"], ["detection", "list"], ["profile", "list"]])
+@pytest.mark.parametrize("env_profile", [False, True])
+def test_fixed_legacy_path_cannot_be_hidden_by_obsolete_override(
+    command: list[str], env_profile: bool, tmp_path: Path
+) -> None:
+    legacy = Path.home() / ".config/falcon-axi/credentials"
+    legacy.parent.mkdir(parents=True)
+    legacy.write_text("FALCON_CLIENT_SECRET=legacy-secret")
+    legacy.chmod(0o000)
+    config = tmp_path / "absent.json"
+    values = {
+        "FALCON_AXI_CONFIG": str(config),
+        "FALCON_AXI_CREDENTIALS_FILE": str(tmp_path / "absent-credentials"),
+    }
+    if env_profile:
+        values.update(FALCON_AXI_CLIENT_ID="env-id", FALCON_AXI_CLIENT_SECRET="env-secret")
+    recorded = RecordedTransport([])
+    stdout, code = run(command, recorded, values)
+    assert code == 1
+    assert "code: CONFIG_MOVED" in stdout
+    assert str(legacy) in stdout
+    assert str(config) in stdout
+    assert "legacy-secret" not in stdout
+    assert recorded.requests == []
 
 
 def test_default_profile_selects_among_multiple_profiles(profiles: dict[str, str]) -> None:

@@ -172,7 +172,6 @@ The packaged `falcon_axi/axi-credential.schema.json` describes one profile for h
 
 The old dotenv credentials file is never read.
 If it exists and the new config does not, `CONFIG_MOVED` names both paths and the new format.
-`FALCON_AXI_CREDENTIALS_FILE` is used only to locate that obsolete file for the migration error.
 Vendor-native `FALCON_CLIENT_ID`, `FALCON_CLIENT_SECRET`, `FALCON_MEMBER_CID`, `FALCON_BASE_URL`,
 and `FALCON_PROXY_URL` remain deprecated aliases for one minor release, with a stderr notice.
 The new variable wins when both are set.

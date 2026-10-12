@@ -116,6 +116,19 @@ def _validate_ref(ref: Any, platform: str | None = None) -> None:
     raise _invalid("clientSecret must reference a valid env name or an absolute local file; stored secrets are unsupported")
 
 
+def _check_legacy_config(path: str) -> None:
+    legacy = str(Path.home() / ".config/falcon-axi/credentials")
+    if not os.path.lexists(path) and os.path.lexists(legacy):
+        raise CliError(
+            "CONFIG_MOVED",
+            f"legacy credentials at {legacy} must be converted to {path}",
+            [
+                "Use version 1 config.json profiles with clientId and clientSecret: {env: NAME} or {file: /absolute/path}",
+                "See https://github.com/knowttl/artium-axi/blob/main/docs/credential-standard.md",
+            ],
+        )
+
+
 def load_profiles(
     env: Mapping[str, str],
     flag: str | None = None,
@@ -124,18 +137,9 @@ def load_profiles(
     platform: str | None = None,
 ) -> dict[str, Any]:
     path = config_path(env, flag)
+    _check_legacy_config(path)
     text = read_private_file(path, diagnostic=diagnostic, platform=platform)
     if text is None:
-        legacy = env.get("FALCON_AXI_CREDENTIALS_FILE") or str(Path.home() / ".config/falcon-axi/credentials")
-        if os.path.lexists(legacy):
-            raise CliError(
-                "CONFIG_MOVED",
-                f"legacy credentials at {legacy} must be converted to {path}",
-                [
-                    "Use version 1 config.json profiles with clientId and clientSecret: {env: NAME} or {file: /absolute/path}",
-                    "See https://github.com/knowttl/artium-axi/blob/main/docs/credential-standard.md",
-                ],
-            )
         return {"version": 1, "profiles": {}}
     try:
         document = json.loads(text)
@@ -177,8 +181,7 @@ def resolve_credential(
     original = os.environ if env is None else env
     values = normalized_environment(original)
     read_only(values)
-    document = load_profiles(values, config, diagnostic=diagnostic)
-    profiles = document["profiles"]
+    _check_legacy_config(config_path(values, config))
     selected = profile or values.get("FALCON_AXI_PROFILE")
     if selected is None:
         client_id, secret = values.get("FALCON_AXI_CLIENT_ID"), values.get("FALCON_AXI_CLIENT_SECRET")
@@ -196,6 +199,9 @@ def resolve_credential(
         if client_id or secret:
             missing = "FALCON_AXI_CLIENT_SECRET" if client_id else "FALCON_AXI_CLIENT_ID"
             raise _invalid(f"env profile is incomplete; set {missing}")
+    document = load_profiles(values, config, diagnostic=diagnostic)
+    profiles = document["profiles"]
+    if selected is None:
         selected = document.get("defaultProfile")
         if selected is None:
             if len(profiles) == 1:

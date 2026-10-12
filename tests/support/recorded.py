@@ -78,11 +78,9 @@ def serve(id: str, answer: FalconResponse | Callable[[RequestArgs], FalconRespon
 CREDENTIAL_ENV: Mapping[str, str] = {
     "FALCON_CLIENT_ID": "synthetic-client-id",
     "FALCON_CLIENT_SECRET": "synthetic-client-secret",
-    "FALCON_AXI_CREDENTIALS_FILE": "/nonexistent/falcon-axi/credentials",
     "FALCON_AXI_CONFIG": "/nonexistent/falcon-axi/config.json",
 }
 
 NO_CREDENTIAL_ENV: Mapping[str, str] = {
-    "FALCON_AXI_CREDENTIALS_FILE": "/nonexistent/falcon-axi/credentials",
     "FALCON_AXI_CONFIG": "/nonexistent/falcon-axi/config.json",
 }
