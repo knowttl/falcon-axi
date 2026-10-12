@@ -102,7 +102,7 @@ If falconpy later exposes a redirect switch on the token path, D2 can be revisit
 - **429 and retry.** No retry or rate-limit handling exists in falconpy's request path (grep over `src/falconpy` for `429`, `retry`, `ratelimit` finds only an unrelated report-execution endpoint), so `transport/retry.py` ports as is, honoring `X-RateLimit-RetryAfter` (v1.md §7.4).
 - **Error translation.** falconpy returns the raw envelope dict (`status_code`, `headers`, `body`); `falcon_error.py` translates it into the v1.md §9 envelope, never passing it through.
 - **User-Agent.** `APIHarnessV2(user_agent="falcon-axi/<version>")`, matching §3.4.
-- **Proxy.** `APIHarnessV2(proxy={"https": url})` from `FALCON_PROXY_URL`, the same variable name falcon-mcp uses, so an operator's environment works for both.
+- **Proxy.** `APIHarnessV2(proxy={"https": url})` uses the proxy environment variable and deprecated alias documented in the README's [Credentials section](../../README.md#credentials).
 - **Timeout.** `APIHarnessV2(timeout=30)`, matching the 30-second `AbortSignal` in stage 1.
 
 ### 3.5 The test seam
@@ -122,7 +122,8 @@ falcon_axi/
   version.py                   leaf module, no imports beyond the stdlib (AXI §10 fast path)
   cli.py                       argv parsing, flag guard, dispatch, exit codes
   core.py                      CliError and the error envelope
-  credentials.py               env and 0600-file resolution, redaction set
+  credentials.py               AXI profiles and SecretRefs (v1.md §5.2); private reads in private_file.py
+  redaction.py                 invocation-local exact-value redaction (v1.md §5.5)
   origin.py                    region table, trusted-origin check, autodiscovery retarget
   auth.py                      token mint (D2), session dataclass, rate-limit headers
   fql.py, cursor.py            filter shorthands per domain; the opaque cursor, offset and token models
@@ -289,7 +290,8 @@ The v0.3.0 release covers those stages and the subsequent additions in the [READ
 The golden set adds the identity scenarios as regression pins, and `tests/golden/scenarios.json` records which existing documents changed and why.
 
 **P4. Setup and delivery surface.**
-`setup` with hook and skill, `--all`, `--max-rows`, `--fields` on detection and host lists, profile configuration, and the opt-in live smoke suite.
+`setup` with hook and skill, `--all`, `--max-rows`, `--fields` on detection and host lists, and the opt-in live smoke suite.
+Profile configuration shipped separately under v1.md §5.2 and §12.1.
 Tag `v0.4.0`, and v1.md moves from "partially implemented" to "implemented".
 
 ### 9.1 First ship brief, copy-ready

@@ -181,6 +181,7 @@ def resolve_credential(
     original = os.environ if env is None else env
     values = normalized_environment(original)
     read_only(values)
+    path: str | None
     path = config_path(values, config)
     _check_legacy_config(path)
     selected = profile or values.get("FALCON_AXI_PROFILE")

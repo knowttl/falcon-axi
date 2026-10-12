@@ -248,11 +248,8 @@ Alerts v2 composite detection ids contain the own-tenant or selected child CID a
 when passed to `detection show`.
 NG-SIEM search event CID fields (`cid`, `#repo.cid`) are redacted in output.
 
-Suggestions from successful authenticated commands preserve explicit region, unknown-origin opt-in, and
-`--no-member-cid` flags exactly once.
-When a child tenant is selected, supply the same tenant selection for every suggested command; its CID is
-never printed in suggestions.
-The detailed suggestion-context contract is in [`docs/design/v1.md` §7.2](docs/design/v1.md#72-what-the-cli-exposes).
+Suggestions preserve invocation context as specified in
+[`docs/design/v1.md` §7.2](docs/design/v1.md#72-what-the-cli-exposes).
 
 ## Workflow
 

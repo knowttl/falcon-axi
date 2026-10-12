@@ -31,7 +31,7 @@ search over NG-SIEM event data when the question is not one of those domains, to
 user or endpoint and its risk, accounts, and activity timeline, and to check whether a Falcon credential
 resolves and into which region and tenant.
 
-`setup` does not exist, and neither do `--all`, `--max-rows`, `--profile`, or `--fields` on detection and host lists.
+`setup` does not exist, and neither do `--all`, `--max-rows`, or `--fields` on detection and host lists.
 Neither does any command for a Falcon domain outside detections, hosts, Discover accounts, Spotlight vulnerabilities, `cve show`,
 NG-SIEM search, and the Identity Protection directory and timeline; there is no `cve list`, no intel actor,
 indicator, or report command, and no ingest, lookup-file, parser, dashboard, Charlotte AI, identity incident,
