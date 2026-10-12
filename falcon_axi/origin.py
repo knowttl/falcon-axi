@@ -87,7 +87,7 @@ def region_of(base_url: str) -> str | None:
     return None
 
 
-def resolve_base_url(region: str | None = None, env_base_url: str | None = None) -> str:
+def resolve_base_url(region: str | None = None) -> str:
     """Resolve the flag or selected profile's region, then the default cloud (§6.2)."""
     if region is not None:
         known = REGIONS.get(region)
@@ -103,6 +103,4 @@ def resolve_base_url(region: str | None = None, env_base_url: str | None = None)
                 "Or pass a verified full Falcon base URL with `--region <url> --allow-unknown-origin`",
             ],
         )
-    if env_base_url:
-        return env_base_url
     return REGIONS[DEFAULT_REGION]

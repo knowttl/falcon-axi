@@ -420,12 +420,6 @@ def _suggestion_for(command: str, flags: Mapping[str, str | bool], positionals: 
     return shlex.join(parts)
 
 
-def _member_cid_of(flags: Mapping[str, str | bool], env: Mapping[str, str]) -> str | None:
-    if flags.get("no-member-cid"):
-        return None
-    return _str(flags.get("member-cid")) or env.get("FALCON_AXI_MEMBER_CID", env.get("FALCON_MEMBER_CID")) or None
-
-
 def help_text(command: str) -> str:
     if command == "config path":
         return (
@@ -843,7 +837,9 @@ def _tenant_line(active: Any) -> str:
     return f"{region}{retarget} (own CID unavailable)"
 
 
-def _auth_status(transport: Any, flags: Mapping[str, str | bool], env: Mapping[str, str]) -> tuple[dict[str, Any], list[str]]:
+def _auth_status(
+    transport: Any, flags: Mapping[str, str | bool], env: Mapping[str, str]
+) -> tuple[dict[str, Any], tuple[str, ...]]:
     credential = resolve_credential(
         env,
         config=_str(flags.get("config")),
@@ -866,7 +862,9 @@ def _auth_status(transport: Any, flags: Mapping[str, str | bool], env: Mapping[s
     )
     if limit is not None and remaining is not None:
         value["rate_limit"] = raw(f"{remaining} of {limit} requests remaining")
-    return value, ["Run `falcon-axi detection list` to read detections with this credential"]
+    return value, _followup_help(
+        ["Run `falcon-axi detection list` to read detections with this credential"], flags, resolved.session.member_cid
+    )
 
 
 def _read(transport: Any, parsed: Parsed, resolved: Resolved) -> CommandOutput:
@@ -1077,7 +1075,7 @@ def _run(
             return render(matrix.value, _followup_help(matrix.help, flags, _str(flags.get("member-cid")))), 0
         if parsed.command == "auth status":
             value, help = _auth_status(transport, parsed.flags, values)
-            return render(value, _followup_help(help, parsed.flags, _member_cid_of(parsed.flags, values))), 0
+            return render(value, help), 0
         resolved = _session(transport, parsed.flags, values)
         output = _read(transport, parsed, resolved)
         return render(output.value, _followup_help(output.help, parsed.flags, resolved.session.member_cid)), 0

@@ -7,6 +7,7 @@ from pathlib import Path
 from types import SimpleNamespace
 
 import pytest
+from toon_format import decode
 
 from falcon_axi.cli import run
 from falcon_axi.core import CliError
@@ -187,7 +188,12 @@ def test_missing_referenced_secret_is_auth_required(profiles: dict[str, str]) ->
 
 
 @pytest.mark.parametrize(
-    "flags,region,member", [([], "us-2", "synthetic-child"), (["--region", "us-1", "--no-member-cid"], "us-1", None)]
+    "flags,region,member",
+    [
+        ([], "us-2", "synthetic-child"),
+        (["--region", "us-1", "--no-member-cid"], "us-1", None),
+        (["--member-cid", "synthetic-override-child"], "us-2", "synthetic-override-child"),
+    ],
 )
 def test_profile_region_and_tenant_reach_token_request_and_flags_override(
     profiles: dict[str, str],
@@ -206,6 +212,24 @@ def test_profile_region_and_tenant_reach_token_request_and_flags_override(
     assert "profile: one" in stdout
     assert 'client_secret_source: "env:TEST_SECRET"' in stdout
     assert "synthetic-secret" not in stdout
+    assert (
+        "Supply the same tenant selection used for this invocation when following these suggestions" in decode(stdout)["help"]
+    ) == (member is not None)
+
+
+@pytest.mark.parametrize("variable", ["FALCON_AXI_MEMBER_CID", "FALCON_MEMBER_CID"])
+def test_auth_status_ignores_environment_tenant_guidance_for_file_profile(profiles: dict[str, str], variable: str) -> None:
+    recorded = RecordedTransport([])
+    stdout, code = run(
+        ["auth", "status", "--profile", "two"], recorded, {**profiles, variable: "synthetic-ignored-child"}
+    )
+    assert code == 0
+    assert recorded.oauth_requests()[0].member_cid is None
+    assert (
+        "Supply the same tenant selection used for this invocation when following these suggestions"
+        not in decode(stdout)["help"]
+    )
+    assert "synthetic-ignored-child" not in stdout
 
 
 def test_resolved_secret_and_its_encoded_forms_are_redacted_in_errors(profiles: dict[str, str]) -> None:
