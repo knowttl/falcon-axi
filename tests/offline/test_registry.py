@@ -18,6 +18,8 @@ from falcon_axi.transport.operations import (
 #: Operations whose §2.2 corroboration is falconpy's generated table plus PSFalcon, because falcon-mcp
 #: has no tool for them, mapped to the falconpy endpoint module that lists each one.
 NO_FALCON_MCP_TOOL = {
+    "QueryVulnerabilities": "_intel",
+    "getVulnerabilities": "_spotlight_vulnerabilities",
     "GetVulnerabilities": "_intel",
     "QueryDeviceLoginHistoryV2": "_hosts",
     "query_accounts": "_discover",
@@ -25,6 +27,20 @@ NO_FALCON_MCP_TOOL = {
 }
 
 EXPECTED = {
+    "QueryVulnerabilities": {
+        "method": "GET",
+        "path": "/intel/queries/vulnerabilities/v1",
+        "scopes": ("Vulnerabilities (Falcon Intelligence):read",),
+        "effect": "read",
+        "doc_scope": "Vulnerabilities (Falcon Intelligence): READ",
+    },
+    "getVulnerabilities": {
+        "method": "GET",
+        "path": "/spotlight/entities/vulnerabilities/v2",
+        "scopes": ("Vulnerabilities:read",),
+        "effect": "read",
+        "doc_scope": "Vulnerabilities: READ",
+    },
     "GetQueriesAlertsV2": {
         "method": "GET",
         "path": "/alerts/queries/alerts/v2",

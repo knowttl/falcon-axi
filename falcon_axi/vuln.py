@@ -269,6 +269,43 @@ def _vuln_list(ctx: Invocation) -> CommandOutput:
     )
 
 
+def show_vulnerability(ctx: Invocation) -> CommandOutput:
+    """Read exactly one Spotlight record by its id, without remediation expansion."""
+    requested = ctx.positionals[0]
+    response = ctx.transport.request(
+        "getVulnerabilities",
+        RequestArgs(
+            base_url=ctx.session.base_url,
+            token=ctx.session.token,
+            allow_unknown_origin=ctx.session.allow_unknown_origin,
+            query={"ids": (requested,)},
+        ),
+    )
+    if response.status not in (200, 404):
+        raise translate_falcon_error(response, "getVulnerabilities", "vulnerabilities")
+    records = [entry for entry in resources(response) if isinstance(entry, Mapping) and entry.get("id") == requested]
+    if response.status == 404 or not resources(response):
+        raise CliError(
+            "NOT_FOUND",
+            "no vulnerability matched that identifier",
+            [
+                "Run `falcon-axi vuln list --status open` to find Spotlight record identifiers",
+            ],
+        )
+    if not records:
+        raise CliError("UPSTREAM_ERROR", "Falcon returned a vulnerability resource without the requested identifier")
+    record = records[0]
+    detail = {
+        "id": requested,
+        "cve": text(_cve_of(record).get("id")) or "unknown",
+        "severity": text(_cve_of(record).get("severity")) or "unknown",
+        "hostname": text(_host_of(record).get("hostname")) or "unknown",
+        "device_id": text(record.get("aid")) or "unknown",
+        **{name: _extra(record, name) for name in EXTRA_FIELDS if name != "remediation"},
+    }
+    return CommandOutput(value={"vulnerability": detail}, help=())
+
+
 def _vuln_query_of(flags: Mapping[str, str | bool]) -> VulnQuery:
     return VulnQuery(
         filter=string(flags.get("filter")),
@@ -280,6 +317,30 @@ def _vuln_query_of(flags: Mapping[str, str | bool]) -> VulnQuery:
 
 
 COMMAND_SPECS = (
+    CommandSpec(
+        name="vuln show",
+        help="\n".join(
+            [
+                "falcon-axi vuln show <id>",
+                "",
+                "Reads one Spotlight vulnerability record by the id returned by vuln list.",
+                "A CVE identifier can match many records; use the Spotlight record id here.",
+                "Includes CVE description and score, host details, status, product, and timestamps.",
+                "Remediation and evaluation logic are not expanded.",
+                "",
+                "Example: falcon-axi vuln show <id>",
+                "",
+                "This command is read-only and requires Vulnerabilities:read.",
+            ]
+        ),
+        summary="  vuln show <id>            details for one Spotlight vulnerability record",
+        handler=show_vulnerability,
+        operations=("getVulnerabilities",),
+        positional=(
+            "vulnerability identifier",
+            "Run `falcon-axi vuln list --status open` to find Spotlight record identifiers",
+        ),
+    ),
     CommandSpec(
         name="vuln list",
         help="\n".join(

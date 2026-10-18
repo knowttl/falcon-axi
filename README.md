@@ -21,7 +21,7 @@ What is shipped:
 - AXI credential profiles and SecretRefs, per-call XDG paths, region selection and
   `X-Cs-Region` autodiscovery, Flight Control member-CID selection, `auth status`, `profile list`, and `config path`;
 - the home view and five read domains: `falcon-axi`, `detection list`, `detection show`, `host list`,
-  `host show`, `host logins`, `account list`, `account show`, `vuln list`, and `cve show`;
+  `host show`, `host logins`, `account list`, `account show`, `vuln list`, `vuln show`, `cve list`, and `cve show`;
 - NG-SIEM search: `search start`, `search status`, and `search stop`, the three operations captain
   exception N1 admits;
 - the Identity Protection directory and timeline: `identity list`, `identity show`, and
@@ -39,7 +39,7 @@ What is **not** shipped yet, so no output advertises it:
   files, no parser or dashboard writes, and no Charlotte AI), and every Identity Protection capability
   beyond the directory and timeline: no standalone incident or security-assessment queries, no policy rules,
   and no GraphQL mutation of any kind.
-  `cve show` is the one intel read that ships; there is no `cve list`;
+  `cve list` and `cve show` ship for CVE intelligence;
 - `falcon-axi setup`, including the session hook and the generated skill;
 - `--all` and `--max-rows`, and `--fields` on detection and host lists; list pagination takes
   `--limit` and `--cursor` only;
@@ -198,7 +198,7 @@ Create the client in the Falcon console under Support and resources > API client
 Run `falcon-axi scopes` for the authoritative command-to-scope matrix.
 It is projected from the operation and GraphQL document registries the transport enforces and needs no
 credential.
-`cve show` requires the license-gated `Vulnerabilities (Falcon Intelligence):read`, not Spotlight's
+`cve list` and `cve show` require the license-gated `Vulnerabilities (Falcon Intelligence):read`, not Spotlight's
 `Vulnerabilities:read`.
 `Assets:read` is needed only by the two `account` commands and is license-gated to Falcon Discover or
 Exposure Management; a client that cannot be granted it loses those two commands and nothing else.
@@ -288,6 +288,8 @@ falcon-axi account show abc123                      one Discover account
 falcon-axi vuln list --severity critical --status open
 falcon-axi vuln list --host abc123                  one host's vulnerabilities
 falcon-axi cve show CVE-2021-44228               Falcon Intelligence detail for one CVE
+falcon-axi cve list --severity critical --since 7d  recently published CVE intelligence
+falcon-axi vuln show <id>                         one Spotlight record from vuln list
 falcon-axi identity activity <account_id> --since 7d  an account's identity events
 falcon-axi search start --query '#event_simpleName=ProcessRollup2 | head(5)'
 falcon-axi search status 01JABCDEF                  one poll: running, cancelled, or done

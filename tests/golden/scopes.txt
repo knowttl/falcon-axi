@@ -3,8 +3,8 @@ scopes[10]{scope,access,commands,required}:
   "Alerts:read",read,"detection list, detection show",yes
   "Hosts:read",read,"host list, host show, host logins",yes
   "Assets:read",read,"account list, account show",yes
-  "Vulnerabilities:read",read,vuln list,yes
-  "Vulnerabilities (Falcon Intelligence):read",read,cve show,yes
+  "Vulnerabilities:read",read,"vuln show, vuln list",yes
+  "Vulnerabilities (Falcon Intelligence):read",read,"cve list, cve show",yes
   "NGSIEM:write",write,"identity activity, search start, search stop",yes
   "NGSIEM:read",read,search status,yes
   "Identity Protection GraphQL:write",write,"identity list, identity show, identity timeline",yes

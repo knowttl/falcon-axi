@@ -32,8 +32,8 @@ user or endpoint and its risk, accounts, and activity timeline, and to check whe
 resolves and into which region and tenant.
 
 `setup` does not exist, and neither do `--all`, `--max-rows`, or `--fields` on detection and host lists.
-Neither does any command for a Falcon domain outside detections, hosts, Discover accounts, Spotlight vulnerabilities, `cve show`,
-NG-SIEM search, and the Identity Protection directory and timeline; there is no `cve list`, no intel actor,
+Neither does any command for a Falcon domain outside detections, hosts, Discover accounts, Spotlight vulnerabilities, CVE intelligence,
+NG-SIEM search, and the Identity Protection directory and timeline; there is no intel actor,
 indicator, or report command, and no ingest, lookup-file, parser, dashboard, Charlotte AI, identity incident,
 or identity security-assessment command.
 Do not invent them; an unknown flag or command fails loudly.
@@ -47,9 +47,9 @@ Do not invent them; an unknown flag or command fails loudly.
 `show <device id>`, `logins <device id>` (exactly one host; flags `--since`, `--limit`).
 `account`: `list` (flags `--filter`, `--limit`, `--cursor`), `show <account id>`; Discover accounts, which need the
 license-gated `Assets:read`.
-`vuln`: `list` (flags `--host`, `--severity`, `--status`, `--since`, `--filter`, `--limit`, `--cursor`, `--fields`).
-`cve`: `show <CVE-ID>` only.
-There is no `cve list`.
+`vuln`: `list` (flags `--host`, `--severity`, `--status`, `--since`, `--filter`, `--limit`, `--cursor`, `--fields`), `show <record id>`.
+`cve`: `list` (flags `--severity`, `--since`, `--filter`, `--limit`, `--cursor`), `show <CVE-ID>`.
+`cve list --since` filters CVE publication time; `vuln show` requires a Spotlight record id from `vuln list`.
 `search`: `start` (flags `--query`, `--repository`, `--since`), `status <search id>` (flag `--repository`),
 `stop <search id>` (flag `--repository`).
 `identity`: `activity <account objectGUID, sAMAccountName, or UPN>` (flag `--since`),

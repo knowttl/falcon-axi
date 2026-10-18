@@ -130,5 +130,13 @@
   "identity-activity-start": 0,
   "identity-activity-scope-denied": 1,
   "identity-activity-without-account": 2,
-  "identity-activity-unsafe-account": 2
+  "identity-activity-unsafe-account": 2,
+  "help-cve-list": 0,
+  "help-vuln-show": 0,
+  "cve-list-page": 0,
+  "cve-list-empty": 0,
+  "cve-list-scope-denied": 1,
+  "vuln-show": 0,
+  "vuln-show-not-found": 1,
+  "vuln-show-scope-denied": 1
 }

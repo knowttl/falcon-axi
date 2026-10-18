@@ -49,15 +49,16 @@ def test_an_unknown_command_or_subcommand_fails_before_any_request() -> None:
     assert exit_code == 2
     assert (
         "valid commands: detection list, detection show, host list, host show, host logins, account list, "
-        "account show, vuln list, cve show, identity activity, search start, search status, search stop, identity list, "
+        "account show, vuln show, vuln list, cve list, cve show, identity activity, search start, search status, "
+        "search stop, identity list, "
         "identity show, identity timeline, auth status, profile list, config path, scopes" in stdout
     )
     subcommand, _ = run(["detection", "contain"], recorded, dict(CREDENTIAL_ENV))
     assert "valid detection subcommands: list, show" in subcommand
     host, _ = run(["host", "contain"], recorded, dict(CREDENTIAL_ENV))
     assert "valid host subcommands: list, show" in host
-    vuln, _ = run(["vuln", "show"], recorded, dict(CREDENTIAL_ENV))
-    assert "valid vuln subcommands: list" in vuln
+    vuln, _ = run(["vuln", "missing"], recorded, dict(CREDENTIAL_ENV))
+    assert "valid vuln subcommands: show, list" in vuln
     assert recorded.requests == []
 
 
@@ -142,6 +143,8 @@ def test_help_never_advertises_a_command_the_cli_does_not_have() -> None:
         ["host", "list", "--help"],
         ["host", "show", "--help"],
         ["vuln", "list", "--help"],
+        ["vuln", "show", "--help"],
+        ["cve", "list", "--help"],
         ["cve", "show", "--help"],
         ["search", "start", "--help"],
         ["search", "status", "--help"],
@@ -155,7 +158,7 @@ def test_help_never_advertises_a_command_the_cli_does_not_have() -> None:
     for argv in shipped:
         stdout, exit_code = run(argv, RecordedTransport([]), dict(CREDENTIAL_ENV))
         assert exit_code == 0
-        for absent in ("falcon-axi setup", "--max-rows", "vuln show", "tenant list"):
+        for absent in ("falcon-axi setup", "--max-rows", "tenant list"):
             assert absent not in stdout, f"{' '.join(argv)} advertises {absent}"
         if argv == ["vuln", "list", "--help"]:
             assert "--fields" in stdout
