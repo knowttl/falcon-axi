@@ -1,0 +1,11 @@
+{
+  "name": "host show",
+  "order": 500,
+  "summary": "  host show <device id>     the full detail for one host",
+  "scopes": [
+    {
+      "scope": "Hosts:read",
+      "access": "read"
+    }
+  ]
+}

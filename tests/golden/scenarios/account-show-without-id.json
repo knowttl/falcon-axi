@@ -1,0 +1,8 @@
+{
+  "name": "account-show-without-id",
+  "argv": [
+    "account",
+    "show"
+  ],
+  "exit_code": 2
+}

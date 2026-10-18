@@ -4,9 +4,8 @@ It carries the operation, pagination model, and position, plus a non-reversible 
 invocation context. It never carries a credential value or the tenant CID, and a cursor whose
 context changed is rejected before any request is made.
 
-Two of Falcon's three pagination models reach the CLI: Alerts and Hosts advance an integer offset,
-Spotlight carries an opaque `after` token (§7.1). Both travel in this one token shape, so the
-agent-facing vocabulary is `--cursor` either way.
+Falcon's three pagination models reach the CLI: integer offsets, opaque `after` tokens, and
+Intel indicator markers (§7.1). All travel in this one token shape behind `--cursor`.
 """
 
 import base64
@@ -31,7 +30,7 @@ class CursorContext:
     query: str | None = None
     sort: str | None = None
     member_cid: str | None = None
-    model: Literal["offset", "token"] = "offset"
+    model: Literal["offset", "token", "marker"] = "offset"
 
 
 def _fingerprint(position: Position, context: CursorContext, client_secret: str) -> str:
@@ -119,7 +118,7 @@ def decode_offset(token: str, context: CursorContext, client_secret: str) -> int
 
 
 def decode_after(token: str, context: CursorContext, client_secret: str) -> str:
-    """The token-model position, for Spotlight's `after` pagination (§7.1)."""
+    """The string position, for opaque tokens and Intel indicator markers (§7.1)."""
     position = decode_cursor(token, context, client_secret)
     if not isinstance(position, str):
         raise _reject()

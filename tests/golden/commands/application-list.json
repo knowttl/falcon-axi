@@ -1,0 +1,11 @@
+{
+  "name": "application list",
+  "order": 803,
+  "summary": "  application list          list Discover applications",
+  "scopes": [
+    {
+      "scope": "Assets:read",
+      "access": "read"
+    }
+  ]
+}

@@ -1,0 +1,28 @@
+{
+  "name": "error-upstream-unavailable",
+  "argv": [
+    "detection",
+    "list"
+  ],
+  "responders": [
+    {
+      "op": "GetQueriesAlertsV2",
+      "response": {
+        "status": 503,
+        "headers": {},
+        "body": {
+          "meta": {
+            "trace_id": "synthetic-trace-503"
+          },
+          "errors": [
+            {
+              "code": 503,
+              "message": "unavailable"
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "exit_code": 1
+}

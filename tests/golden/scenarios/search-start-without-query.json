@@ -1,0 +1,8 @@
+{
+  "name": "search-start-without-query",
+  "argv": [
+    "search",
+    "start"
+  ],
+  "exit_code": 2
+}

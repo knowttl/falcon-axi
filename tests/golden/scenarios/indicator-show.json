@@ -1,0 +1,15 @@
+{
+  "name": "indicator-show",
+  "argv": [
+    "indicator",
+    "show",
+    "synthetic-indicator-1"
+  ],
+  "responders": [
+    {
+      "op": "GetIntelIndicatorEntities",
+      "fixture": "intel/indicator-detail.json"
+    }
+  ],
+  "exit_code": 0
+}

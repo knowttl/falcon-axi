@@ -1,0 +1,11 @@
+{
+  "name": "search status",
+  "order": 1900,
+  "summary": "  search status <id>        poll one search job and read its events",
+  "scopes": [
+    {
+      "scope": "NGSIEM:read",
+      "access": "read"
+    }
+  ]
+}

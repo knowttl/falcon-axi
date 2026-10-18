@@ -1,0 +1,14 @@
+{
+  "name": "account-list-scope-denied",
+  "argv": [
+    "account",
+    "list"
+  ],
+  "responders": [
+    {
+      "op": "query_accounts",
+      "fixture": "errors/403-scope.json"
+    }
+  ],
+  "exit_code": 1
+}

@@ -1,0 +1,6 @@
+count: 2 of 3 total
+continuation_cursor: eyJvcGVyYXRpb24iOiJRdWVyeUludGVsSW5kaWNhdG9yRW50aXRpZXMiLCJtb2RlbCI6Im1hcmtlciIsInBvc2l0aW9uIjoiMTcwMDAwMDAwMGJiYiIsImZpbmdlcnByaW50IjoiYTMzYmMzNjE0ZTYyMTIwMWE4Mjg0MDU5NjhmMjU2Y2RmMDdiNGNkNzIzNzUwZjdlOTVjMzIwYzNlY2ZiZjAyZiJ9
+indicators[2]{id,indicator,type,malicious_confidence}:
+  synthetic-indicator-1,one.example,domain,high
+  synthetic-indicator-2,two.example,domain,medium
+help[2]: "Run `falcon-axi indicator show <id>` for the full indicator record","Run `falcon-axi indicator list --limit 2 --cursor eyJvcGVyYXRpb24iOiJRdWVyeUludGVsSW5kaWNhdG9yRW50aXRpZXMiLCJtb2RlbCI6Im1hcmtlciIsInBvc2l0aW9uIjoiMTcwMDAwMDAwMGJiYiIsImZpbmdlcnByaW50IjoiYTMzYmMzNjE0ZTYyMTIwMWE4Mjg0MDU5NjhmMjU2Y2RmMDdiNGNkNzIzNzUwZjdlOTVjMzIwYzNlY2ZiZjAyZiJ9` for the next page"

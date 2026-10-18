@@ -1,0 +1,22 @@
+{
+  "name": "detection-list-identity",
+  "argv": [
+    "detection",
+    "list",
+    "--product",
+    "idp",
+    "--limit",
+    "2"
+  ],
+  "responders": [
+    {
+      "op": "GetQueriesAlertsV2",
+      "fixture": "alerts/query-identity.json"
+    },
+    {
+      "op": "PostEntitiesAlertsV2",
+      "fixture": "alerts/hydrate-identity.json"
+    }
+  ],
+  "exit_code": 0
+}

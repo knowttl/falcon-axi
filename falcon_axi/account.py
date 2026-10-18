@@ -12,11 +12,12 @@ from falcon_axi.auth import Session
 from falcon_axi.command import CommandSpec, Invocation
 from falcon_axi.core import CliError
 from falcon_axi.credentials import Credential
-from falcon_axi.cursor import CursorContext, decode_offset, encode_cursor
+from falcon_axi.cursor import CursorContext, Position, decode_offset, encode_cursor
 from falcon_axi.domain import DEFAULT_LIMIT, CommandOutput, rate_limit_note, resources, text, total
 from falcon_axi.falcon_error import translate_falcon_error
 from falcon_axi.render import raw
 from falcon_axi.transport.types import RequestArgs, Transport
+from falcon_axi.walk import Page, max_rows_of, offset_page, walk
 
 #: Documented Discover limits: query "min: 1, max: 100", hydrate "max: 100" ids.
 QUERY_CEILING = 100
@@ -88,6 +89,7 @@ def list_accounts(
     credential: Credential,
     suggestion: str,
     cursor: str | None = None,
+    max_rows: int | None = None,
 ) -> CommandOutput:
     """`account list`: query ids, hydrate them, and render the six-field schema (§10.2)."""
     if filter is not None and not filter.strip():
@@ -101,9 +103,16 @@ def list_accounts(
         model="offset",
     )
     offset = 0 if cursor is None else decode_offset(cursor, context, credential.client_secret)
-    ids, count = _query_account_ids(transport, session, filter, limit, offset)
 
-    if not ids:
+    def fetch(size: int, position: Position | None) -> Page[Account]:
+        assert isinstance(position, int)
+        ids, count = _query_account_ids(transport, session, filter, size, position)
+        return offset_page(_hydrate_accounts(transport, session, ids), count, position, len(ids), size)
+
+    result = walk(fetch, offset, limit, QUERY_CEILING, max_rows)
+    accounts, count = result.items, result.total
+
+    if not result.consumed:
         if offset > 0:
             return CommandOutput(value={"accounts": raw("no more accounts")}, help=())
         return CommandOutput(
@@ -120,15 +129,14 @@ def list_accounts(
             "admin_privileges": _scalar(account.get("admin_privileges")),
             "last_login": _scalar(account.get("last_successful_login_timestamp")),
         }
-        for account in _hydrate_accounts(transport, session, ids)
+        for account in accounts
     ]
-    next_position = offset + len(ids)
-    more_remain = len(ids) >= limit if count is None else next_position < count
 
     help = ["Run `falcon-axi account show <id>` for the full account record"]
     value: dict[str, Any] = {"count": raw(f"{len(rows)} of {count if count is not None else 'unknown'} total")}
-    if more_remain:
-        continuation = encode_cursor(next_position, context, credential.client_secret)
+    result.partial(value, help, result.next_position is not None)
+    if result.next_position is not None:
+        continuation = encode_cursor(result.next_position, context, credential.client_secret)
         value["continuation_cursor"] = continuation
         help.append(f"Run `{suggestion} --cursor {continuation}` for the next page")
     value["accounts"] = rows
@@ -181,6 +189,7 @@ def _account_list(ctx: Invocation) -> CommandOutput:
         cursor=ctx.text("cursor"),
         credential=ctx.credential,
         suggestion=ctx.suggestion,
+        max_rows=max_rows_of(ctx.flags),
     )
 
 
@@ -193,11 +202,13 @@ COMMAND_SPECS = (
         name="account list",
         help="\n".join(
             [
-                "falcon-axi account list [--filter <FQL>] [--limit N] [--cursor <token>]",
+                "falcon-axi account list [--filter <FQL>] [--limit N] [--cursor <token>] [--all] [--max-rows N]",
                 "",
                 "--filter     raw FQL; + is AND, `,` is OR, values are single-quoted",
                 f"--limit      rows in this call (default {DEFAULT_LIMIT}, ceiling {QUERY_CEILING})",
                 "--cursor     opaque continuation token from a previous call",
+                "--all        walk pages; page size is independent of --limit",
+                "--max-rows   row budget (default 1000; requires --all)",
                 "",
                 "Lists the accounts Falcon Discover has observed logging in on endpoints, which is an",
                 "endpoint-observed inventory and not an identity directory.",
@@ -215,8 +226,8 @@ COMMAND_SPECS = (
         summary="  account list              list Discover accounts observed on endpoints",
         handler=_account_list,
         operations=("query_accounts", "get_accounts"),
-        flags=("filter", "limit", "cursor"),
-        value_flags=("filter", "limit", "cursor"),
+        flags=("filter", "limit", "cursor", "all", "max-rows"),
+        value_flags=("filter", "limit", "cursor", "max-rows"),
         limit_ceiling=(QUERY_CEILING, "Discover accounts query"),
     ),
     CommandSpec(

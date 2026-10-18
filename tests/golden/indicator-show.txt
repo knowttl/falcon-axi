@@ -1,0 +1,12 @@
+indicator:
+  id: synthetic-indicator-1
+  indicator: one.example
+  type: domain
+  malicious_confidence: high
+  published_date: 1700000000
+  last_updated: 1700000000
+  deleted: false
+  actors: []
+  labels[1]{name,created_on,last_valid_on}:
+    synthetic-label,1700000000,1700000000
+  relations: []

@@ -28,12 +28,48 @@ OperationId = Literal[
     "cb_exclusions_get_v1",
     "QueryQuarantineFiles",
     "GetQuarantineFiles",
+    "queryCombinedPreventionPolicies",
+    "queryCombinedPreventionPolicyMembers",
+    "queryCombinedSensorUpdatePoliciesV2",
+    "queryCombinedSensorUpdatePolicyMembers",
+    "queryCombinedFirewallPolicies",
+    "queryCombinedFirewallPolicyMembers",
+    "queryCombinedDeviceControlPolicies",
+    "queryCombinedDeviceControlPolicyMembers",
+    "queryCombinedRTResponsePolicies",
+    "queryCombinedRTResponsePolicyMembers",
+    "queryCombinedContentUpdatePolicies",
+    "queryCombinedContentUpdatePolicyMembers",
+    "indicator_search_v1",
+    "indicator_get_v1",
+    "DevicesRanOn",
+    "ProcessesRanOn",
+    "queryCombinedHostGroups",
+    "queryCombinedGroupMembers",
+    "combined_hosts",
+    "get_hosts",
+    "combined_applications",
+    "query_logins",
+    "get_logins",
+    "QueryGetNetworkAddressHistoryV1",
+    "QuerySensorsByFilter",
+    "GetSensorDetails",
+    "QueryVulnerabilities",
+    "getVulnerabilities",
     "GetQueriesAlertsV2",
     "PostEntitiesAlertsV2",
+    "PostAggregatesAlertsV2",
     "QueryDevicesByFilter",
     "PostDeviceDetailsV2",
     "combinedQueryVulnerabilities",
     "GetVulnerabilities",
+    "QueryIntelActorEntities",
+    "GetIntelActorEntities",
+    "QueryIntelReportEntities",
+    "GetIntelReportEntities",
+    "GetMitreReport",
+    "QueryIntelIndicatorEntities",
+    "GetIntelIndicatorEntities",
     "QueryDeviceLoginHistoryV2",
     "query_accounts",
     "get_accounts",
@@ -243,6 +279,550 @@ CANONICAL: tuple[FalconOperation, ...] = (
             falcon_mcp=(
                 "falcon_mcp/common/api_scopes.py maps GetQuarantineFiles to Quarantined Files:read; "
                 "falcon_mcp/modules/quarantine.py uses it for search_quarantined_files."
+            ),
+        ),
+    ),
+    FalconOperation(
+        id="queryCombinedPreventionPolicies",
+        method="GET",
+        path="/policy/combined/prevention/v1",
+        scopes=("Prevention Policies:read",),
+        effect="read",
+        evidence=Evidence(
+            doc_url="https://developer.crowdstrike.com/api-reference/collections/prevention-policy/",
+            doc_scope="Prevention Policies: READ",
+            falcon_mcp=(
+                "falcon_mcp/common/api_scopes.py maps queryCombinedPreventionPolicies "
+                "to Prevention Policies:read; falcon_mcp/modules/policies.py _OPERATIONS "
+                "and falconpy/_endpoint/_prevention_policies.py corroborate the combined read."
+            ),
+        ),
+    ),
+    FalconOperation(
+        id="queryCombinedPreventionPolicyMembers",
+        method="GET",
+        path="/policy/combined/prevention-members/v1",
+        scopes=("Prevention Policies:read",),
+        effect="read",
+        evidence=Evidence(
+            doc_url="https://developer.crowdstrike.com/api-reference/collections/prevention-policy/",
+            doc_scope="Prevention Policies: READ",
+            falcon_mcp=(
+                "falcon_mcp/common/api_scopes.py maps queryCombinedPreventionPolicyMembers "
+                "to Prevention Policies:read; falcon_mcp/modules/policies.py _OPERATIONS "
+                "and falconpy/_endpoint/_prevention_policies.py corroborate the combined read."
+            ),
+        ),
+    ),
+    FalconOperation(
+        id="queryCombinedSensorUpdatePoliciesV2",
+        method="GET",
+        path="/policy/combined/sensor-update/v2",
+        scopes=("Sensor Update Policies:read",),
+        effect="read",
+        evidence=Evidence(
+            doc_url="https://developer.crowdstrike.com/api-reference/collections/sensor-update-policy/",
+            doc_scope="Sensor Update Policies: READ",
+            falcon_mcp=(
+                "falcon_mcp/common/api_scopes.py maps queryCombinedSensorUpdatePoliciesV2 "
+                "to Sensor Update Policies:read; falcon_mcp/modules/policies.py _OPERATIONS "
+                "and falconpy/_endpoint/_sensor_update_policies.py corroborate the combined read."
+            ),
+        ),
+    ),
+    FalconOperation(
+        id="queryCombinedSensorUpdatePolicyMembers",
+        method="GET",
+        path="/policy/combined/sensor-update-members/v1",
+        scopes=("Sensor Update Policies:read",),
+        effect="read",
+        evidence=Evidence(
+            doc_url="https://developer.crowdstrike.com/api-reference/collections/sensor-update-policy/",
+            doc_scope="Sensor Update Policies: READ",
+            falcon_mcp=(
+                "falcon_mcp/common/api_scopes.py maps queryCombinedSensorUpdatePolicyMembers "
+                "to Sensor Update Policies:read; falcon_mcp/modules/policies.py _OPERATIONS "
+                "and falconpy/_endpoint/_sensor_update_policies.py corroborate the combined read."
+            ),
+        ),
+    ),
+    FalconOperation(
+        id="queryCombinedFirewallPolicies",
+        method="GET",
+        path="/policy/combined/firewall/v1",
+        scopes=("Firewall Management:read",),
+        effect="read",
+        evidence=Evidence(
+            doc_url="https://developer.crowdstrike.com/api-reference/collections/firewall-policies/",
+            doc_scope="Firewall Management: READ",
+            falcon_mcp=(
+                "falcon_mcp/common/api_scopes.py maps queryCombinedFirewallPolicies "
+                "to Firewall Management:read; falcon_mcp/modules/policies.py _OPERATIONS "
+                "and falconpy/_endpoint/_firewall_policies.py corroborate the combined read."
+            ),
+        ),
+    ),
+    FalconOperation(
+        id="queryCombinedFirewallPolicyMembers",
+        method="GET",
+        path="/policy/combined/firewall-members/v1",
+        scopes=("Firewall Management:read",),
+        effect="read",
+        evidence=Evidence(
+            doc_url="https://developer.crowdstrike.com/api-reference/collections/firewall-policies/",
+            doc_scope="Firewall Management: READ",
+            falcon_mcp=(
+                "falcon_mcp/common/api_scopes.py maps queryCombinedFirewallPolicyMembers "
+                "to Firewall Management:read; falcon_mcp/modules/policies.py _OPERATIONS "
+                "and falconpy/_endpoint/_firewall_policies.py corroborate the combined read."
+            ),
+        ),
+    ),
+    FalconOperation(
+        id="queryCombinedDeviceControlPolicies",
+        method="GET",
+        path="/policy/combined/device-control/v1",
+        scopes=("Device Control Policies:read",),
+        effect="read",
+        evidence=Evidence(
+            doc_url="https://developer.crowdstrike.com/api-reference/collections/device-control-policies/",
+            doc_scope="Device Control Policies: READ",
+            falcon_mcp=(
+                "falcon_mcp/common/api_scopes.py maps queryCombinedDeviceControlPolicies "
+                "to Device Control Policies:read; falcon_mcp/modules/policies.py _OPERATIONS "
+                "and falconpy/_endpoint/_device_control_policies.py corroborate the combined read."
+            ),
+        ),
+    ),
+    FalconOperation(
+        id="queryCombinedDeviceControlPolicyMembers",
+        method="GET",
+        path="/policy/combined/device-control-members/v1",
+        scopes=("Device Control Policies:read",),
+        effect="read",
+        evidence=Evidence(
+            doc_url="https://developer.crowdstrike.com/api-reference/collections/device-control-policies/",
+            doc_scope="Device Control Policies: READ",
+            falcon_mcp=(
+                "falcon_mcp/common/api_scopes.py maps queryCombinedDeviceControlPolicyMembers "
+                "to Device Control Policies:read; falcon_mcp/modules/policies.py _OPERATIONS "
+                "and falconpy/_endpoint/_device_control_policies.py corroborate the combined read."
+            ),
+        ),
+    ),
+    FalconOperation(
+        id="queryCombinedRTResponsePolicies",
+        method="GET",
+        path="/policy/combined/response/v1",
+        scopes=("Response Policies:read",),
+        effect="read",
+        evidence=Evidence(
+            doc_url="https://developer.crowdstrike.com/api-reference/collections/response-policies/",
+            doc_scope="Response Policies: READ",
+            falcon_mcp=(
+                "falcon_mcp/common/api_scopes.py maps queryCombinedRTResponsePolicies "
+                "to Response Policies:read; falcon_mcp/modules/policies.py _OPERATIONS "
+                "and falconpy/_endpoint/_response_policies.py corroborate the combined read."
+            ),
+        ),
+    ),
+    FalconOperation(
+        id="queryCombinedRTResponsePolicyMembers",
+        method="GET",
+        path="/policy/combined/response-members/v1",
+        scopes=("Response Policies:read",),
+        effect="read",
+        evidence=Evidence(
+            doc_url="https://developer.crowdstrike.com/api-reference/collections/response-policies/",
+            doc_scope="Response Policies: READ",
+            falcon_mcp=(
+                "falcon_mcp/common/api_scopes.py maps queryCombinedRTResponsePolicyMembers "
+                "to Response Policies:read; falcon_mcp/modules/policies.py _OPERATIONS "
+                "and falconpy/_endpoint/_response_policies.py corroborate the combined read."
+            ),
+        ),
+    ),
+    FalconOperation(
+        id="queryCombinedContentUpdatePolicies",
+        method="GET",
+        path="/policy/combined/content-update/v1",
+        scopes=("Content Update Policies:read",),
+        effect="read",
+        evidence=Evidence(
+            doc_url="https://developer.crowdstrike.com/api-reference/collections/content-update-policies/",
+            doc_scope="Content Update Policy: READ",
+            falcon_mcp=(
+                "falcon_mcp/common/api_scopes.py maps queryCombinedContentUpdatePolicies "
+                "to Content Update Policies:read; falcon_mcp/modules/policies.py _OPERATIONS "
+                "and falconpy/_endpoint/_content_update_policies.py corroborate the combined read."
+            ),
+        ),
+    ),
+    FalconOperation(
+        id="queryCombinedContentUpdatePolicyMembers",
+        method="GET",
+        path="/policy/combined/content-update-members/v1",
+        scopes=("Content Update Policies:read",),
+        effect="read",
+        evidence=Evidence(
+            doc_url="https://developer.crowdstrike.com/api-reference/collections/content-update-policies/",
+            doc_scope="Content Update Policy: READ",
+            falcon_mcp=(
+                "falcon_mcp/common/api_scopes.py maps queryCombinedContentUpdatePolicyMembers "
+                "to Content Update Policies:read; falcon_mcp/modules/policies.py _OPERATIONS "
+                "and falconpy/_endpoint/_content_update_policies.py corroborate the combined read."
+            ),
+        ),
+    ),
+    FalconOperation(
+        id="indicator_search_v1",
+        method="GET",
+        path="/iocs/queries/indicators/v1",
+        scopes=("IOC Management:read",),
+        effect="read",
+        evidence=Evidence(
+            doc_url="https://developer.crowdstrike.com/api-reference/collections/ioc/#indicatorsearchv1",
+            doc_scope="IOC Management: READ",
+            falcon_mcp="falcon_mcp/common/api_scopes.py maps indicator_search_v1 to IOC Management:read; "
+            "falcon_mcp/modules/ioc.py search_iocs uses after pagination and then indicator_get_v1",
+        ),
+    ),
+    FalconOperation(
+        id="indicator_get_v1",
+        method="GET",
+        path="/iocs/entities/indicators/v1",
+        scopes=("IOC Management:read",),
+        effect="read",
+        evidence=Evidence(
+            doc_url="https://developer.crowdstrike.com/api-reference/collections/ioc/#indicatorgetv1",
+            doc_scope="IOC Management: READ",
+            falcon_mcp="falcon_mcp/common/api_scopes.py maps indicator_get_v1 to IOC Management:read; "
+            "falcon_mcp/modules/ioc.py search_iocs hydrates ids and restores query order",
+        ),
+    ),
+    FalconOperation(
+        id="DevicesRanOn",
+        method="GET",
+        path="/indicators/queries/devices/v1",
+        scopes=("IOCs (Indicators of Compromise):read",),
+        effect="read",
+        evidence=Evidence(
+            doc_url="https://developer.crowdstrike.com/api-reference/collections/iocs/#devicesranon",
+            doc_scope="IOCs (Indicators of Compromise): READ",
+            falcon_mcp="falcon-mcp has no tool for DevicesRanOn. "
+            "falconpy/_endpoint/_iocs.py maps DevicesRanOn to GET /indicators/queries/devices/v1. "
+            "PSFalcon public/indicators.ps1 Get-FalconIocHost wraps this read with type/value and offset/limit.",
+        ),
+    ),
+    FalconOperation(
+        id="ProcessesRanOn",
+        method="GET",
+        path="/indicators/queries/processes/v1",
+        scopes=("IOCs (Indicators of Compromise):read",),
+        effect="read",
+        evidence=Evidence(
+            doc_url="https://developer.crowdstrike.com/api-reference/collections/iocs/#processesranon",
+            doc_scope="IOCs (Indicators of Compromise): READ",
+            falcon_mcp="falcon-mcp has no tool for ProcessesRanOn. "
+            "falconpy/_endpoint/_iocs.py maps ProcessesRanOn to GET /indicators/queries/processes/v1. "
+            "PSFalcon public/indicators.ps1 Get-FalconIocProcess wraps this read; device_id is required.",
+        ),
+    ),
+    FalconOperation(
+        id="queryCombinedHostGroups",
+        method="GET",
+        path="/devices/combined/host-groups/v1",
+        scopes=("Host Groups:read",),
+        effect="read",
+        evidence=Evidence(
+            doc_url="https://developer.crowdstrike.com/api-reference/collections/host-group/#querycombinedhostgroups",
+            doc_scope="Host groups: READ",
+            falcon_mcp="falcon_mcp/common/api_scopes.py maps queryCombinedHostGroups to Host Groups:read; "
+            "falcon_mcp/modules/host_groups.py search_host_groups returns id/name/group_type/description",
+        ),
+    ),
+    FalconOperation(
+        id="queryCombinedGroupMembers",
+        method="GET",
+        path="/devices/combined/host-group-members/v1",
+        scopes=("Host Groups:read",),
+        effect="read",
+        evidence=Evidence(
+            doc_url="https://developer.crowdstrike.com/api-reference/collections/host-group/#querycombinedgroupmembers",
+            doc_scope="Host groups: READ",
+            falcon_mcp="falcon_mcp/common/api_scopes.py maps queryCombinedGroupMembers to Host Groups:read; "
+            "falcon_mcp/modules/host_groups.py search_host_group_members uses id and returns host entities",
+        ),
+    ),
+    FalconOperation(
+        id="combined_hosts",
+        method="GET",
+        path="/discover/combined/hosts/v1",
+        scopes=("Assets:read",),
+        effect="read",
+        evidence=Evidence(
+            doc_url=DISCOVER_DOC,
+            doc_scope="Assets: READ",
+            falcon_mcp="falcon_mcp/common/api_scopes.py maps combined_hosts to Assets:read; "
+            "falcon_mcp/modules/discover.py search_managed_assets and search_unmanaged_assets use it. "
+            "falconpy/_endpoint/_discover.py and the official API reference specify after pagination and a 1000 ceiling.",
+        ),
+    ),
+    FalconOperation(
+        id="combined_applications",
+        method="GET",
+        path="/discover/combined/applications/v1",
+        scopes=("Assets:read",),
+        effect="read",
+        evidence=Evidence(
+            doc_url=DISCOVER_DOC,
+            doc_scope="Assets: READ",
+            falcon_mcp="falcon_mcp/common/api_scopes.py maps combined_applications to Assets:read; "
+            "falcon_mcp/modules/discover.py search_applications uses it; "
+            "falconpy/_endpoint/_discover.py specifies after pagination.",
+        ),
+    ),
+    FalconOperation(
+        id="get_hosts",
+        method="GET",
+        path="/discover/entities/hosts/v1",
+        scopes=("Assets:read",),
+        effect="read",
+        evidence=Evidence(
+            doc_url=DISCOVER_DOC,
+            doc_scope="Assets: READ",
+            falcon_mcp="falcon-mcp has no tool for get_hosts. "
+            "falconpy/_endpoint/_discover.py maps get_hosts to GET /discover/entities/hosts/v1. "
+            "PSFalcon public/discover.ps1 Get-FalconAsset wraps this read with ids in the query.",
+        ),
+    ),
+    FalconOperation(
+        id="query_logins",
+        method="GET",
+        path="/discover/queries/logins/v1",
+        scopes=("Assets:read",),
+        effect="read",
+        evidence=Evidence(
+            doc_url=DISCOVER_DOC,
+            doc_scope="Assets: READ",
+            falcon_mcp="falcon-mcp has no tool for query_logins. "
+            "falconpy/_endpoint/_discover.py maps query_logins to GET /discover/queries/logins/v1. "
+            "PSFalcon public/discover.ps1 Get-FalconAsset -Login wraps this offset-paginated read.",
+        ),
+    ),
+    FalconOperation(
+        id="get_logins",
+        method="GET",
+        path="/discover/entities/logins/v1",
+        scopes=("Assets:read",),
+        effect="read",
+        evidence=Evidence(
+            doc_url=DISCOVER_DOC,
+            doc_scope="Assets: READ",
+            falcon_mcp="falcon-mcp has no tool for get_logins. "
+            "falconpy/_endpoint/_discover.py maps get_logins to GET /discover/entities/logins/v1. "
+            "PSFalcon public/discover.ps1 Get-FalconAsset wraps this read with at most 100 ids in the query.",
+        ),
+    ),
+    FalconOperation(
+        id="QueryGetNetworkAddressHistoryV1",
+        method="POST",
+        path="/devices/combined/devices/network-address-history/v1",
+        scopes=("Hosts:read",),
+        effect="read",
+        evidence=Evidence(
+            doc_url=HOSTS_DOC,
+            doc_scope="Hosts: READ",
+            falcon_mcp="falcon-mcp has no tool for QueryGetNetworkAddressHistoryV1. "
+            "falconpy/_endpoint/_hosts.py maps QueryGetNetworkAddressHistoryV1 to POST "
+            "/devices/combined/devices/network-address-history/v1. "
+            "PSFalcon public/devices.ps1 Get-FalconHost -Network wraps this read with body ids.",
+        ),
+    ),
+    FalconOperation(
+        id="QuerySensorsByFilter",
+        method="GET",
+        path="/identity-protection/queries/devices/v1",
+        scopes=("Identity Protection Entities:read",),
+        effect="read",
+        evidence=Evidence(
+            doc_url=IDENTITY_PROTECTION_DOC + "#querysensorsbyfilter",
+            doc_scope="Identity Protection Entities: READ",
+            falcon_mcp=(
+                "falcon-mcp has no tool for QuerySensorsByFilter (falcon_mcp/modules/idp.py). "
+                "falconpy/_endpoint/_identity_protection.py maps QuerySensorsByFilter to GET "
+                "/identity-protection/queries/devices/v1. "
+                "PSFalcon Get-FalconIdentityHost in public/identity-protection.ps1 wraps the same operation."
+            ),
+        ),
+    ),
+    FalconOperation(
+        id="GetSensorDetails",
+        method="POST",
+        path="/identity-protection/entities/devices/GET/v1",
+        scopes=("Identity Protection Entities:read",),
+        effect="read",
+        evidence=Evidence(
+            doc_url=IDENTITY_PROTECTION_DOC + "#getsensordetails",
+            doc_scope="Identity Protection Entities: READ",
+            falcon_mcp=(
+                "falcon-mcp has no tool for GetSensorDetails (falcon_mcp/modules/idp.py). "
+                "falconpy/_endpoint/_identity_protection.py maps GetSensorDetails to POST "
+                "/identity-protection/entities/devices/GET/v1. "
+                "PSFalcon Get-FalconIdentityHost -Id in public/identity-protection.ps1 wraps the same operation."
+            ),
+        ),
+    ),
+    FalconOperation(
+        id="QueryVulnerabilities",
+        method="GET",
+        path="/intel/queries/vulnerabilities/v1",
+        scopes=("Vulnerabilities (Falcon Intelligence):read",),
+        effect="read",
+        evidence=Evidence(
+            doc_url=INTEL_DOC,
+            doc_scope="Vulnerabilities (Falcon Intelligence): READ",
+            falcon_mcp=(
+                "falcon-mcp has no tool for QueryVulnerabilities (falcon_mcp/modules/intel.py). "
+                "falconpy/_endpoint/_intel.py maps QueryVulnerabilities to GET /intel/queries/vulnerabilities/v1; "
+                "PSFalcon public/intel.ps1 Get-FalconCve wraps the same route with filter, limit and offset."
+            ),
+        ),
+    ),
+    FalconOperation(
+        id="getVulnerabilities",
+        method="GET",
+        path="/spotlight/entities/vulnerabilities/v2",
+        scopes=("Vulnerabilities:read",),
+        effect="read",
+        evidence=Evidence(
+            doc_url=SPOTLIGHT_DOC,
+            doc_scope="Vulnerabilities: READ",
+            falcon_mcp=(
+                "falcon-mcp has no tool for getVulnerabilities; falcon_mcp/modules/spotlight.py "
+                "exposes only combinedQueryVulnerabilities. "
+                "falconpy/_endpoint/_spotlight_vulnerabilities.py maps getVulnerabilities to GET "
+                "/spotlight/entities/vulnerabilities/v2 with ids; "
+                "PSFalcon public/spotlight.ps1 Get-FalconVulnerability wraps the same route."
+            ),
+        ),
+    ),
+    FalconOperation(
+        id="QueryIntelActorEntities",
+        method="GET",
+        path="/intel/combined/actors/v1",
+        scopes=("Actors (Falcon Intelligence):read",),
+        effect="read",
+        evidence=Evidence(
+            doc_url=INTEL_DOC,
+            doc_scope="Actors (Falcon Intelligence): READ",
+            falcon_mcp="falcon_mcp/common/api_scopes.py maps QueryIntelActorEntities to Actors (Falcon Intelligence):read; "
+            "falcon_mcp/modules/intel.py query_actor_entities (search_actors) uses the combined endpoint",
+        ),
+    ),
+    FalconOperation(
+        id="GetIntelActorEntities",
+        method="GET",
+        path="/intel/entities/actors/v1",
+        scopes=("Actors (Falcon Intelligence):read",),
+        effect="read",
+        evidence=Evidence(
+            doc_url=INTEL_DOC,
+            doc_scope="Actors (Falcon Intelligence): READ",
+            falcon_mcp="falcon-mcp has no tool for GetIntelActorEntities. "
+            "falconpy/_endpoint/_intel.py maps GetIntelActorEntities to GET /intel/entities/actors/v1. "
+            "PSFalcon Get-FalconActor in public/intel.ps1 wraps this entity read with ids and fields.",
+        ),
+    ),
+    FalconOperation(
+        id="QueryIntelReportEntities",
+        method="GET",
+        path="/intel/combined/reports/v1",
+        scopes=("Reports (Falcon Intelligence):read",),
+        effect="read",
+        evidence=Evidence(
+            doc_url=INTEL_DOC,
+            doc_scope="Reports (Falcon Intelligence): READ",
+            falcon_mcp="falcon_mcp/common/api_scopes.py maps QueryIntelReportEntities to Reports (Falcon Intelligence):read; "
+            "falcon_mcp/modules/intel.py query_report_entities (search_reports) uses the combined endpoint",
+        ),
+    ),
+    FalconOperation(
+        id="GetIntelReportEntities",
+        method="GET",
+        path="/intel/entities/reports/v1",
+        scopes=("Reports (Falcon Intelligence):read",),
+        effect="read",
+        evidence=Evidence(
+            doc_url=INTEL_DOC,
+            doc_scope="Reports (Falcon Intelligence): READ",
+            falcon_mcp="falcon-mcp has no tool for GetIntelReportEntities. "
+            "falconpy/_endpoint/_intel.py maps GetIntelReportEntities to GET /intel/entities/reports/v1. "
+            "PSFalcon Get-FalconIntel in public/intel.ps1 wraps this entity read with ids and fields.",
+        ),
+    ),
+    FalconOperation(
+        id="GetMitreReport",
+        method="GET",
+        path="/intel/entities/mitre-reports/v1",
+        scopes=("Actors (Falcon Intelligence):read",),
+        effect="read",
+        evidence=Evidence(
+            doc_url=INTEL_DOC,
+            doc_scope="Actors (Falcon Intelligence): READ",
+            falcon_mcp="falcon_mcp/common/api_scopes.py maps GetMitreReport to Actors (Falcon Intelligence):read; "
+            "falcon_mcp/modules/intel.py get_mitre_report requests format=json and parses a top-level JSON list",
+        ),
+    ),
+    FalconOperation(
+        id="QueryIntelIndicatorEntities",
+        method="GET",
+        path="/intel/combined/indicators/v1",
+        scopes=("Indicators (Falcon Intelligence):read",),
+        effect="read",
+        evidence=Evidence(
+            doc_url=INTEL_DOC,
+            doc_scope="Indicators (Falcon Intelligence): READ",
+            falcon_mcp=(
+                "falcon_mcp/common/api_scopes.py maps QueryIntelIndicatorEntities to "
+                "Indicators (Falcon Intelligence):read; falcon_mcp/modules/intel.py search_indicators "
+                "uses filter, limit, sort and the combined response fields. "
+                "falconpy/_endpoint/_intel.py corroborates these parameters; "
+                "https://developer.crowdstrike.com/sdks/python/responses/ documents _marker pagination."
+            ),
+        ),
+    ),
+    FalconOperation(
+        id="GetIntelIndicatorEntities",
+        method="POST",
+        path="/intel/entities/indicators/GET/v1",
+        scopes=("Indicators (Falcon Intelligence):read",),
+        effect="read",
+        evidence=Evidence(
+            doc_url=INTEL_DOC,
+            doc_scope="Indicators (Falcon Intelligence): READ",
+            falcon_mcp=(
+                "falcon-mcp has no tool for GetIntelIndicatorEntities. "
+                "falconpy/_endpoint/_intel.py maps GetIntelIndicatorEntities to POST "
+                "/intel/entities/indicators/GET/v1. PSFalcon Get-FalconIndicator in public/intel.ps1 "
+                "wraps the same operation with an ids body."
+            ),
+        ),
+    ),
+    FalconOperation(
+        id="PostAggregatesAlertsV2",
+        method="POST",
+        path="/alerts/aggregates/alerts/v2",
+        scopes=("Alerts:read",),
+        effect="read",
+        evidence=Evidence(
+            doc_url=ALERTS_DOC,
+            doc_scope="Alerts: READ",
+            falcon_mcp=(
+                "falcon_mcp/common/api_scopes.py maps PostAggregatesAlertsV2 to Alerts:read; "
+                "falcon_mcp/modules/detections.py aggregate_detections and modules/base.py "
+                "_base_aggregate use a list of terms specs and name/buckets/label/count results; "
+                "falconpy/_endpoint/_alerts.py confirms POST /alerts/aggregates/alerts/v2"
             ),
         ),
     ),

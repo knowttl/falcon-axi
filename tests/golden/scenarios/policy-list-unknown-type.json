@@ -1,0 +1,10 @@
+{
+  "name": "policy-list-unknown-type",
+  "argv": [
+    "policy",
+    "list",
+    "--type",
+    "unknown"
+  ],
+  "exit_code": 2
+}

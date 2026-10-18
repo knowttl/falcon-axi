@@ -1,0 +1,25 @@
+{
+  "name": "detection-walk-budget",
+  "argv": [
+    "detection",
+    "list",
+    "--severity",
+    "high",
+    "--since",
+    "24h",
+    "--all",
+    "--max-rows",
+    "2"
+  ],
+  "responders": [
+    {
+      "op": "GetQueriesAlertsV2",
+      "fixture": "alerts/query-page.json"
+    },
+    {
+      "op": "PostEntitiesAlertsV2",
+      "fixture": "alerts/hydrate-page.json"
+    }
+  ],
+  "exit_code": 0
+}

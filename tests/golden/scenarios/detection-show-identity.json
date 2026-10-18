@@ -1,0 +1,15 @@
+{
+  "name": "detection-show-identity",
+  "argv": [
+    "detection",
+    "show",
+    "synthetic-cid:ind:synthetic-idp-01:2001"
+  ],
+  "responders": [
+    {
+      "op": "PostEntitiesAlertsV2",
+      "fixture": "alerts/hydrate-identity.json"
+    }
+  ],
+  "exit_code": 0
+}

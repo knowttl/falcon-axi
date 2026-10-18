@@ -1,0 +1,11 @@
+{
+  "name": "actor list",
+  "order": 1100,
+  "summary": "  actor list                list Falcon Intelligence actors",
+  "scopes": [
+    {
+      "scope": "Actors (Falcon Intelligence):read",
+      "access": "read"
+    }
+  ]
+}

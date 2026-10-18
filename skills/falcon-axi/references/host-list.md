@@ -1,0 +1,27 @@
+# host list
+
+host list                 list hosts from the Falcon Hosts collection
+
+```text
+uvx falcon-axi host list [--hostname <name>] [--platform <name>] [--status <name>] [--since <window>] [--filter <FQL>] [--limit N] [--cursor <token>] [--all] [--max-rows N] [--fields <names>]
+
+--hostname   hostname to match; Hosts filters accept wildcards, so WIN-* works
+--platform   one of windows, mac, linux
+--status     one of normal, containment_pending, contained, lift_containment_pending
+--since      last_seen within a relative window such as 24h or 7d
+--filter     raw FQL; + is AND, `,` is OR, values are single-quoted, relative dates are lowercase
+--limit      rows in this call (default 20, ceiling 5000)
+--cursor     opaque continuation token from a previous call
+--all        walk pages; page size is independent of --limit
+--max-rows   row budget (default 1000; requires --all)
+--fields     extra columns, comma-separated: os_version, agent_version, status, first_seen, machine_domain
+
+Filterable fields include hostname, platform_name, os_version, agent_version, status,
+last_seen, first_seen, machine_domain, and local_ip.
+Examples:
+  uvx falcon-axi host list --platform windows --since 24h
+  uvx falcon-axi host list --filter "hostname:'WIN-*'+platform_name:'Windows'"
+
+This command is read-only and requires only Hosts:read. It reports containment status as
+data and cannot change it.
+```

@@ -1,0 +1,15 @@
+{
+  "name": "host-logins-not-found",
+  "argv": [
+    "host",
+    "logins",
+    "synthetic-device-99"
+  ],
+  "responders": [
+    {
+      "op": "QueryDeviceLoginHistoryV2",
+      "fixture": "hosts/login-history-invalid-id.json"
+    }
+  ],
+  "exit_code": 1
+}

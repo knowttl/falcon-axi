@@ -1,0 +1,8 @@
+{
+  "name": "vuln-list-without-filter",
+  "argv": [
+    "vuln",
+    "list"
+  ],
+  "exit_code": 2
+}

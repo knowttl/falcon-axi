@@ -1,0 +1,11 @@
+{
+  "name": "detection-list-pagination-limit",
+  "argv": [
+    "detection",
+    "list"
+  ],
+  "cursor": {
+    "position": 10000
+  },
+  "exit_code": 1
+}

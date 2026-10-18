@@ -1,0 +1,6 @@
+count: 2 of 3 total
+continuation_cursor: eyJvcGVyYXRpb24iOiJRdWVyeVNlbnNvcnNCeUZpbHRlciIsIm1vZGVsIjoib2Zmc2V0IiwicG9zaXRpb24iOjIsImZpbmdlcnByaW50IjoiZmY5ZWU4ZjZhZDJmODI3MTlhN2E4NjZlYTcwZTBiM2Y1ZjFkZDMwYmMyMTk0MWEwM2ZhNGNjYTYzYTY1ZTJkNSJ9
+sensors[2]{device_id,hostname,status,agent_version}:
+  synthetic-sensor-01,SYNTH-DC-01,healthy,7.0.0
+  synthetic-sensor-02,SYNTH-DC-02,healthy,7.0.0
+help[2]: "Run `falcon-axi identity sensor show <device_id>` for sensor details","Run `falcon-axi identity sensor list --limit 2 --cursor eyJvcGVyYXRpb24iOiJRdWVyeVNlbnNvcnNCeUZpbHRlciIsIm1vZGVsIjoib2Zmc2V0IiwicG9zaXRpb24iOjIsImZpbmdlcnByaW50IjoiZmY5ZWU4ZjZhZDJmODI3MTlhN2E4NjZlYTcwZTBiM2Y1ZjFkZDMwYmMyMTk0MWEwM2ZhNGNjYTYzYTY1ZTJkNSJ9` for the next page"

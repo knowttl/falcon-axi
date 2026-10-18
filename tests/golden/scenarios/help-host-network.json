@@ -1,0 +1,9 @@
+{
+  "name": "help-host-network",
+  "argv": [
+    "host",
+    "network",
+    "--help"
+  ],
+  "exit_code": 0
+}

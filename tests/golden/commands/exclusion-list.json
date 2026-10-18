@@ -1,0 +1,22 @@
+{
+  "name": "exclusion list",
+  "order": 2330,
+  "summary": "  exclusion list            list ML, IOA, sensor-visibility, or certificate exclusions",
+  "scopes": [
+    {
+      "scope": "Machine Learning Exclusions:read",
+      "access": "read",
+      "required": "yes"
+    },
+    {
+      "scope": "IOA Exclusions:read",
+      "access": "read",
+      "required": "yes"
+    },
+    {
+      "scope": "Sensor Visibility Exclusions:read",
+      "access": "read",
+      "required": "yes"
+    }
+  ]
+}

@@ -1,0 +1,10 @@
+falcon-axi ioc processes <type:value> --host <device_id> [--limit N] [--cursor <token>]
+
+Types: domain, ipv4, ipv6, md5, sha256. IPv6 values retain their colons.
+--limit   identifiers per call (default 20, ceiling 100)
+--cursor  opaque continuation token
+--host    required device ID; use ioc hosts to find it
+
+Returns observed identifiers; no process details or actions are requested.
+Example: falcon-axi ioc processes domain:example.invalid --host <device_id>
+Read-only; requires IOCs (Indicators of Compromise):read.

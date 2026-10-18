@@ -1,0 +1,11 @@
+{
+  "name": "account show",
+  "order": 800,
+  "summary": "  account show <id>         the full detail for one account",
+  "scopes": [
+    {
+      "scope": "Assets:read",
+      "access": "read"
+    }
+  ]
+}

@@ -1,0 +1,10 @@
+{
+  "name": "unknown-status",
+  "argv": [
+    "detection",
+    "list",
+    "--status",
+    "stale"
+  ],
+  "exit_code": 2
+}
