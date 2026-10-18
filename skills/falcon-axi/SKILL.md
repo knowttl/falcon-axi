@@ -1,6 +1,6 @@
 ---
 name: falcon-axi
-description: "Read CrowdStrike Falcon detections, hosts, vulnerabilities, CVE intelligence, NG-SIEM searches, and Identity Protection users and timelines from the shell with falcon-axi. Use for Falcon alerts and detections, detection triage, host and sensor inventory, recent interactive host logins, Discover account inventory, Spotlight vulnerability exposure, Falcon Intelligence CVE detail, NG-SIEM CQL event search, Identity Protection user and endpoint risk, accounts, and activity timelines, severity and status filtering, tenant and region checks, and Falcon API credential diagnostics."
+description: "Read CrowdStrike Falcon detections, hosts, vulnerabilities, CVE intelligence, NG-SIEM searches, and Identity Protection users and timelines from the shell with falcon-axi. Use for Falcon alerts and detections, detection triage, host and sensor inventory, recent interactive host logins, Discover account inventory, Spotlight vulnerability exposure, Falcon Intelligence CVE detail, NG-SIEM CQL event search, Identity Protection user and endpoint risk, accounts, and activity timelines, firewall configuration, custom IOA groups, correlation rules, cases, severity and status filtering, tenant and region checks, and Falcon API credential diagnostics."
 user-invocable: false
 ---
 
@@ -31,14 +31,13 @@ search over NG-SIEM event data when the question is not one of those domains, to
 user or endpoint and its risk, accounts, and activity timeline, and to check whether a Falcon credential
 resolves and into which region and tenant.
 
-`setup` does not exist, and neither do `--all`, `--max-rows`, or `--fields` on detection and host lists.
-Neither does any command for a Falcon domain outside detections, hosts, Discover accounts, Spotlight vulnerabilities, `cve show`,
-NG-SIEM search, and the Identity Protection directory and timeline; there is no `cve list`, no intel actor,
-indicator, or report command, and no ingest, lookup-file, parser, dashboard, Charlotte AI, identity incident,
-or identity security-assessment command.
-Do not invent them; an unknown flag or command fails loudly.
+The [README status section](../../README.md#status-partial-implementation-of-the-v1-design) owns the shipped and deferred command inventory.
+Do not invent commands or flags; unknown input fails loudly.
 
 ## Commands
+
+For configuration and case reads, see the [README usage guidance](../../README.md#configuration-and-cases).
+Use `falcon-axi --help` and the selected command's `--help` for the current command and flag inventory.
 
 `falcon-axi`: the home view - tenant line plus the five newest detections.
 `detection`: `list` (flags `--severity`, `--status`, `--product`, `--since`, `--filter`, `--limit`, `--cursor`),

@@ -30,7 +30,7 @@ What is shipped:
 - identity-aware detections (`detection list --product idp`, with account and source-endpoint
   fields when present) and `identity activity <account>`, a fixed NG-SIEM search over one account's
   Identity Protection events that adds no operation and no scope beyond N1's;
-- `falcon-axi scopes`, the command-to-scope matrix, available without making a request.
+- `falcon-axi scopes`, the command-to-scope matrix, available without making a request;
 - firewall configuration reads: `firewall rule list`, `firewall rule show`, and `firewall group list`;
 - `ioa group list`, `correlation-rule list`, `case list`, and `case show`.
   These reads match CrowdStrike's documented APIs and falcon-mcp; they have not been tenant-validated.
@@ -389,6 +389,13 @@ The schema CrowdStrike publishes for it is not public, so the documents follow C
 falcon-mcp's own queries; `docs/design/v1.md` §17 records that they are not yet validated against a
 live tenant.
 A GraphQL error reported on an HTTP 200 is an `UPSTREAM_ERROR`, never an empty result.
+
+### Configuration and cases
+
+Use `firewall rule list`, `firewall group list`, `ioa group list`, `correlation-rule list`, or `case list` to inspect configuration and investigations.
+Pass an id from list output to `firewall rule show <id>` or `case show <id>` for detail.
+Run the selected command with `--help` for its flags and limits.
+The [configuration and case reference](docs/design/v1.md#106-configuration-and-case-reads) owns pagination, row schemas, and detail output contracts.
 
 ## Output and errors
 

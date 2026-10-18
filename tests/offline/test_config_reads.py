@@ -147,9 +147,7 @@ def test_firewall_offset_pages_continue_until_exhausted(
             },
         )
 
-    recorded = RecordedTransport(
-        [serve(query, page), serve(hydrate, response(200, {"resources": [{"id": id} for id in ids]}))]
-    )
+    recorded = RecordedTransport([serve(query, page), serve(hydrate, response(200, {"resources": [{"id": id} for id in ids]}))])
     argv = [*noun.split(), "list", "--limit", "1"]
     first, code = run(argv, recorded, CREDENTIAL_ENV)
     assert code == 0
@@ -184,9 +182,7 @@ def test_firewall_server_tokens_take_precedence_over_offsets(
     argv = [*noun.split(), "list", "--limit", "1"]
     stdout, code = run(argv, initial, CREDENTIAL_ENV)
     assert code == 0
-    continued = RecordedTransport(
-        [serve(query, response(200, {"resources": ["last"]})), serve(hydrate, details)]
-    )
+    continued = RecordedTransport([serve(query, response(200, {"resources": ["last"]})), serve(hydrate, details)])
     stdout, code = run([*argv, "--cursor", decode(stdout)["continuation_cursor"]], continued, CREDENTIAL_ENV)
     assert code == 0
     assert continued.operation_requests(query)[0].query == {"limit": 1, "after": "next-page"}
@@ -207,9 +203,7 @@ def test_rejected_filters_suggest_the_failed_domain(
     assert "detection" not in stdout
 
 
-@pytest.mark.parametrize(
-    "noun,query,hydrate,query_fixture,details_fixture,key", (LISTS[0], LISTS[1], LISTS[4])
-)
+@pytest.mark.parametrize("noun,query,hydrate,query_fixture,details_fixture,key", (LISTS[0], LISTS[1], LISTS[4]))
 @pytest.mark.parametrize("status,expected_code", ((400, 2), (404, 1)))
 def test_hydration_errors_suggest_the_failed_domain(
     noun: str, query: str, hydrate: str, query_fixture: str, details_fixture: str, key: str, status: int, expected_code: int
