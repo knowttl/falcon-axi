@@ -1,0 +1,9 @@
+case:
+  id: synthetic-case-01
+  reference_id: SYN-1
+  name: Synthetic first case
+  status: new
+  severity: 75
+  description: Synthetic investigation
+  evidence:
+    alerts: []

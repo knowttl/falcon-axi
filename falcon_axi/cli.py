@@ -97,16 +97,18 @@ def parse(argv: Sequence[str]) -> Parsed:
     first = argv[0] if argv else None
     if first in SUBCOMMANDS:
         noun = str(first)
-        second = argv[1] if len(argv) > 1 else None
-        if second in SUBCOMMANDS[noun]:
-            command = f"{noun} {second}"
-            index = 2
-        else:
-            raise CliError(
-                "VALIDATION_ERROR",
-                f"unknown {noun} subcommand {second or ''}".strip(),
-                [f"valid {noun} subcommands: {', '.join(SUBCOMMANDS[noun])}"],
-            )
+        index = 1
+        while noun in SUBCOMMANDS:
+            second = argv[index] if len(argv) > index else None
+            if second not in SUBCOMMANDS[noun]:
+                raise CliError(
+                    "VALIDATION_ERROR",
+                    f"unknown {noun} subcommand {second or ''}".strip(),
+                    [f"valid {noun} subcommands: {', '.join(SUBCOMMANDS[noun])}"],
+                )
+            noun = f"{noun} {second}"
+            index += 1
+        command = noun
     elif first is not None and " " not in first and first in COMMAND_SPECS:
         command = str(first)
         index = 1

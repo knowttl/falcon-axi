@@ -1,0 +1,6 @@
+count: 2 of 3 total
+continuation_cursor: eyJvcGVyYXRpb24iOiJxdWVyaWVzX2Nhc2VzX2dldF92MSIsIm1vZGVsIjoib2Zmc2V0IiwicG9zaXRpb24iOjIsImZpbmdlcnByaW50IjoiZjAwYTNjMjRhZmU0MWMxZWZjYmVjZDBjZTliYjg4ODkyZWI1Zjc3NmQyZjRmNGRmZTgzZmFmMzBiNWY4ZWIwYyJ9
+cases[2]{id,name,status,severity}:
+  synthetic-case-01,Synthetic first case,new,75
+  synthetic-case-02,Synthetic second case,closed,25
+help[2]: "Run `falcon-axi case show <id>` for the full record","Run `falcon-axi case list --limit 2 --cursor eyJvcGVyYXRpb24iOiJxdWVyaWVzX2Nhc2VzX2dldF92MSIsIm1vZGVsIjoib2Zmc2V0IiwicG9zaXRpb24iOjIsImZpbmdlcnByaW50IjoiZjAwYTNjMjRhZmU0MWMxZWZjYmVjZDBjZTliYjg4ODkyZWI1Zjc3NmQyZjRmNGRmZTgzZmFmMzBiNWY4ZWIwYyJ9` for the next page"

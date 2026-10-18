@@ -1,0 +1,5 @@
+count: 1 of 2 total
+continuation_cursor: eyJvcGVyYXRpb24iOiJxdWVyeV9ydWxlX2dyb3Vwc19mdWxsIiwibW9kZWwiOiJvZmZzZXQiLCJwb3NpdGlvbiI6MSwiZmluZ2VycHJpbnQiOiIyMmUxOWFiNDJlMmQ2OWUxOWFlODA1ODFjOGM5MGEzNWQwNTc3MGQxOWMyNDdmMjA0OTIyOTQzODY2MWY2NzA2In0
+ioa_groups[1]{id,name,enabled,platform}:
+  synthetic-ioa-group,Synthetic IOA group,true,windows
+help[1]: "Run `falcon-axi ioa group list --limit 1 --cursor eyJvcGVyYXRpb24iOiJxdWVyeV9ydWxlX2dyb3Vwc19mdWxsIiwibW9kZWwiOiJvZmZzZXQiLCJwb3NpdGlvbiI6MSwiZmluZ2VycHJpbnQiOiIyMmUxOWFiNDJlMmQ2OWUxOWFlODA1ODFjOGM5MGEzNWQwNTc3MGQxOWMyNDdmMjA0OTIyOTQzODY2MWY2NzA2In0` for the next page"

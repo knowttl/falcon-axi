@@ -1,6 +1,20 @@
 """Ordered command registry assembled from domain declarations."""
 
-from falcon_axi import account, cve, detection, diagnostics, host, identity, scopes, search, vuln
+from falcon_axi import (
+    account,
+    case,
+    correlation_rule,
+    cve,
+    detection,
+    diagnostics,
+    firewall,
+    host,
+    identity,
+    ioa,
+    scopes,
+    search,
+    vuln,
+)
 
 # Keep historical discovery and scope ordering while identity spans two positions.
 COMMAND_SPECS = {
@@ -14,6 +28,10 @@ COMMAND_SPECS = {
         identity.COMMAND_SPECS[:1],
         search.COMMAND_SPECS,
         identity.COMMAND_SPECS[1:],
+        firewall.COMMAND_SPECS,
+        ioa.COMMAND_SPECS,
+        correlation_rule.COMMAND_SPECS,
+        case.COMMAND_SPECS,
         diagnostics.COMMAND_SPECS,
         scopes.COMMAND_SPECS,
     )
@@ -22,6 +40,8 @@ COMMAND_SPECS = {
 COMMANDS = tuple(COMMAND_SPECS)
 SUBCOMMANDS: dict[str, tuple[str, ...]] = {}
 for name in COMMANDS:
-    noun, separator, verb = name.partition(" ")
-    if separator:
-        SUBCOMMANDS[noun] = (*SUBCOMMANDS.get(noun, ()), verb)
+    words = name.split()
+    for index in range(1, len(words)):
+        noun, verb = " ".join(words[:index]), words[index]
+        if verb not in SUBCOMMANDS.get(noun, ()):
+            SUBCOMMANDS[noun] = (*SUBCOMMANDS.get(noun, ()), verb)

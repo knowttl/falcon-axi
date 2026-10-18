@@ -8,7 +8,7 @@ ends with the commands that are worth running next.
 
 ## Status: partial implementation of the v1 design
 
-The package is real and installable, and it ships five read domains plus NG-SIEM search.
+The package is real and installable, and it ships triage and configuration reads plus NG-SIEM search.
 The shipped and deferred commands are listed below; [`docs/design/v1.md`](docs/design/v1.md) owns the full v1 design.
 
 What is shipped:
@@ -31,6 +31,9 @@ What is shipped:
   fields when present) and `identity activity <account>`, a fixed NG-SIEM search over one account's
   Identity Protection events that adds no operation and no scope beyond N1's;
 - `falcon-axi scopes`, the command-to-scope matrix, available without making a request.
+- firewall configuration reads: `firewall rule list`, `firewall rule show`, and `firewall group list`;
+- `ioa group list`, `correlation-rule list`, `case list`, and `case show`.
+  These reads match CrowdStrike's documented APIs and falcon-mcp; they have not been tenant-validated.
 
 What is **not** shipped yet, so no output advertises it:
 

@@ -25,6 +25,62 @@ NO_FALCON_MCP_TOOL = {
 }
 
 EXPECTED = {
+    "query_rules": {
+        "method": "GET",
+        "path": "/fwmgr/queries/rules/v1",
+        "scopes": ("Firewall Management:read",),
+        "effect": "read",
+        "doc_scope": "Firewall management: READ",
+    },
+    "get_rules": {
+        "method": "GET",
+        "path": "/fwmgr/entities/rules/v1",
+        "scopes": ("Firewall Management:read",),
+        "effect": "read",
+        "doc_scope": "Firewall management: READ",
+    },
+    "query_rule_groups": {
+        "method": "GET",
+        "path": "/fwmgr/queries/rule-groups/v1",
+        "scopes": ("Firewall Management:read",),
+        "effect": "read",
+        "doc_scope": "Firewall management: READ",
+    },
+    "get_rule_groups": {
+        "method": "GET",
+        "path": "/fwmgr/entities/rule-groups/v1",
+        "scopes": ("Firewall Management:read",),
+        "effect": "read",
+        "doc_scope": "Firewall management: READ",
+    },
+    "query_rule_groups_full": {
+        "method": "GET",
+        "path": "/ioarules/queries/rule-groups-full/v1",
+        "scopes": ("Custom IOA Rules:read",),
+        "effect": "read",
+        "doc_scope": "Custom IOA rules: READ",
+    },
+    "combined_rules_get_v2": {
+        "method": "GET",
+        "path": "/correlation-rules/combined/rules/v2",
+        "scopes": ("Correlation Rules:read",),
+        "effect": "read",
+        "doc_scope": "Correlation Rules: READ",
+    },
+    "queries_cases_get_v1": {
+        "method": "GET",
+        "path": "/cases/queries/cases/v1",
+        "scopes": ("Cases:read",),
+        "effect": "read",
+        "doc_scope": "Cases: READ",
+    },
+    "entities_cases_post_v2": {
+        "method": "POST",
+        "path": "/cases/entities/cases/v2",
+        "scopes": ("Cases:read",),
+        "effect": "read",
+        "doc_scope": "Cases: READ",
+    },
     "GetQueriesAlertsV2": {
         "method": "GET",
         "path": "/alerts/queries/alerts/v2",

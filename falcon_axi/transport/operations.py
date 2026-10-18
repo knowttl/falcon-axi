@@ -27,6 +27,14 @@ OperationId = Literal[
     "QueryDeviceLoginHistoryV2",
     "query_accounts",
     "get_accounts",
+    "query_rules",
+    "get_rules",
+    "query_rule_groups",
+    "get_rule_groups",
+    "query_rule_groups_full",
+    "combined_rules_get_v2",
+    "queries_cases_get_v1",
+    "entities_cases_post_v2",
     "StartSearchV1",
     "GetSearchStatusV1",
     "StopSearchV1",
@@ -86,6 +94,118 @@ NGSIEM_DOC = "https://developer.crowdstrike.com/api-reference/collections/ngsiem
 IDENTITY_PROTECTION_DOC = "https://developer.crowdstrike.com/api-reference/collections/identity-protection/"
 
 CANONICAL: tuple[FalconOperation, ...] = (
+    FalconOperation(
+        id="query_rules",
+        method="GET",
+        path="/fwmgr/queries/rules/v1",
+        scopes=("Firewall Management:read",),
+        effect="read",
+        evidence=Evidence(
+            doc_url="https://developer.crowdstrike.com/api-reference/collections/firewall-management/#query-rules",
+            doc_scope="Firewall management: READ",
+            falcon_mcp="falcon_mcp/common/api_scopes.py maps query_rules to Firewall Management:read; "
+            "falcon_mcp/modules/firewall.py search_firewall_rules uses query_rules then get_rules; "
+            "falconpy/_endpoint/_firewall_management.py confirms the route and parameters.",
+        ),
+    ),
+    FalconOperation(
+        id="get_rules",
+        method="GET",
+        path="/fwmgr/entities/rules/v1",
+        scopes=("Firewall Management:read",),
+        effect="read",
+        evidence=Evidence(
+            doc_url="https://developer.crowdstrike.com/api-reference/collections/firewall-management/#get-rules",
+            doc_scope="Firewall management: READ",
+            falcon_mcp="falcon_mcp/common/api_scopes.py maps get_rules to Firewall Management:read; "
+            "falcon_mcp/modules/firewall.py search_firewall_rules hydrates ids as query parameters; "
+            "falconpy/_endpoint/_firewall_management.py confirms the route and parameters.",
+        ),
+    ),
+    FalconOperation(
+        id="query_rule_groups",
+        method="GET",
+        path="/fwmgr/queries/rule-groups/v1",
+        scopes=("Firewall Management:read",),
+        effect="read",
+        evidence=Evidence(
+            doc_url="https://developer.crowdstrike.com/api-reference/collections/firewall-management/#query-rule-groups",
+            doc_scope="Firewall management: READ",
+            falcon_mcp="falcon_mcp/common/api_scopes.py maps query_rule_groups to Firewall Management:read; "
+            "falcon_mcp/modules/firewall.py search_firewall_rule_groups uses after pagination; "
+            "falconpy/_endpoint/_firewall_management.py confirms the route and parameters.",
+        ),
+    ),
+    FalconOperation(
+        id="get_rule_groups",
+        method="GET",
+        path="/fwmgr/entities/rule-groups/v1",
+        scopes=("Firewall Management:read",),
+        effect="read",
+        evidence=Evidence(
+            doc_url="https://developer.crowdstrike.com/api-reference/collections/firewall-management/#get-rule-groups",
+            doc_scope="Firewall management: READ",
+            falcon_mcp="falcon_mcp/common/api_scopes.py maps get_rule_groups to Firewall Management:read; "
+            "falcon_mcp/modules/firewall.py search_firewall_rule_groups hydrates ids as query parameters; "
+            "falconpy/_endpoint/_firewall_management.py confirms the route and parameters.",
+        ),
+    ),
+    FalconOperation(
+        id="query_rule_groups_full",
+        method="GET",
+        path="/ioarules/queries/rule-groups-full/v1",
+        scopes=("Custom IOA Rules:read",),
+        effect="read",
+        evidence=Evidence(
+            doc_url="https://developer.crowdstrike.com/api-reference/collections/custom-ioa/#query-rule-groups-full",
+            doc_scope="Custom IOA rules: READ",
+            falcon_mcp="falcon_mcp/common/api_scopes.py maps query_rule_groups_full to Custom IOA Rules:read; "
+            "falcon_mcp/modules/custom_ioa.py search_ioa_rule_groups reads full groups with offset pagination; "
+            "falconpy/_endpoint/_custom_ioa.py confirms the route and parameters.",
+        ),
+    ),
+    FalconOperation(
+        id="combined_rules_get_v2",
+        method="GET",
+        path="/correlation-rules/combined/rules/v2",
+        scopes=("Correlation Rules:read",),
+        effect="read",
+        evidence=Evidence(
+            doc_url="https://developer.crowdstrike.com/api-reference/collections/correlation-rules/#combinedrulesgetv2",
+            doc_scope="Correlation Rules: READ",
+            falcon_mcp="falcon_mcp/common/api_scopes.py maps combined_rules_get_v2 to Correlation Rules:read; "
+            "falcon_mcp/modules/correlation_rules.py search_correlation_rules reads full rules with offset pagination; "
+            "falconpy/_endpoint/_correlation_rules.py confirms the route and parameters.",
+        ),
+    ),
+    FalconOperation(
+        id="queries_cases_get_v1",
+        method="GET",
+        path="/cases/queries/cases/v1",
+        scopes=("Cases:read",),
+        effect="read",
+        evidence=Evidence(
+            doc_url="https://developer.crowdstrike.com/api-reference/collections/case-management/#queriescasesgetv1",
+            doc_scope="Cases: READ",
+            falcon_mcp="falcon_mcp/common/api_scopes.py maps queries_cases_get_v1 to Cases:read; "
+            "falcon_mcp/modules/cases.py search_cases queries ids then hydrates them, preserving query order; "
+            "falconpy/_endpoint/_case_management.py confirms the route and parameters.",
+        ),
+    ),
+    FalconOperation(
+        id="entities_cases_post_v2",
+        method="POST",
+        path="/cases/entities/cases/v2",
+        scopes=("Cases:read",),
+        effect="read",
+        evidence=Evidence(
+            doc_url="https://developer.crowdstrike.com/api-reference/collections/case-management/#entitiescasespostv2",
+            doc_scope="Cases: READ",
+            falcon_mcp="falcon_mcp/common/api_scopes.py maps entities_cases_post_v2 to Cases:read; "
+            "falcon_mcp/modules/cases.py get_cases reads ids in the request body; "
+            "falconpy/_endpoint/_case_management.py confirms the route and parameters.",
+        ),
+    ),
     FalconOperation(
         id="GetQueriesAlertsV2",
         method="GET",

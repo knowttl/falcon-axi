@@ -130,5 +130,19 @@
   "identity-activity-start": 0,
   "identity-activity-scope-denied": 1,
   "identity-activity-without-account": 2,
-  "identity-activity-unsafe-account": 2
+  "identity-activity-unsafe-account": 2,
+  "help-firewall-rule-list": 0,
+  "help-firewall-rule-show": 0,
+  "help-firewall-group-list": 0,
+  "help-ioa-group-list": 0,
+  "help-correlation-rule-list": 0,
+  "help-case-list": 0,
+  "help-case-show": 0,
+  "firewall-rule-list": 0,
+  "firewall-rule-show": 0,
+  "firewall-group-list": 0,
+  "ioa-group-list": 0,
+  "correlation-rule-list": 0,
+  "case-list": 0,
+  "case-show": 0
 }

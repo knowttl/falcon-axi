@@ -1,0 +1,7 @@
+firewall_rule:
+  id: "1001"
+  name: Synthetic inbound rule
+  enabled: true
+  action: DENY
+  direction: IN
+  description: Synthetic rule for offline tests
