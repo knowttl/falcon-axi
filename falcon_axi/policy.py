@@ -67,7 +67,16 @@ def _list(ctx: Invocation) -> CommandOutput:
         ),
     )
     if response.status != 200:
-        raise translate_falcon_error(response, operation, "policy members" if members else "policies")
+        raise translate_falcon_error(
+            response,
+            operation,
+            "policy members" if members else "policies",
+            filter_help=(
+                f"{ctx.spec.name} --type {policy_type}",
+                "hostname:'WIN-*'" if members else "enabled:true",
+            ),
+            not_found_command=f"policy list --type {policy_type}",
+        )
     entries = resources(response)
     key = "members" if members else "policies"
     subject = f"{policy_type} policy members" if members else f"{policy_type} policies"

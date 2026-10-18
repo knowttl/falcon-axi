@@ -50,6 +50,42 @@ def test_each_type_reads_the_combined_operation_and_projects_compact_rows(
 
 
 @pytest.mark.parametrize("members", [False, True], ids=["list", "members"])
+@pytest.mark.parametrize("policy_type,list_op,members_op", POLICIES)
+def test_rejected_filter_remedy_preserves_policy_command_and_type(
+    policy_type: str, list_op: str, members_op: str, members: bool
+) -> None:
+    operation = members_op if members else list_op
+    recorded = RecordedTransport([serve(operation, response(400, {"errors": [{"message": "invalid filter"}]}))])
+    argv = ["policy", "members", "synthetic-policy-01"] if members else ["policy", "list"]
+    stdout, code = run(argv + ["--type", policy_type, "--filter", "invalid"], recorded, dict(CREDENTIAL_ENV))
+    assert code == 2
+    parsed = decode(stdout)
+    assert parsed["code"] == "FQL_INVALID"
+    command = "policy members" if members else "policy list"
+    example = "hostname:'WIN-*'" if members else "enabled:true"
+    assert parsed["help"] == [
+        "FQL uses + for AND, `,` for OR, and values must be quoted",
+        f'Example: `--filter "{example}"`',
+        f"Run `falcon-axi {command} --type {policy_type} --help` for the filterable fields",
+    ]
+
+
+@pytest.mark.parametrize("members", [False, True], ids=["list", "members"])
+@pytest.mark.parametrize("policy_type,list_op,members_op", POLICIES)
+def test_missing_policy_remedy_lists_identifiers_for_the_selected_type(
+    policy_type: str, list_op: str, members_op: str, members: bool
+) -> None:
+    operation = members_op if members else list_op
+    recorded = RecordedTransport([serve(operation, response(404, {"errors": [{"message": "policy not found"}]}))])
+    argv = ["policy", "members", "synthetic-policy-99"] if members else ["policy", "list"]
+    stdout, code = run(argv + ["--type", policy_type], recorded, dict(CREDENTIAL_ENV))
+    assert code == 1
+    parsed = decode(stdout)
+    assert parsed["code"] == "NOT_FOUND"
+    assert parsed["help"] == [f"Run `falcon-axi policy list --type {policy_type}` to see current identifiers"]
+
+
+@pytest.mark.parametrize("members", [False, True], ids=["list", "members"])
 def test_continuation_replays_filter_type_and_policy_id_and_stops_on_empty_page(members: bool) -> None:
     operation = "queryCombinedPreventionPolicyMembers" if members else "queryCombinedPreventionPolicies"
     first = RecordedTransport([serve(operation, fixture(f"policies/{operation}.json"))])

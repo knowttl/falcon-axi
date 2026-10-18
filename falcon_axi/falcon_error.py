@@ -37,7 +37,15 @@ def trace_id(response: FalconResponse) -> str | None:
     return None
 
 
-def translate_falcon_error(response: FalconResponse, id: OperationId, subject: str, document: str | None = None) -> CliError:
+def translate_falcon_error(
+    response: FalconResponse,
+    id: OperationId,
+    subject: str,
+    document: str | None = None,
+    *,
+    filter_help: tuple[str, str] | None = None,
+    not_found_command: str = "detection list",
+) -> CliError:
     """Maps a Falcon failure onto falcon-axi's own envelope.
 
     Raw Falcon bodies, HTTP status numbers, and endpoint paths never reach stdout. `document` names
@@ -62,7 +70,9 @@ def translate_falcon_error(response: FalconResponse, id: OperationId, subject: s
         )
     if response.status == 400:
         if any(_FILTER_WORDS.search(message) for message in messages):
-            if "Assets:read" in scopes:
+            if filter_help is not None:
+                command, example = filter_help
+            elif "Assets:read" in scopes:
                 command, example = "account list", "username:'synthetic-user'"
             elif "Hosts:read" in scopes:
                 command, example = "host list", "hostname:'WIN-*'"
@@ -138,7 +148,7 @@ def translate_falcon_error(response: FalconResponse, id: OperationId, subject: s
         return CliError(
             "NOT_FOUND",
             f"no {subject} matched that identifier",
-            ["Run `falcon-axi detection list` to see current identifiers"],
+            [f"Run `falcon-axi {not_found_command}` to see current identifiers"],
         )
     if response.status == 429:
         return CliError(
