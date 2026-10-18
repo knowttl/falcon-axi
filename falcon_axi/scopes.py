@@ -66,7 +66,7 @@ def scope_matrix() -> CommandOutput:
             "and `identity assessment` "
             "fail with SCOPE_DENIED",
             "Assets:read is license-gated to Falcon Discover or Exposure Management; "
-            "omit it and only the `account` commands fail with SCOPE_DENIED",
+            "omit it and the `account`, `asset`, `application`, and `login` commands fail with SCOPE_DENIED",
         ),
     )
 

@@ -1,0 +1,28 @@
+{
+  "provenance": {
+    "operation": "combined_applications",
+    "reference": "https://developer.crowdstrike.com/api-reference/collections/discover/",
+    "schema_read": "2026-10-18",
+    "provenance": "synthetic"
+  },
+  "response": {
+    "status": 200,
+    "headers": {},
+    "body": {
+      "meta": {
+        "pagination": {
+          "total": 2,
+          "after": "synthetic-applications-next"
+        }
+      },
+      "resources": [
+        {
+          "id": "synthetic-application-01",
+          "name": "Synthetic Browser",
+          "version": "1.0",
+          "vendor": "Synthetic Vendor"
+        }
+      ]
+    }
+  }
+}

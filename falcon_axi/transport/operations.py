@@ -18,6 +18,12 @@ from typing import Literal, get_args
 from falcon_axi.core import CliError
 
 OperationId = Literal[
+    "combined_hosts",
+    "get_hosts",
+    "combined_applications",
+    "query_logins",
+    "get_logins",
+    "QueryGetNetworkAddressHistoryV1",
     "QuerySensorsByFilter",
     "GetSensorDetails",
     "QueryVulnerabilities",
@@ -98,6 +104,91 @@ NGSIEM_DOC = "https://developer.crowdstrike.com/api-reference/collections/ngsiem
 IDENTITY_PROTECTION_DOC = "https://developer.crowdstrike.com/api-reference/collections/identity-protection/"
 
 CANONICAL: tuple[FalconOperation, ...] = (
+    FalconOperation(
+        id="combined_hosts",
+        method="GET",
+        path="/discover/combined/hosts/v1",
+        scopes=("Assets:read",),
+        effect="read",
+        evidence=Evidence(
+            doc_url=DISCOVER_DOC,
+            doc_scope="Assets: READ",
+            falcon_mcp="falcon_mcp/common/api_scopes.py maps combined_hosts to Assets:read; "
+            "falcon_mcp/modules/discover.py search_managed_assets and search_unmanaged_assets use it. "
+            "falconpy/_endpoint/_discover.py and the official API reference specify after pagination and a 1000 ceiling.",
+        ),
+    ),
+    FalconOperation(
+        id="combined_applications",
+        method="GET",
+        path="/discover/combined/applications/v1",
+        scopes=("Assets:read",),
+        effect="read",
+        evidence=Evidence(
+            doc_url=DISCOVER_DOC,
+            doc_scope="Assets: READ",
+            falcon_mcp="falcon_mcp/common/api_scopes.py maps combined_applications to Assets:read; "
+            "falcon_mcp/modules/discover.py search_applications uses it; "
+            "falconpy/_endpoint/_discover.py specifies after pagination.",
+        ),
+    ),
+    FalconOperation(
+        id="get_hosts",
+        method="GET",
+        path="/discover/entities/hosts/v1",
+        scopes=("Assets:read",),
+        effect="read",
+        evidence=Evidence(
+            doc_url=DISCOVER_DOC,
+            doc_scope="Assets: READ",
+            falcon_mcp="falcon-mcp has no tool for get_hosts. "
+            "falconpy/_endpoint/_discover.py maps get_hosts to GET /discover/entities/hosts/v1. "
+            "PSFalcon public/discover.ps1 Get-FalconAsset wraps this read with ids in the query.",
+        ),
+    ),
+    FalconOperation(
+        id="query_logins",
+        method="GET",
+        path="/discover/queries/logins/v1",
+        scopes=("Assets:read",),
+        effect="read",
+        evidence=Evidence(
+            doc_url=DISCOVER_DOC,
+            doc_scope="Assets: READ",
+            falcon_mcp="falcon-mcp has no tool for query_logins. "
+            "falconpy/_endpoint/_discover.py maps query_logins to GET /discover/queries/logins/v1. "
+            "PSFalcon public/discover.ps1 Get-FalconAsset -Login wraps this offset-paginated read.",
+        ),
+    ),
+    FalconOperation(
+        id="get_logins",
+        method="GET",
+        path="/discover/entities/logins/v1",
+        scopes=("Assets:read",),
+        effect="read",
+        evidence=Evidence(
+            doc_url=DISCOVER_DOC,
+            doc_scope="Assets: READ",
+            falcon_mcp="falcon-mcp has no tool for get_logins. "
+            "falconpy/_endpoint/_discover.py maps get_logins to GET /discover/entities/logins/v1. "
+            "PSFalcon public/discover.ps1 Get-FalconAsset wraps this read with at most 100 ids in the query.",
+        ),
+    ),
+    FalconOperation(
+        id="QueryGetNetworkAddressHistoryV1",
+        method="POST",
+        path="/devices/combined/devices/network-address-history/v1",
+        scopes=("Hosts:read",),
+        effect="read",
+        evidence=Evidence(
+            doc_url=HOSTS_DOC,
+            doc_scope="Hosts: READ",
+            falcon_mcp="falcon-mcp has no tool for QueryGetNetworkAddressHistoryV1. "
+            "falconpy/_endpoint/_hosts.py maps QueryGetNetworkAddressHistoryV1 to POST "
+            "/devices/combined/devices/network-address-history/v1. "
+            "PSFalcon public/devices.ps1 Get-FalconHost -Network wraps this read with body ids.",
+        ),
+    ),
     FalconOperation(
         id="QuerySensorsByFilter",
         method="GET",

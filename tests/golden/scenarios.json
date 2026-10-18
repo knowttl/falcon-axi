@@ -2434,6 +2434,123 @@
         "sensor",
         "delete"
       ]
+    },
+    {
+      "name": "help-asset-list",
+      "argv": [
+        "asset",
+        "list",
+        "--help"
+      ]
+    },
+    {
+      "name": "help-asset-show",
+      "argv": [
+        "asset",
+        "show",
+        "--help"
+      ]
+    },
+    {
+      "name": "help-application-list",
+      "argv": [
+        "application",
+        "list",
+        "--help"
+      ]
+    },
+    {
+      "name": "help-login-list",
+      "argv": [
+        "login",
+        "list",
+        "--help"
+      ]
+    },
+    {
+      "name": "help-host-network",
+      "argv": [
+        "host",
+        "network",
+        "--help"
+      ]
+    },
+    {
+      "name": "asset-list",
+      "argv": [
+        "asset",
+        "list",
+        "--limit",
+        "2"
+      ],
+      "responders": [
+        {
+          "op": "combined_hosts",
+          "fixture": "discover/assets-page.json"
+        }
+      ]
+    },
+    {
+      "name": "asset-show",
+      "argv": [
+        "asset",
+        "show",
+        "synthetic-asset-01"
+      ],
+      "responders": [
+        {
+          "op": "get_hosts",
+          "fixture": "discover/asset-one.json"
+        }
+      ]
+    },
+    {
+      "name": "application-list",
+      "argv": [
+        "application",
+        "list",
+        "--limit",
+        "1"
+      ],
+      "responders": [
+        {
+          "op": "combined_applications",
+          "fixture": "discover/applications-page.json"
+        }
+      ]
+    },
+    {
+      "name": "login-list",
+      "argv": [
+        "login",
+        "list",
+        "--limit",
+        "2"
+      ],
+      "responders": [
+        {
+          "op": "query_logins",
+          "fixture": "discover/logins-query.json"
+        },
+        {
+          "op": "get_logins",
+          "fixture": "discover/logins-details.json"
+        }
+      ]
+    },
+    {
+      "name": "host-network",
+      "argv": [
+        "host",
+        "network",
+        "synthetic-device-01"
+      ],
+      "responders": [
+        {
+          "op": "QueryGetNetworkAddressHistoryV1",
+          "fixture": "discover/network-history.json"
+        }
+      ]
     }
   ],
   "pagination_comment": "The shipped bounded walker (docs/design/v1.md sections 7.2 and 10.2) adds three wholly synthetic partial-read examples. The four list help documents, unknown-flag, and list-with-positional deliberately change to advertise --all and --max-rows. Existing data documents and scopes remain unchanged because no operation or permission changed.",

@@ -8,7 +8,7 @@ suggestions point to commands worth running next.
 
 ## Status: partial implementation of the v1 design
 
-The package is real and installable, and it ships eight read domains plus NG-SIEM search.
+The package is real and installable, and it ships Falcon read domains plus NG-SIEM search.
 The shipped and deferred commands are listed below; [`docs/design/v1.md`](docs/design/v1.md) owns the full v1 design.
 
 What is shipped:
@@ -24,6 +24,8 @@ What is shipped:
 - the home view and five read domains: `falcon-axi`, `detection list`, `detection show`, `host list`,
   `host show`, `host logins`, `account list`, `account show`, `vuln list`, `vuln show`, `cve list`, and `cve show`;
 - `detection summary`, an on-demand severity count with the same filters as `detection list`;
+- Discover inventory: `asset list`, `asset show`, `application list`, and `login list`, plus
+  `host network <device_id>` for Falcon sensor-host IP and MAC address history;
 - NG-SIEM search: `search start`, `search status`, and `search stop`, the three operations captain
   exception N1 admits;
 - Falcon Intelligence: `actor list`, `actor show` (including `--mitre` for JSON ATT&CK mappings),
@@ -208,8 +210,8 @@ It is projected from the operation and GraphQL document registries the transport
 credential.
 `cve list` and `cve show` require the license-gated `Vulnerabilities (Falcon Intelligence):read`, not Spotlight's
 `Vulnerabilities:read`.
-`Assets:read` is needed only by the two `account` commands and is license-gated to Falcon Discover or
-Exposure Management; a client that cannot be granted it loses those two commands and nothing else.
+`Assets:read` is needed by the `account`, `asset`, `application`, and `login` commands and is license-gated to Falcon Discover or
+Exposure Management; a client that cannot be granted it loses those commands and nothing else.
 The actor, report, and indicator commands also require a Falcon Intelligence license; `falcon-axi scopes` names their scopes.
 Grant only the scopes for the domains you intend to read: each is independent, and a command whose
 scope is missing fails with `SCOPE_DENIED` naming exactly what to grant.
@@ -293,6 +295,11 @@ falcon-axi host show abc123                         one host
 falcon-axi host logins abc123 --since 24h           recent interactive logins on one host
 falcon-axi account list --filter "admin_privileges:'Yes'"   Discover accounts with admin rights
 falcon-axi account show abc123                      one Discover account
+falcon-axi asset list --filter "entity_type:'unmanaged'"  Discover assets without Falcon sensors
+falcon-axi asset show abc123                        one Discover asset
+falcon-axi application list --filter "name:'Chrome'"  Discover applications
+falcon-axi login list --filter "login_type:'Interactive'"  Discover logins across assets
+falcon-axi host network abc123                      sensor-host network address history
 falcon-axi vuln list --severity critical --status open
 falcon-axi vuln list --host abc123                  one host's vulnerabilities
 falcon-axi cve show CVE-2021-44228               Falcon Intelligence detail for one CVE
@@ -333,6 +340,16 @@ Run `falcon-axi cve list --help` for filter values and examples.
 `host logins <device_id>` accepts exactly one host and takes `--since` (a relative window) and `--limit`.
 Run `falcon-axi host logins --help` for defaults and limits.
 Its rows are recent interactive logins from the Host Timeline, not a full audit trail.
+
+`asset list` includes Discover managed and unmanaged assets, distinct from the sensor inventory in `host list`.
+Use `--filter "entity_type:'managed'"` or `--filter "entity_type:'unmanaged'"` to select either inventory.
+Discover asset IDs come from `asset list`; sensor device IDs come from `host list`.
+`asset list` and `application list` use `--filter`, `--limit` (ceiling 1000), and `--cursor` for token pagination.
+Without `--filter`, they send the API-required broad filters `id:'*'` and `name:'*'`, respectively.
+`asset show` includes the asset's available MAC addresses.
+`login list` uses the same flags with offset pagination and a ceiling of 100.
+`host network <device_id>` returns the address history Falcon retains and has no pagination flags.
+These shapes match the official API reference and SDKs; they have not been validated against a tenant.
 `account list` takes `--filter` (raw FQL on Discover account fields), `--limit`, and
 `--cursor`; the accounts are the ones Discover has seen log in on endpoints, not an identity
 directory.
