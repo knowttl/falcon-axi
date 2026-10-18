@@ -18,6 +18,8 @@ Commands:
   identity list             list Identity Protection users and endpoints with their risk
   identity show <id>        one identity's risk, accounts, associations, and open incidents
   identity timeline <id>    one identity's recent activity
+  shield list               list SaaS security posture checks
+  shield show <id>          detail for one SaaS security posture check
   auth status               whether a credential resolved, and where to
   profile list              configured profile names, without reading secrets
   config path               config and write-journal paths

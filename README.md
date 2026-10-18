@@ -8,7 +8,7 @@ suggestions point to commands worth running next.
 
 ## Status: partial implementation of the v1 design
 
-The package is real and installable, and it ships five read domains plus NG-SIEM search.
+The package is real and installable, and it ships six read domains plus NG-SIEM search.
 The shipped and deferred commands are listed below; [`docs/design/v1.md`](docs/design/v1.md) owns the full v1 design.
 
 What is shipped:
@@ -20,9 +20,10 @@ What is shipped:
   operations, and a single permitted network sink;
 - AXI credential profiles and SecretRefs, per-call XDG paths, region selection and
   `X-Cs-Region` autodiscovery, Flight Control member-CID selection, `auth status`, `profile list`, and `config path`;
-- the home view and five read domains: `falcon-axi`, `detection list`, `detection show`, `host list`,
+- the home view and core read domains: `falcon-axi`, `detection list`, `detection show`, `host list`,
   `host show`, `host logins`, `account list`, `account show`, `vuln list`, and `cve show`;
 - `detection summary`, an on-demand severity count with the same filters as `detection list`;
+- Falcon Shield SaaS posture checks: `shield list` and `shield show`, using `SaaS Security:read`;
 - NG-SIEM search: `search start`, `search status`, and `search stop`, the three operations captain
   exception N1 admits;
 - the Identity Protection directory and timeline: `identity list`, `identity show`, and

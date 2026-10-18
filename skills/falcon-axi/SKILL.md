@@ -47,6 +47,8 @@ uvx falcon-axi search stop <id>          cancel one search job
 uvx falcon-axi identity list             list Identity Protection users and endpoints with their risk
 uvx falcon-axi identity show <id>        one identity's risk, accounts, associations, and open incidents
 uvx falcon-axi identity timeline <id>    one identity's recent activity
+uvx falcon-axi shield list               list SaaS security posture checks
+uvx falcon-axi shield show <id>          detail for one SaaS security posture check
 uvx falcon-axi auth status               whether a credential resolved, and where to
 uvx falcon-axi profile list              configured profile names, without reading secrets
 uvx falcon-axi config path               config and write-journal paths

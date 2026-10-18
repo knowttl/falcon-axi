@@ -33,6 +33,7 @@ def suggestion_for(command: str, flags: Mapping[str, str | bool], positionals: S
         "host",
         "severity",
         "status",
+        "impact",
         "product",
         "since",
         "limit",

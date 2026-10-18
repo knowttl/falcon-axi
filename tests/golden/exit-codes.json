@@ -140,5 +140,12 @@
   "help-detection-summary": 0,
   "detection-summary": 0,
   "detection-summary-empty": 0,
-  "detection-summary-scope-denied": 1
+  "detection-summary-scope-denied": 1,
+  "shield-list": 0,
+  "shield-show": 0,
+  "shield-list-empty": 0,
+  "shield-show-not-found": 1,
+  "shield-list-scope-denied": 1,
+  "help-shield-list": 0,
+  "help-shield-show": 0
 }
