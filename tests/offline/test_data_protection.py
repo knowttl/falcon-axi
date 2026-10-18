@@ -72,18 +72,50 @@ def test_show_retains_properties_and_redacts_cid(noun: str, get_op: str, id: str
 
 
 @pytest.mark.parametrize(
-    "noun,flags,query_op,get_op",
+    "noun,plural,flags,query_op,get_op",
     [
-        ("classification", [], "queries_classification_get_v2", "entities_classification_get_v2"),
-        ("data-policy", ["--platform", "mac"], "queries_policy_get_v2", "entities_policy_get_v2"),
+        ("classification", "classifications", [], "queries_classification_get_v2", "entities_classification_get_v2"),
+        ("data-policy", "policies", ["--platform", "mac"], "queries_policy_get_v2", "entities_policy_get_v2"),
+        ("data-policy", "policies", ["--platform", "win"], "queries_policy_get_v2", "entities_policy_get_v2"),
     ],
 )
-def test_empty_list_skips_hydration(noun: str, flags: list[str], query_op: str, get_op: str) -> None:
+def test_empty_list_skips_hydration(noun: str, plural: str, flags: list[str], query_op: str, get_op: str) -> None:
     recorded = RecordedTransport([serve(query_op, response(200, {"resources": []}))])
     stdout, code = run([noun, "list", *flags], recorded, CREDENTIAL_ENV)
     assert code == 0
-    assert "0 " in stdout
+    assert decode(stdout) == {plural: f"0 {plural} matching this query"}
     assert recorded.operation_requests(get_op) == []
+
+
+@pytest.mark.parametrize(
+    "noun,plural,flags,query_op,get_op",
+    [
+        ("classification", "classifications", [], "queries_classification_get_v2", "entities_classification_get_v2"),
+        ("data-policy", "policies", ["--platform", "mac"], "queries_policy_get_v2", "entities_policy_get_v2"),
+        ("data-policy", "policies", ["--platform", "win"], "queries_policy_get_v2", "entities_policy_get_v2"),
+    ],
+)
+def test_empty_continuation_reports_exhaustion(
+    noun: str, plural: str, flags: list[str], query_op: str, get_op: str
+) -> None:
+    ids = [f"synthetic-{noun}-{i}" for i in range(20)]
+    recorded = RecordedTransport(
+        [
+            serve(query_op, lambda args: response(200, {"resources": ids if args.query["offset"] == 0 else []})),
+            serve(get_op, response(200, {"resources": [{"id": id, "name": id} for id in ids]})),
+        ]
+    )
+    stdout, code = run([noun, "list", *flags], recorded, CREDENTIAL_ENV)
+    assert code == 0
+    first_page = decode(stdout)
+    assert first_page["count"] == "20 of unknown total"
+    assert len(first_page[plural]) == 20
+    next_argv = shlex.split(first_page["help"][-1].split("`")[1])[1:]
+    stdout, code = run(next_argv, recorded, CREDENTIAL_ENV)
+    assert code == 0
+    assert decode(stdout) == {plural: f"no more {plural}"}
+    assert [args.query["offset"] for args in recorded.operation_requests(query_op)] == [0, 20]
+    assert len(recorded.operation_requests(get_op)) == 1
 
 
 @pytest.mark.parametrize(

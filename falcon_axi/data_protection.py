@@ -83,7 +83,8 @@ def list_entities(ctx: Invocation, noun: str, platform: str | None = None) -> Co
     ids = [item for item in resources(response) if isinstance(item, str)]
     count = total(response)
     if not ids:
-        return CommandOutput(value={noun: raw(f"0 {noun} matching this query")}, help=())
+        empty = f"no more {noun}" if offset > 0 else f"0 {noun} matching this query"
+        return CommandOutput(value={noun: raw(empty)}, help=())
     entities = _hydrate(ctx, get_op, ids)
     rows = []
     for entity in entities:
