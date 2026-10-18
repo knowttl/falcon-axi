@@ -1,4 +1,4 @@
-"""Read-only Falcon Intelligence actors, reports, and JSON ATT&CK mappings."""
+"""Read-only Falcon Intelligence records and JSON ATT&CK mappings."""
 
 from collections.abc import Mapping
 from typing import Any
