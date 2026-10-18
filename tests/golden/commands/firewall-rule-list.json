@@ -1,0 +1,12 @@
+{
+  "name": "firewall rule list",
+  "order": 2312,
+  "summary": "  firewall rule list         read firewall_rules",
+  "scopes": [
+    {
+      "scope": "Firewall Management:read",
+      "access": "read",
+      "required": "yes"
+    }
+  ]
+}

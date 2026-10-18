@@ -1,0 +1,12 @@
+{
+  "name": "correlation-rule list",
+  "order": 2316,
+  "summary": "  correlation-rule list      read correlation_rules",
+  "scopes": [
+    {
+      "scope": "Correlation Rules:read",
+      "access": "read",
+      "required": "yes"
+    }
+  ]
+}

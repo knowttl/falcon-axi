@@ -64,6 +64,7 @@ the NG-SIEM search lifecycle (`search start`, `search status`,
 the REST sensor inventory (`identity sensor list`, `identity sensor show`),
 the container and serverless reads (`container list`, `image list`, `image vulnerabilities`, `serverless list`),
 the Data Protection configuration reads (`classification list`, `classification show`, `data-policy list`, `data-policy show`),
+the firewall rule list/show and group list, IOA group list, correlation-rule list, and case list/show,
 plus the `scopes` matrix and the home view.
 The exclusion inventories (`exclusion list|show` with `--type`) and quarantined file metadata
 (`quarantine list|show`) also ship as read-only commands.

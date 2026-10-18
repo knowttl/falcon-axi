@@ -1,0 +1,12 @@
+{
+  "name": "firewall group list",
+  "order": 2314,
+  "summary": "  firewall group list        read firewall_groups",
+  "scopes": [
+    {
+      "scope": "Firewall Management:read",
+      "access": "read",
+      "required": "yes"
+    }
+  ]
+}

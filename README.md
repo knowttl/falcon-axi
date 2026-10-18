@@ -46,6 +46,9 @@ What is shipped:
   Identity Protection events that adds no operation and no scope beyond N1's;
 - `falcon-axi scopes`, the command-to-scope matrix, available without making a request;
 - `falcon-axi setup` for offline guidance and `falcon-axi setup hooks` for Claude Code, Codex, and OpenCode session integrations;
+- firewall configuration reads: `firewall rule list`, `firewall rule show`, and `firewall group list`;
+- `ioa group list`, `correlation-rule list`, `case list`, and `case show`.
+  These reads match CrowdStrike's documented APIs and falcon-mcp; they have not been tenant-validated.
 - Falcon Intelligence indicators: `indicator list` with opaque marker continuation and `indicator show`.
   These reads match first-party API sources and are tested offline, without tenant validation.
 - the generated [agent skill](#agent-skill) and its bare-home install hint, specified in
@@ -481,6 +484,12 @@ Data Protection detections use `falcon-axi detection list --product data-protect
 For classified-file events, use `falcon-axi search start --query '#event_simpleName=Event_DataProtectionClassifiedFileEvent | head(200)'`,
 then `falcon-axi search status <id>` to read the results and `falcon-axi search stop <id>` if the job is left running.
 There is no standalone Data Protection event command; the [design rationale](docs/design/v1.md#107-data-protection-reads) records the supported API boundary.
+### Configuration and cases
+
+Use `firewall rule list`, `firewall group list`, `ioa group list`, `correlation-rule list`, or `case list` to inspect configuration and investigations.
+Pass an id from list output to `firewall rule show <id>` or `case show <id>` for detail.
+Run the selected command with `--help` for its flags and limits.
+The [configuration and case reference](docs/design/v1.md#106-configuration-and-case-reads) owns pagination, row schemas, and detail output contracts.
 
 ## Output and errors
 

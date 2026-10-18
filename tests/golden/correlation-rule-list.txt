@@ -1,0 +1,3 @@
+count: 1 of 1 total
+correlation_rules[1]{rule_id,name,status,severity}:
+  synthetic-correlation-rule,Synthetic correlation rule,active,75
