@@ -43,7 +43,7 @@ uv provisions the interpreter on demand, so the operator never needs a system Py
 | Package | Pin | Why | License |
 | --- | --- | --- | --- |
 | `crowdstrike-falconpy` | `>=1.6.5,<2` | Operation-ID routing, request execution, proxy, User-Agent, timeout; only `requests` and `urllib3` underneath | Unlicense |
-| `toon-format` | `>=1.2,<2` | Stable TOON 1.x encoder for stdout; golden documents pin the emitted format | MIT |
+| `toon-format` | See `pyproject.toml` | Stable TOON 1.x encoder for stdout; golden documents pin the emitted format | MIT |
 
 **Explicit non-dependencies.**
 
@@ -253,14 +253,13 @@ The pending PyPI Trusted Publisher must name owner `knowttl`, repository `falcon
 GitHub Actions must be allowed to create pull requests in repository settings.
 The default `GITHUB_TOKEN` does not trigger CI on bot-created release PRs; a maintainer must close and reopen a release PR to trigger its required checks before merging.
 This follows the [release-please action's documented token behavior](https://github.com/googleapis/release-please-action#other-actions-on-release-please-prs).
-Install a published release with `pip install falcon-axi` or `uv tool install falcon-axi`.
+The [README's Quick start for agents](../../README.md#quick-start-for-agents) owns published-release installation instructions.
 The optional AXI community catalog still requires independent source review at a pinned public release.
 Never npm, never a container image.
 
 **Stable encoder adoption.**
-PyPI installation now requires `toon-format>=1.2,<2` and resolves without prerelease flags.
-Stable 1.x quotes strings beginning with `#`, so search `query` and `parsed_query` fields now quote CQL values such as `"#event_simpleName=ProcessRollup2 | head(2)"`.
-The three affected golden search documents deliberately change only that quoting.
+The stable encoder requirement in `pyproject.toml` allows PyPI installation without prerelease flags.
+[v1.md §10.1](v1.md#101-the-boundary) owns the hash-prefixed CQL quoting contract; the three affected golden search documents deliberately change only that quoting.
 The empty-array encoder expectation becomes `key: []`; falcon-axi still renders empty domain results as explanatory raw lines.
 `[tool.uv] prerelease = "allow"` remains unchanged because stable end-user resolution does not depend on it.
 
@@ -379,7 +378,9 @@ All four were answered by the captain at commissioning and are recorded in the s
 
 What the stage 1 build learned that this design did not predict:
 
-- `toon-format` 0.9.0b1 matches `@toon-format/toon` 4.1.1 on every shape falcon-axi prints, so the vendored-encoder fallback of §9 P0.1 was not needed. The one divergence is the empty array (`key: []` against `key[0]:`), which no falcon-axi document reaches; `tests/offline/test_toon_parity.py` pins that. The encoder exposes no supported single-value escape helper, so the hand-formatted help block carries the TOON §7.1 escaping itself, in `falcon_axi/render.py`.
+- At the stage 1 spike, `toon-format` 0.9.0b1 matched `@toon-format/toon` 4.1.1 on every shape falcon-axi printed, so the vendored-encoder fallback of §9 P0.1 was not needed.
+  The beta's empty-array divergence was superseded by stable encoder adoption (§8); `tests/offline/test_toon_parity.py` pins the current behavior.
+  The encoder exposes no supported single-value escape helper, so the hand-formatted help block carries the TOON §7.1 escaping itself, in `falcon_axi/render.py`.
 - falconpy folds every `requests` exception into a synthetic `500` envelope, which would erase the TLS_UNTRUSTED and NETWORK_UNREACHABLE codes §9.2 owes the caller, and it returns raw bytes rather than a status for a body-less redirect. `falcon_axi/transport/harness.py` therefore passes falconpy a recording `requests.Session` and reads the status, headers, and body from the response falconpy issued rather than from falconpy's own container. falconpy still resolves and executes the operation.
 - The parity gate lives in `tests/golden/`: `scenarios.json` declares 52 offline invocations, each `<name>.txt` is the exact document TypeScript stage 1 printed, and `exit-codes.json` its exit code.
 
