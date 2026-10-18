@@ -231,7 +231,8 @@ It reaches the network, so it is opt-in and never part of `verify`.
 
 ## 7. Testing (amends v1.md §14 layout only)
 
-- **Runner.** pytest, invoked through `uv run scripts/verify.py`, which runs in order: `ruff check`, `mypy --strict falcon_axi`, `python scripts/architecture_check.py`, and `pytest tests/offline`.
+- **Runner.** pytest, invoked through `uv run scripts/verify.py`.
+  [`scripts/verify.py`](../../scripts/verify.py) defines the complete check sequence.
   It must stay offline and must fail if any test opens a socket; a pytest fixture that monkeypatches `socket.socket` to raise enforces that.
 - **Fixtures.** The existing JSON files move unchanged.
   The two hygiene tests (provenance header present; no credential, token, CID, or realistic tenant-data pattern) port as is.
@@ -274,7 +275,8 @@ The empty-array encoder expectation becomes `key: []`; falcon-axi still renders 
 `[tool.uv] prerelease = "allow"` remains unchanged because stable end-user resolution does not depend on it.
 
 **Session hook and skill (v1.md §12.2).**
-`falcon-axi setup` writes the Claude Code, Codex, and OpenCode integrations with a PATH-verified `falcon-axi` binary name and the absolute uv tool path as fallback, exactly as AXI §7 asks; the skill examples use the `uvx --from git+...` form.
+The session-hook installer remains planned, with a PATH-verified binary name and an absolute uv tool path as fallback.
+[v1.md §12.2](v1.md#122-session-hook-and-skill) owns the independently shipped generated skill, its regeneration and drift checks, and the home-view install hint.
 
 ## 9. Commissioning plan
 

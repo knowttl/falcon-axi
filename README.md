@@ -30,7 +30,9 @@ What is shipped:
 - identity-aware detections (`detection list --product idp`, with account and source-endpoint
   fields when present) and `identity activity <account>`, a fixed NG-SIEM search over one account's
   Identity Protection events that adds no operation and no scope beyond N1's;
-- `falcon-axi scopes`, the command-to-scope matrix, available without making a request.
+- `falcon-axi scopes`, the command-to-scope matrix, available without making a request;
+- the generated [agent skill](#agent-skill) and its bare-home install hint, specified in
+  [the integration contract](docs/design/v1.md#122-session-hook-and-skill);
 - bounded `--all` walks with `--max-rows` on detection, host, account, and vuln lists, retaining partial
   results and emitting a continuation cursor only when the next position is reachable.
 
@@ -42,7 +44,7 @@ What is **not** shipped yet, so no output advertises it:
   beyond the directory and timeline: no standalone incident or security-assessment queries, no policy rules,
   and no GraphQL mutation of any kind.
   `cve show` is the one intel read that ships; there is no `cve list`;
-- `falcon-axi setup`, including the session hook and the generated skill;
+- `falcon-axi setup`, including the session hook;
 - `--fields` on detection and host lists;
 
 `docs/design/v1.md` remains the authority for the full v1 surface, and its §17 open questions are
@@ -476,9 +478,8 @@ uv sync
 uv run scripts/verify.py
 ```
 
-`uv run scripts/verify.py` is the single local entry point and runs entirely offline: ruff,
-`mypy --strict`, the architecture boundary check, and the offline test suite against wholly
-synthetic fixtures.
+[`scripts/verify.py`](scripts/verify.py) defines the complete check sequence and is the single local
+entry point, running entirely offline against wholly synthetic fixtures.
 A pytest fixture refuses any socket, so no test can reach the network, and no fixture contains a
 captured Falcon response, credential, token, or tenant identifier.
 

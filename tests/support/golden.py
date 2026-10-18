@@ -115,7 +115,7 @@ class _GoldenTransport:
 
 
 def replay(scenario: Mapping[str, Any]) -> tuple[str, int]:
-    env = dict(NO_CREDENTIAL_ENV) if scenario.get("env") == "none" else {**CREDENTIAL_ENV, **scenario.get("envExtra", {})}
+    env = {**(NO_CREDENTIAL_ENV if scenario.get("env") == "none" else CREDENTIAL_ENV), **scenario.get("envExtra", {})}
     responders = [_responder_for(entry) for entry in scenario.get("responders", [])]
     oauth = (
         [fixture(entry["fixture"]) if entry.get("fixture") else as_response(entry["response"]) for entry in scenario["oauth"]]
