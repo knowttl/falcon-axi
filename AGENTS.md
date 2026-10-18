@@ -59,7 +59,8 @@ The implemented surface includes the package foundation, the sealed transport an
 AXI credential profiles with `auth status`, `profile list`, and `config path`, the read domains (`detection list`, `detection show`,
 `host list`, `host show`, `host logins`, `account list`, `account show`, `vuln list`, `cve show`), the NG-SIEM search lifecycle (`search start`, `search status`,
 `search stop`), the Identity Protection GraphQL reads (`identity list`, `identity show`, `identity timeline`),
-plus the `scopes` matrix and the home view.
+plus malware family reads (`malware list`, `malware show`), Identity Protection policy-rule reads
+(`identity rule list`, `identity rule show`), Discover IoT inventory (`iot list`), the `scopes` matrix, and the home view.
 The README's status section is the authoritative list of what is shipped and what is deliberately absent, and
 no help text, suggestion, or skill may advertise an unshipped command.
 `uv run scripts/verify.py` is the single local entry point for the complete offline required-check set

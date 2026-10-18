@@ -31,6 +31,7 @@ from falcon_axi.identity import (
     _identity_query_of,
     activity_query,
     parse_categories,
+    rule_query,
     validate_entity_id,
     validate_identity_query,
 )
@@ -97,10 +98,17 @@ def parse(argv: Sequence[str]) -> Parsed:
     first = argv[0] if argv else None
     if first in SUBCOMMANDS:
         noun = str(first)
-        second = argv[1] if len(argv) > 1 else None
+        second = next(
+            (
+                verb
+                for verb in sorted(SUBCOMMANDS[noun], key=len, reverse=True)
+                if list(argv[1 : 1 + len(verb.split())]) == verb.split()
+            ),
+            argv[1] if len(argv) > 1 else None,
+        )
         if second in SUBCOMMANDS[noun]:
             command = f"{noun} {second}"
-            index = 2
+            index = 1 + len(str(second).split())
         else:
             raise CliError(
                 "VALIDATION_ERROR",
@@ -179,6 +187,8 @@ def parse(argv: Sequence[str]) -> Parsed:
         window(str(flags["since"]))
     if command == "identity list":
         validate_identity_query(_identity_query_of(flags))
+    if command == "identity rule list":
+        rule_query(flags)
     if command in ("identity show", "identity timeline"):
         validate_entity_id(positionals[0])
     if command == "identity timeline":

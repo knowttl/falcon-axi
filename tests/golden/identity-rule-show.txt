@@ -1,0 +1,7 @@
+rule:
+  id: synthetic-rule
+  name: Synthetic access rule
+  enabled: true
+  simulationMode: false
+  trigger: access
+  action: ALLOW

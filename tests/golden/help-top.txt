@@ -1,4 +1,4 @@
-falcon-axi 0.4.0 - Read CrowdStrike Falcon detections, hosts, vulnerabilities, and NG-SIEM searches from the shell
+falcon-axi 0.4.1 - Read CrowdStrike Falcon detections, hosts, vulnerabilities, and NG-SIEM searches from the shell
 
 Commands:
   detection list            list detections from the Falcon Alerts collection
@@ -17,6 +17,11 @@ Commands:
   identity list             list Identity Protection users and endpoints with their risk
   identity show <id>        one identity's risk, accounts, associations, and open incidents
   identity timeline <id>    one identity's recent activity
+  identity rule list        list Identity Protection policy rules
+  identity rule show <id>   the full Identity Protection policy rule
+  malware list              list intelligence malware families
+  malware show <id>         the full malware family record
+  iot list                  list Discover IoT assets
   auth status               whether a credential resolved, and where to
   profile list              configured profile names, without reading secrets
   config path               config and write-journal paths

@@ -18,6 +18,12 @@ from falcon_axi.transport.operations import (
 #: Operations whose §2.2 corroboration is falconpy's generated table plus PSFalcon, because falcon-mcp
 #: has no tool for them, mapped to the falconpy endpoint module that lists each one.
 NO_FALCON_MCP_TOOL = {
+    "QueryMalwareEntities": "_intel",
+    "GetMalwareEntities": "_intel",
+    "get_policy_rules_query": "_identity_protection",
+    "get_policy_rules": "_identity_protection",
+    "query_iot_hostsV2": "_discover",
+    "get_iot_hosts": "_discover",
     "GetVulnerabilities": "_intel",
     "QueryDeviceLoginHistoryV2": "_hosts",
     "query_accounts": "_discover",
@@ -25,6 +31,48 @@ NO_FALCON_MCP_TOOL = {
 }
 
 EXPECTED = {
+    "QueryMalwareEntities": {
+        "method": "GET",
+        "path": "/intel/combined/malware/v1",
+        "scopes": ("Malware Families (Falcon Intelligence):read",),
+        "effect": "read",
+        "doc_scope": "Malware Families (Falcon Intelligence): READ",
+    },
+    "GetMalwareEntities": {
+        "method": "GET",
+        "path": "/intel/entities/malware/v1",
+        "scopes": ("Malware Families (Falcon Intelligence):read",),
+        "effect": "read",
+        "doc_scope": "Malware Families (Falcon Intelligence): READ",
+    },
+    "get_policy_rules_query": {
+        "method": "GET",
+        "path": "/identity-protection/queries/policy-rules/v1",
+        "scopes": ("Identity Protection Policy Rules:read",),
+        "effect": "read",
+        "doc_scope": "Identity Protection Policy Rules: READ",
+    },
+    "get_policy_rules": {
+        "method": "GET",
+        "path": "/identity-protection/entities/policy-rules/v1",
+        "scopes": ("Identity Protection Policy Rules:read",),
+        "effect": "read",
+        "doc_scope": "Identity Protection Policy Rules: READ",
+    },
+    "query_iot_hostsV2": {
+        "method": "GET",
+        "path": "/discover/queries/iot-hosts/v2",
+        "scopes": ("Falcon Discover IoT:read",),
+        "effect": "read",
+        "doc_scope": "Falcon Discover IoT: READ",
+    },
+    "get_iot_hosts": {
+        "method": "GET",
+        "path": "/discover/entities/iot-hosts/v1",
+        "scopes": ("Falcon Discover IoT:read",),
+        "effect": "read",
+        "doc_scope": "Falcon Discover IoT: READ",
+    },
     "GetQueriesAlertsV2": {
         "method": "GET",
         "path": "/alerts/queries/alerts/v2",

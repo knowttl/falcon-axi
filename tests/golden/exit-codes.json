@@ -130,5 +130,15 @@
   "identity-activity-start": 0,
   "identity-activity-scope-denied": 1,
   "identity-activity-without-account": 2,
-  "identity-activity-unsafe-account": 2
+  "identity-activity-unsafe-account": 2,
+  "malware-list": 0,
+  "malware-show": 0,
+  "identity-rule-list": 0,
+  "identity-rule-show": 0,
+  "iot-list": 0,
+  "help-malware-list": 0,
+  "help-malware-show": 0,
+  "help-identity-rule-list": 0,
+  "help-identity-rule-show": 0,
+  "help-iot-list": 0
 }

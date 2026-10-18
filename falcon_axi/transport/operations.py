@@ -31,6 +31,12 @@ OperationId = Literal[
     "GetSearchStatusV1",
     "StopSearchV1",
     "api_preempt_proxy_post_graphql",
+    "QueryMalwareEntities",
+    "GetMalwareEntities",
+    "get_policy_rules_query",
+    "get_policy_rules",
+    "query_iot_hostsV2",
+    "get_iot_hosts",
 ]
 
 OPERATION_IDS: tuple[str, ...] = get_args(OperationId)
@@ -86,6 +92,92 @@ NGSIEM_DOC = "https://developer.crowdstrike.com/api-reference/collections/ngsiem
 IDENTITY_PROTECTION_DOC = "https://developer.crowdstrike.com/api-reference/collections/identity-protection/"
 
 CANONICAL: tuple[FalconOperation, ...] = (
+    FalconOperation(
+        id="QueryMalwareEntities",
+        method="GET",
+        path="/intel/combined/malware/v1",
+        scopes=("Malware Families (Falcon Intelligence):read",),
+        effect="read",
+        evidence=Evidence(
+            INTEL_DOC,
+            "Malware Families (Falcon Intelligence): READ",
+            "falcon-mcp has no tool for QueryMalwareEntities. "
+            "falconpy/_endpoint/_intel.py maps QueryMalwareEntities to GET /intel/combined/malware/v1. "
+            "PSFalcon public/intel.ps1 Get-FalconMalwareFamily -Detailed wraps it.",
+        ),
+    ),
+    FalconOperation(
+        id="GetMalwareEntities",
+        method="GET",
+        path="/intel/entities/malware/v1",
+        scopes=("Malware Families (Falcon Intelligence):read",),
+        effect="read",
+        evidence=Evidence(
+            INTEL_DOC,
+            "Malware Families (Falcon Intelligence): READ",
+            "falcon-mcp has no tool for GetMalwareEntities. "
+            "falconpy/_endpoint/_intel.py maps GetMalwareEntities to GET /intel/entities/malware/v1. "
+            "PSFalcon public/intel.ps1 Get-FalconMalwareFamily -Id wraps it.",
+        ),
+    ),
+    FalconOperation(
+        id="get_policy_rules_query",
+        method="GET",
+        path="/identity-protection/queries/policy-rules/v1",
+        scopes=("Identity Protection Policy Rules:read",),
+        effect="read",
+        evidence=Evidence(
+            IDENTITY_PROTECTION_DOC,
+            "Identity Protection Policy Rules: READ",
+            "falcon-mcp has no tool for get_policy_rules_query. "
+            "falconpy/_endpoint/_identity_protection.py maps get_policy_rules_query to GET "
+            "/identity-protection/queries/policy-rules/v1. "
+            "PSFalcon public/identity-protection.ps1 Get-FalconIdentityRule wraps it.",
+        ),
+    ),
+    FalconOperation(
+        id="get_policy_rules",
+        method="GET",
+        path="/identity-protection/entities/policy-rules/v1",
+        scopes=("Identity Protection Policy Rules:read",),
+        effect="read",
+        evidence=Evidence(
+            IDENTITY_PROTECTION_DOC,
+            "Identity Protection Policy Rules: READ",
+            "falcon-mcp has no tool for get_policy_rules. "
+            "falconpy/_endpoint/_identity_protection.py maps get_policy_rules to GET "
+            "/identity-protection/entities/policy-rules/v1. "
+            "PSFalcon public/identity-protection.ps1 Get-FalconIdentityRule -Id wraps it.",
+        ),
+    ),
+    FalconOperation(
+        id="query_iot_hostsV2",
+        method="GET",
+        path="/discover/queries/iot-hosts/v2",
+        scopes=("Falcon Discover IoT:read",),
+        effect="read",
+        evidence=Evidence(
+            DISCOVER_DOC,
+            "Falcon Discover IoT: READ",
+            "falcon-mcp has no tool for query_iot_hostsV2. "
+            "falconpy/_endpoint/_discover.py maps query_iot_hostsV2 to GET /discover/queries/iot-hosts/v2. "
+            "PSFalcon public/discover.ps1 Get-FalconAsset -IoT wraps it.",
+        ),
+    ),
+    FalconOperation(
+        id="get_iot_hosts",
+        method="GET",
+        path="/discover/entities/iot-hosts/v1",
+        scopes=("Falcon Discover IoT:read",),
+        effect="read",
+        evidence=Evidence(
+            DISCOVER_DOC,
+            "Falcon Discover IoT: READ",
+            "falcon-mcp has no tool for get_iot_hosts. "
+            "falconpy/_endpoint/_discover.py maps get_iot_hosts to GET /discover/entities/iot-hosts/v1. "
+            "PSFalcon public/discover.ps1 Get-FalconAsset -IoT -Id wraps it.",
+        ),
+    ),
     FalconOperation(
         id="GetQueriesAlertsV2",
         method="GET",
