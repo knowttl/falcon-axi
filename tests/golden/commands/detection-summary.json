@@ -1,0 +1,11 @@
+{
+  "name": "detection summary",
+  "order": 100,
+  "summary": "  detection summary         counts of detections by severity",
+  "scopes": [
+    {
+      "scope": "Alerts:read",
+      "access": "read"
+    }
+  ]
+}

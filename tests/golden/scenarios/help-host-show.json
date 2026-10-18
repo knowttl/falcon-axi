@@ -1,0 +1,9 @@
+{
+  "name": "help-host-show",
+  "argv": [
+    "host",
+    "show",
+    "--help"
+  ],
+  "exit_code": 0
+}

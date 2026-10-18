@@ -1,0 +1,15 @@
+{
+  "name": "report-show",
+  "argv": [
+    "report",
+    "show",
+    "123456"
+  ],
+  "responders": [
+    {
+      "op": "GetIntelReportEntities",
+      "fixture": "intel/report-one.json"
+    }
+  ],
+  "exit_code": 0
+}

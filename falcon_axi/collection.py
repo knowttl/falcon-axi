@@ -39,7 +39,13 @@ class Collection:
             ),
         )
         if response.status != 200:
-            raise translate_falcon_error(response, id, self.key, command=f"{self.noun} list")
+            raise translate_falcon_error(
+                response,
+                id,
+                self.key,
+                filter_help=(f"{self.noun} list", "name:'Synthetic*'"),
+                not_found_command=f"{self.noun} list",
+            )
         return response
 
     def _details(self, ctx: Invocation, ids: list[str]) -> list[Mapping[str, Any]]:

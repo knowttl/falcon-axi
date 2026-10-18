@@ -1,0 +1,16 @@
+vulnerability:
+  id: synthetic-vulnerability-01
+  cve: CVE-2099-0001
+  severity: CRITICAL
+  hostname: synthetic-host-01
+  device_id: synthetic-device-01
+  description: Synthetic vulnerability description.
+  base_score: "9.8"
+  exprt_rating: CRITICAL
+  status: open
+  created: "2099-01-01T00:00:00Z"
+  updated: "2099-01-02T00:00:00Z"
+  product: Synthetic Product 1.0
+  platform: Windows
+  os: Windows 11
+  local_ip: 192.0.2.1

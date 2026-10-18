@@ -1,0 +1,9 @@
+{
+  "name": "help-identity-timeline",
+  "argv": [
+    "identity",
+    "timeline",
+    "--help"
+  ],
+  "exit_code": 0
+}

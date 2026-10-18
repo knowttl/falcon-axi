@@ -1,0 +1,6 @@
+count: 2 of 3 total
+continuation_cursor: eyJvcGVyYXRpb24iOiJjb21iaW5lZF9ob3N0cyIsIm1vZGVsIjoidG9rZW4iLCJwb3NpdGlvbiI6InN5bnRoZXRpYy1hc3NldHMtbmV4dCIsImZpbmdlcnByaW50IjoiOTk4ZTZiZGFjYTVjNGFiZjM5NDkyNzM3ZTk5NjMwZWRkYzMyZTQxMGQ3OGMwZWU0NzFlOTg5NjJjMGZmODg4YyJ9
+assets[2]{id,hostname,entity_type,platform_name}:
+  synthetic-asset-01,SYNTHETIC-WS,managed,Windows
+  synthetic-asset-02,SYNTHETIC-PRINTER,unmanaged,Linux
+help[2]: "Run `falcon-axi asset show <id>` for asset details","Run `falcon-axi asset list --limit 2 --cursor eyJvcGVyYXRpb24iOiJjb21iaW5lZF9ob3N0cyIsIm1vZGVsIjoidG9rZW4iLCJwb3NpdGlvbiI6InN5bnRoZXRpYy1hc3NldHMtbmV4dCIsImZpbmdlcnByaW50IjoiOTk4ZTZiZGFjYTVjNGFiZjM5NDkyNzM3ZTk5NjMwZWRkYzMyZTQxMGQ3OGMwZWU0NzFlOTg5NjJjMGZmODg4YyJ9` for the next page"

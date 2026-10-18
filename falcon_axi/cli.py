@@ -11,36 +11,28 @@ from typing import Any
 from falcon_axi.command import Invocation, limit_of
 from falcon_axi.command import string as _str
 from falcon_axi.command import suggestion_for as _suggestion_for
-from falcon_axi.commands import COMMAND_SPECS, COMMANDS, SUBCOMMANDS
 from falcon_axi.core import CliError
 from falcon_axi.credentials import (
     Credential,
     read_only,
     resolve_credential,
 )
-from falcon_axi.cve import validate_cve_id
-from falcon_axi.detection import list_detections
-from falcon_axi.diagnostics import tenant_line
 from falcon_axi.fql import (
     DetectionQuery,
     since_seconds,
     window,
 )
-from falcon_axi.identity import DEFAULT_SINCE as IDENTITY_DEFAULT_SINCE
-from falcon_axi.identity import (
-    _identity_query_of,
-    activity_query,
-    parse_categories,
-    validate_entity_id,
-    validate_identity_query,
-)
 from falcon_axi.origin import REGIONS, assert_trusted_origin, resolve_base_url
+from falcon_axi.policy import validate_policy_type
 from falcon_axi.redaction import redact_text, redaction_scope
 from falcon_axi.render import raw, render
-from falcon_axi.version import VERSION
-from falcon_axi.vuln import parse_fields
+from falcon_axi.skill import HOME_GUIDANCE, skill_hint
+from falcon_axi.version import VERSION, version_output
 
-DESCRIPTION = "Read CrowdStrike Falcon detections, hosts, vulnerabilities, and NG-SIEM searches from the shell"
+DESCRIPTION = (
+    "Read CrowdStrike Falcon detections, hosts, accounts, vulnerabilities, CVE intelligence, "
+    "indicators, identities, and NG-SIEM searches from the shell"
+)
 HOME_ROWS = 5
 
 GLOBAL_FLAGS = ("help", "region", "allow-unknown-origin", "member-cid", "no-member-cid", "config", "profile")
@@ -59,10 +51,6 @@ def flag_guard(name: str) -> None:
         raise ValueError(f"secret-shaped flag --{name} is forbidden")
 
 
-for _name in (*GLOBAL_FLAGS, *(flag for spec in COMMAND_SPECS.values() for flag in spec.flags)):
-    flag_guard(_name)
-
-
 @dataclass(frozen=True)
 class Parsed:
     command: str
@@ -71,6 +59,8 @@ class Parsed:
 
 
 def _valid_flags(command: str) -> list[str]:
+    from falcon_axi.commands import COMMAND_SPECS
+
     spec = COMMAND_SPECS.get(command)
     return [f"--{name}" for name in (*GLOBAL_FLAGS, *(spec.flags if spec else ()))]
 
@@ -92,6 +82,22 @@ def _unknown_flag(name: str, command: str) -> CliError:
 
 
 def parse(argv: Sequence[str]) -> Parsed:
+    from falcon_axi.commands import COMMAND_SPECS, COMMANDS, SUBCOMMANDS
+    from falcon_axi.cve import validate_cve_id
+    from falcon_axi.domain import parse_fields
+    from falcon_axi.identity import DEFAULT_SINCE as IDENTITY_DEFAULT_SINCE
+    from falcon_axi.identity import (
+        _identity_query_of,
+        activity_query,
+        parse_categories,
+        validate_entity_id,
+        validate_identity_query,
+    )
+    from falcon_axi.walk import max_rows_of
+
+    for name in (*GLOBAL_FLAGS, *(flag for spec in COMMAND_SPECS.values() for flag in spec.flags)):
+        flag_guard(name)
+
     command: str = "home"
     index = 0
     first = argv[0] if argv else None
@@ -99,14 +105,14 @@ def parse(argv: Sequence[str]) -> Parsed:
         noun = str(first)
         index = 1
         while noun in SUBCOMMANDS:
-            second = argv[index] if len(argv) > index else None
-            if second not in SUBCOMMANDS[noun]:
+            child = argv[index] if len(argv) > index else None
+            if child not in SUBCOMMANDS[noun]:
                 raise CliError(
                     "VALIDATION_ERROR",
-                    f"unknown {noun} subcommand {second or ''}".strip(),
+                    f"unknown {noun} subcommand {child or ''}".strip(),
                     [f"valid {noun} subcommands: {', '.join(SUBCOMMANDS[noun])}"],
                 )
-            noun = f"{noun} {second}"
+            noun = f"{noun} {child}"
             index += 1
         command = noun
     elif first is not None and " " not in first and first in COMMAND_SPECS:
@@ -171,15 +177,17 @@ def parse(argv: Sequence[str]) -> Parsed:
             f"`{command}` accepts no positional arguments",
             [f"valid flags for `{command}`: {', '.join(_valid_flags(command))}"],
         )
+    max_rows_of(flags)
     if "limit" in flags:
         limit_of(flags, COMMAND_SPECS[command])
     if "fields" in flags:
-        parse_fields(str(flags["fields"]))
+        assert spec is not None
+        parse_fields(str(flags["fields"]), spec.extra_fields, spec.default_fields)
     if "filter" in flags and not str(flags["filter"]).strip():
         raise CliError("VALIDATION_ERROR", "--filter requires a value")
     if "since" in flags:
         window(str(flags["since"]))
-    if command == "identity list":
+    if command in ("identity list", "identity assessment"):
         validate_identity_query(_identity_query_of(flags))
     if command in ("identity show", "identity timeline"):
         validate_entity_id(positionals[0])
@@ -189,10 +197,18 @@ def parse(argv: Sequence[str]) -> Parsed:
         since_seconds(_str(flags.get("since")) or IDENTITY_DEFAULT_SINCE)
     if command == "identity activity":
         activity_query(positionals[0])
+    if command in ("ioc hosts", "ioc processes"):
+        from falcon_axi.ioc import validate_observation
+
+        validate_observation(positionals[0], command == "ioc processes", _str(flags.get("host")))
+    if command in ("policy list", "policy members"):
+        validate_policy_type(_str(flags.get("type")))
     return Parsed(command, flags, tuple(positionals))
 
 
 def help_text(command: str) -> str:
+    from falcon_axi.commands import COMMAND_SPECS
+
     if command in COMMAND_SPECS:
         return COMMAND_SPECS[command].help
     return "\n".join(
@@ -210,11 +226,13 @@ def help_text(command: str) -> str:
             "",
             "falcon-axi lists no command that changes a host, a detection, a policy, or an identity. It",
             "requires Alerts:read, Hosts:read, Vulnerabilities:read, Vulnerabilities (Falcon Intelligence):read,",
-            "NGSIEM:read, Identity Protection Entities:read, and Identity Protection Timeline:read, plus two",
+            "NGSIEM:read, Identity Protection Entities:read, Identity Protection Timeline:read, and",
+            "Identity Protection Assessment:read, plus two",
             "write-labelled scopes: NGSIEM:write for `search start`, `search stop`, and `identity activity`, and",
-            "Identity Protection GraphQL:write for `identity list`, `identity show`, and `identity timeline`,",
+            "Identity Protection GraphQL:write for the fixed Identity Protection query commands,",
             "which Falcon requires even for read-only queries.",
-            "The `account` commands also need Assets:read, a license-gated scope that only some tenants can grant.",
+            "The `account`, `asset`, `application`, and `login` commands need license-gated Assets:read.",
+            "The `indicator` commands require the license-gated Indicators (Falcon Intelligence):read scope.",
         ]
     )
 
@@ -253,7 +271,12 @@ def _session(
     )
 
 
-def _home_view(transport: Any, flags: Mapping[str, str | bool], env: Mapping[str, str], bin: str) -> tuple[str, int]:
+def _home_view(
+    transport: Any, flags: Mapping[str, str | bool], env: Mapping[str, str], bin: str, hints: tuple[str, ...] = ()
+) -> tuple[str, int]:
+    from falcon_axi.detection import list_detections
+    from falcon_axi.diagnostics import tenant_line
+
     head: dict[str, Any] = {"bin": bin, "description": DESCRIPTION}
     try:
         resolved = _session(transport, flags, env)
@@ -262,7 +285,7 @@ def _home_view(transport: Any, flags: Mapping[str, str | bool], env: Mapping[str
         return (
             render(
                 {**head, "error": known.message, "code": known.code, **known.details},
-                _followup_help(known.help, flags, _str(flags.get("member-cid"))),
+                (*_followup_help(known.help, flags, _str(flags.get("member-cid"))), *hints),
             ),
             known.exit_code,
         )
@@ -278,17 +301,16 @@ def _home_view(transport: Any, flags: Mapping[str, str | bool], env: Mapping[str
     return (
         render(
             {**head, **listed.value},
-            _followup_help(
-                [
-                    *listed.help,
-                    "Run `falcon-axi detection list` to see more detections",
-                    "Run `falcon-axi detection list --product idp` for Identity Protection detections",
-                    "Run `falcon-axi host list --filter \"hostname:'WIN-*'\"` to search hosts",
-                    "Run `falcon-axi cve show <CVE-ID>` for Falcon Intelligence on one CVE",
-                    "Run `falcon-axi scopes` to see what this API client needs",
-                ],
-                flags,
-                resolved.session.member_cid,
+            (
+                *_followup_help(
+                    [
+                        *listed.help,
+                        *HOME_GUIDANCE,
+                    ],
+                    flags,
+                    resolved.session.member_cid,
+                ),
+                *hints,
             ),
         ),
         0,
@@ -321,6 +343,8 @@ def _run(
     bin: str | None = None,
 ) -> tuple[str, int]:
     """Returns the stdout document and the exit code. The transport is the only substitution point (§14.2)."""
+    from falcon_axi.commands import COMMAND_SPECS
+
     values = os.environ if env is None else env
     if transport is None:
         from falcon_axi.transport import http_transport
@@ -336,7 +360,7 @@ def _run(
         if forced_read_only and parsed.command in ("search start", "search stop", "identity activity"):
             raise CliError("READ_ONLY_VIOLATION", "FALCON_AXI_READ_ONLY forbids search lifecycle changes")
         if parsed.command == "home":
-            return _home_view(transport, parsed.flags, values, bin or "falcon-axi")
+            return _home_view(transport, parsed.flags, values, bin or "falcon-axi", skill_hint(values) if not argv else ())
         spec = COMMAND_SPECS[parsed.command]
         resolved = None
         if spec.authentication != "none":
@@ -371,13 +395,19 @@ def run(
     env: Mapping[str, str] | None = None,
     bin: str | None = None,
 ) -> tuple[str, int]:
+    version = version_output(argv)
+    if version is not None:
+        return version, 0
     with redaction_scope():
         stdout, exit_code = _run(argv, transport, env, bin)
         return redact_text(stdout), exit_code
 
 
 def main() -> int:
-    stdout, exit_code = run(sys.argv[1:], bin=sys.argv[0] or "falcon-axi")
+    stdout = version_output(sys.argv[1:])
+    exit_code = 0
+    if stdout is None:
+        stdout, exit_code = run(sys.argv[1:], bin=sys.argv[0] or "falcon-axi")
     sys.stdout.write(stdout)
     return exit_code
 

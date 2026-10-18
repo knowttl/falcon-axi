@@ -1,0 +1,20 @@
+{
+  "name": "vuln-list-by-host",
+  "argv": [
+    "vuln",
+    "list",
+    "--host",
+    "synthetic-device-01",
+    "--severity",
+    "critical",
+    "--limit",
+    "2"
+  ],
+  "responders": [
+    {
+      "op": "combinedQueryVulnerabilities",
+      "fixture": "spotlight/combined-page.json"
+    }
+  ],
+  "exit_code": 0
+}

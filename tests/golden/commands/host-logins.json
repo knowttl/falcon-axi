@@ -1,0 +1,11 @@
+{
+  "name": "host logins",
+  "order": 600,
+  "summary": "  host logins <device id>   recent interactive logins on one host",
+  "scopes": [
+    {
+      "scope": "Hosts:read",
+      "access": "read"
+    }
+  ]
+}

@@ -1,0 +1,20 @@
+{
+  "name": "identity-sensor-list-empty",
+  "argv": [
+    "identity",
+    "sensor",
+    "list"
+  ],
+  "responders": [
+    {
+      "op": "QuerySensorsByFilter",
+      "response": {
+        "status": 200,
+        "body": {
+          "resources": []
+        }
+      }
+    }
+  ],
+  "exit_code": 0
+}

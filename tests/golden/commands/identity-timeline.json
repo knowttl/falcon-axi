@@ -1,0 +1,15 @@
+{
+  "name": "identity timeline",
+  "order": 2300,
+  "summary": "  identity timeline <id>    one identity's recent activity",
+  "scopes": [
+    {
+      "scope": "Identity Protection GraphQL:write",
+      "access": "write"
+    },
+    {
+      "scope": "Identity Protection Timeline:read",
+      "access": "read"
+    }
+  ]
+}

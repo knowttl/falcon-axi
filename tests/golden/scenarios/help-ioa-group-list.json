@@ -1,0 +1,11 @@
+{
+  "name": "help-ioa-group-list",
+  "argv": [
+    "ioa",
+    "group",
+    "list",
+    "--help"
+  ],
+  "exit_code": 0,
+  "comment": "Firewall rule list/show, firewall group list, IOA group list, correlation-rule list and case list/show add read-only operations and scopes. Their synthetic scenarios pin the compact rows, detail views, pagination and help. help-top, unknown-command and scopes change deliberately for these shipped commands; no transport enforcement changes. Firewall rule cursors bind the offset-or-token model and rule detail redacts customer_id (docs/design/v1.md section 10.6)."
+}

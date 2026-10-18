@@ -1,0 +1,8 @@
+{
+  "name": "unknown-account-subcommand",
+  "argv": [
+    "account",
+    "delete"
+  ],
+  "exit_code": 2
+}

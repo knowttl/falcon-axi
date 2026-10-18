@@ -1,0 +1,10 @@
+{
+  "name": "limit-above-ceiling",
+  "argv": [
+    "detection",
+    "list",
+    "--limit",
+    "10001"
+  ],
+  "exit_code": 2
+}

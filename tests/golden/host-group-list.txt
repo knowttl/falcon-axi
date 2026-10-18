@@ -1,0 +1,6 @@
+count: 2 of 3 total
+host_groups[2]{id,name,group_type,description}:
+  synthetic-group-01,Synthetic servers,dynamic,Synthetic host group
+  synthetic-group-02,Synthetic workstations,static,Synthetic static group
+continuation_cursor: eyJvcGVyYXRpb24iOiJxdWVyeUNvbWJpbmVkSG9zdEdyb3VwcyIsIm1vZGVsIjoib2Zmc2V0IiwicG9zaXRpb24iOjIsImZpbmdlcnByaW50IjoiOWY5ZmIzYmEyZTQ1ZGRhYmE5NzJiZTdiM2E0OTY4MTZhNTQwOTA4NjhlYjE1NTZlMjMxYjA4MzEyNmNmN2YwMSJ9
+help[2]: "Run `falcon-axi host-group members <id>` for the hosts in a group","Run `falcon-axi host-group list --cursor eyJvcGVyYXRpb24iOiJxdWVyeUNvbWJpbmVkSG9zdEdyb3VwcyIsIm1vZGVsIjoib2Zmc2V0IiwicG9zaXRpb24iOjIsImZpbmdlcnByaW50IjoiOWY5ZmIzYmEyZTQ1ZGRhYmE5NzJiZTdiM2E0OTY4MTZhNTQwOTA4NjhlYjE1NTZlMjMxYjA4MzEyNmNmN2YwMSJ9` for the next page"

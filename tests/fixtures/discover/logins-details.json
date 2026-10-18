@@ -1,0 +1,29 @@
+{
+  "provenance": {
+    "operation": "get_logins",
+    "reference": "https://developer.crowdstrike.com/api-reference/collections/discover/",
+    "schema_read": "2026-10-18",
+    "provenance": "synthetic"
+  },
+  "response": {
+    "status": 200,
+    "headers": {},
+    "body": {
+      "resources": [
+        {
+          "id": "synthetic-login-02",
+          "username": "synthetic-user",
+          "hostname": "SYNTHETIC-WS",
+          "login_timestamp": "2026-10-17T00:00:00Z"
+        },
+        {
+          "id": "synthetic-login-01",
+          "username": "synthetic-admin",
+          "hostname": "SYNTHETIC-WS",
+          "login_timestamp": "2026-10-18T00:00:00Z",
+          "cid": "synthetic-cid"
+        }
+      ]
+    }
+  }
+}

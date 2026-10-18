@@ -1,0 +1,16 @@
+{
+  "name": "indicator-list-page",
+  "argv": [
+    "indicator",
+    "list",
+    "--limit",
+    "2"
+  ],
+  "responders": [
+    {
+      "op": "QueryIntelIndicatorEntities",
+      "fixture": "intel/indicators-page.json"
+    }
+  ],
+  "exit_code": 0
+}

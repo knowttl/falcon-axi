@@ -1,0 +1,12 @@
+{
+  "name": "vuln-limit-above-ceiling",
+  "argv": [
+    "vuln",
+    "list",
+    "--status",
+    "open",
+    "--limit",
+    "5001"
+  ],
+  "exit_code": 2
+}

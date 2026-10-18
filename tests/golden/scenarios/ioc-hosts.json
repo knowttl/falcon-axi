@@ -1,0 +1,15 @@
+{
+  "name": "ioc-hosts",
+  "argv": [
+    "ioc",
+    "hosts",
+    "domain:example.invalid"
+  ],
+  "responders": [
+    {
+      "op": "DevicesRanOn",
+      "fixture": "ioc/hosts-page.json"
+    }
+  ],
+  "exit_code": 0
+}

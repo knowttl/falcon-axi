@@ -1,0 +1,12 @@
+{
+  "name": "case show",
+  "order": 2318,
+  "summary": "  case show <id>             read one record",
+  "scopes": [
+    {
+      "scope": "Cases:read",
+      "access": "read",
+      "required": "yes"
+    }
+  ]
+}

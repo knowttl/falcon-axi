@@ -10,6 +10,16 @@ from falcon_axi.transport.operations import OperationId, operation
 from falcon_axi.transport.types import FalconResponse
 
 _FILTER_WORDS = re.compile(r"\b(fql|filter|query)\b", re.IGNORECASE)
+_INVENTORY_REMEDIES: dict[OperationId, tuple[str, str]] = {
+    "QueryVulnerabilities": ("cve list", "severity:'CRITICAL'"),
+    "GetVulnerabilities": ("cve list", "severity:'CRITICAL'"),
+    "combined_hosts": ("asset list", "entity_type:'managed'"),
+    "get_hosts": ("asset list", "entity_type:'managed'"),
+    "combined_applications": ("application list", "name:'Chrome'"),
+    "query_logins": ("login list", "login_status:'Failed'"),
+    "get_logins": ("login list", "login_status:'Failed'"),
+    "QueryGetNetworkAddressHistoryV1": ("host list", "hostname:'WIN-*'"),
+}
 
 #: License prerequisites for scope-denied remedies; provisioning guidance lives in README.md.
 #: Console picker visibility is inferred, not observed (docs/design/v1.md §17.17).
@@ -38,7 +48,13 @@ def trace_id(response: FalconResponse) -> str | None:
 
 
 def translate_falcon_error(
-    response: FalconResponse, id: OperationId, subject: str, document: str | None = None, *, command: str | None = None
+    response: FalconResponse,
+    id: OperationId,
+    subject: str,
+    document: str | None = None,
+    *,
+    filter_help: tuple[str, str] | None = None,
+    not_found_command: str = "detection list",
 ) -> CliError:
     """Maps a Falcon failure onto falcon-axi's own envelope.
 
@@ -48,6 +64,7 @@ def translate_falcon_error(
     messages = falcon_messages(response)
     trace = trace_id(response)
     descriptor = operation(id)
+    remedy = _INVENTORY_REMEDIES.get(id)
     scopes = descriptor.scopes + (graphql_document(document).read_scopes if document else ())
     details = {"trace_id": trace} if trace else {}
     if response.status == 400 and descriptor.effect == "graphql-query":
@@ -64,14 +81,24 @@ def translate_falcon_error(
         )
     if response.status == 400:
         if any(_FILTER_WORDS.search(message) for message in messages):
-            if command is not None:
-                example = ""
+            if filter_help is not None:
+                command, example = filter_help
+            elif remedy:
+                command, example = remedy
             elif "Assets:read" in scopes:
                 command, example = "account list", "username:'synthetic-user'"
             elif "Hosts:read" in scopes:
                 command, example = "host list", "hostname:'WIN-*'"
+            elif "Host Groups:read" in scopes:
+                command, example = "host-group list", "group_type:'dynamic'"
+            elif "IOC Management:read" in scopes:
+                command, example = "ioc list", "type:'domain'"
             elif "Vulnerabilities:read" in scopes:
                 command, example = "vuln list", "status:'open'"
+            elif "Indicators (Falcon Intelligence):read" in scopes:
+                command, example = "indicator list", "type:'domain'"
+            elif "Identity Protection Entities:read" in scopes:
+                command, example = "identity sensor list", "hostname:'SYNTH-DC-01'+status:'healthy'"
             else:
                 command, example = "detection list", "severity_name:'High'+status:'new'"
             return CliError(
@@ -139,10 +166,11 @@ def translate_falcon_error(
             {"required_scopes": list(scopes)},
         )
     if response.status == 404:
+        command = remedy[0] if remedy else not_found_command
         return CliError(
             "NOT_FOUND",
             f"no {subject} matched that identifier",
-            [f"Run `falcon-axi {command or 'detection list'}` to see current identifiers"],
+            [f"Run `falcon-axi {command}` to see current identifiers"],
         )
     if response.status == 429:
         return CliError(

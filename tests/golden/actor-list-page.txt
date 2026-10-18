@@ -1,0 +1,6 @@
+count: 2 of 3 total
+continuation_cursor: eyJvcGVyYXRpb24iOiJRdWVyeUludGVsQWN0b3JFbnRpdGllcyIsIm1vZGVsIjoib2Zmc2V0IiwicG9zaXRpb24iOjIsImZpbmdlcnByaW50IjoiYWUxMWM2Zjc5MDliY2I4MmVmODVmNTc4ZDFjNzM3NmQxOTEwMGE2MjlmNzg4ZjgwMmQ1Yzg2ZjVhNWVlNGM5ZiJ9
+actors[2]{id,name,created_date,last_modified_date}:
+  123456,Synthetic Fox,4000000000,4000000001
+  123457,Synthetic Owl,4000000000,4000000002
+help[2]: "Run `falcon-axi actor show <id>` for the full actor record","Run `falcon-axi actor list --limit 2 --cursor eyJvcGVyYXRpb24iOiJRdWVyeUludGVsQWN0b3JFbnRpdGllcyIsIm1vZGVsIjoib2Zmc2V0IiwicG9zaXRpb24iOjIsImZpbmdlcnByaW50IjoiYWUxMWM2Zjc5MDliY2I4MmVmODVmNTc4ZDFjNzM3NmQxOTEwMGE2MjlmNzg4ZjgwMmQ1Yzg2ZjVhNWVlNGM5ZiJ9` for the next page"

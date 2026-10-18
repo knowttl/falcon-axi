@@ -1,0 +1,20 @@
+{
+  "name": "actor-show-not-found",
+  "argv": [
+    "actor",
+    "show",
+    "missing"
+  ],
+  "responders": [
+    {
+      "op": "GetIntelActorEntities",
+      "response": {
+        "status": 404,
+        "body": {
+          "resources": []
+        }
+      }
+    }
+  ],
+  "exit_code": 1
+}

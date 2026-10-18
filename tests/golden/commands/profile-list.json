@@ -1,0 +1,6 @@
+{
+  "name": "profile list",
+  "order": 2500,
+  "summary": "  profile list              configured profile names, without reading secrets",
+  "scopes": []
+}

@@ -1,0 +1,13 @@
+asset:
+  id: synthetic-asset-01
+  hostname: SYNTHETIC-WS
+  entity_type: managed
+  platform_name: Windows
+  os_version: Windows 11
+  aid: synthetic-device-01
+  criticality: High
+  current_local_ip: 192.0.2.10
+  external_ip: 198.51.100.10
+  first_seen_timestamp: "2026-01-01T00:00:00Z"
+  last_seen_timestamp: "2026-10-18T00:00:00Z"
+  mac_addresses[1]: "02:00:00:00:00:01"

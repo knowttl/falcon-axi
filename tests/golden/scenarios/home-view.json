@@ -1,0 +1,24 @@
+{
+  "name": "home-view",
+  "argv": [],
+  "responders": [
+    {
+      "op": "GetQueriesAlertsV2",
+      "generate": {
+        "kind": "ids",
+        "count": 5,
+        "total": 384
+      }
+    },
+    {
+      "op": "PostEntitiesAlertsV2",
+      "generate": {
+        "kind": "hydrate",
+        "severity_name": "High",
+        "tactic": "Execution",
+        "hostname": "WIN-WS-42"
+      }
+    }
+  ],
+  "exit_code": 0
+}

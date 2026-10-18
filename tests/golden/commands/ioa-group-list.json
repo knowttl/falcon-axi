@@ -1,0 +1,12 @@
+{
+  "name": "ioa group list",
+  "order": 2315,
+  "summary": "  ioa group list             read ioa_groups",
+  "scopes": [
+    {
+      "scope": "Custom IOA Rules:read",
+      "access": "read",
+      "required": "yes"
+    }
+  ]
+}

@@ -3,30 +3,38 @@
 An agent-facing CLI for reading the CrowdStrike Falcon platform from the shell, built to the
 [AXI](https://agentskills.io) standard for CLI tools that autonomous agents drive through shell execution.
 
-Output is token-efficient TOON on stdout, errors are structured documents rather than prose, and every view
-ends with the commands that are worth running next.
+Output is token-efficient TOON on stdout, errors are structured documents rather than prose, and contextual
+suggestions point to commands worth running next.
 
 ## Status: partial implementation of the v1 design
 
-The package is real and installable, and it ships triage and configuration reads plus NG-SIEM search.
+The package is real and installable, and it ships Falcon read domains plus NG-SIEM search.
 The shipped and deferred commands are listed below; [`docs/design/v1.md`](docs/design/v1.md) owns the full v1 design.
 
 What is shipped:
 
 - the package foundation: a Python package, the `falcon-axi` console script, and one offline
   `uv run scripts/verify.py` entry point;
+- `-v`, `-V`, and `--version`, printing the bare version;
 - the sealed transport and its closed operation registry, with evidence carried per operation, a
   second and third enforcement tier confining the two write-labelled scopes to three named
   operations, and a single permitted network sink;
 - AXI credential profiles and SecretRefs, per-call XDG paths, region selection and
   `X-Cs-Region` autodiscovery, Flight Control member-CID selection, `auth status`, `profile list`, and `config path`;
 - the home view and five read domains: `falcon-axi`, `detection list`, `detection show`, `host list`,
-  `host show`, `host logins`, `account list`, `account show`, `vuln list`, and `cve show`;
+  `host show`, `host logins`, `account list`, `account show`, `vuln list`, `vuln show`, `cve list`, and `cve show`;
+- `detection summary`, an on-demand severity count with the same filters as `detection list`;
+- Discover inventory: `asset list`, `asset show`, `application list`, and `login list`, plus
+  `host network <device_id>` for Falcon sensor-host IP and MAC address history;
 - NG-SIEM search: `search start`, `search status`, and `search stop`, the three operations captain
   exception N1 admits;
+- Falcon Intelligence: `actor list`, `actor show` (including `--mitre` for JSON ATT&CK mappings),
+  `report list`, and `report show`, with FQL filters and cursor pagination on lists;
 - the Identity Protection directory and timeline: `identity list`, `identity show`, and
   `identity timeline`, sending only fixed read-only GraphQL query documents under captain exception
   N2, the other place falcon-axi asks for a write-labelled scope;
+- `identity assessment [--domain <name>]`, a fixed read-only security-assessment query under N2,
+  and `identity sensor list` / `identity sensor show`, ordinary REST reads of sensor inventory;
 - identity-aware detections (`detection list --product idp`, with account and source-endpoint
   fields when present) and `identity activity <account>`, a fixed NG-SIEM search over one account's
   Identity Protection events that adds no operation and no scope beyond N1's;
@@ -34,21 +42,34 @@ What is shipped:
 - firewall configuration reads: `firewall rule list`, `firewall rule show`, and `firewall group list`;
 - `ioa group list`, `correlation-rule list`, `case list`, and `case show`.
   These reads match CrowdStrike's documented APIs and falcon-mcp; they have not been tenant-validated.
+- Falcon Intelligence indicators: `indicator list` with opaque marker continuation and `indicator show`.
+  These reads match first-party API sources and are tested offline, without tenant validation.
+- the generated [agent skill](#agent-skill) and its bare-home install hint, specified in
+  [the integration contract](docs/design/v1.md#122-session-hook-and-skill);
+- bounded `--all` walks with `--max-rows` on detection, host, account, and vuln lists, retaining partial
+  results and emitting a continuation cursor only when the next position is reachable.
+- `--fields` on detection, host, and vuln lists to append selected columns to the default row.
+
+- custom IOC reads: `ioc list`, `ioc show`, `ioc hosts <type:value>`, and
+  `ioc processes <type:value> --host <device_id>`;
+- host-group reads: `host-group list` and `host-group members <id>`.
+  See [the command reference](docs/design/v1.md#141-custom-iocs-and-host-groups) for pagination and observation inputs.
+- policy inventory and host membership: `policy list --type <type>` and `policy members <id> --type <type>`
+  for `prevention`, `sensor-update`, `firewall`, `device-control`, `response`, and `content-update`.
+  Both accept `--filter`, `--limit`, and `--cursor` and require only the selected type's read scope.
+  Policy precedence, enable/disable, and writes are not exposed.
 
 What is **not** shipped yet, so no output advertises it:
 
-- every domain `docs/design/v1.md` §1.3 defers, including intel actors, indicators, and reports,
+- every domain `docs/design/v1.md` §1.3 defers,
   every NG-SIEM capability outside the three search lifecycle operations (no ingest, no lookup
   files, no parser or dashboard writes, and no Charlotte AI), and every Identity Protection capability
-  beyond the directory and timeline: no standalone incident or security-assessment queries, no policy rules,
+  beyond the directory, timeline, security assessment, and sensor inventory: no standalone incident queries, no policy rules,
   and no GraphQL mutation of any kind.
-  `cve show` is the one intel read that ships; there is no `cve list`;
-- `falcon-axi setup`, including the session hook and the generated skill;
-- `--all` and `--max-rows`, and `--fields` on detection and host lists; list pagination takes
-  `--limit` and `--cursor` only;
+  There is no report PDF or rule-file download;
+- `falcon-axi setup`, including the session hook;
 
-`docs/design/v1.md` remains the authority for the full v1 surface, and its §17 open questions are
-still open. Nothing here answers one of them.
+`docs/design/v1.md` remains the authority for the full v1 surface; §17 records closed decisions and distinguishes approvals from shipped implementations.
 [`docs/design/v1-python.md`](docs/design/v1-python.md) amends it for language, HTTP client, test
 layout, and packaging: falcon-axi is pure Python on `crowdstrike-falconpy`, with no Node runtime and
 no MCP process anywhere.
@@ -73,7 +94,7 @@ See `docs/design/v1.md` §0, §1.5, §3, §4.3, and §4.4.
 **N2 is not general write authority.**
 Falcon scopes the one Identity Protection GraphQL endpoint `WRITE` even for read-only queries, and the
 same endpoint also accepts mutations.
-So falcon-axi never sends GraphQL a caller supplies: the GraphQL directory and timeline commands name one of a closed set
+So falcon-axi never sends GraphQL a caller supplies: the GraphQL commands name one of a closed set
 of registered `query` documents, every caller value travels as a JSON variable and never inside the
 document text, and the network sink refuses any other body.
 The GraphQL commands have no `--query` flag or passthrough, and there is no password reset, account disable,
@@ -85,8 +106,6 @@ wrong tool and will not be persuaded otherwise.
 
 See [API client permissions](#api-client-permissions) for provisioning, including optional search writes
 and license-gated account and CVE access.
-Whether member-CID token minting additionally requires `Flight Control:read` remains an explicitly
-unresolved question in `docs/design/v1.md` §17.7.
 A falcon-axi release that asks for any other write scope is wrong.
 
 ## Quick start for agents
@@ -151,8 +170,8 @@ Paths are resolved on every invocation.
 }
 ```
 
-**No secret is ever accepted as a command-line argument**, and a flag whose name looks like a secret
-is rejected at registration rather than at runtime.
+**No secret is ever accepted as a command-line argument**; the declaration guard is specified in
+[`docs/design/v1.md` §5.3](docs/design/v1.md#53-no-secret-is-ever-a-command-line-argument).
 `clientSecret` accepts `{"env":"NAME"}` or `{"file":"/absolute/local/path"}`.
 Omitting it defaults to `FALCON_AXI_CLIENT_SECRET`; inline secrets and stored references are rejected.
 File contents are UTF-8 with a leading BOM and trailing whitespace removed.
@@ -201,10 +220,11 @@ Create the client in the Falcon console under Support and resources > API client
 Run `falcon-axi scopes` for the authoritative command-to-scope matrix.
 It is projected from the operation and GraphQL document registries the transport enforces and needs no
 credential.
-`cve show` requires the license-gated `Vulnerabilities (Falcon Intelligence):read`, not Spotlight's
+`cve list` and `cve show` require the license-gated `Vulnerabilities (Falcon Intelligence):read`, not Spotlight's
 `Vulnerabilities:read`.
-`Assets:read` is needed only by the two `account` commands and is license-gated to Falcon Discover or
-Exposure Management; a client that cannot be granted it loses those two commands and nothing else.
+`Assets:read` is needed by the `account`, `asset`, `application`, and `login` commands and is license-gated to Falcon Discover or
+Exposure Management; a client that cannot be granted it loses those commands and nothing else.
+The actor, report, and indicator commands also require a Falcon Intelligence license; `falcon-axi scopes` names their scopes.
 Grant only the scopes for the domains you intend to read: each is independent, and a command whose
 scope is missing fails with `SCOPE_DENIED` naming exactly what to grant.
 
@@ -225,10 +245,8 @@ Protection Timeline` (read).
 A command missing required permissions answers `SCOPE_DENIED` naming its required scopes; use
 `falcon-axi scopes` for the per-command requirements.
 
-Whether minting a member-CID token additionally requires `Flight Control:read` is an open design
-question (`docs/design/v1.md` §17.7), not a settled requirement.
-If `--member-cid` fails with `TENANT_DENIED` on a client that reads its own tenant fine, that scope is
-the first thing to check.
+See `docs/design/v1.md` §17.7 for the member-CID source-parity decision and its scope-evidence limitation.
+If `--member-cid` fails with `TENANT_DENIED` on a client that reads its own tenant fine, check Flight Control access in the Falcon console.
 
 ## Region and tenant
 
@@ -279,6 +297,7 @@ falcon-axi detection list --severity critical       one severity
 falcon-axi detection list --status new --since 24h  one status, one window
 falcon-axi detection list --product idp             Identity Protection detections
 falcon-axi detection list --filter "severity_name:'Critical'+status:'new'"
+falcon-axi detection summary --since 24h           counts by severity, including hidden alerts
 falcon-axi detection show "<composite id>"         one detection; copy the list's id column
 falcon-axi detection show "<composite id>" --full  without truncating long fields
 falcon-axi host list --platform windows             the Windows fleet
@@ -288,9 +307,22 @@ falcon-axi host show abc123                         one host
 falcon-axi host logins abc123 --since 24h           recent interactive logins on one host
 falcon-axi account list --filter "admin_privileges:'Yes'"   Discover accounts with admin rights
 falcon-axi account show abc123                      one Discover account
+falcon-axi asset list --filter "entity_type:'unmanaged'"  Discover assets without Falcon sensors
+falcon-axi asset show abc123                        one Discover asset
+falcon-axi application list --filter "name:'Chrome'"  Discover applications
+falcon-axi login list --filter "login_type:'Interactive'"  Discover logins across assets
+falcon-axi host network abc123                      sensor-host network address history
 falcon-axi vuln list --severity critical --status open
 falcon-axi vuln list --host abc123                  one host's vulnerabilities
 falcon-axi cve show CVE-2021-44228               Falcon Intelligence detail for one CVE
+falcon-axi actor list --filter "name:'Synthetic*'"   find intelligence actors
+falcon-axi actor show <id> --mitre                   actor profile and JSON ATT&CK mappings
+falcon-axi report list                              find intelligence reports
+falcon-axi report show <id> --full                   report detail without text truncation
+falcon-axi indicator list --filter "type:'domain'"  Falcon Intelligence indicators, not custom IOCs
+falcon-axi indicator show <id>                     full record using an id from indicator list
+falcon-axi cve list --severity critical --since 7d  recently published CVE intelligence
+falcon-axi vuln show <id>                         one Spotlight record from vuln list
 falcon-axi identity activity <account_id> --since 7d  an account's identity events
 falcon-axi search start --query '#event_simpleName=ProcessRollup2 | head(5)'
 falcon-axi search status 01JABCDEF                  one poll: running, cancelled, or done
@@ -299,6 +331,9 @@ falcon-axi identity list --name 'Admin*' --type user   Identity Protection users
 falcon-axi identity show 00000000-0000-0000-0000-000000000001      one identity in full
 falcon-axi identity timeline 00000000-0000-0000-0000-000000000001 --since 24h
 ```
+
+Copy actor and report identifiers from their list output.
+See the [Intel contract](docs/design/v1.md#23-the-two-step-query-then-hydrate-pattern) for list limits, cursor behavior, detail fields, and JSON ATT&CK output.
 
 `detection list` takes `--severity` (`informational`, `low`, `medium`, `high`, `critical`),
 `--status` (`new`, `in_progress`, `closed`, `reopened`), `--product` (`epp` for endpoint alerts, `idp`
@@ -311,9 +346,20 @@ Run `falcon-axi detection list --help` for the complete product values.
 `vuln list --fields description,base_score` adds those columns to the default
 `id,cve,severity,hostname` row; run `falcon-axi vuln list --help` for the allowed names.
 An unknown name is refused and the valid names are listed.
+`vuln show <id>` takes a Spotlight record identifier from `vuln list`, rather than a CVE identifier.
+`cve list` searches Falcon Intelligence with optional FQL `--filter`, `--severity`, and `--since` on publication time.
+Run `falcon-axi cve list --help` for filter values and examples.
 `host logins <device_id>` accepts exactly one host and takes `--since` (a relative window) and `--limit`.
 Run `falcon-axi host logins --help` for defaults and limits.
 Its rows are recent interactive logins from the Host Timeline, not a full audit trail.
+
+`asset list` includes Discover managed and unmanaged assets, distinct from the sensor inventory in `host list`.
+Use `--filter "entity_type:'managed'"` or `--filter "entity_type:'unmanaged'"` to select either inventory.
+Discover asset IDs come from `asset list`; sensor device IDs come from `host list`.
+`asset show` includes the asset's available MAC addresses.
+`host network <device_id>` returns the address history Falcon retains and has no pagination flags.
+See [the Discover reference](docs/design/v1.md#17-discover-inventory-and-host-network-history) for default filters, page bounds, and pagination models.
+These shapes match the official API reference and SDKs; they have not been validated against a tenant.
 `account list` takes `--filter` (raw FQL on Discover account fields), `--limit`, and
 `--cursor`; the accounts are the ones Discover has seen log in on endpoints, not an identity
 directory.
@@ -372,6 +418,15 @@ erroring, so a malformed pipe returns the wrong rows silently rather than failin
 
 ### Identity Protection
 
+`identity assessment [--domain <name>]` prints the security assessment score, level, and risk factors.
+It requires `Identity Protection Assessment:read` and `Identity Protection GraphQL:write`.
+The fixed query matches CrowdStrike's PSFalcon sample; it has offline fixture coverage and has not been tenant-validated.
+
+`identity sensor list [--filter <FQL>] [--limit N] [--cursor <token>]` lists sensor IDs, hostnames, status, and agent version.
+`identity sensor show <device_id>` adds heartbeat and policy details.
+Both use REST reads requiring `Identity Protection Entities:read`, with no GraphQL permission required.
+See [the limit contract](docs/design/v1.md#73-default-limits) for page defaults and ceilings.
+
 `identity list` reads the Falcon Identity Protection directory, users and endpoints with their risk
 severity.
 It takes `--name` and `--email` patterns (`*` is a wildcard, a bare `*` is refused), `--domain`,
@@ -383,7 +438,7 @@ and narrowed with `--category` (`activity`, `notification`, `threat`, `entity`, 
 An identity id is an entity GUID, as printed by `identity list`.
 For detail bounds and truncation markers, see [the output contract](docs/design/v1.md#102-default-schemas).
 
-These commands are backed by Identity Protection's GraphQL endpoint, not NG-SIEM, and they send only
+The directory, timeline, and assessment commands are backed by Identity Protection's GraphQL endpoint, not NG-SIEM, and they send only
 fixed, read-only query documents (captain exception N2, above).
 The schema CrowdStrike publishes for it is not public, so the documents follow CrowdStrike's and
 falcon-mcp's own queries; `docs/design/v1.md` §17 records that they are not yet validated against a
@@ -419,7 +474,8 @@ help[2]: "Run `falcon-axi detection show <id>` for the full detection","Run `fal
 `description`, and counts related actor, report, threat, and affected-product lists instead of expanding them.
 `host list` prints `hosts[N]{device_id,hostname,platform,last_seen}` and `vuln list` prints
 `vulnerabilities[N]{id,cve,severity,hostname}` by default, in the same shape.
-`vuln list --fields` appends the selected columns.
+`detection list --fields`, `host list --fields`, and `vuln list --fields` append selected columns.
+Run the command with `--help` for its valid field names.
 `search status` is the exception: a CQL result set has no fixed shape, so its columns are whatever
 the query projected.
 
@@ -452,7 +508,7 @@ Ask the command rather than guessing its flags.
 
 ## Pagination
 
-One call reads one page.
+By default, one call reads one page.
 `--limit N` sets the rows for this call; `host logins` applies it to the selected host's login window.
 Use the command's `--help` for defaults and ceilings; the detailed limit contract lives in
 [`docs/design/v1.md` §7.3](docs/design/v1.md#73-default-limits).
@@ -462,14 +518,23 @@ Pass it back with `--cursor <token>`.
 
 The cursor is opaque and bound to the credential and the filter that produced it, so it cannot be
 edited, reused across a different query, or shared between tenants.
-It hides the fact that Falcon paginates detections, hosts, and accounts by offset, vulnerabilities by an
-`after` token, and identities by a GraphQL `endCursor`: the CLI vocabulary is `--cursor` for every paginated command.
+The CLI vocabulary is `--cursor` for every paginated command.
+See [the pagination models](docs/design/v1.md#71-falcon-has-three-pagination-models-not-one) for the underlying Falcon mechanisms.
 `host logins` has no cursor: a full window warns that more logins may exist rather than claiming completeness.
-`--all` and `--max-rows` do not exist yet: loop on `--cursor` when more than one
-page is genuinely needed.
-Reading past 10000 Alerts results fails with `PAGINATION_LIMIT` and asks for a narrower filter,
-because the documented route past that boundary is not registered in v1.
-`host list` stops at the documented Hosts `limit + offset` ceiling of 10000 the same way.
+Detection, host, account, and vuln lists accept `--all` to walk pages and `--max-rows N` to cap query rows
+(default 1000; requires `--all`).
+For budget accounting when records disappear before hydration, see
+[`docs/design/v1.md` §7.2](docs/design/v1.md#72-what-the-cli-exposes).
+During a walk, page size follows the endpoint maximum and remaining budget, independently of `--limit`.
+An incomplete walk retains its rows, exits 0, and prints `partial: true` with `stop_reason: max_rows` or
+`stop_reason: pagination_limit`.
+A cursor appears only when the next position is reachable.
+Alerts walks stop defensively at 10000 query rows, because the documented route past that boundary is not
+registered in v1.
+Hosts stop at 9999 query rows under the endpoint's `limit + offset < 10000` rule.
+At either boundary, narrow the filter to read the remaining data.
+`PAGINATION_LIMIT` is an error only when the boundary is reached with no retained rows.
+Discover accounts and Spotlight have no such wall.
 
 ## Verify
 
@@ -478,9 +543,8 @@ uv sync
 uv run scripts/verify.py
 ```
 
-`uv run scripts/verify.py` is the single local entry point and runs entirely offline: ruff,
-`mypy --strict`, the architecture boundary check, and the offline test suite against wholly
-synthetic fixtures.
+[`scripts/verify.py`](scripts/verify.py) defines the complete check sequence and is the single local
+entry point, running entirely offline against wholly synthetic fixtures.
 A pytest fixture refuses any socket, so no test can reach the network, and no fixture contains a
 captured Falcon response, credential, token, or tenant identifier.
 
@@ -490,8 +554,7 @@ The offline suite includes the recorded-invocation gate in `tests/golden/`.
 Offline fixtures prove deterministic behavior, not upstream fidelity.
 [`docs/design/v1.md` §9.4](docs/design/v1.md#94-translation-never-passthrough) owns the error-evidence policy
 and points to the recorded endpoint-specific confirmations.
-Live Falcon calls are run by hand and stay outside the required checks; the opt-in live smoke suite
-of §15 is not implemented yet.
+[`docs/design/v1.md` §15](docs/design/v1.md#15-safe-live-test-boundaries) owns the validation policy and boundaries for any separately authorized future live validation.
 
 GitHub Actions runs the same offline gate, `uv run scripts/verify.py`, on every pull request and every push
 to `main`.
