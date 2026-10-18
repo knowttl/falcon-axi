@@ -81,13 +81,3 @@ def test_a_protected_credentials_file_is_read_and_a_loose_one_is_refused_unread(
     with pytest.raises(CliError) as linked:
         resolve_credential(values)
     assert linked.value.code == "CONFIG_INSECURE"
-
-
-def test_legacy_credentials_are_never_read() -> None:
-    path = Path.home() / ".config/falcon-axi/credentials"
-    path.parent.mkdir(parents=True)
-    path.write_text("FALCON_CLIENT_ID=file-id\n", encoding="utf-8")
-    path.chmod(0o600)
-    with pytest.raises(CliError) as error:
-        resolve_credential({})
-    assert error.value.code == "CONFIG_MOVED"

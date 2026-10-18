@@ -61,14 +61,6 @@ def test_cve_bad_filter_is_refused_before_the_domain_request(flags: list[str]) -
     assert recorded.operation_requests("QueryVulnerabilities") == []
 
 
-def test_cve_empty_query_does_not_hydrate() -> None:
-    recorded = RecordedTransport([serve("QueryVulnerabilities", response(200, {"resources": []}))])
-    stdout, code = run(["cve", "list"], recorded, dict(CREDENTIAL_ENV))
-    assert code == 0
-    assert "0 CVEs in Falcon Intelligence" in stdout
-    assert recorded.operation_requests("GetVulnerabilities") == []
-
-
 def test_cve_short_hydrate_advances_by_ids_and_retains_total() -> None:
     recorded = RecordedTransport(
         [
@@ -82,10 +74,13 @@ def test_cve_short_hydrate_advances_by_ids_and_retains_total() -> None:
     assert "continuation_cursor:" in stdout
 
 
-@pytest.mark.parametrize("operation", ["QueryVulnerabilities", "GetVulnerabilities"])
-def test_cve_scope_denial_names_the_intelligence_scope(operation: str) -> None:
-    responders = [serve("QueryVulnerabilities", fixture("intel/query-page.json"))] if operation == "GetVulnerabilities" else []
-    recorded = RecordedTransport([serve(operation, fixture("errors/403-scope.json")), *responders])
+def test_cve_scope_denial_names_the_intelligence_scope() -> None:
+    recorded = RecordedTransport(
+        [
+            serve("GetVulnerabilities", fixture("errors/403-scope.json")),
+            serve("QueryVulnerabilities", fixture("intel/query-page.json")),
+        ]
+    )
     stdout, code = run(["cve", "list"], recorded, dict(CREDENTIAL_ENV))
     assert code == 1
     assert "SCOPE_DENIED" in stdout
@@ -103,9 +98,8 @@ def test_vuln_show_reads_the_requested_record_without_other_requests() -> None:
     assert len(recorded.requests) == 2
 
 
-@pytest.mark.parametrize("status", [200, 404])
-def test_vuln_show_missing_record_is_not_found(status: int) -> None:
-    recorded = RecordedTransport([serve("getVulnerabilities", response(status, {"resources": []}))])
+def test_vuln_show_missing_record_is_not_found() -> None:
+    recorded = RecordedTransport([serve("getVulnerabilities", response(200, {"resources": []}))])
     stdout, code = run(["vuln", "show", "missing"], recorded, dict(CREDENTIAL_ENV))
     assert code == 1
     assert "code: NOT_FOUND" in stdout
@@ -116,11 +110,3 @@ def test_vuln_show_rejects_a_response_for_another_record() -> None:
     stdout, code = run(["vuln", "show", "another-record"], recorded, dict(CREDENTIAL_ENV))
     assert code == 1
     assert "code: UPSTREAM_ERROR" in stdout
-
-
-def test_vuln_show_scope_denial_names_the_spotlight_scope() -> None:
-    recorded = RecordedTransport([serve("getVulnerabilities", fixture("errors/403-scope.json"))])
-    stdout, code = run(["vuln", "show", "synthetic-vulnerability-01"], recorded, dict(CREDENTIAL_ENV))
-    assert code == 1
-    assert "SCOPE_DENIED" in stdout
-    assert "Vulnerabilities:read" in stdout

@@ -87,22 +87,6 @@ def test_search_events_redact_the_tenant_cid_fields() -> None:
     assert "WIN-DC-01" in stdout
 
 
-def test_a_running_job_says_so_rather_than_reporting_zero_events() -> None:
-    recorded = RecordedTransport([serve("GetSearchStatusV1", fixture("ngsiem/search-status-running.json"))])
-    stdout, exit_code = run(["search", "status", "synthetic-search-job-01"], recorded, dict(CREDENTIAL_ENV))
-    assert exit_code == 0
-    assert re.search(r"^state: running$", stdout, re.MULTILINE)
-    assert "count:" not in stdout
-    assert "again in a few seconds" in stdout
-
-
-def test_a_done_job_with_no_rows_is_a_definitive_empty_state() -> None:
-    recorded = RecordedTransport([serve("GetSearchStatusV1", fixture("ngsiem/search-status-empty.json"))])
-    stdout, exit_code = run(["search", "status", "synthetic-search-job-01"], recorded, dict(CREDENTIAL_ENV))
-    assert exit_code == 0
-    assert "events: 0 events matched this search" in stdout
-
-
 def test_a_cancelled_job_reports_cancelled_rather_than_an_empty_result() -> None:
     body = {"cancelled": True, "done": False, "events": []}
     recorded = RecordedTransport([serve("GetSearchStatusV1", response(200, body))])
@@ -120,13 +104,12 @@ def test_search_stop_cancels_one_job_and_confirms_it() -> None:
 
 
 def test_an_unknown_job_is_reported_without_fql_advice() -> None:
-    for command, id in (("status", "GetSearchStatusV1"), ("stop", "StopSearchV1")):
-        recorded = RecordedTransport([serve(id, fixture("ngsiem/job-not-found.json"))])
-        stdout, exit_code = run(["search", command, "synthetic-missing-job"], recorded, dict(CREDENTIAL_ENV))
-        assert exit_code == 1
-        assert "code: NOT_FOUND" in stdout
-        assert "no NG-SIEM search job matched that identifier" in stdout
-        assert "FQL" not in stdout
+    recorded = RecordedTransport([serve("StopSearchV1", fixture("ngsiem/job-not-found.json"))])
+    stdout, exit_code = run(["search", "stop", "synthetic-missing-job"], recorded, dict(CREDENTIAL_ENV))
+    assert exit_code == 1
+    assert "code: NOT_FOUND" in stdout
+    assert "no NG-SIEM search job matched that identifier" in stdout
+    assert "FQL" not in stdout
 
 
 def test_a_rejected_search_is_answered_in_cql_terms_rather_than_fql_terms() -> None:

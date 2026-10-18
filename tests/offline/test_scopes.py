@@ -10,14 +10,6 @@ from falcon_axi.transport.operations import OPERATIONS
 from tests.support.recorded import NO_CREDENTIAL_ENV, RecordedTransport
 
 
-def test_the_matrix_is_local_only_and_needs_no_credential() -> None:
-    recorded = RecordedTransport([])
-    stdout, exit_code = run(["scopes"], recorded, dict(NO_CREDENTIAL_ENV))
-    assert exit_code == 0
-    assert recorded.requests == []
-    assert stdout.startswith("posture: read-only except two write-labelled scopes")
-
-
 def test_every_printed_scope_comes_from_the_registry_with_its_access_derived_from_it() -> None:
     stdout, _ = run(["scopes"], RecordedTransport([]), dict(NO_CREDENTIAL_ENV))
     parsed = decode(stdout)

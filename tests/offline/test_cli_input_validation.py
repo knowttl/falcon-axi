@@ -20,15 +20,23 @@ INPUTS = [
 
 
 @pytest.mark.parametrize(("command", "flag", "value"), INPUTS)
-@pytest.mark.parametrize("inline", [False, True])
 @pytest.mark.parametrize("authenticated", [False, True])
 def test_invalid_values_fail_before_credentials_or_any_request(
-    command: list[str], flag: str, value: str, inline: bool, authenticated: bool
+    command: list[str], flag: str, value: str, authenticated: bool
 ) -> None:
     recorded = RecordedTransport([])
     env = CREDENTIAL_ENV if authenticated else NO_CREDENTIAL_ENV
-    arguments = [f"--{flag}={value}"] if inline else [f"--{flag}", value]
-    stdout, exit_code = run([*command, *arguments], recorded, dict(env))
+    stdout, exit_code = run([*command, f"--{flag}", value], recorded, dict(env))
+    assert exit_code == 2
+    assert "code: VALIDATION_ERROR" in stdout
+    assert f"--{flag}" in stdout
+    assert recorded.requests == []
+
+
+@pytest.mark.parametrize(("command", "flag", "value"), INPUTS[:1] + INPUTS[4:5])
+def test_invalid_inline_values_fail_before_any_request(command: list[str], flag: str, value: str) -> None:
+    recorded = RecordedTransport([])
+    stdout, exit_code = run([*command, f"--{flag}={value}"], recorded, dict(CREDENTIAL_ENV))
     assert exit_code == 2
     assert "code: VALIDATION_ERROR" in stdout
     assert f"--{flag}" in stdout

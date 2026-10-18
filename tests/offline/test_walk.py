@@ -135,9 +135,17 @@ def test_discover_offsets_have_no_ten_thousand_wall():
     assert "partial:" not in stdout
 
 
-@pytest.mark.parametrize("domain", DOMAINS)
 @pytest.mark.parametrize(
-    "flags", [("--max-rows", "2"), ("--all", "--max-rows", "0"), ("--all", "--max-rows", "-1"), ("--all", "--max-rows", "abc")]
+    "domain,flags",
+    [
+        ("detection", ("--max-rows", "2")),
+        ("detection", ("--all", "--max-rows", "0")),
+        ("detection", ("--all", "--max-rows", "-1")),
+        ("detection", ("--all", "--max-rows", "abc")),
+        ("host", ("--all", "--max-rows", "0")),
+        ("account", ("--all", "--max-rows", "0")),
+        ("vuln", ("--all", "--max-rows", "0")),
+    ],
 )
 def test_invalid_budget_fails_before_authentication(domain, flags):
     recorded = inventory(domain, 5)

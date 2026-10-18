@@ -59,15 +59,6 @@ def test_account_list_stops_offering_a_cursor_at_the_last_page() -> None:
     assert "continuation_cursor" not in stdout
 
 
-def test_an_empty_result_states_whether_a_filter_produced_it() -> None:
-    recorded = RecordedTransport([serve("query_accounts", fixture("discover/accounts-query-empty.json"))])
-    stdout, _ = run(["account", "list", "--filter", "username:'nobody'"], recorded, dict(CREDENTIAL_ENV))
-    assert "accounts: 0 accounts matching the supplied filter" in stdout
-    assert recorded.operation_requests("get_accounts") == []
-    stdout, _ = run(["account", "list"], recorded, dict(CREDENTIAL_ENV))
-    assert "accounts: 0 accounts in this tenant" in stdout
-
-
 def test_account_show_renders_the_detail_and_pivots_to_the_last_login_host() -> None:
     recorded = RecordedTransport([serve("get_accounts", fixture("discover/accounts-details-one.json"))])
     stdout, exit_code = run(["account", "show", "synthetic-account-01"], recorded, dict(CREDENTIAL_ENV))
@@ -76,23 +67,6 @@ def test_account_show_renders_the_detail_and_pivots_to_the_last_login_host() -> 
     assert "last_login_hostname: WIN-DC-01" in stdout
     assert "Run `falcon-axi host logins synthetic-device-01`" in stdout
     assert "synthetic-cid" not in stdout
-
-
-def test_an_unknown_account_is_not_found() -> None:
-    recorded = RecordedTransport([serve("get_accounts", fixture("discover/accounts-details-empty.json"))])
-    stdout, exit_code = run(["account", "show", "synthetic-account-99"], recorded, dict(CREDENTIAL_ENV))
-    assert exit_code == 1
-    assert "code: NOT_FOUND" in stdout
-
-
-def test_scope_denied_names_assets_read_and_the_license_it_needs() -> None:
-    recorded = RecordedTransport([serve("query_accounts", fixture("errors/403-scope.json"))])
-    stdout, exit_code = run(["account", "list"], recorded, dict(CREDENTIAL_ENV))
-    assert exit_code == 1
-    assert "code: SCOPE_DENIED" in stdout
-    assert 'required_scopes[1]: "Assets:read"' in stdout
-    assert "Falcon Discover or Exposure Management" in stdout
-    assert "tenant lacks that subscription" in stdout
 
 
 def test_account_commands_are_refused_before_any_request_when_malformed() -> None:

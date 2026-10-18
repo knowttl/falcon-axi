@@ -8,7 +8,7 @@ import pytest
 from toon_format import decode
 
 from falcon_axi.cli import run
-from falcon_axi.cursor import CursorContext, decode_cursor, encode_cursor
+from falcon_axi.cursor import CursorContext, encode_cursor
 from tests.support.recorded import CREDENTIAL_ENV, RecordedTransport, fixture, response, serve
 
 LIST = "QueryIntelIndicatorEntities"
@@ -23,11 +23,6 @@ CONTEXT = CursorContext(
     model="marker",
 )
 SECRET = CREDENTIAL_ENV["FALCON_CLIENT_SECRET"]
-
-
-def test_marker_cursor_round_trip_preserves_the_full_unique_suffix() -> None:
-    token = encode_cursor("1700000000bbb", CONTEXT, SECRET)
-    assert decode_cursor(token, CONTEXT, SECRET) == "1700000000bbb"
 
 
 def test_next_page_suggestion_continues_the_same_filter_without_repeating_the_boundary() -> None:

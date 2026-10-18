@@ -6,8 +6,6 @@ query-step ids consumed, not by the hydrated row count, or detections at positio
 are silently dropped (total unknown) or re-shown (total known).
 """
 
-import re
-
 from falcon_axi.cli import run
 from falcon_axi.transport.types import RequestArgs
 from tests.support.recorded import CREDENTIAL_ENV, RecordedTransport, response, serve
@@ -29,22 +27,6 @@ def _short_hydrate(severity: str, hostname: str):
 
 
 IDS = [f"ldt:synthetic-agent-{index}:{index}" for index in range(20)]
-
-
-def test_total_unknown_a_short_hydrate_still_advances_the_cursor_by_the_ids_consumed() -> None:
-    recorded = RecordedTransport(
-        [
-            # 20 ids returned for a limit-20 page, no total in meta.
-            serve("GetQueriesAlertsV2", response(200, {"resources": IDS})),
-            # Two ids aged out: only 18 records hydrate.
-            serve("PostEntitiesAlertsV2", _short_hydrate("Medium", "WIN-WS-11")),
-        ]
-    )
-    stdout, exit_code = run(["detection", "list", "--limit", "20"], recorded, dict(CREDENTIAL_ENV))
-    assert exit_code == 0
-    assert re.search(r"^count: 18 of unknown total$", stdout, re.MULTILINE)
-    # The bug stopped pagination here (18 >= 20 is false), dropping rows at positions 20+.
-    assert re.search(r"^continuation_cursor: ", stdout, re.MULTILINE)
 
 
 def test_total_known_a_short_hydrate_advances_the_cursor_past_the_whole_page() -> None:

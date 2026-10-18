@@ -42,8 +42,16 @@ def test_falcon_axi_never_emits_an_empty_array() -> None:
 def test_a_rendered_document_round_trips_through_the_decoder() -> None:
     document = render(
         {"count": raw("2 of 384 total"), "detections": [{"id": "ldt:a:1", "severity": "High"}]},
-        ["Run `falcon-axi detection show <id>` for the full detection"],
+        [
+            "Run `falcon-axi detection show <id>` for the full detection",
+            "first, with a comma",
+            'second with "quotes" and a colon: here',
+        ],
     )
     decoded = decode(document)
     assert decoded["detections"] == [{"id": "ldt:a:1", "severity": "High"}]
-    assert decoded["help"] == ["Run `falcon-axi detection show <id>` for the full detection"]
+    assert decoded["help"] == [
+        "Run `falcon-axi detection show <id>` for the full detection",
+        "first, with a comma",
+        'second with "quotes" and a colon: here',
+    ]
