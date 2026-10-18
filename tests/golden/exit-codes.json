@@ -131,5 +131,8 @@
   "identity-activity-start": 0,
   "identity-activity-scope-denied": 1,
   "identity-activity-without-account": 2,
-  "identity-activity-unsafe-account": 2
+  "identity-activity-unsafe-account": 2,
+  "detection-walk-budget": 0,
+  "detection-walk-wall": 0,
+  "host-walk-budget-at-wall": 0
 }

@@ -13,12 +13,13 @@ from falcon_axi.auth import Session
 from falcon_axi.command import CommandSpec, Invocation, string
 from falcon_axi.core import CliError
 from falcon_axi.credentials import Credential
-from falcon_axi.cursor import CursorContext, decode_offset, encode_cursor
+from falcon_axi.cursor import CursorContext, Position, decode_offset, encode_cursor
 from falcon_axi.domain import DEFAULT_LIMIT, CommandOutput, rate_limit_note, resources, text, total
 from falcon_axi.falcon_error import falcon_messages, translate_falcon_error
 from falcon_axi.fql import HOST_STATUSES, PLATFORMS, HostQuery, describe_host_query, host_filter, window
 from falcon_axi.render import raw
 from falcon_axi.transport.types import RequestArgs, Transport
+from falcon_axi.walk import Page, max_rows_of, offset_page, walk
 
 #: Documented Hosts limits (docs/design/v1.md §7.3): query [1-5000], hydrate maximum 5000 ids.
 QUERY_CEILING = 5_000
@@ -111,6 +112,7 @@ def list_hosts(
     credential: Credential,
     suggestion: str,
     cursor: str | None = None,
+    max_rows: int | None = None,
 ) -> CommandOutput:
     """`host list`: query ids, hydrate them, and render the four-field schema (§10.2)."""
     filter = host_filter(query)
@@ -123,11 +125,17 @@ def list_hosts(
             f"this read reached the {HOSTS_WALL + 1} limit plus offset boundary Falcon enforces for hosts",
             _wall_help(),
         )
-    page = min(limit, headroom)
-    ids, count = _query_device_ids(transport, session, filter, page, offset)
+
+    def fetch(size: int, position: Position | None) -> Page[Device]:
+        assert isinstance(position, int)
+        ids, count = _query_device_ids(transport, session, filter, size, position)
+        return offset_page(_hydrate_devices(transport, session, ids), count, position, len(ids), size)
+
+    result = walk(fetch, offset, limit, QUERY_CEILING, max_rows, HOSTS_WALL, tuple(_wall_help()))
+    devices, count = result.items, result.total
     describe = describe_host_query(query)
 
-    if not ids:
+    if not result.consumed:
         if offset > 0:
             return CommandOutput(value={"hosts": raw("no more hosts")}, help=())
         empty_help = (
@@ -138,7 +146,6 @@ def list_hosts(
         hosts = f"0 hosts matching {describe}" if describe else "0 hosts in this tenant"
         return CommandOutput(value={"hosts": raw(hosts)}, help=empty_help)
 
-    devices = _hydrate_devices(transport, session, ids)
     rows = [
         {
             "device_id": _device_id_of(device),
@@ -148,20 +155,20 @@ def list_hosts(
         }
         for device in devices
     ]
-    next_position = offset + len(ids)
-    more_remain = len(ids) >= page if count is None else next_position < count
-    reachable = more_remain and next_position < HOSTS_WALL
+    reachable = result.next_position is not None
 
     help = [
         "Run `falcon-axi host show <device_id>` for full host details",
         "Run `falcon-axi vuln list --host <device_id>` for its open vulnerabilities",
     ]
     value: dict[str, Any] = {"count": raw(f"{len(rows)} of {count if count is not None else 'unknown'} total")}
+    result.partial(value, help, reachable)
     if reachable:
-        continuation = encode_cursor(next_position, context, credential.client_secret)
+        assert result.next_position is not None
+        continuation = encode_cursor(result.next_position, context, credential.client_secret)
         value["continuation_cursor"] = continuation
         help.append(f"Run `{suggestion} --cursor {continuation}` for the next page")
-    elif more_remain:
+    elif result.more_remain:
         help.extend(_wall_help())
     value["hosts"] = rows
     note = rate_limit_note(session)
@@ -281,6 +288,7 @@ def _host_list(ctx: Invocation) -> CommandOutput:
         cursor=ctx.text("cursor"),
         credential=ctx.credential,
         suggestion=ctx.suggestion,
+        max_rows=max_rows_of(ctx.flags),
     )
 
 
@@ -314,7 +322,7 @@ COMMAND_SPECS = (
         help="\n".join(
             [
                 "falcon-axi host list [--hostname <name>] [--platform <name>] [--status <name>] "
-                "[--since <window>] [--filter <FQL>] [--limit N] [--cursor <token>]",
+                "[--since <window>] [--filter <FQL>] [--limit N] [--cursor <token>] [--all] [--max-rows N]",
                 "",
                 "--hostname   hostname to match; Hosts filters accept wildcards, so WIN-* works",
                 f"--platform   one of {', '.join(PLATFORMS)}",
@@ -323,6 +331,8 @@ COMMAND_SPECS = (
                 "--filter     raw FQL; + is AND, `,` is OR, values are single-quoted, relative dates are lowercase",
                 f"--limit      rows in this call (default {DEFAULT_LIMIT}, ceiling {QUERY_CEILING})",
                 "--cursor     opaque continuation token from a previous call",
+                "--all        walk pages; page size is independent of --limit",
+                "--max-rows   row budget (default 1000; requires --all)",
                 "",
                 "Filterable fields include hostname, platform_name, os_version, agent_version, status,",
                 "last_seen, first_seen, machine_domain, and local_ip.",
@@ -337,8 +347,8 @@ COMMAND_SPECS = (
         summary="  host list                 list hosts from the Falcon Hosts collection",
         handler=_host_list,
         operations=("QueryDevicesByFilter", "PostDeviceDetailsV2"),
-        flags=("filter", "hostname", "platform", "status", "since", "limit", "cursor"),
-        value_flags=("filter", "hostname", "platform", "status", "since", "limit", "cursor"),
+        flags=("filter", "hostname", "platform", "status", "since", "limit", "cursor", "all", "max-rows"),
+        value_flags=("filter", "hostname", "platform", "status", "since", "limit", "cursor", "max-rows"),
         limit_ceiling=(QUERY_CEILING, "Hosts query"),
     ),
     CommandSpec(

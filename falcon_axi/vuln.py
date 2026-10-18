@@ -1,4 +1,4 @@
-"""The Spotlight vulnerabilities domain: one combined request, paginated by `after` token.
+"""The Spotlight vulnerabilities domain: one combined request per page, paginated by `after` token.
 
 `combinedQueryVulnerabilities` returns entities directly, so there is no hydrate step (§2.3), and
 its cursor lives in `meta.pagination.after` rather than an offset (§7.1).
@@ -11,12 +11,13 @@ from falcon_axi.auth import Session
 from falcon_axi.command import CommandSpec, Invocation, string
 from falcon_axi.core import CliError
 from falcon_axi.credentials import Credential
-from falcon_axi.cursor import CursorContext, decode_after, encode_cursor
+from falcon_axi.cursor import CursorContext, Position, decode_after, encode_cursor
 from falcon_axi.domain import DEFAULT_LIMIT, CommandOutput, after_token, rate_limit_note, resources, text, total
 from falcon_axi.falcon_error import translate_falcon_error
 from falcon_axi.fql import VULN_SEVERITIES, VULN_STATUSES, VulnQuery, describe_vuln_query, vuln_filter
 from falcon_axi.render import raw
 from falcon_axi.transport.types import FalconResponse, QueryValue, RequestArgs, Transport
+from falcon_axi.walk import Page, max_rows_of, walk
 
 #: Documented Spotlight limits (docs/design/v1.md §7.3): "Max: 5000, Default: 100".
 QUERY_CEILING = 5_000
@@ -210,14 +211,23 @@ def list_vulnerabilities(
     suggestion: str,
     cursor: str | None = None,
     fields: Sequence[str] = (),
+    max_rows: int | None = None,
 ) -> CommandOutput:
-    """`vuln list`: one combined read, rendered as the default row plus any `--fields` (§10.2)."""
+    """`vuln list`: combined reads, rendered as the default row plus any `--fields` (§10.2)."""
     selected = parse_fields(",".join(fields)) if fields else ()
     filter = vuln_filter(query)
     context = _cursor_context(session, credential, filter)
     after = None if cursor is None else decode_after(cursor, context, credential.client_secret)
-    response = _query_vulnerabilities(transport, session, filter, limit, after, selected)
-    records = [entry for entry in resources(response) if isinstance(entry, Mapping)]
+
+    def fetch(size: int, position: Position | None) -> Page[Vulnerability]:
+        assert position is None or isinstance(position, str)
+        response = _query_vulnerabilities(transport, session, filter, size, position, selected)
+        records = [entry for entry in resources(response) if isinstance(entry, Mapping)]
+        next_after = after_token(response)
+        return Page(records, total(response), next_after if len(records) >= size else None, len(records))
+
+    result = walk(fetch, after, limit, QUERY_CEILING, max_rows)
+    records = result.items
     describe = describe_vuln_query(query)
 
     if not records:
@@ -241,12 +251,12 @@ def list_vulnerabilities(
         }
         for record in records
     ]
-    count = total(response)
+    count = result.total
     help = ["Run `falcon-axi host list --filter \"hostname:'<name>'\"` to read an affected host"]
     value: dict[str, Any] = {"count": raw(f"{len(rows)} of {count if count is not None else 'unknown'} total")}
-    next_after = after_token(response)
-    if next_after and len(rows) >= limit:
-        continuation = encode_cursor(next_after, context, credential.client_secret)
+    result.partial(value, help, result.next_position is not None)
+    if result.next_position is not None:
+        continuation = encode_cursor(result.next_position, context, credential.client_secret)
         value["continuation_cursor"] = continuation
         help.append(f"Run `{suggestion} --cursor {continuation}` for the next page")
     value["vulnerabilities"] = rows
@@ -265,6 +275,7 @@ def _vuln_list(ctx: Invocation) -> CommandOutput:
         cursor=ctx.text("cursor"),
         credential=ctx.credential,
         suggestion=ctx.suggestion,
+        max_rows=max_rows_of(ctx.flags),
         fields=parse_fields(ctx.text("fields") or "") if ctx.flags.get("fields") else (),
     )
 
@@ -285,7 +296,8 @@ COMMAND_SPECS = (
         help="\n".join(
             [
                 "falcon-axi vuln list [--host <device id>] [--severity <name>] [--status <name>] "
-                "[--since <window>] [--filter <FQL>] [--limit N] [--cursor <token>] [--fields <names>]",
+                "[--since <window>] [--filter <FQL>] [--limit N] [--cursor <token>] [--fields <names>] "
+                "[--all] [--max-rows N]",
                 "",
                 "--host       device id (AID) whose vulnerabilities to read",
                 f"--severity   one of {', '.join(VULN_SEVERITIES)}",
@@ -294,6 +306,8 @@ COMMAND_SPECS = (
                 "--filter     raw FQL; + is AND, `,` is OR, values are single-quoted",
                 f"--limit      rows in this call (default {DEFAULT_LIMIT}, ceiling {QUERY_CEILING})",
                 "--cursor     opaque continuation token from a previous call",
+                "--all        walk pages; page size is independent of --limit",
+                "--max-rows   row budget (default 1000; requires --all)",
                 f"--fields     extra columns, comma-separated: {', '.join(EXTRA_FIELDS)}",
                 "",
                 "Default columns are id, cve, severity, and hostname. --fields adds columns from that",
@@ -312,8 +326,8 @@ COMMAND_SPECS = (
         summary="  vuln list                 list Spotlight vulnerabilities; a filter is required",
         handler=_vuln_list,
         operations=("combinedQueryVulnerabilities",),
-        flags=("filter", "host", "severity", "status", "since", "limit", "cursor", "fields"),
-        value_flags=("filter", "host", "severity", "status", "since", "limit", "cursor", "fields"),
+        flags=("filter", "host", "severity", "status", "since", "limit", "cursor", "fields", "all", "max-rows"),
+        value_flags=("filter", "host", "severity", "status", "since", "limit", "cursor", "fields", "max-rows"),
         limit_ceiling=(QUERY_CEILING, "Spotlight query"),
     ),
 )

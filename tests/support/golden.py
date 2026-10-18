@@ -33,6 +33,28 @@ def expected_stdout(name: str) -> str:
 
 
 def _generated(spec: Mapping[str, Any], args: RequestArgs) -> FalconResponse:
+    if spec["kind"] == "host-ids":
+        offset = int(args.query["offset"])
+        end = min(spec["total"], offset + int(args.query["limit"]))
+        return FalconResponse(
+            status=200,
+            headers={},
+            body={
+                "resources": [f"synthetic-device-{index}" for index in range(offset, end)],
+                "meta": {"pagination": {"total": spec["total"]}},
+            },
+        )
+    if spec["kind"] == "host-hydrate":
+        return FalconResponse(
+            status=200,
+            headers={},
+            body={
+                "resources": [
+                    {"device_id": id, "hostname": "synthetic-host", "platform_name": "Windows", "last_seen": "unknown"}
+                    for id in reversed(args.body["ids"])
+                ],
+            },
+        )
     if spec["kind"] == "ids":
         resources = [f"ldt:synthetic-agent-{index}:{index}" for index in range(spec["count"])]
         total = spec.get("total")
