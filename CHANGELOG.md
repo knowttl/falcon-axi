@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.4.1](https://github.com/knowttl/falcon-axi/compare/v0.4.0...v0.4.1) (2026-10-18)
+
+
+### Bug Fixes
+
+* **ci:** pin setup-uv to a released version in the publish job ([#10](https://github.com/knowttl/falcon-axi/issues/10)) ([7055755](https://github.com/knowttl/falcon-axi/commit/70557559c1e24a01cc1599ccf90fd37e6e8ac25e))
+
 ## [0.4.0](https://github.com/knowttl/falcon-axi/compare/v0.3.0...v0.4.0) (2026-10-18)
 
 
