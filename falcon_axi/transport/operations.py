@@ -24,6 +24,8 @@ OperationId = Literal[
     "PostDeviceDetailsV2",
     "combinedQueryVulnerabilities",
     "GetVulnerabilities",
+    "QueryIntelIndicatorEntities",
+    "GetIntelIndicatorEntities",
     "QueryDeviceLoginHistoryV2",
     "query_accounts",
     "get_accounts",
@@ -86,6 +88,41 @@ NGSIEM_DOC = "https://developer.crowdstrike.com/api-reference/collections/ngsiem
 IDENTITY_PROTECTION_DOC = "https://developer.crowdstrike.com/api-reference/collections/identity-protection/"
 
 CANONICAL: tuple[FalconOperation, ...] = (
+    FalconOperation(
+        id="QueryIntelIndicatorEntities",
+        method="GET",
+        path="/intel/combined/indicators/v1",
+        scopes=("Indicators (Falcon Intelligence):read",),
+        effect="read",
+        evidence=Evidence(
+            doc_url=INTEL_DOC,
+            doc_scope="Indicators (Falcon Intelligence): READ",
+            falcon_mcp=(
+                "falcon_mcp/common/api_scopes.py maps QueryIntelIndicatorEntities to "
+                "Indicators (Falcon Intelligence):read; falcon_mcp/modules/intel.py search_indicators "
+                "uses filter, limit, sort and the combined response fields. "
+                "falconpy/_endpoint/_intel.py corroborates these parameters; "
+                "https://developer.crowdstrike.com/sdks/python/responses/ documents _marker pagination."
+            ),
+        ),
+    ),
+    FalconOperation(
+        id="GetIntelIndicatorEntities",
+        method="POST",
+        path="/intel/entities/indicators/GET/v1",
+        scopes=("Indicators (Falcon Intelligence):read",),
+        effect="read",
+        evidence=Evidence(
+            doc_url=INTEL_DOC,
+            doc_scope="Indicators (Falcon Intelligence): READ",
+            falcon_mcp=(
+                "falcon-mcp has no tool for GetIntelIndicatorEntities. "
+                "falconpy/_endpoint/_intel.py maps GetIntelIndicatorEntities to POST "
+                "/intel/entities/indicators/GET/v1. PSFalcon Get-FalconIndicator in public/intel.ps1 "
+                "wraps the same operation with an ids body."
+            ),
+        ),
+    ),
     FalconOperation(
         id="GetQueriesAlertsV2",
         method="GET",

@@ -1,4 +1,4 @@
-falcon-axi 0.4.0 - Read CrowdStrike Falcon detections, hosts, vulnerabilities, and NG-SIEM searches from the shell
+falcon-axi 0.4.1 - Read CrowdStrike Falcon detections, hosts, vulnerabilities, and NG-SIEM searches from the shell
 
 Commands:
   detection list            list detections from the Falcon Alerts collection
@@ -10,6 +10,8 @@ Commands:
   account show <id>         the full detail for one account
   vuln list                 list Spotlight vulnerabilities; a filter is required
   cve show <CVE-ID>         Falcon Intelligence detail for one CVE
+  indicator list            list Falcon Intelligence indicators
+  indicator show <id>       detail for one intelligence indicator
   identity activity <acct>  start a search for one account's identity events
   search start              start an NG-SIEM CQL search job
   search status <id>        poll one search job and read its events
@@ -35,3 +37,4 @@ write-labelled scopes: NGSIEM:write for `search start`, `search stop`, and `iden
 Identity Protection GraphQL:write for `identity list`, `identity show`, and `identity timeline`,
 which Falcon requires even for read-only queries.
 The `account` commands also need Assets:read, a license-gated scope that only some tenants can grant.
+The `indicator` commands require the license-gated Indicators (Falcon Intelligence):read scope.

@@ -1,4 +1,8 @@
 {
+  "help-indicator-list": 0,
+  "help-indicator-show": 0,
+  "indicator-list-page": 0,
+  "indicator-show": 0,
   "auth-status": 0,
   "auth-status-forbidden": 1,
   "auth-status-member-cid": 0,
