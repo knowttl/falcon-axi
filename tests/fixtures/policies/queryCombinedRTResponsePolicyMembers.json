@@ -1,0 +1,38 @@
+{
+  "provenance": {
+    "operation": "queryCombinedRTResponsePolicyMembers",
+    "reference": "https://developer.crowdstrike.com/api-reference/collections/response-policies/",
+    "schema_read": "2026-10-18",
+    "provenance": "synthetic"
+  },
+  "response": {
+    "status": 200,
+    "headers": {},
+    "body": {
+      "meta": {
+        "pagination": {
+          "total": 3,
+          "offset": 0,
+          "limit": 2
+        }
+      },
+      "errors": [],
+      "resources": [
+        {
+          "device_id": "synthetic-device-01",
+          "hostname": "SYNTHETIC-HOST-01",
+          "platform_name": "Windows",
+          "status": "normal",
+          "cid": "synthetic-cid"
+        },
+        {
+          "device_id": "synthetic-device-02",
+          "hostname": "SYNTHETIC-HOST-02",
+          "platform_name": "Linux",
+          "status": "normal",
+          "cid": "synthetic-cid"
+        }
+      ]
+    }
+  }
+}

@@ -18,6 +18,18 @@ from typing import Literal, get_args
 from falcon_axi.core import CliError
 
 OperationId = Literal[
+    "queryCombinedPreventionPolicies",
+    "queryCombinedPreventionPolicyMembers",
+    "queryCombinedSensorUpdatePoliciesV2",
+    "queryCombinedSensorUpdatePolicyMembers",
+    "queryCombinedFirewallPolicies",
+    "queryCombinedFirewallPolicyMembers",
+    "queryCombinedDeviceControlPolicies",
+    "queryCombinedDeviceControlPolicyMembers",
+    "queryCombinedRTResponsePolicies",
+    "queryCombinedRTResponsePolicyMembers",
+    "queryCombinedContentUpdatePolicies",
+    "queryCombinedContentUpdatePolicyMembers",
     "GetQueriesAlertsV2",
     "PostEntitiesAlertsV2",
     "QueryDevicesByFilter",
@@ -86,6 +98,198 @@ NGSIEM_DOC = "https://developer.crowdstrike.com/api-reference/collections/ngsiem
 IDENTITY_PROTECTION_DOC = "https://developer.crowdstrike.com/api-reference/collections/identity-protection/"
 
 CANONICAL: tuple[FalconOperation, ...] = (
+    FalconOperation(
+        id="queryCombinedPreventionPolicies",
+        method="GET",
+        path="/policy/combined/prevention/v1",
+        scopes=("Prevention Policies:read",),
+        effect="read",
+        evidence=Evidence(
+            doc_url="https://developer.crowdstrike.com/api-reference/collections/prevention-policy/",
+            doc_scope="Prevention Policies: READ",
+            falcon_mcp=(
+                "falcon_mcp/common/api_scopes.py maps queryCombinedPreventionPolicies "
+                "to Prevention Policies:read; falcon_mcp/modules/policies.py _OPERATIONS "
+                "and falconpy/_endpoint/_prevention_policies.py corroborate the combined read."
+            ),
+        ),
+    ),
+    FalconOperation(
+        id="queryCombinedPreventionPolicyMembers",
+        method="GET",
+        path="/policy/combined/prevention-members/v1",
+        scopes=("Prevention Policies:read",),
+        effect="read",
+        evidence=Evidence(
+            doc_url="https://developer.crowdstrike.com/api-reference/collections/prevention-policy/",
+            doc_scope="Prevention Policies: READ",
+            falcon_mcp=(
+                "falcon_mcp/common/api_scopes.py maps queryCombinedPreventionPolicyMembers "
+                "to Prevention Policies:read; falcon_mcp/modules/policies.py _OPERATIONS "
+                "and falconpy/_endpoint/_prevention_policies.py corroborate the combined read."
+            ),
+        ),
+    ),
+    FalconOperation(
+        id="queryCombinedSensorUpdatePoliciesV2",
+        method="GET",
+        path="/policy/combined/sensor-update/v2",
+        scopes=("Sensor Update Policies:read",),
+        effect="read",
+        evidence=Evidence(
+            doc_url="https://developer.crowdstrike.com/api-reference/collections/sensor-update-policy/",
+            doc_scope="Sensor Update Policies: READ",
+            falcon_mcp=(
+                "falcon_mcp/common/api_scopes.py maps queryCombinedSensorUpdatePoliciesV2 "
+                "to Sensor Update Policies:read; falcon_mcp/modules/policies.py _OPERATIONS "
+                "and falconpy/_endpoint/_sensor_update_policies.py corroborate the combined read."
+            ),
+        ),
+    ),
+    FalconOperation(
+        id="queryCombinedSensorUpdatePolicyMembers",
+        method="GET",
+        path="/policy/combined/sensor-update-members/v1",
+        scopes=("Sensor Update Policies:read",),
+        effect="read",
+        evidence=Evidence(
+            doc_url="https://developer.crowdstrike.com/api-reference/collections/sensor-update-policy/",
+            doc_scope="Sensor Update Policies: READ",
+            falcon_mcp=(
+                "falcon_mcp/common/api_scopes.py maps queryCombinedSensorUpdatePolicyMembers "
+                "to Sensor Update Policies:read; falcon_mcp/modules/policies.py _OPERATIONS "
+                "and falconpy/_endpoint/_sensor_update_policies.py corroborate the combined read."
+            ),
+        ),
+    ),
+    FalconOperation(
+        id="queryCombinedFirewallPolicies",
+        method="GET",
+        path="/policy/combined/firewall/v1",
+        scopes=("Firewall Management:read",),
+        effect="read",
+        evidence=Evidence(
+            doc_url="https://developer.crowdstrike.com/api-reference/collections/firewall-policies/",
+            doc_scope="Firewall Management: READ",
+            falcon_mcp=(
+                "falcon_mcp/common/api_scopes.py maps queryCombinedFirewallPolicies "
+                "to Firewall Management:read; falcon_mcp/modules/policies.py _OPERATIONS "
+                "and falconpy/_endpoint/_firewall_policies.py corroborate the combined read."
+            ),
+        ),
+    ),
+    FalconOperation(
+        id="queryCombinedFirewallPolicyMembers",
+        method="GET",
+        path="/policy/combined/firewall-members/v1",
+        scopes=("Firewall Management:read",),
+        effect="read",
+        evidence=Evidence(
+            doc_url="https://developer.crowdstrike.com/api-reference/collections/firewall-policies/",
+            doc_scope="Firewall Management: READ",
+            falcon_mcp=(
+                "falcon_mcp/common/api_scopes.py maps queryCombinedFirewallPolicyMembers "
+                "to Firewall Management:read; falcon_mcp/modules/policies.py _OPERATIONS "
+                "and falconpy/_endpoint/_firewall_policies.py corroborate the combined read."
+            ),
+        ),
+    ),
+    FalconOperation(
+        id="queryCombinedDeviceControlPolicies",
+        method="GET",
+        path="/policy/combined/device-control/v1",
+        scopes=("Device Control Policies:read",),
+        effect="read",
+        evidence=Evidence(
+            doc_url="https://developer.crowdstrike.com/api-reference/collections/device-control-policies/",
+            doc_scope="Device Control Policies: READ",
+            falcon_mcp=(
+                "falcon_mcp/common/api_scopes.py maps queryCombinedDeviceControlPolicies "
+                "to Device Control Policies:read; falcon_mcp/modules/policies.py _OPERATIONS "
+                "and falconpy/_endpoint/_device_control_policies.py corroborate the combined read."
+            ),
+        ),
+    ),
+    FalconOperation(
+        id="queryCombinedDeviceControlPolicyMembers",
+        method="GET",
+        path="/policy/combined/device-control-members/v1",
+        scopes=("Device Control Policies:read",),
+        effect="read",
+        evidence=Evidence(
+            doc_url="https://developer.crowdstrike.com/api-reference/collections/device-control-policies/",
+            doc_scope="Device Control Policies: READ",
+            falcon_mcp=(
+                "falcon_mcp/common/api_scopes.py maps queryCombinedDeviceControlPolicyMembers "
+                "to Device Control Policies:read; falcon_mcp/modules/policies.py _OPERATIONS "
+                "and falconpy/_endpoint/_device_control_policies.py corroborate the combined read."
+            ),
+        ),
+    ),
+    FalconOperation(
+        id="queryCombinedRTResponsePolicies",
+        method="GET",
+        path="/policy/combined/response/v1",
+        scopes=("Response Policies:read",),
+        effect="read",
+        evidence=Evidence(
+            doc_url="https://developer.crowdstrike.com/api-reference/collections/response-policies/",
+            doc_scope="Response Policies: READ",
+            falcon_mcp=(
+                "falcon_mcp/common/api_scopes.py maps queryCombinedRTResponsePolicies "
+                "to Response Policies:read; falcon_mcp/modules/policies.py _OPERATIONS "
+                "and falconpy/_endpoint/_response_policies.py corroborate the combined read."
+            ),
+        ),
+    ),
+    FalconOperation(
+        id="queryCombinedRTResponsePolicyMembers",
+        method="GET",
+        path="/policy/combined/response-members/v1",
+        scopes=("Response Policies:read",),
+        effect="read",
+        evidence=Evidence(
+            doc_url="https://developer.crowdstrike.com/api-reference/collections/response-policies/",
+            doc_scope="Response Policies: READ",
+            falcon_mcp=(
+                "falcon_mcp/common/api_scopes.py maps queryCombinedRTResponsePolicyMembers "
+                "to Response Policies:read; falcon_mcp/modules/policies.py _OPERATIONS "
+                "and falconpy/_endpoint/_response_policies.py corroborate the combined read."
+            ),
+        ),
+    ),
+    FalconOperation(
+        id="queryCombinedContentUpdatePolicies",
+        method="GET",
+        path="/policy/combined/content-update/v1",
+        scopes=("Content Update Policies:read",),
+        effect="read",
+        evidence=Evidence(
+            doc_url="https://developer.crowdstrike.com/api-reference/collections/content-update-policies/",
+            doc_scope="Content Update Policy: READ",
+            falcon_mcp=(
+                "falcon_mcp/common/api_scopes.py maps queryCombinedContentUpdatePolicies "
+                "to Content Update Policies:read; falcon_mcp/modules/policies.py _OPERATIONS "
+                "and falconpy/_endpoint/_content_update_policies.py corroborate the combined read."
+            ),
+        ),
+    ),
+    FalconOperation(
+        id="queryCombinedContentUpdatePolicyMembers",
+        method="GET",
+        path="/policy/combined/content-update-members/v1",
+        scopes=("Content Update Policies:read",),
+        effect="read",
+        evidence=Evidence(
+            doc_url="https://developer.crowdstrike.com/api-reference/collections/content-update-policies/",
+            doc_scope="Content Update Policy: READ",
+            falcon_mcp=(
+                "falcon_mcp/common/api_scopes.py maps queryCombinedContentUpdatePolicyMembers "
+                "to Content Update Policies:read; falcon_mcp/modules/policies.py _OPERATIONS "
+                "and falconpy/_endpoint/_content_update_policies.py corroborate the combined read."
+            ),
+        ),
+    ),
     FalconOperation(
         id="GetQueriesAlertsV2",
         method="GET",

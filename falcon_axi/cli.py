@@ -35,6 +35,7 @@ from falcon_axi.identity import (
     validate_identity_query,
 )
 from falcon_axi.origin import REGIONS, assert_trusted_origin, resolve_base_url
+from falcon_axi.policy import validate_policy_type
 from falcon_axi.redaction import redact_text, redaction_scope
 from falcon_axi.render import raw, render
 from falcon_axi.version import VERSION
@@ -187,6 +188,8 @@ def parse(argv: Sequence[str]) -> Parsed:
         since_seconds(_str(flags.get("since")) or IDENTITY_DEFAULT_SINCE)
     if command == "identity activity":
         activity_query(positionals[0])
+    if command in ("policy list", "policy members"):
+        validate_policy_type(_str(flags.get("type")))
     return Parsed(command, flags, tuple(positionals))
 
 

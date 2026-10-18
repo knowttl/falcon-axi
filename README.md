@@ -8,7 +8,7 @@ ends with the commands that are worth running next.
 
 ## Status: partial implementation of the v1 design
 
-The package is real and installable, and it ships five read domains plus NG-SIEM search.
+The package is real and installable, and it ships read domains plus NG-SIEM search.
 The shipped and deferred commands are listed below; [`docs/design/v1.md`](docs/design/v1.md) owns the full v1 design.
 
 What is shipped:
@@ -31,6 +31,10 @@ What is shipped:
   fields when present) and `identity activity <account>`, a fixed NG-SIEM search over one account's
   Identity Protection events that adds no operation and no scope beyond N1's;
 - `falcon-axi scopes`, the command-to-scope matrix, available without making a request.
+- policy inventory and host membership: `policy list --type <type>` and `policy members <id> --type <type>`
+  for `prevention`, `sensor-update`, `firewall`, `device-control`, `response`, and `content-update`.
+  Both accept `--filter`, `--limit`, and `--cursor` and require only the selected type's read scope.
+  Policy precedence, enable/disable, and writes are not exposed.
 
 What is **not** shipped yet, so no output advertises it:
 
