@@ -73,6 +73,9 @@ What is shipped:
   Detail views preview long strings; pass `--full` for untruncated content.
   See [the sensor usage and Recon contract](docs/design/v1.md#24-sensor-usage-and-falcon-recon-reads)
   for API evidence and validation limits, and run `falcon-axi scopes` for permissions.
+- Exclusion inventories: `exclusion list --type ml|ioa|sensor-visibility|certificate` and
+  `exclusion show <id> --type ...`; quarantined file metadata: `quarantine list` and `quarantine show <id>`.
+  These commands read configuration and file metadata only, with no release, delete, or exclusion changes.
 
 What is **not** shipped yet, so no output advertises it:
 

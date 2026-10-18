@@ -99,6 +99,10 @@ def translate_falcon_error(
                     command, example = "image list", "repository:'example/service'"
                 else:
                     command, example = "image vulnerabilities", "cvss_score:>7"
+            elif "Quarantined Files:read" in scopes:
+                command, example = "quarantine list", "state:'quarantined'"
+            elif any("Exclusions:read" in scope for scope in scopes):
+                command, example = "exclusion list", "applied_globally:true"
             elif "Assets:read" in scopes:
                 command, example = "account list", "username:'synthetic-user'"
             elif "Hosts:read" in scopes:

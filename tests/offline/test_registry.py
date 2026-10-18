@@ -39,6 +39,76 @@ NO_FALCON_MCP_TOOL = {
 }
 
 EXPECTED = {
+    "exclusions_search_v2": {
+        "method": "GET",
+        "path": "/exclusions/queries/exclusions/v2",
+        "scopes": ("Machine Learning Exclusions:read",),
+        "effect": "read",
+        "doc_scope": "Machine Learning Exclusions: READ",
+    },
+    "exclusions_get_v2": {
+        "method": "GET",
+        "path": "/exclusions/entities/exclusions/v2",
+        "scopes": ("Machine Learning Exclusions:read",),
+        "effect": "read",
+        "doc_scope": "Machine Learning Exclusions: READ",
+    },
+    "ss_ioa_exclusions_search_v2": {
+        "method": "GET",
+        "path": "/exclusions/queries/ss-ioa-exclusions/v2",
+        "scopes": ("IOA Exclusions:read",),
+        "effect": "read",
+        "doc_scope": "IOA Exclusions: READ",
+    },
+    "ss_ioa_exclusions_get_v2": {
+        "method": "GET",
+        "path": "/exclusions/entities/ss-ioa-exclusions/v2",
+        "scopes": ("IOA Exclusions:read",),
+        "effect": "read",
+        "doc_scope": "IOA Exclusions: READ",
+    },
+    "querySensorVisibilityExclusionsV1": {
+        "method": "GET",
+        "path": "/policy/queries/sv-exclusions/v1",
+        "scopes": ("Sensor Visibility Exclusions:read",),
+        "effect": "read",
+        "doc_scope": "Sensor Visibility Exclusions: READ",
+    },
+    "getSensorVisibilityExclusionsV1": {
+        "method": "GET",
+        "path": "/policy/entities/sv-exclusions/v1",
+        "scopes": ("Sensor Visibility Exclusions:read",),
+        "effect": "read",
+        "doc_scope": "Sensor Visibility Exclusions: READ",
+    },
+    "cb_exclusions_query_v1": {
+        "method": "GET",
+        "path": "/exclusions/queries/cert-based-exclusions/v1",
+        "scopes": ("Machine Learning Exclusions:read",),
+        "effect": "read",
+        "doc_scope": "Machine Learning Exclusions: READ",
+    },
+    "cb_exclusions_get_v1": {
+        "method": "GET",
+        "path": "/exclusions/entities/cert-based-exclusions/v1",
+        "scopes": ("Machine Learning Exclusions:read",),
+        "effect": "read",
+        "doc_scope": "Machine Learning Exclusions: READ",
+    },
+    "QueryQuarantineFiles": {
+        "method": "GET",
+        "path": "/quarantine/queries/quarantined-files/v1",
+        "scopes": ("Quarantined Files:read",),
+        "effect": "read",
+        "doc_scope": "Quarantined Files: READ",
+    },
+    "GetQuarantineFiles": {
+        "method": "POST",
+        "path": "/quarantine/entities/quarantined-files/GET/v1",
+        "scopes": ("Quarantined Files:read",),
+        "effect": "read",
+        "doc_scope": "Quarantined Files: READ",
+    },
     "GetSensorUsageWeekly": {
         "method": "GET",
         "path": "/billing-dashboards-usage/aggregates/weekly-average/v1",

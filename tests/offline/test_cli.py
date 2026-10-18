@@ -60,6 +60,8 @@ def test_an_unknown_command_or_subcommand_fails_before_any_request() -> None:
         "shield list, shield show, "
         "auth status, profile list, config path, scopes, sensor-usage list, recon-rule list, recon-rule show, "
         "recon-notification list, recon-notification show, recon-record list, recon-record show" in stdout
+        "exclusion list, exclusion show, quarantine list, quarantine show, "
+        "auth status, profile list, config path, scopes" in stdout
     )
     subcommand, _ = run(["detection", "contain"], recorded, dict(CREDENTIAL_ENV))
     assert "valid detection subcommands: summary, list, show" in subcommand

@@ -1,0 +1,9 @@
+exclusion:
+  id: synthetic-certificate-01
+  name: Synthetic signer 1
+  status: active
+  certificate:
+    subject: CN=Synthetic signer
+  applied_globally: true
+  children_cids: "[redacted]"
+  cid: "[redacted]"

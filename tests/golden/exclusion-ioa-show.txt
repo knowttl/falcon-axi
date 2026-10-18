@@ -1,0 +1,8 @@
+exclusion:
+  id: synthetic-ioa-01
+  name: Synthetic rule 1
+  pattern_id: "569"
+  ifn_regex: .*synthetic.exe
+  cl_regex: .*--synthetic.*
+  applied_globally: false
+  description: Synthetic IOA exclusion

@@ -1,0 +1,35 @@
+{
+  "provenance": {
+    "operation": "ss_ioa_exclusions_get_v2",
+    "reference": "https://developer.crowdstrike.com/api-reference/collections/ioa-exclusions/",
+    "schema_read": "2026-10-18",
+    "provenance": "synthetic"
+  },
+  "response": {
+    "status": 200,
+    "headers": {},
+    "body": {
+      "errors": [],
+      "resources": [
+        {
+          "id": "synthetic-ioa-02",
+          "name": "Synthetic rule 2",
+          "pattern_id": "569",
+          "ifn_regex": ".*synthetic.exe",
+          "cl_regex": ".*--synthetic.*",
+          "applied_globally": false,
+          "description": "Synthetic IOA exclusion"
+        },
+        {
+          "id": "synthetic-ioa-01",
+          "name": "Synthetic rule 1",
+          "pattern_id": "569",
+          "ifn_regex": ".*synthetic.exe",
+          "cl_regex": ".*--synthetic.*",
+          "applied_globally": false,
+          "description": "Synthetic IOA exclusion"
+        }
+      ]
+    }
+  }
+}

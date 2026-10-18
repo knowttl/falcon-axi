@@ -18,6 +18,16 @@ from typing import Literal, get_args
 from falcon_axi.core import CliError
 
 OperationId = Literal[
+    "exclusions_search_v2",
+    "exclusions_get_v2",
+    "ss_ioa_exclusions_search_v2",
+    "ss_ioa_exclusions_get_v2",
+    "querySensorVisibilityExclusionsV1",
+    "getSensorVisibilityExclusionsV1",
+    "cb_exclusions_query_v1",
+    "cb_exclusions_get_v1",
+    "QueryQuarantineFiles",
+    "GetQuarantineFiles",
     "cloud_security_assets_queries",
     "cloud_security_assets_entities_get",
     "cspm_evaluations_iom_queries",
@@ -143,6 +153,156 @@ NGSIEM_DOC = "https://developer.crowdstrike.com/api-reference/collections/ngsiem
 IDENTITY_PROTECTION_DOC = "https://developer.crowdstrike.com/api-reference/collections/identity-protection/"
 
 CANONICAL: tuple[FalconOperation, ...] = (
+    FalconOperation(
+        id="exclusions_search_v2",
+        method="GET",
+        path="/exclusions/queries/exclusions/v2",
+        scopes=("Machine Learning Exclusions:read",),
+        effect="read",
+        evidence=Evidence(
+            doc_url="https://developer.crowdstrike.com/api-reference/collections/ml-exclusions/",
+            doc_scope="Machine Learning Exclusions: READ",
+            falcon_mcp=(
+                "falcon_mcp/common/api_scopes.py maps exclusions_search_v2 to Machine Learning Exclusions:read; "
+                "falcon_mcp/modules/exclusions.py uses it for search_exclusions."
+            ),
+        ),
+    ),
+    FalconOperation(
+        id="exclusions_get_v2",
+        method="GET",
+        path="/exclusions/entities/exclusions/v2",
+        scopes=("Machine Learning Exclusions:read",),
+        effect="read",
+        evidence=Evidence(
+            doc_url="https://developer.crowdstrike.com/api-reference/collections/ml-exclusions/",
+            doc_scope="Machine Learning Exclusions: READ",
+            falcon_mcp=(
+                "falcon_mcp/common/api_scopes.py maps exclusions_get_v2 to Machine Learning Exclusions:read; "
+                "falcon_mcp/modules/exclusions.py uses it for search_exclusions."
+            ),
+        ),
+    ),
+    FalconOperation(
+        id="ss_ioa_exclusions_search_v2",
+        method="GET",
+        path="/exclusions/queries/ss-ioa-exclusions/v2",
+        scopes=("IOA Exclusions:read",),
+        effect="read",
+        evidence=Evidence(
+            doc_url="https://developer.crowdstrike.com/api-reference/collections/ioa-exclusions/",
+            doc_scope="IOA Exclusions: READ",
+            falcon_mcp=(
+                "falcon_mcp/common/api_scopes.py maps ss_ioa_exclusions_search_v2 to IOA Exclusions:read; "
+                "falcon_mcp/modules/exclusions.py uses it for search_exclusions."
+            ),
+        ),
+    ),
+    FalconOperation(
+        id="ss_ioa_exclusions_get_v2",
+        method="GET",
+        path="/exclusions/entities/ss-ioa-exclusions/v2",
+        scopes=("IOA Exclusions:read",),
+        effect="read",
+        evidence=Evidence(
+            doc_url="https://developer.crowdstrike.com/api-reference/collections/ioa-exclusions/",
+            doc_scope="IOA Exclusions: READ",
+            falcon_mcp=(
+                "falcon_mcp/common/api_scopes.py maps ss_ioa_exclusions_get_v2 to IOA Exclusions:read; "
+                "falcon_mcp/modules/exclusions.py uses it for search_exclusions."
+            ),
+        ),
+    ),
+    FalconOperation(
+        id="querySensorVisibilityExclusionsV1",
+        method="GET",
+        path="/policy/queries/sv-exclusions/v1",
+        scopes=("Sensor Visibility Exclusions:read",),
+        effect="read",
+        evidence=Evidence(
+            doc_url="https://developer.crowdstrike.com/api-reference/collections/sensor-visibility-exclusions/",
+            doc_scope="Sensor Visibility Exclusions: READ",
+            falcon_mcp=(
+                "falcon_mcp/common/api_scopes.py maps querySensorVisibilityExclusionsV1 to Sensor Visibility Exclusions:read; "
+                "falcon_mcp/modules/exclusions.py uses it for search_exclusions."
+            ),
+        ),
+    ),
+    FalconOperation(
+        id="getSensorVisibilityExclusionsV1",
+        method="GET",
+        path="/policy/entities/sv-exclusions/v1",
+        scopes=("Sensor Visibility Exclusions:read",),
+        effect="read",
+        evidence=Evidence(
+            doc_url="https://developer.crowdstrike.com/api-reference/collections/sensor-visibility-exclusions/",
+            doc_scope="Sensor Visibility Exclusions: READ",
+            falcon_mcp=(
+                "falcon_mcp/common/api_scopes.py maps getSensorVisibilityExclusionsV1 to Sensor Visibility Exclusions:read; "
+                "falcon_mcp/modules/exclusions.py uses it for search_exclusions."
+            ),
+        ),
+    ),
+    FalconOperation(
+        id="cb_exclusions_query_v1",
+        method="GET",
+        path="/exclusions/queries/cert-based-exclusions/v1",
+        scopes=("Machine Learning Exclusions:read",),
+        effect="read",
+        evidence=Evidence(
+            doc_url="https://developer.crowdstrike.com/api-reference/collections/certificate-based-exclusions/",
+            doc_scope="Machine Learning Exclusions: READ",
+            falcon_mcp=(
+                "falcon_mcp/common/api_scopes.py maps cb_exclusions_query_v1 to Machine Learning Exclusions:read; "
+                "falcon_mcp/modules/exclusions.py uses it for search_exclusions."
+            ),
+        ),
+    ),
+    FalconOperation(
+        id="cb_exclusions_get_v1",
+        method="GET",
+        path="/exclusions/entities/cert-based-exclusions/v1",
+        scopes=("Machine Learning Exclusions:read",),
+        effect="read",
+        evidence=Evidence(
+            doc_url="https://developer.crowdstrike.com/api-reference/collections/certificate-based-exclusions/",
+            doc_scope="Machine Learning Exclusions: READ",
+            falcon_mcp=(
+                "falcon_mcp/common/api_scopes.py maps cb_exclusions_get_v1 to Machine Learning Exclusions:read; "
+                "falcon_mcp/modules/exclusions.py uses it for search_exclusions."
+            ),
+        ),
+    ),
+    FalconOperation(
+        id="QueryQuarantineFiles",
+        method="GET",
+        path="/quarantine/queries/quarantined-files/v1",
+        scopes=("Quarantined Files:read",),
+        effect="read",
+        evidence=Evidence(
+            doc_url="https://developer.crowdstrike.com/api-reference/collections/quarantine/",
+            doc_scope="Quarantined Files: READ",
+            falcon_mcp=(
+                "falcon_mcp/common/api_scopes.py maps QueryQuarantineFiles to Quarantined Files:read; "
+                "falcon_mcp/modules/quarantine.py uses it for search_quarantined_files."
+            ),
+        ),
+    ),
+    FalconOperation(
+        id="GetQuarantineFiles",
+        method="POST",
+        path="/quarantine/entities/quarantined-files/GET/v1",
+        scopes=("Quarantined Files:read",),
+        effect="read",
+        evidence=Evidence(
+            doc_url="https://developer.crowdstrike.com/api-reference/collections/quarantine/",
+            doc_scope="Quarantined Files: READ",
+            falcon_mcp=(
+                "falcon_mcp/common/api_scopes.py maps GetQuarantineFiles to Quarantined Files:read; "
+                "falcon_mcp/modules/quarantine.py uses it for search_quarantined_files."
+            ),
+        ),
+    ),
     FalconOperation(
         id="GetSensorUsageWeekly",
         method="GET",

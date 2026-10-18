@@ -171,6 +171,10 @@ def parse(argv: Sequence[str]) -> Parsed:
             f"{command} requires exactly one {subject}",
             [remedy],
         )
+    if command in ("exclusion list", "exclusion show"):
+        from falcon_axi.exclusion import validate_type
+
+        validate_type(_str(flags.get("type")), limit_of(flags, spec) if spec and spec.limit_ceiling else 20)
     if command == "cve show":
         validate_cve_id(positionals[0])
     if command == "shield list":

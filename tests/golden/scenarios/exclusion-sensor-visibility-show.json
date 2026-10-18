@@ -1,0 +1,18 @@
+{
+  "name": "exclusion-sensor-visibility-show",
+  "argv": [
+    "exclusion",
+    "show",
+    "synthetic-sensor-visibility-01",
+    "--type",
+    "sensor-visibility"
+  ],
+  "responders": [
+    {
+      "op": "getSensorVisibilityExclusionsV1",
+      "fixture": "exclusions/sensor-visibility-details.json"
+    }
+  ],
+  "exit_code": 0,
+  "comment": "Exclusion and quarantine inventory reads add ten synthetic list/show scenarios plus four command help scenarios. help-top, unknown-command, and scopes deliberately change to advertise the shipped commands and read scopes (docs/design/v1.md section 1.2.1). No mutation operation is added."
+}

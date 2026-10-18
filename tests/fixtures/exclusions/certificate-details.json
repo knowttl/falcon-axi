@@ -1,0 +1,43 @@
+{
+  "provenance": {
+    "operation": "cb_exclusions_get_v1",
+    "reference": "https://developer.crowdstrike.com/api-reference/collections/certificate-based-exclusions/",
+    "schema_read": "2026-10-18",
+    "provenance": "synthetic"
+  },
+  "response": {
+    "status": 200,
+    "headers": {},
+    "body": {
+      "errors": [],
+      "resources": [
+        {
+          "id": "synthetic-certificate-02",
+          "name": "Synthetic signer 2",
+          "status": "active",
+          "certificate": {
+            "subject": "CN=Synthetic signer"
+          },
+          "applied_globally": true,
+          "children_cids": [
+            "synthetic-child-cid"
+          ],
+          "cid": "synthetic-tenant-cid"
+        },
+        {
+          "id": "synthetic-certificate-01",
+          "name": "Synthetic signer 1",
+          "status": "active",
+          "certificate": {
+            "subject": "CN=Synthetic signer"
+          },
+          "applied_globally": true,
+          "children_cids": [
+            "synthetic-child-cid"
+          ],
+          "cid": "synthetic-tenant-cid"
+        }
+      ]
+    }
+  }
+}

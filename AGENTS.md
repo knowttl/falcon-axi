@@ -65,6 +65,8 @@ the REST sensor inventory (`identity sensor list`, `identity sensor show`),
 the container and serverless reads (`container list`, `image list`, `image vulnerabilities`, `serverless list`),
 the Data Protection configuration reads (`classification list`, `classification show`, `data-policy list`, `data-policy show`),
 plus the `scopes` matrix and the home view.
+The exclusion inventories (`exclusion list|show` with `--type`) and quarantined file metadata
+(`quarantine list|show`) also ship as read-only commands.
 The README's status section is the authoritative list of what is shipped and what is deliberately absent, and
 no help text, suggestion, or skill may advertise an unshipped command.
 `uv run scripts/verify.py` is the single local entry point for the complete offline required-check set
