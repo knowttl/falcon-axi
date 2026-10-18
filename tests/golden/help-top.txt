@@ -20,6 +20,11 @@ Commands:
   identity list             list Identity Protection users and endpoints with their risk
   identity show <id>        one identity's risk, accounts, associations, and open incidents
   identity timeline <id>    one identity's recent activity
+  cloud-asset list              list CSPM cloud assets
+  cloud-asset show <id>         inspect one cloud-asset
+  iom list              list cloud Indicators of Misconfiguration
+  iom show <id>         inspect one iom
+  cloud-risk list              list aggregated cloud risks
   auth status               whether a credential resolved, and where to
   profile list              configured profile names, without reading secrets
   config path               config and write-journal paths

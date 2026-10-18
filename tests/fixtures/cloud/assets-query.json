@@ -1,0 +1,16 @@
+{
+  "provenance": {
+    "operation": "cloud_security_assets_queries",
+    "reference": "https://developer.crowdstrike.com/api-reference/collections/cloud-security-assets/",
+    "schema_read": "2026-10-18",
+    "provenance": "synthetic"
+  },
+  "response": {
+    "status": 200,
+    "headers": {},
+    "body": {
+      "resources": ["synthetic-cloud-asset-01", "synthetic-cloud-asset-02"],
+      "meta": {"next": "synthetic-cloud-next"}
+    }
+  }
+}

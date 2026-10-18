@@ -1920,9 +1920,275 @@
           "fixture": "errors/403-scope.json"
         }
       ]
+    },
+    {
+      "name": "help-cloud-asset-list",
+      "argv": [
+        "cloud-asset",
+        "list",
+        "--help"
+      ]
+    },
+    {
+      "name": "cloud-asset-list",
+      "argv": [
+        "cloud-asset",
+        "list",
+        "--limit",
+        "2"
+      ],
+      "responders": [
+        {
+          "op": "cloud_security_assets_queries",
+          "fixture": "cloud/assets-query.json"
+        },
+        {
+          "op": "cloud_security_assets_entities_get",
+          "fixture": "cloud/assets-entities.json"
+        }
+      ]
+    },
+    {
+      "name": "cloud-asset-empty",
+      "argv": [
+        "cloud-asset",
+        "list"
+      ],
+      "responders": [
+        {
+          "op": "cloud_security_assets_queries",
+          "response": {
+            "status": 200,
+            "headers": {},
+            "body": {
+              "resources": []
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "cloud-asset-scope-denied",
+      "argv": [
+        "cloud-asset",
+        "list"
+      ],
+      "responders": [
+        {
+          "op": "cloud_security_assets_queries",
+          "fixture": "errors/403-scope.json"
+        }
+      ]
+    },
+    {
+      "name": "help-cloud-asset-show",
+      "argv": [
+        "cloud-asset",
+        "show",
+        "--help"
+      ]
+    },
+    {
+      "name": "cloud-asset-show",
+      "argv": [
+        "cloud-asset",
+        "show",
+        "synthetic-cloud-asset-01"
+      ],
+      "responders": [
+        {
+          "op": "cloud_security_assets_entities_get",
+          "fixture": "cloud/assets-entities.json"
+        }
+      ]
+    },
+    {
+      "name": "cloud-asset-not-found",
+      "argv": [
+        "cloud-asset",
+        "show",
+        "synthetic-missing"
+      ],
+      "responders": [
+        {
+          "op": "cloud_security_assets_entities_get",
+          "response": {
+            "status": 200,
+            "headers": {},
+            "body": {
+              "resources": []
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "help-iom-list",
+      "argv": [
+        "iom",
+        "list",
+        "--help"
+      ]
+    },
+    {
+      "name": "iom-list",
+      "argv": [
+        "iom",
+        "list",
+        "--limit",
+        "2"
+      ],
+      "responders": [
+        {
+          "op": "cspm_evaluations_iom_queries",
+          "fixture": "cloud/iom-query.json"
+        },
+        {
+          "op": "cspm_evaluations_iom_entities",
+          "fixture": "cloud/iom-entities.json"
+        }
+      ]
+    },
+    {
+      "name": "iom-empty",
+      "argv": [
+        "iom",
+        "list"
+      ],
+      "responders": [
+        {
+          "op": "cspm_evaluations_iom_queries",
+          "response": {
+            "status": 200,
+            "headers": {},
+            "body": {
+              "resources": []
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "iom-scope-denied",
+      "argv": [
+        "iom",
+        "list"
+      ],
+      "responders": [
+        {
+          "op": "cspm_evaluations_iom_queries",
+          "fixture": "errors/403-scope.json"
+        }
+      ]
+    },
+    {
+      "name": "help-iom-show",
+      "argv": [
+        "iom",
+        "show",
+        "--help"
+      ]
+    },
+    {
+      "name": "iom-show",
+      "argv": [
+        "iom",
+        "show",
+        "synthetic-iom-01"
+      ],
+      "responders": [
+        {
+          "op": "cspm_evaluations_iom_entities",
+          "fixture": "cloud/iom-entities.json"
+        }
+      ]
+    },
+    {
+      "name": "iom-not-found",
+      "argv": [
+        "iom",
+        "show",
+        "synthetic-missing"
+      ],
+      "responders": [
+        {
+          "op": "cspm_evaluations_iom_entities",
+          "response": {
+            "status": 200,
+            "headers": {},
+            "body": {
+              "resources": []
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "help-cloud-risk-list",
+      "argv": [
+        "cloud-risk",
+        "list",
+        "--help"
+      ]
+    },
+    {
+      "name": "cloud-risk-list",
+      "argv": [
+        "cloud-risk",
+        "list",
+        "--limit",
+        "2"
+      ],
+      "responders": [
+        {
+          "op": "combined_cloud_risks",
+          "fixture": "cloud/risks.json"
+        }
+      ]
+    },
+    {
+      "name": "cloud-risk-empty",
+      "argv": [
+        "cloud-risk",
+        "list"
+      ],
+      "responders": [
+        {
+          "op": "combined_cloud_risks",
+          "response": {
+            "status": 200,
+            "headers": {},
+            "body": {
+              "resources": []
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "cloud-risk-scope-denied",
+      "argv": [
+        "cloud-risk",
+        "list"
+      ],
+      "responders": [
+        {
+          "op": "combined_cloud_risks",
+          "fixture": "errors/403-scope.json"
+        }
+      ]
+    },
+    {
+      "name": "cloud-risk-show-absent",
+      "argv": [
+        "cloud-risk",
+        "show",
+        "synthetic-risk-01"
+      ]
     }
   ],
   "pagination_comment": "The shipped bounded walker (docs/design/v1.md sections 7.2 and 10.2) adds three wholly synthetic partial-read examples. The four list help documents, unknown-flag, and list-with-positional deliberately change to advertise --all and --max-rows. Existing data documents and scopes remain unchanged because no operation or permission changed.",
   "fields_comment": "Detection and host field selection adds extended-row scenarios and updates help-detection-list, help-host-list, unknown-flag, and list-with-positional to advertise the shipped flag (design section 10.2).",
-  "detection_summary_comment": "Detection summary adds on-demand severity scenarios and updates help-top, unknown-command, unknown-detection-subcommand, and scopes (design section 10.3); the home view makes no aggregate request."
+  "detection_summary_comment": "Detection summary adds on-demand severity scenarios and updates help-top, unknown-command, unknown-detection-subcommand, and scopes (design section 10.3); the home view makes no aggregate request.",
+  "cloud_comment": "Cloud reads (design section 1.2.1) add cloud-asset list/show, iom list/show, and cloud-risk list. Five new read operations deliberately change help-top, unknown-command, and scopes. Risk show stays absent because no official detail endpoint or risk-id filter exists. Cloud fixtures are wholly synthetic; no tenant validation is claimed."
 }

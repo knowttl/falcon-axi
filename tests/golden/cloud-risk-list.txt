@@ -1,0 +1,6 @@
+count: 2 of 3 total
+cloud_risks[2]{id,rule_name,severity,status}:
+  synthetic-risk-01,Synthetic public bucket,Critical,Open
+  synthetic-risk-02,Synthetic exposed instance,High,Open
+continuation_cursor: eyJvcGVyYXRpb24iOiJjb21iaW5lZF9jbG91ZF9yaXNrcyIsIm1vZGVsIjoib2Zmc2V0IiwicG9zaXRpb24iOjIsImZpbmdlcnByaW50IjoiM2E2NGZhYzRjZDFkNjI0ZjRlNTg4ZTdmOTgwZGMyZWEyZTBiYzljMzYyZGIyMDdjMTA4ZTA2ZTUyMDk3MGZmZSJ9
+help[2]: "Run `falcon-axi cloud-risk list --limit 2 --cursor eyJvcGVyYXRpb24iOiJjb21iaW5lZF9jbG91ZF9yaXNrcyIsIm1vZGVsIjoib2Zmc2V0IiwicG9zaXRpb24iOjIsImZpbmdlcnByaW50IjoiM2E2NGZhYzRjZDFkNjI0ZjRlNTg4ZTdmOTgwZGMyZWEyZTBiYzljMzYyZGIyMDdjMTA4ZTA2ZTUyMDk3MGZmZSJ9` for the next page","Risk detail is not offered: the official API has no risk-detail endpoint or risk-id filter."

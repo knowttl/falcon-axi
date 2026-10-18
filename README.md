@@ -8,7 +8,7 @@ suggestions point to commands worth running next.
 
 ## Status: partial implementation of the v1 design
 
-The package is real and installable, and it ships six read domains plus NG-SIEM search.
+The package is real and installable, and it ships core read domains, cloud inventory and findings, plus NG-SIEM search.
 The shipped and deferred commands are listed below; [`docs/design/v1.md`](docs/design/v1.md) owns the full v1 design.
 
 What is shipped:
@@ -23,6 +23,9 @@ What is shipped:
 - the home view and five read domains: `falcon-axi`, `detection list`, `detection show`, `host list`,
   `host show`, `host logins`, `account list`, `account show`, `vuln list`, and `cve show`;
 - `detection summary`, an on-demand severity count with the same filters as `detection list`;
+- cloud inventory and findings: `cloud-asset list`, `cloud-asset show`, `iom list`, `iom show`,
+  and `cloud-risk list`, using only the Cloud Security API Assets, Detections, and Risks read scopes.
+  Risk detail is not offered because the official API has no risk-detail endpoint or risk-id filter;
 - NG-SIEM search: `search start`, `search status`, and `search stop`, the three operations captain
   exception N1 admits;
 - the Identity Protection directory and timeline: `identity list`, `identity show`, and
@@ -42,7 +45,7 @@ What is shipped:
 
 What is **not** shipped yet, so no output advertises it:
 
-- every domain `docs/design/v1.md` §1.3 defers, including intel actors and reports,
+- the remaining domains `docs/design/v1.md` §1.3 defers, including intel actors and reports,
   every NG-SIEM capability outside the three search lifecycle operations (no ingest, no lookup
   files, no parser or dashboard writes, and no Charlotte AI), and every Identity Protection capability
   beyond the directory and timeline: no standalone incident or security-assessment queries, no policy rules,

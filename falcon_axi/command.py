@@ -28,6 +28,7 @@ def suggestion_for(command: str, flags: Mapping[str, str | bool], positionals: S
         parts.append("--all")
     for name in (
         "filter",
+        "sort",
         "hostname",
         "platform",
         "host",

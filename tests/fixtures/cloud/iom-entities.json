@@ -1,0 +1,34 @@
+{
+  "provenance": {
+    "operation": "cspm_evaluations_iom_entities",
+    "reference": "https://developer.crowdstrike.com/api-reference/collections/cloud-security-detections/",
+    "schema_read": "2026-10-18",
+    "provenance": "synthetic"
+  },
+  "response": {
+    "status": 200,
+    "headers": {},
+    "body": {
+      "resources": [
+        {
+          "id": "synthetic-iom-02",
+          "evaluation": {"severity": "high", "status": "non-compliant"},
+          "resource": {"id": "synthetic-instance-id", "service": "EC2"},
+          "cloud": {"provider": "aws", "account_id": "000000000001", "region": "us-east-1"}
+        },
+        {
+          "id": "synthetic-iom-01",
+          "cid": "synthetic-cloud-cid",
+          "evaluation": {
+            "severity": "critical",
+            "status": "non-compliant",
+            "first_detected": "2026-10-01T00:00:00Z",
+            "last_detected": "2026-10-18T00:00:00Z"
+          },
+          "resource": {"id": "synthetic-bucket-id", "service": "S3"},
+          "cloud": {"provider": "aws", "account_id": "000000000001", "region": "us-east-1"}
+        }
+      ]
+    }
+  }
+}

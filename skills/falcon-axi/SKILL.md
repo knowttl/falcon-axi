@@ -49,6 +49,11 @@ uvx falcon-axi search stop <id>          cancel one search job
 uvx falcon-axi identity list             list Identity Protection users and endpoints with their risk
 uvx falcon-axi identity show <id>        one identity's risk, accounts, associations, and open incidents
 uvx falcon-axi identity timeline <id>    one identity's recent activity
+uvx falcon-axi cloud-asset list              list CSPM cloud assets
+uvx falcon-axi cloud-asset show <id>         inspect one cloud-asset
+uvx falcon-axi iom list              list cloud Indicators of Misconfiguration
+uvx falcon-axi iom show <id>         inspect one iom
+uvx falcon-axi cloud-risk list              list aggregated cloud risks
 uvx falcon-axi auth status               whether a credential resolved, and where to
 uvx falcon-axi profile list              configured profile names, without reading secrets
 uvx falcon-axi config path               config and write-journal paths
