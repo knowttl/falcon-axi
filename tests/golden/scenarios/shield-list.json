@@ -15,5 +15,5 @@
     }
   ],
   "exit_code": 0,
-  "comment": "Shield posture checks add list, show, empty, scope-denied and help scenarios. help-top, unknown-command, scopes and auth-status scope documents deliberately change to expose the shipped read commands and SaaS Security:read (design section 10.6)."
+  "comment": "Shield posture checks add list, show, empty, scope-denied and help scenarios. help-top, unknown-command, scopes and auth-status scope documents deliberately change to expose the shipped read commands and SaaS Security:read (design section 10.6). The official top-level response array carries no total, so shield-list deliberately prints unknown rather than a fabricated total (design section 10.6)."
 }

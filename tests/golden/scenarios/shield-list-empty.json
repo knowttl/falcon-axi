@@ -9,9 +9,7 @@
       "op": "GetSecurityChecksV3",
       "response": {
         "status": 200,
-        "body": {
-          "resources": []
-        }
+        "body": []
       }
     }
   ],
