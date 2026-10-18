@@ -3,8 +3,8 @@
 An agent-facing CLI for reading the CrowdStrike Falcon platform from the shell, built to the
 [AXI](https://agentskills.io) standard for CLI tools that autonomous agents drive through shell execution.
 
-Output is token-efficient TOON on stdout, errors are structured documents rather than prose, and every view
-ends with the commands that are worth running next.
+Output is token-efficient TOON on stdout, errors are structured documents rather than prose, and contextual
+suggestions point to commands worth running next.
 
 ## Status: partial implementation of the v1 design
 
@@ -22,6 +22,7 @@ What is shipped:
   `X-Cs-Region` autodiscovery, Flight Control member-CID selection, `auth status`, `profile list`, and `config path`;
 - the home view and five read domains: `falcon-axi`, `detection list`, `detection show`, `host list`,
   `host show`, `host logins`, `account list`, `account show`, `vuln list`, and `cve show`;
+- `detection summary`, an on-demand severity count with the same filters as `detection list`;
 - NG-SIEM search: `search start`, `search status`, and `search stop`, the three operations captain
   exception N1 admits;
 - the Identity Protection directory and timeline: `identity list`, `identity show`, and
@@ -47,8 +48,7 @@ What is **not** shipped yet, so no output advertises it:
   `cve show` is the one intel read that ships; there is no `cve list`;
 - `falcon-axi setup`, including the session hook;
 
-`docs/design/v1.md` remains the authority for the full v1 surface, and its §17 open questions are
-still open. Nothing here answers one of them.
+`docs/design/v1.md` remains the authority for the full v1 surface; §17 records closed decisions and distinguishes approvals from shipped implementations.
 [`docs/design/v1-python.md`](docs/design/v1-python.md) amends it for language, HTTP client, test
 layout, and packaging: falcon-axi is pure Python on `crowdstrike-falconpy`, with no Node runtime and
 no MCP process anywhere.
@@ -85,8 +85,6 @@ wrong tool and will not be persuaded otherwise.
 
 See [API client permissions](#api-client-permissions) for provisioning, including optional search writes
 and license-gated account and CVE access.
-Whether member-CID token minting additionally requires `Flight Control:read` remains an explicitly
-unresolved question in `docs/design/v1.md` §17.7.
 A falcon-axi release that asks for any other write scope is wrong.
 
 ## Quick start for agents
@@ -225,10 +223,8 @@ Protection Timeline` (read).
 A command missing required permissions answers `SCOPE_DENIED` naming its required scopes; use
 `falcon-axi scopes` for the per-command requirements.
 
-Whether minting a member-CID token additionally requires `Flight Control:read` is an open design
-question (`docs/design/v1.md` §17.7), not a settled requirement.
-If `--member-cid` fails with `TENANT_DENIED` on a client that reads its own tenant fine, that scope is
-the first thing to check.
+See `docs/design/v1.md` §17.7 for the member-CID source-parity decision and its scope-evidence limitation.
+If `--member-cid` fails with `TENANT_DENIED` on a client that reads its own tenant fine, check Flight Control access in the Falcon console.
 
 ## Region and tenant
 
@@ -279,6 +275,7 @@ falcon-axi detection list --severity critical       one severity
 falcon-axi detection list --status new --since 24h  one status, one window
 falcon-axi detection list --product idp             Identity Protection detections
 falcon-axi detection list --filter "severity_name:'Critical'+status:'new'"
+falcon-axi detection summary --since 24h           counts by severity, including hidden alerts
 falcon-axi detection show "<composite id>"         one detection; copy the list's id column
 falcon-axi detection show "<composite id>" --full  without truncating long fields
 falcon-axi host list --platform windows             the Windows fleet
@@ -492,8 +489,7 @@ The offline suite includes the recorded-invocation gate in `tests/golden/`.
 Offline fixtures prove deterministic behavior, not upstream fidelity.
 [`docs/design/v1.md` §9.4](docs/design/v1.md#94-translation-never-passthrough) owns the error-evidence policy
 and points to the recorded endpoint-specific confirmations.
-Live Falcon calls are run by hand and stay outside the required checks; the opt-in live smoke suite
-of §15 is not implemented yet.
+[`docs/design/v1.md` §15](docs/design/v1.md#15-safe-live-test-boundaries) owns the validation policy and boundaries for any separately authorized future live validation.
 
 GitHub Actions runs the same offline gate, `uv run scripts/verify.py`, on every pull request and every push
 to `main`.
