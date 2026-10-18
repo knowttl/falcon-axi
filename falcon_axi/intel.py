@@ -41,7 +41,7 @@ def _malware_list(ctx: Invocation) -> CommandOutput:
         return CommandOutput(
             {"malware": raw("no more malware families" if offset else "0 malware families matching this query")}, ()
         )
-    rows = [{"id": entry.get("slug", "unknown"), "family_name": entry.get("family_name", "unknown")} for entry in entries]
+    rows = [{"id": entry.get("slug", "unknown"), "family_name": entry.get("name", "unknown")} for entry in entries]
     count = total(response)
     value: dict[str, Any] = {"count": raw(f"{len(rows)} of {count if count is not None else 'unknown'} total"), "malware": rows}
     help = ["Run `falcon-axi malware show <id>` for the malware family record"]
