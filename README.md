@@ -24,6 +24,9 @@ What is shipped:
 - the home view and five read domains: `falcon-axi`, `detection list`, `detection show`, `host list`,
   `host show`, `host logins`, `account list`, `account show`, `vuln list`, `vuln show`, `cve list`, and `cve show`;
 - `detection summary`, an on-demand severity count with the same filters as `detection list`;
+- cloud inventory and findings: `cloud-asset list`, `cloud-asset show`, `iom list`, `iom show`,
+  and `cloud-risk list`.
+  See the [cloud contract](docs/design/v1.md#121-cloud-inventory-and-posture) for pagination, output, and the risk-detail limitation;
 - Discover inventory: `asset list`, `asset show`, `application list`, and `login list`, plus
   `host network <device_id>` for Falcon sensor-host IP and MAC address history;
 - NG-SIEM search: `search start`, `search status`, and `search stop`, the three operations captain
@@ -318,6 +321,11 @@ falcon-axi report list                              find intelligence reports
 falcon-axi report show <id> --full                   report detail without text truncation
 falcon-axi indicator list --filter "type:'domain'"  Falcon Intelligence indicators, not custom IOCs
 falcon-axi indicator show <id>                     full record using an id from indicator list
+falcon-axi cloud-asset list --filter "cloud_provider:'aws'"
+falcon-axi cloud-asset show <id>                   one resource using an id from cloud-asset list
+falcon-axi iom list --filter "severity:'critical'+status:'non-compliant'"
+falcon-axi iom show <id>                           one finding using an id from iom list
+falcon-axi cloud-risk list --filter "severity:'Critical'+status:'Open'"
 falcon-axi cve list --severity critical --since 7d  recently published CVE intelligence
 falcon-axi vuln show <id>                         one Spotlight record from vuln list
 falcon-axi identity activity <account_id> --since 7d  an account's identity events

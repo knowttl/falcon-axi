@@ -2,6 +2,8 @@
 
 from falcon_axi import (
     account,
+    cloud_asset,
+    cloud_risk,
     cve,
     detection,
     diagnostics,
@@ -12,6 +14,7 @@ from falcon_axi import (
     indicator,
     intel,
     ioc,
+    iom,
     policy,
     scopes,
     search,
@@ -37,6 +40,9 @@ COMMAND_SPECS = {
         ioc.COMMAND_SPECS,
         host_group.COMMAND_SPECS,
         policy.COMMAND_SPECS,
+        cloud_asset.COMMAND_SPECS,
+        iom.COMMAND_SPECS,
+        cloud_risk.COMMAND_SPECS,
         diagnostics.COMMAND_SPECS,
         scopes.COMMAND_SPECS,
         setup.COMMAND_SPECS,

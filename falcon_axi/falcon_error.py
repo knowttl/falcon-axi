@@ -11,6 +11,11 @@ from falcon_axi.transport.types import FalconResponse
 
 _FILTER_WORDS = re.compile(r"\b(fql|filter|query)\b", re.IGNORECASE)
 _INVENTORY_REMEDIES: dict[OperationId, tuple[str, str]] = {
+    "cloud_security_assets_queries": ("cloud-asset list", "cloud_provider:'aws'"),
+    "cloud_security_assets_entities_get": ("cloud-asset list", "cloud_provider:'aws'"),
+    "cspm_evaluations_iom_queries": ("iom list", "severity:'critical'+status:'non-compliant'"),
+    "cspm_evaluations_iom_entities": ("iom list", "severity:'critical'+status:'non-compliant'"),
+    "combined_cloud_risks": ("cloud-risk list", "severity:'Critical'+status:'Open'"),
     "QueryVulnerabilities": ("cve list", "severity:'CRITICAL'"),
     "GetVulnerabilities": ("cve list", "severity:'CRITICAL'"),
     "combined_hosts": ("asset list", "entity_type:'managed'"),

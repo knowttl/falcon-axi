@@ -1,0 +1,6 @@
+count: 2 of 3 total
+ioms[2]{id,evaluation_severity,evaluation_status,resource_id}:
+  synthetic-iom-01,critical,non-compliant,synthetic-bucket-id
+  synthetic-iom-02,high,non-compliant,synthetic-instance-id
+continuation_cursor: eyJvcGVyYXRpb24iOiJjc3BtX2V2YWx1YXRpb25zX2lvbV9xdWVyaWVzIiwibW9kZWwiOiJvZmZzZXQiLCJwb3NpdGlvbiI6MiwiZmluZ2VycHJpbnQiOiI0MTMwNGVmOTAwYTc5ZmIyMzI1ZTM0MTU1ZTc1ZmNlMmFiZmEwMjkyYzAyNWE1ZTIzZGFkZjEyZmU4MDEwMjI0In0
+help[2]: "Run `falcon-axi iom show <id>` for resource detail","Run `falcon-axi iom list --limit 2 --cursor eyJvcGVyYXRpb24iOiJjc3BtX2V2YWx1YXRpb25zX2lvbV9xdWVyaWVzIiwibW9kZWwiOiJvZmZzZXQiLCJwb3NpdGlvbiI6MiwiZmluZ2VycHJpbnQiOiI0MTMwNGVmOTAwYTc5ZmIyMzI1ZTM0MTU1ZTc1ZmNlMmFiZmEwMjkyYzAyNWE1ZTIzZGFkZjEyZmU4MDEwMjI0In0` for the next page"

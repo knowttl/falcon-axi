@@ -1,0 +1,11 @@
+{
+  "name": "iom show",
+  "order": 2315,
+  "summary": "  iom show <id>         inspect one iom",
+  "scopes": [
+    {
+      "scope": "Cloud Security API Detections:read",
+      "access": "read"
+    }
+  ]
+}

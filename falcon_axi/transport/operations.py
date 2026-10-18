@@ -18,6 +18,11 @@ from typing import Literal, get_args
 from falcon_axi.core import CliError
 
 OperationId = Literal[
+    "cloud_security_assets_queries",
+    "cloud_security_assets_entities_get",
+    "cspm_evaluations_iom_queries",
+    "cspm_evaluations_iom_entities",
+    "combined_cloud_risks",
     "queryCombinedPreventionPolicies",
     "queryCombinedPreventionPolicyMembers",
     "queryCombinedSensorUpdatePoliciesV2",
@@ -633,6 +638,22 @@ CANONICAL: tuple[FalconOperation, ...] = (
         ),
     ),
     FalconOperation(
+        id="cloud_security_assets_queries",
+        method="GET",
+        path="/cloud-security-assets/queries/resources/v1",
+        scopes=("Cloud Security API Assets:read",),
+        effect="read",
+        evidence=Evidence(
+            doc_url="https://developer.crowdstrike.com/api-reference/collections/cloud-security-assets/",
+            doc_scope="Cloud Security API Assets: READ",
+            falcon_mcp=(
+                "falcon_mcp/common/api_scopes.py maps cloud_security_assets_queries to Cloud Security API Assets:read; "
+                "falcon_mcp/modules/cloud/cloud_assets.py search_cspm_assets uses filter/limit/after/sort; "
+                "falconpy/_endpoint/_cloud_security_assets.py confirms GET /cloud-security-assets/queries/resources/v1"
+            ),
+        ),
+    ),
+    FalconOperation(
         id="GetIntelIndicatorEntities",
         method="POST",
         path="/intel/entities/indicators/GET/v1",
@@ -646,6 +667,72 @@ CANONICAL: tuple[FalconOperation, ...] = (
                 "falconpy/_endpoint/_intel.py maps GetIntelIndicatorEntities to POST "
                 "/intel/entities/indicators/GET/v1. PSFalcon Get-FalconIndicator in public/intel.ps1 "
                 "wraps the same operation with an ids body."
+            ),
+        ),
+    ),
+    FalconOperation(
+        id="cloud_security_assets_entities_get",
+        method="GET",
+        path="/cloud-security-assets/entities/resources/v1",
+        scopes=("Cloud Security API Assets:read",),
+        effect="read",
+        evidence=Evidence(
+            doc_url="https://developer.crowdstrike.com/api-reference/collections/cloud-security-assets/",
+            doc_scope="Cloud Security API Assets: READ",
+            falcon_mcp=(
+                "falcon_mcp/common/api_scopes.py maps cloud_security_assets_entities_get to Cloud Security API Assets:read; "
+                "falcon_mcp/modules/cloud/cloud_base.py _batch_get_cspm_assets uses GET ids batches of 100; "
+                "modules/cloud/cloud_assets.py _slim_cspm_asset documents resource and cloud_context fields; "
+                "falconpy/_endpoint/_cloud_security_assets.py confirms GET /cloud-security-assets/entities/resources/v1"
+            ),
+        ),
+    ),
+    FalconOperation(
+        id="cspm_evaluations_iom_queries",
+        method="GET",
+        path="/cloud-security-evaluations/queries/ioms/v1",
+        scopes=("Cloud Security API Detections:read",),
+        effect="read",
+        evidence=Evidence(
+            doc_url="https://developer.crowdstrike.com/api-reference/collections/cloud-security-detections/",
+            doc_scope="Cloud Security API Detections: READ",
+            falcon_mcp=(
+                "falcon_mcp/common/api_scopes.py maps cspm_evaluations_iom_queries to Cloud Security API Detections:read; "
+                "falcon_mcp/modules/cloud/cloud_iom.py search_iom_findings uses filter/limit/offset/sort; "
+                "falconpy/_endpoint/_cloud_security_detections.py confirms GET /cloud-security-evaluations/queries/ioms/v1"
+            ),
+        ),
+    ),
+    FalconOperation(
+        id="cspm_evaluations_iom_entities",
+        method="GET",
+        path="/cloud-security-evaluations/entities/ioms/v1",
+        scopes=("Cloud Security API Detections:read",),
+        effect="read",
+        evidence=Evidence(
+            doc_url="https://developer.crowdstrike.com/api-reference/collections/cloud-security-detections/",
+            doc_scope="Cloud Security API Detections: READ",
+            falcon_mcp=(
+                "falcon_mcp/common/api_scopes.py maps cspm_evaluations_iom_entities to Cloud Security API Detections:read; "
+                "falcon_mcp/modules/cloud/cloud_iom.py _batch_get_iom_entities uses GET ids batches of 100; "
+                "search_iom_findings documents evaluation, cloud and resource response nesting; "
+                "falconpy/_endpoint/_cloud_security_detections.py confirms GET /cloud-security-evaluations/entities/ioms/v1"
+            ),
+        ),
+    ),
+    FalconOperation(
+        id="combined_cloud_risks",
+        method="GET",
+        path="/cloud-security-risks/combined/cloud-risks/v1",
+        scopes=("Cloud Security API Risks:read",),
+        effect="read",
+        evidence=Evidence(
+            doc_url="https://developer.crowdstrike.com/api-reference/collections/cloud-security/",
+            doc_scope="Cloud Security API Risks: READ",
+            falcon_mcp=(
+                "falcon_mcp/common/api_scopes.py maps combined_cloud_risks to Cloud Security API Risks:read; "
+                "falcon_mcp/modules/cloud/cloud_risks.py search_cloud_risks uses filter/limit/offset/sort; "
+                "falconpy/_endpoint/_cloud_security.py confirms GET /cloud-security-risks/combined/cloud-risks/v1"
             ),
         ),
     ),

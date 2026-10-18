@@ -1,0 +1,11 @@
+{
+  "name": "cloud-asset list",
+  "order": 2312,
+  "summary": "  cloud-asset list              list CSPM cloud assets",
+  "scopes": [
+    {
+      "scope": "Cloud Security API Assets:read",
+      "access": "read"
+    }
+  ]
+}

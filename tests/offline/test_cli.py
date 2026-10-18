@@ -54,6 +54,7 @@ def test_an_unknown_command_or_subcommand_fails_before_any_request() -> None:
         "indicator list, indicator show, identity activity, search start, search status, search stop, identity list, "
         "identity show, identity timeline, identity assessment, identity sensor list, identity sensor show, "
         "ioc list, ioc show, ioc hosts, ioc processes, host-group list, host-group members, policy list, policy members, "
+        "cloud-asset list, cloud-asset show, iom list, iom show, cloud-risk list, "
         "auth status, profile list, config path, scopes" in stdout
     )
     subcommand, _ = run(["detection", "contain"], recorded, dict(CREDENTIAL_ENV))

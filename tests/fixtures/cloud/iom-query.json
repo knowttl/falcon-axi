@@ -1,0 +1,16 @@
+{
+  "provenance": {
+    "operation": "cspm_evaluations_iom_queries",
+    "reference": "https://developer.crowdstrike.com/api-reference/collections/cloud-security-detections/",
+    "schema_read": "2026-10-18",
+    "provenance": "synthetic"
+  },
+  "response": {
+    "status": 200,
+    "headers": {},
+    "body": {
+      "resources": ["synthetic-iom-01", "synthetic-iom-02"],
+      "meta": {"pagination": {"total": 3, "offset": 0, "limit": 2}}
+    }
+  }
+}

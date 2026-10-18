@@ -1,0 +1,10 @@
+{
+  "name": "help-iom-show",
+  "argv": [
+    "iom",
+    "show",
+    "--help"
+  ],
+  "exit_code": 0,
+  "comment": "Cloud reads (design section 1.2.1) add cloud-asset list/show, iom list/show, and cloud-risk list. Five new read operations deliberately change help-top, unknown-command, and scopes. Risk show stays absent because no official detail endpoint or risk-id filter exists. Cloud fixtures are wholly synthetic; no tenant validation is claimed."
+}

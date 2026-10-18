@@ -1,0 +1,6 @@
+count: 2
+cloud_assets[2]{id,resource_name,resource_type,cloud_provider}:
+  synthetic-cloud-asset-01,synthetic-bucket,"AWS::S3::Bucket",aws
+  synthetic-cloud-asset-02,synthetic-instance,"AWS::EC2::Instance",aws
+continuation_cursor: eyJvcGVyYXRpb24iOiJjbG91ZF9zZWN1cml0eV9hc3NldHNfcXVlcmllcyIsIm1vZGVsIjoidG9rZW4iLCJwb3NpdGlvbiI6InN5bnRoZXRpYy1jbG91ZC1uZXh0IiwiZmluZ2VycHJpbnQiOiJiYTQ0YjI2YjQ4MzAyMTJlNmQ4YWFhNzQ2OWZiYzAzODg2NzgyMjNiYmU2ODIwZDgwZTJjNjU3ZTE1YTRkMmQ4In0
+help[2]: "Run `falcon-axi cloud-asset show <id>` for resource detail","Run `falcon-axi cloud-asset list --limit 2 --cursor eyJvcGVyYXRpb24iOiJjbG91ZF9zZWN1cml0eV9hc3NldHNfcXVlcmllcyIsIm1vZGVsIjoidG9rZW4iLCJwb3NpdGlvbiI6InN5bnRoZXRpYy1jbG91ZC1uZXh0IiwiZmluZ2VycHJpbnQiOiJiYTQ0YjI2YjQ4MzAyMTJlNmQ4YWFhNzQ2OWZiYzAzODg2NzgyMjNiYmU2ODIwZDgwZTJjNjU3ZTE1YTRkMmQ4In0` for the next page"

@@ -1,0 +1,7 @@
+falcon-axi iom show <id>
+
+The id is printed by `falcon-axi iom list`.
+Shows resource identity and security context without raw configuration blobs.
+Read-only; requires Cloud Security API Detections:read.
+
+Example: falcon-axi iom show synthetic-iom-01

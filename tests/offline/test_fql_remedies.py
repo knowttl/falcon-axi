@@ -18,6 +18,20 @@ from tests.support.recorded import CREDENTIAL_ENV, RecordedTransport, fixture, r
         ),
         ("host", "QueryDevicesByFilter", "PostDeviceDetailsV2", "hosts/query-page.json", "hostname:'WIN-*'"),
         (
+            "cloud-asset",
+            "cloud_security_assets_queries",
+            "cloud_security_assets_entities_get",
+            "cloud/assets-query.json",
+            "cloud_provider:'aws'",
+        ),
+        (
+            "iom",
+            "cspm_evaluations_iom_queries",
+            "cspm_evaluations_iom_entities",
+            "cloud/iom-query.json",
+            "severity:'critical'+status:'non-compliant'",
+        ),
+        (
             "identity sensor",
             "QuerySensorsByFilter",
             "GetSensorDetails",
@@ -55,6 +69,7 @@ def test_query_and_entity_filter_rejections_teach_the_failed_domains_fields(
     [
         (["host", "logins", "synthetic-id"], "QueryDeviceLoginHistoryV2", "host", "hostname:'WIN-*'"),
         (["vuln", "list", "--status", "open"], "combinedQueryVulnerabilities", "vuln", "status:'open'"),
+        (["cloud-risk", "list"], "combined_cloud_risks", "cloud-risk", "severity:'Critical'+status:'Open'"),
         (["host-group", "list", "--filter", "bad"], "queryCombinedHostGroups", "host-group", "group_type:'dynamic'"),
     ],
 )

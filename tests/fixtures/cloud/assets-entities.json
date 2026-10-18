@@ -1,0 +1,42 @@
+{
+  "provenance": {
+    "operation": "cloud_security_assets_entities_get",
+    "reference": "https://developer.crowdstrike.com/api-reference/collections/cloud-security-assets/",
+    "schema_read": "2026-10-18",
+    "provenance": "synthetic"
+  },
+  "response": {
+    "status": 200,
+    "headers": {},
+    "body": {
+      "resources": [
+        {
+          "id": "synthetic-cloud-asset-02",
+          "resource_name": "synthetic-instance",
+          "resource_type": "AWS::EC2::Instance",
+          "cloud_provider": "aws"
+        },
+        {
+          "id": "synthetic-cloud-asset-01",
+          "cid": "synthetic-cloud-cid",
+          "resource_id": "synthetic-bucket-id",
+          "resource_name": "synthetic-bucket",
+          "resource_type": "AWS::S3::Bucket",
+          "cloud_provider": "aws",
+          "account_id": "000000000001",
+          "account_name": "synthetic-account",
+          "region": "us-east-1",
+          "service": "S3",
+          "active": true,
+          "first_seen": "2026-10-01T00:00:00Z",
+          "updated_at": "2026-10-18T00:00:00Z",
+          "cloud_context": {
+            "publicly_exposed": true,
+            "detections": {"highest_severity": "critical"},
+            "raw_configuration": "synthetic-omitted-configuration"
+          }
+        }
+      ]
+    }
+  }
+}

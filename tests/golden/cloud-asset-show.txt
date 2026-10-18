@@ -1,0 +1,15 @@
+"cloud-asset":
+  id: synthetic-cloud-asset-01
+  resource_name: synthetic-bucket
+  resource_type: "AWS::S3::Bucket"
+  cloud_provider: aws
+  resource_id: synthetic-bucket-id
+  account_id: "000000000001"
+  account_name: synthetic-account
+  region: us-east-1
+  service: S3
+  active: true
+  first_seen: "2026-10-01T00:00:00Z"
+  updated_at: "2026-10-18T00:00:00Z"
+  cloud_context_publicly_exposed: true
+  cloud_context_detections_highest_severity: critical

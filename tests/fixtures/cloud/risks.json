@@ -1,0 +1,19 @@
+{
+  "provenance": {
+    "operation": "combined_cloud_risks",
+    "reference": "https://developer.crowdstrike.com/api-reference/collections/cloud-security/",
+    "schema_read": "2026-10-18",
+    "provenance": "synthetic"
+  },
+  "response": {
+    "status": 200,
+    "headers": {},
+    "body": {
+      "resources": [
+        {"id": "synthetic-risk-01", "rule_name": "Synthetic public bucket", "severity": "Critical", "status": "Open"},
+        {"id": "synthetic-risk-02", "rule_name": "Synthetic exposed instance", "severity": "High", "status": "Open"}
+      ],
+      "meta": {"pagination": {"total": 3, "offset": 0, "limit": 2}}
+    }
+  }
+}

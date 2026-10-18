@@ -1,0 +1,3 @@
+count: 0
+cloud_assets: 0 cloud_assets in this tenant
+help[1]: "Run `falcon-axi cloud-asset show <id>` for resource detail"
