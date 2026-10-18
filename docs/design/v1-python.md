@@ -121,7 +121,7 @@ flags, value flags, limit ceiling, positional argument, help, handler, operation
 Domain functions still accept a transport and session directly, and recorded outputs remain byte-identical.
 
 ```
-pyproject.toml                 name falcon-axi, console script falcon-axi = falcon_axi.cli:main
+pyproject.toml                 package metadata and console-script entry points (§8)
 falcon_axi/
   __init__.py
   __main__.py                  python -m falcon_axi
@@ -251,8 +251,8 @@ It reaches the network, so it is opt-in and never part of `verify`.
 
 ## 8. Packaging and distribution
 
-**Build.** `pyproject.toml` with the `hatchling` backend, static version, `[project.scripts] falcon-axi = "falcon_axi.cli:main"`.
-`uv build` produces the wheel and sdist; `uv lock` pins the two dependencies and their transitive closure for reproducible installs.
+**Build.** `pyproject.toml` defines the `hatchling` backend, static version, and console-script entry points under `[project.scripts]`.
+`uv build` produces the wheel and sdist; `uv lock` pins the declared dependencies and their transitive closure for reproducible installs.
 The sdist includes only `falcon_axi/`, `README.md`, `LICENSE`, `pyproject.toml`, generated package metadata, and Hatchling's automatically included root `.gitignore`.
 The wheel includes the package and generated distribution metadata, including the README long description and MIT license.
 Tests, fixtures, local configuration, and development automation are excluded from both archives.

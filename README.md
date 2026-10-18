@@ -573,7 +573,7 @@ The skill remains a separate installation through the command above.
 domain, scope, FQL, credential, and test reference only.
 It is not a fork base, not a dependency, and not part of falcon-axi at runtime: falcon-axi runs no
 MCP process, imports no `falcon_mcp` or `mcp` module, and installs neither.
-Its only runtime dependencies are `crowdstrike-falconpy` and `toon-format`.
+Runtime dependencies are declared in [`pyproject.toml`](pyproject.toml).
 
 ## License
 
