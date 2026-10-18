@@ -30,6 +30,7 @@ OperationId = Literal[
     "GetNotificationsDetailedV1",
     "QueryNotificationsExposedDataRecordsV1",
     "GetNotificationsExposedDataRecordsV1",
+    "GetSecurityChecksV3",
     "queryCombinedPreventionPolicies",
     "queryCombinedPreventionPolicyMembers",
     "queryCombinedSensorUpdatePoliciesV2",
@@ -243,6 +244,24 @@ CANONICAL: tuple[FalconOperation, ...] = (
                 "falcon_mcp/common/api_scopes.py maps GetNotificationsExposedDataRecordsV1 to Monitoring rules "
                 "(Falcon Intelligence Recon):read; falcon_mcp/modules/recon.py search_recon_exposed_data_records "
                 "hydrates ids with query parameters. falconpy/_endpoint/_recon.py corroborates the route and ids."
+            ),
+        ),
+    ),
+    FalconOperation(
+        id="GetSecurityChecksV3",
+        method="GET",
+        path="/saas-security/entities/checks/v3",
+        scopes=("SaaS Security:read",),
+        effect="read",
+        evidence=Evidence(
+            doc_url="https://developer.crowdstrike.com/api-reference/collections/saas-security/#getsecuritychecksv3",
+            doc_scope="SaaS Security (Falcon Shield): READ",
+            falcon_mcp=(
+                "falcon_mcp/common/api_scopes.py maps GetSecurityChecksV3 to SaaS Security:read; "
+                "https://github.com/CrowdStrike/falcon-mcp/blob/main/falcon_mcp/modules/shield.py "
+                "search_shield_checks sends id, status, impact, limit and offset; "
+                "falconpy/_endpoint/_saas_security.py maps GetSecurityChecksV3 to "
+                "GET /saas-security/entities/checks/v3"
             ),
         ),
     ),

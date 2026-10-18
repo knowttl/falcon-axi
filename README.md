@@ -21,7 +21,7 @@ What is shipped:
   operations, and a single permitted network sink;
 - AXI credential profiles and SecretRefs, per-call XDG paths, region selection and
   `X-Cs-Region` autodiscovery, Flight Control member-CID selection, `auth status`, `profile list`, and `config path`;
-- the home view and five read domains: `falcon-axi`, `detection list`, `detection show`, `host list`,
+- the home view and core read domains: `falcon-axi`, `detection list`, `detection show`, `host list`,
   `host show`, `host logins`, `account list`, `account show`, `vuln list`, `vuln show`, `cve list`, and `cve show`;
 - `detection summary`, an on-demand severity count with the same filters as `detection list`;
 - cloud inventory and findings: `cloud-asset list`, `cloud-asset show`, `iom list`, `iom show`,
@@ -29,6 +29,7 @@ What is shipped:
   See the [cloud contract](docs/design/v1.md#121-cloud-inventory-and-posture) for pagination, output, and the risk-detail limitation;
 - Discover inventory: `asset list`, `asset show`, `application list`, and `login list`, plus
   `host network <device_id>` for Falcon sensor-host IP and MAC address history;
+- Falcon Shield SaaS posture checks: `shield list` and `shield show`, using `SaaS Security:read`;
 - NG-SIEM search: `search start`, `search status`, and `search stop`, the three operations captain
   exception N1 admits;
 - Falcon Intelligence: `actor list`, `actor show` (including `--mitre` for JSON ATT&CK mappings),

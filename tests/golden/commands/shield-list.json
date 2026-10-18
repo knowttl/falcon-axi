@@ -1,0 +1,11 @@
+{
+  "name": "shield list",
+  "order": 2312,
+  "summary": "  shield list               list SaaS security posture checks",
+  "scopes": [
+    {
+      "scope": "SaaS Security:read",
+      "access": "read"
+    }
+  ]
+}

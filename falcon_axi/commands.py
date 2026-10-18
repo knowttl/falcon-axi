@@ -23,6 +23,7 @@ from falcon_axi import (
     search,
     sensor_usage,
     setup,
+    shield,
     vuln,
 )
 
@@ -47,6 +48,7 @@ COMMAND_SPECS = {
         cloud_asset.COMMAND_SPECS,
         iom.COMMAND_SPECS,
         cloud_risk.COMMAND_SPECS,
+        shield.COMMAND_SPECS,
         diagnostics.COMMAND_SPECS,
         scopes.COMMAND_SPECS,
         setup.COMMAND_SPECS,
