@@ -1,0 +1,11 @@
+falcon-axi host-group members <id> [--filter <FQL>] [--limit N] [--cursor <token>]
+
+--filter  FQL on host attributes: hostname, platform_name, status
+--limit   rows per call (default 20, ceiling 5000)
+--cursor  opaque continuation token
+
+Examples:
+  falcon-axi host-group members <id> --limit 100
+  falcon-axi host-group members <id> --filter "platform_name:'Windows'"
+
+Read-only; requires Host Groups:read. No membership changes are performed.

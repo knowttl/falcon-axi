@@ -1,0 +1,16 @@
+{
+  "name": "identity-assessment",
+  "argv": [
+    "identity",
+    "assessment",
+    "--domain",
+    "example.test"
+  ],
+  "responders": [
+    {
+      "op": "api_preempt_proxy_post_graphql",
+      "fixture": "identity/assessment.json"
+    }
+  ],
+  "exit_code": 0
+}

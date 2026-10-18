@@ -1,0 +1,24 @@
+{
+  "name": "host-list-filtered",
+  "argv": [
+    "host",
+    "list",
+    "--hostname",
+    "WIN-*",
+    "--platform",
+    "windows",
+    "--limit",
+    "2"
+  ],
+  "responders": [
+    {
+      "op": "QueryDevicesByFilter",
+      "fixture": "hosts/query-page.json"
+    },
+    {
+      "op": "PostDeviceDetailsV2",
+      "fixture": "hosts/details-page.json"
+    }
+  ],
+  "exit_code": 0
+}

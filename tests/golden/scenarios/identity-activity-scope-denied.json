@@ -1,0 +1,15 @@
+{
+  "name": "identity-activity-scope-denied",
+  "argv": [
+    "identity",
+    "activity",
+    "synthetic.user"
+  ],
+  "responders": [
+    {
+      "op": "StartSearchV1",
+      "fixture": "errors/403-scope.json"
+    }
+  ],
+  "exit_code": 1
+}

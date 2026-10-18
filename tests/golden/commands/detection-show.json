@@ -1,0 +1,11 @@
+{
+  "name": "detection show",
+  "order": 300,
+  "summary": "  detection show <id>       the full detail for one detection",
+  "scopes": [
+    {
+      "scope": "Alerts:read",
+      "access": "read"
+    }
+  ]
+}

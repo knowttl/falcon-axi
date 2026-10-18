@@ -10,10 +10,20 @@ from falcon_axi.transport.operations import OperationId, operation
 from falcon_axi.transport.types import FalconResponse
 
 _FILTER_WORDS = re.compile(r"\b(fql|filter|query)\b", re.IGNORECASE)
-_CLOUD_GUIDANCE = {
-    "Cloud Security API Assets:read": ("cloud-asset list", "cloud_provider:'aws'"),
-    "Cloud Security API Detections:read": ("iom list", "severity:'critical'+status:'non-compliant'"),
-    "Cloud Security API Risks:read": ("cloud-risk list", "severity:'Critical'+status:'Open'"),
+_INVENTORY_REMEDIES: dict[OperationId, tuple[str, str]] = {
+    "cloud_security_assets_queries": ("cloud-asset list", "cloud_provider:'aws'"),
+    "cloud_security_assets_entities_get": ("cloud-asset list", "cloud_provider:'aws'"),
+    "cspm_evaluations_iom_queries": ("iom list", "severity:'critical'+status:'non-compliant'"),
+    "cspm_evaluations_iom_entities": ("iom list", "severity:'critical'+status:'non-compliant'"),
+    "combined_cloud_risks": ("cloud-risk list", "severity:'Critical'+status:'Open'"),
+    "QueryVulnerabilities": ("cve list", "severity:'CRITICAL'"),
+    "GetVulnerabilities": ("cve list", "severity:'CRITICAL'"),
+    "combined_hosts": ("asset list", "entity_type:'managed'"),
+    "get_hosts": ("asset list", "entity_type:'managed'"),
+    "combined_applications": ("application list", "name:'Chrome'"),
+    "query_logins": ("login list", "login_status:'Failed'"),
+    "get_logins": ("login list", "login_status:'Failed'"),
+    "QueryGetNetworkAddressHistoryV1": ("host list", "hostname:'WIN-*'"),
 }
 
 #: License prerequisites for scope-denied remedies; provisioning guidance lives in README.md.
@@ -42,7 +52,15 @@ def trace_id(response: FalconResponse) -> str | None:
     return None
 
 
-def translate_falcon_error(response: FalconResponse, id: OperationId, subject: str, document: str | None = None) -> CliError:
+def translate_falcon_error(
+    response: FalconResponse,
+    id: OperationId,
+    subject: str,
+    document: str | None = None,
+    *,
+    filter_help: tuple[str, str] | None = None,
+    not_found_command: str = "detection list",
+) -> CliError:
     """Maps a Falcon failure onto falcon-axi's own envelope.
 
     Raw Falcon bodies, HTTP status numbers, and endpoint paths never reach stdout. `document` names
@@ -51,8 +69,8 @@ def translate_falcon_error(response: FalconResponse, id: OperationId, subject: s
     messages = falcon_messages(response)
     trace = trace_id(response)
     descriptor = operation(id)
+    remedy = _INVENTORY_REMEDIES.get(id)
     scopes = descriptor.scopes + (graphql_document(document).read_scopes if document else ())
-    cloud_guidance = next((_CLOUD_GUIDANCE[scope] for scope in scopes if scope in _CLOUD_GUIDANCE), None)
     details = {"trace_id": trace} if trace else {}
     if response.status == 400 and descriptor.effect == "graphql-query":
         # A GraphQL validation message says "query" and "field", which the FQL branch below would
@@ -68,16 +86,24 @@ def translate_falcon_error(response: FalconResponse, id: OperationId, subject: s
         )
     if response.status == 400:
         if any(_FILTER_WORDS.search(message) for message in messages):
-            if cloud_guidance:
-                command, example = cloud_guidance
+            if filter_help is not None:
+                command, example = filter_help
+            elif remedy:
+                command, example = remedy
             elif "Assets:read" in scopes:
                 command, example = "account list", "username:'synthetic-user'"
             elif "Hosts:read" in scopes:
                 command, example = "host list", "hostname:'WIN-*'"
+            elif "Host Groups:read" in scopes:
+                command, example = "host-group list", "group_type:'dynamic'"
+            elif "IOC Management:read" in scopes:
+                command, example = "ioc list", "type:'domain'"
             elif "Vulnerabilities:read" in scopes:
                 command, example = "vuln list", "status:'open'"
             elif "Indicators (Falcon Intelligence):read" in scopes:
                 command, example = "indicator list", "type:'domain'"
+            elif "Identity Protection Entities:read" in scopes:
+                command, example = "identity sensor list", "hostname:'SYNTH-DC-01'+status:'healthy'"
             else:
                 command, example = "detection list", "severity_name:'High'+status:'new'"
             return CliError(
@@ -145,7 +171,7 @@ def translate_falcon_error(response: FalconResponse, id: OperationId, subject: s
             {"required_scopes": list(scopes)},
         )
     if response.status == 404:
-        command = cloud_guidance[0] if cloud_guidance else "detection list"
+        command = remedy[0] if remedy else not_found_command
         return CliError(
             "NOT_FOUND",
             f"no {subject} matched that identifier",

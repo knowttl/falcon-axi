@@ -1,0 +1,8 @@
+{
+  "name": "policy-list-without-type",
+  "argv": [
+    "policy",
+    "list"
+  ],
+  "exit_code": 2
+}

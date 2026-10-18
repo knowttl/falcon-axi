@@ -1,0 +1,20 @@
+{
+  "name": "detection-list-no-total",
+  "argv": [
+    "detection",
+    "list",
+    "--limit",
+    "1"
+  ],
+  "responders": [
+    {
+      "op": "GetQueriesAlertsV2",
+      "fixture": "alerts/query-no-total.json"
+    },
+    {
+      "op": "PostEntitiesAlertsV2",
+      "fixture": "alerts/hydrate-detail.json"
+    }
+  ],
+  "exit_code": 0
+}

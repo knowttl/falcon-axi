@@ -1,0 +1,20 @@
+{
+  "name": "account-list-page",
+  "argv": [
+    "account",
+    "list",
+    "--limit",
+    "2"
+  ],
+  "responders": [
+    {
+      "op": "query_accounts",
+      "fixture": "discover/accounts-query-page.json"
+    },
+    {
+      "op": "get_accounts",
+      "fixture": "discover/accounts-details-page.json"
+    }
+  ],
+  "exit_code": 0
+}

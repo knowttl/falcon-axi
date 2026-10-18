@@ -1,0 +1,15 @@
+{
+  "name": "identity-sensor-list-scope-denied",
+  "argv": [
+    "identity",
+    "sensor",
+    "list"
+  ],
+  "responders": [
+    {
+      "op": "QuerySensorsByFilter",
+      "fixture": "errors/403-scope.json"
+    }
+  ],
+  "exit_code": 1
+}

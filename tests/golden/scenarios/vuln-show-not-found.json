@@ -1,0 +1,21 @@
+{
+  "name": "vuln-show-not-found",
+  "argv": [
+    "vuln",
+    "show",
+    "missing"
+  ],
+  "responders": [
+    {
+      "op": "getVulnerabilities",
+      "response": {
+        "status": 404,
+        "headers": {},
+        "body": {
+          "resources": []
+        }
+      }
+    }
+  ],
+  "exit_code": 1
+}

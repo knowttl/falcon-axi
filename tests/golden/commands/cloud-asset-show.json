@@ -1,0 +1,11 @@
+{
+  "name": "cloud-asset show",
+  "order": 2313,
+  "summary": "  cloud-asset show <id>         inspect one cloud-asset",
+  "scopes": [
+    {
+      "scope": "Cloud Security API Assets:read",
+      "access": "read"
+    }
+  ]
+}

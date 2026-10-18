@@ -1,0 +1,33 @@
+{
+  "provenance": {
+    "operation": "queryCombinedGroupMembers",
+    "reference": "https://developer.crowdstrike.com/api-reference/collections/host-group/",
+    "schema_read": "2026-10-18",
+    "provenance": "synthetic"
+  },
+  "response": {
+    "status": 200,
+    "headers": {},
+    "body": {
+      "meta": {
+        "pagination": {
+          "total": 4
+        }
+      },
+      "resources": [
+        {
+          "device_id": "synthetic-device-01",
+          "hostname": "SYNTHETIC-01",
+          "platform_name": "Linux",
+          "status": "normal"
+        },
+        {
+          "device_id": "synthetic-device-02",
+          "hostname": "SYNTHETIC-02",
+          "platform_name": "Windows",
+          "status": "normal"
+        }
+      ]
+    }
+  }
+}

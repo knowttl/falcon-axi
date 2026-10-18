@@ -1,0 +1,15 @@
+{
+  "name": "asset-show",
+  "argv": [
+    "asset",
+    "show",
+    "synthetic-asset-01"
+  ],
+  "responders": [
+    {
+      "op": "get_hosts",
+      "fixture": "discover/asset-one.json"
+    }
+  ],
+  "exit_code": 0
+}

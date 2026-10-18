@@ -1,0 +1,23 @@
+{
+  "name": "host-list-fields",
+  "comment": "Field selection appends columns to the default host row (design section 10.2).",
+  "argv": [
+    "host",
+    "list",
+    "--limit",
+    "2",
+    "--fields",
+    "status,os_version,agent_version"
+  ],
+  "responders": [
+    {
+      "op": "QueryDevicesByFilter",
+      "fixture": "hosts/query-page.json"
+    },
+    {
+      "op": "PostDeviceDetailsV2",
+      "fixture": "hosts/details-page.json"
+    }
+  ],
+  "exit_code": 0
+}

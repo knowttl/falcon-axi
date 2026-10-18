@@ -1,0 +1,17 @@
+# host logins
+
+host logins <device id>   recent interactive logins on one host
+
+```text
+uvx falcon-axi host logins <device id> [--since <window>] [--limit N]
+
+The device id is the agent id Falcon calls the AID, as printed by `uvx falcon-axi host list`.
+--since      window to read, such as 24h or 7d (default 7d, Falcon's own default)
+--limit      logins per host in this call (default 20, ceiling 100)
+
+Reports recent interactive logins from the Host Timeline as device_id, user_name, and
+login_time. It is a window, not a full audit trail: a host that returns its limit may have more.
+Example: uvx falcon-axi host logins abc123 --since 24h
+
+This command is read-only and requires only Hosts:read.
+```

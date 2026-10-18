@@ -1,0 +1,9 @@
+{
+  "name": "help-identity-list",
+  "argv": [
+    "identity",
+    "list",
+    "--help"
+  ],
+  "exit_code": 0
+}

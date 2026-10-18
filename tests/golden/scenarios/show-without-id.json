@@ -1,0 +1,8 @@
+{
+  "name": "show-without-id",
+  "argv": [
+    "detection",
+    "show"
+  ],
+  "exit_code": 2
+}

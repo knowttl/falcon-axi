@@ -1,0 +1,16 @@
+{
+  "name": "detection-summary",
+  "argv": [
+    "detection",
+    "summary",
+    "--since",
+    "24h"
+  ],
+  "responders": [
+    {
+      "op": "PostAggregatesAlertsV2",
+      "fixture": "alerts/aggregate-severity.json"
+    }
+  ],
+  "exit_code": 0
+}

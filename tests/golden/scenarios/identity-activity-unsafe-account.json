@@ -1,0 +1,9 @@
+{
+  "name": "identity-activity-unsafe-account",
+  "argv": [
+    "identity",
+    "activity",
+    "synthetic*"
+  ],
+  "exit_code": 2
+}

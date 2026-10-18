@@ -1,0 +1,8 @@
+{
+  "name": "identity-activity-without-account",
+  "argv": [
+    "identity",
+    "activity"
+  ],
+  "exit_code": 2
+}

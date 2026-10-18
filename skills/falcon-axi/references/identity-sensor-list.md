@@ -1,0 +1,14 @@
+# identity sensor list
+
+identity sensor list      list Identity Protection sensors
+
+```text
+uvx falcon-axi identity sensor list [--filter <FQL>] [--limit N] [--cursor <token>]
+
+--filter     Falcon Query Language expression for identity sensors
+--limit      rows in this call (default 20, ceiling 200)
+--cursor     opaque continuation token from a previous call
+
+Lists Identity Protection sensors with device_id, hostname, status, and agent_version.
+This command is read-only and requires Identity Protection Entities:read.
+```

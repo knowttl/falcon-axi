@@ -1,0 +1,10 @@
+{
+  "name": "policy-members-without-id",
+  "argv": [
+    "policy",
+    "members",
+    "--type",
+    "prevention"
+  ],
+  "exit_code": 2
+}

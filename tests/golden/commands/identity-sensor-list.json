@@ -1,0 +1,11 @@
+{
+  "name": "identity sensor list",
+  "order": 2302,
+  "summary": "  identity sensor list      list Identity Protection sensors",
+  "scopes": [
+    {
+      "scope": "Identity Protection Entities:read",
+      "access": "read"
+    }
+  ]
+}

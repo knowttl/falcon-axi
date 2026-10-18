@@ -1,0 +1,9 @@
+{
+  "name": "help-host-group-list",
+  "argv": [
+    "host-group",
+    "list",
+    "--help"
+  ],
+  "exit_code": 0
+}

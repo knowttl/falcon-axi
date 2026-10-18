@@ -1,0 +1,14 @@
+{
+  "name": "detection-list-empty-unfiltered",
+  "argv": [
+    "detection",
+    "list"
+  ],
+  "responders": [
+    {
+      "op": "GetQueriesAlertsV2",
+      "fixture": "alerts/query-empty.json"
+    }
+  ],
+  "exit_code": 0
+}

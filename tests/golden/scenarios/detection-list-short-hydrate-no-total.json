@@ -1,0 +1,30 @@
+{
+  "name": "detection-list-short-hydrate-no-total",
+  "argv": [
+    "detection",
+    "list",
+    "--limit",
+    "20"
+  ],
+  "responders": [
+    {
+      "op": "GetQueriesAlertsV2",
+      "generate": {
+        "kind": "ids",
+        "count": 20,
+        "total": null
+      }
+    },
+    {
+      "op": "PostEntitiesAlertsV2",
+      "generate": {
+        "kind": "hydrate",
+        "take": 18,
+        "severity_name": "Medium",
+        "tactic": "Discovery",
+        "hostname": "WIN-WS-11"
+      }
+    }
+  ],
+  "exit_code": 0
+}

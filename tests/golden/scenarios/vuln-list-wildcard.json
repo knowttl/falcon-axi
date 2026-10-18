@@ -1,0 +1,10 @@
+{
+  "name": "vuln-list-wildcard",
+  "argv": [
+    "vuln",
+    "list",
+    "--filter",
+    "cve.id:'CVE-*'"
+  ],
+  "exit_code": 2
+}

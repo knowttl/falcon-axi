@@ -1,0 +1,17 @@
+{
+  "name": "identity-timeline",
+  "argv": [
+    "identity",
+    "timeline",
+    "00000000-0000-4000-8000-000000000001",
+    "--category",
+    "threat"
+  ],
+  "responders": [
+    {
+      "op": "api_preempt_proxy_post_graphql",
+      "fixture": "identity/timeline-last-page.json"
+    }
+  ],
+  "exit_code": 0
+}

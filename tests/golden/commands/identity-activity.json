@@ -1,0 +1,11 @@
+{
+  "name": "identity activity",
+  "order": 1700,
+  "summary": "  identity activity <acct>  start a search for one account's identity events",
+  "scopes": [
+    {
+      "scope": "NGSIEM:write",
+      "access": "write"
+    }
+  ]
+}

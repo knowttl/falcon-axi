@@ -1,0 +1,19 @@
+{
+  "name": "actor-list-empty",
+  "argv": [
+    "actor",
+    "list"
+  ],
+  "responders": [
+    {
+      "op": "QueryIntelActorEntities",
+      "response": {
+        "status": 200,
+        "body": {
+          "resources": []
+        }
+      }
+    }
+  ],
+  "exit_code": 0
+}

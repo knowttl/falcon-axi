@@ -1,0 +1,11 @@
+{
+  "name": "iom list",
+  "order": 2314,
+  "summary": "  iom list              list cloud Indicators of Misconfiguration",
+  "scopes": [
+    {
+      "scope": "Cloud Security API Detections:read",
+      "access": "read"
+    }
+  ]
+}

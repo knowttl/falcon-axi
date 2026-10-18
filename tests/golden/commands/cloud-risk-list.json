@@ -1,0 +1,11 @@
+{
+  "name": "cloud-risk list",
+  "order": 2316,
+  "summary": "  cloud-risk list              list aggregated cloud risks",
+  "scopes": [
+    {
+      "scope": "Cloud Security API Risks:read",
+      "access": "read"
+    }
+  ]
+}

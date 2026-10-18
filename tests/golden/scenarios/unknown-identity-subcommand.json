@@ -1,0 +1,8 @@
+{
+  "name": "unknown-identity-subcommand",
+  "argv": [
+    "identity",
+    "disable"
+  ],
+  "exit_code": 2
+}

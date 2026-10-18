@@ -1,0 +1,15 @@
+{
+  "name": "identity-show",
+  "argv": [
+    "identity",
+    "show",
+    "00000000-0000-4000-8000-000000000001"
+  ],
+  "responders": [
+    {
+      "op": "api_preempt_proxy_post_graphql",
+      "fixture": "identity/entity-detail.json"
+    }
+  ],
+  "exit_code": 0
+}
