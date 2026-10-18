@@ -18,6 +18,8 @@ from falcon_axi.transport.operations import (
 #: Operations whose §2.2 corroboration is falconpy's generated table plus PSFalcon, because falcon-mcp
 #: has no tool for them, mapped to the falconpy endpoint module that lists each one.
 NO_FALCON_MCP_TOOL = {
+    "DevicesRanOn": "_iocs",
+    "ProcessesRanOn": "_iocs",
     "GetVulnerabilities": "_intel",
     "QueryDeviceLoginHistoryV2": "_hosts",
     "query_accounts": "_discover",
@@ -25,6 +27,48 @@ NO_FALCON_MCP_TOOL = {
 }
 
 EXPECTED = {
+    "indicator_search_v1": {
+        "method": "GET",
+        "path": "/iocs/queries/indicators/v1",
+        "scopes": ("IOC Management:read",),
+        "effect": "read",
+        "doc_scope": "IOC Management: READ",
+    },
+    "indicator_get_v1": {
+        "method": "GET",
+        "path": "/iocs/entities/indicators/v1",
+        "scopes": ("IOC Management:read",),
+        "effect": "read",
+        "doc_scope": "IOC Management: READ",
+    },
+    "DevicesRanOn": {
+        "method": "GET",
+        "path": "/indicators/queries/devices/v1",
+        "scopes": ("IOCs (Indicators of Compromise):read",),
+        "effect": "read",
+        "doc_scope": "IOCs (Indicators of Compromise): READ",
+    },
+    "ProcessesRanOn": {
+        "method": "GET",
+        "path": "/indicators/queries/processes/v1",
+        "scopes": ("IOCs (Indicators of Compromise):read",),
+        "effect": "read",
+        "doc_scope": "IOCs (Indicators of Compromise): READ",
+    },
+    "queryCombinedHostGroups": {
+        "method": "GET",
+        "path": "/devices/combined/host-groups/v1",
+        "scopes": ("Host Groups:read",),
+        "effect": "read",
+        "doc_scope": "Host groups: READ",
+    },
+    "queryCombinedGroupMembers": {
+        "method": "GET",
+        "path": "/devices/combined/host-group-members/v1",
+        "scopes": ("Host Groups:read",),
+        "effect": "read",
+        "doc_scope": "Host groups: READ",
+    },
     "GetQueriesAlertsV2": {
         "method": "GET",
         "path": "/alerts/queries/alerts/v2",

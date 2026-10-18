@@ -1,0 +1,6 @@
+count: 2 of 3 total
+iocs[2]{id,type,value,action}:
+  synthetic-ioc-01,domain,example.invalid,detect
+  synthetic-ioc-02,ipv4,192.0.2.25,no_action
+continuation_cursor: eyJvcGVyYXRpb24iOiJpbmRpY2F0b3Jfc2VhcmNoX3YxIiwibW9kZWwiOiJ0b2tlbiIsInBvc2l0aW9uIjoic3ludGhldGljLWFmdGVyIiwiZmluZ2VycHJpbnQiOiI2NGQxNzY0Mzk4M2FiZjk5MGNmMWMxOTg0YmM1YzM4YjdhYTk5ODZhMGNhYTg2NjYxNTdiYzA1MTkxMTVlM2VlIn0
+help[2]: "Run `falcon-axi ioc show <id>` for the indicator record","Run `falcon-axi ioc list --limit 2 --cursor eyJvcGVyYXRpb24iOiJpbmRpY2F0b3Jfc2VhcmNoX3YxIiwibW9kZWwiOiJ0b2tlbiIsInBvc2l0aW9uIjoic3ludGhldGljLWFmdGVyIiwiZmluZ2VycHJpbnQiOiI2NGQxNzY0Mzk4M2FiZjk5MGNmMWMxOTg0YmM1YzM4YjdhYTk5ODZhMGNhYTg2NjYxNTdiYzA1MTkxMTVlM2VlIn0` for the next page"

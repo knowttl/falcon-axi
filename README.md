@@ -8,7 +8,7 @@ ends with the commands that are worth running next.
 
 ## Status: partial implementation of the v1 design
 
-The package is real and installable, and it ships five read domains plus NG-SIEM search.
+The package is real and installable, and it ships Falcon read domains plus NG-SIEM search.
 The shipped and deferred commands are listed below; [`docs/design/v1.md`](docs/design/v1.md) owns the full v1 design.
 
 What is shipped:
@@ -31,10 +31,15 @@ What is shipped:
   fields when present) and `identity activity <account>`, a fixed NG-SIEM search over one account's
   Identity Protection events that adds no operation and no scope beyond N1's;
 - `falcon-axi scopes`, the command-to-scope matrix, available without making a request.
+- custom IOC reads: `ioc list`, `ioc show`, `ioc hosts <type:value>`, and
+  `ioc processes <type:value> --host <device_id>`;
+- host-group reads: `host-group list` and `host-group members <id>`.
+  IOC and host-group commands use `--limit` and `--cursor` for pagination.
+  They match documented API and SDK request shapes and have offline fixture coverage; they have not been tenant-validated.
 
 What is **not** shipped yet, so no output advertises it:
 
-- every domain `docs/design/v1.md` §1.3 defers, including intel actors, indicators, and reports,
+- the domains `docs/design/v1.md` §1.3 still defers, including intel actors, indicators, and reports,
   every NG-SIEM capability outside the three search lifecycle operations (no ingest, no lookup
   files, no parser or dashboard writes, and no Charlotte AI), and every Identity Protection capability
   beyond the directory and timeline: no standalone incident or security-assessment queries, no policy rules,
@@ -192,6 +197,11 @@ The default journal path is `$XDG_STATE_HOME/falcon-axi/writes.log`, or
 Invalid boolean values fail closed with `CONFIG_INVALID`.
 
 ## API client permissions
+
+Custom IOC inventory reads require `IOC Management:read`.
+IOC host and process observations require `IOCs (Indicators of Compromise):read`.
+Host-group inventory and membership reads require `Host Groups:read`.
+Run `falcon-axi scopes` for the complete command-to-scope matrix.
 
 Create the client in the Falcon console under Support and resources > API clients and keys.
 

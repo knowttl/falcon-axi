@@ -27,6 +27,12 @@ OperationId = Literal[
     "QueryDeviceLoginHistoryV2",
     "query_accounts",
     "get_accounts",
+    "indicator_search_v1",
+    "indicator_get_v1",
+    "DevicesRanOn",
+    "ProcessesRanOn",
+    "queryCombinedHostGroups",
+    "queryCombinedGroupMembers",
     "StartSearchV1",
     "GetSearchStatusV1",
     "StopSearchV1",
@@ -86,6 +92,86 @@ NGSIEM_DOC = "https://developer.crowdstrike.com/api-reference/collections/ngsiem
 IDENTITY_PROTECTION_DOC = "https://developer.crowdstrike.com/api-reference/collections/identity-protection/"
 
 CANONICAL: tuple[FalconOperation, ...] = (
+    FalconOperation(
+        id="indicator_search_v1",
+        method="GET",
+        path="/iocs/queries/indicators/v1",
+        scopes=("IOC Management:read",),
+        effect="read",
+        evidence=Evidence(
+            doc_url="https://developer.crowdstrike.com/api-reference/collections/ioc/#indicatorsearchv1",
+            doc_scope="IOC Management: READ",
+            falcon_mcp="falcon_mcp/common/api_scopes.py maps indicator_search_v1 to IOC Management:read; "
+            "falcon_mcp/modules/ioc.py search_iocs uses after pagination and then indicator_get_v1",
+        ),
+    ),
+    FalconOperation(
+        id="indicator_get_v1",
+        method="GET",
+        path="/iocs/entities/indicators/v1",
+        scopes=("IOC Management:read",),
+        effect="read",
+        evidence=Evidence(
+            doc_url="https://developer.crowdstrike.com/api-reference/collections/ioc/#indicatorgetv1",
+            doc_scope="IOC Management: READ",
+            falcon_mcp="falcon_mcp/common/api_scopes.py maps indicator_get_v1 to IOC Management:read; "
+            "falcon_mcp/modules/ioc.py search_iocs hydrates ids and restores query order",
+        ),
+    ),
+    FalconOperation(
+        id="DevicesRanOn",
+        method="GET",
+        path="/indicators/queries/devices/v1",
+        scopes=("IOCs (Indicators of Compromise):read",),
+        effect="read",
+        evidence=Evidence(
+            doc_url="https://developer.crowdstrike.com/api-reference/collections/iocs/#devicesranon",
+            doc_scope="IOCs (Indicators of Compromise): READ",
+            falcon_mcp="falcon-mcp has no tool for DevicesRanOn. "
+            "falconpy/_endpoint/_iocs.py maps DevicesRanOn to GET /indicators/queries/devices/v1. "
+            "PSFalcon public/indicators.ps1 Get-FalconIocHost wraps this read with type/value and offset/limit.",
+        ),
+    ),
+    FalconOperation(
+        id="ProcessesRanOn",
+        method="GET",
+        path="/indicators/queries/processes/v1",
+        scopes=("IOCs (Indicators of Compromise):read",),
+        effect="read",
+        evidence=Evidence(
+            doc_url="https://developer.crowdstrike.com/api-reference/collections/iocs/#processesranon",
+            doc_scope="IOCs (Indicators of Compromise): READ",
+            falcon_mcp="falcon-mcp has no tool for ProcessesRanOn. "
+            "falconpy/_endpoint/_iocs.py maps ProcessesRanOn to GET /indicators/queries/processes/v1. "
+            "PSFalcon public/indicators.ps1 Get-FalconIocProcess wraps this read; device_id is required.",
+        ),
+    ),
+    FalconOperation(
+        id="queryCombinedHostGroups",
+        method="GET",
+        path="/devices/combined/host-groups/v1",
+        scopes=("Host Groups:read",),
+        effect="read",
+        evidence=Evidence(
+            doc_url="https://developer.crowdstrike.com/api-reference/collections/host-group/#querycombinedhostgroups",
+            doc_scope="Host groups: READ",
+            falcon_mcp="falcon_mcp/common/api_scopes.py maps queryCombinedHostGroups to Host Groups:read; "
+            "falcon_mcp/modules/host_groups.py search_host_groups returns id/name/group_type/description",
+        ),
+    ),
+    FalconOperation(
+        id="queryCombinedGroupMembers",
+        method="GET",
+        path="/devices/combined/host-group-members/v1",
+        scopes=("Host Groups:read",),
+        effect="read",
+        evidence=Evidence(
+            doc_url="https://developer.crowdstrike.com/api-reference/collections/host-group/#querycombinedgroupmembers",
+            doc_scope="Host groups: READ",
+            falcon_mcp="falcon_mcp/common/api_scopes.py maps queryCombinedGroupMembers to Host Groups:read; "
+            "falcon_mcp/modules/host_groups.py search_host_group_members uses id and returns host entities",
+        ),
+    ),
     FalconOperation(
         id="GetQueriesAlertsV2",
         method="GET",
