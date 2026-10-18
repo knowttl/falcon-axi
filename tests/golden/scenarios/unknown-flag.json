@@ -1,0 +1,10 @@
+{
+  "name": "unknown-flag",
+  "argv": [
+    "detection",
+    "list",
+    "--sev",
+    "high"
+  ],
+  "exit_code": 2
+}

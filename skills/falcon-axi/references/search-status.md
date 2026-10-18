@@ -1,0 +1,17 @@
+# search status
+
+search status <id>        poll one search job and read its events
+
+```text
+uvx falcon-axi search status <search id> [--repository <name>]
+
+--repository the repository the job was started against (default search-all)
+
+One call is one poll: it reports running, cancelled, or done, and carries the events once
+the job is done. Compare parsed_query with the query you sent, because NG-SIEM turns an
+unrecognised word into a free-text stage rather than an error.
+
+Example: uvx falcon-axi search status abc123
+
+This command is read-only and requires only NGSIEM:read.
+```

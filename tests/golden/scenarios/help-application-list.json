@@ -1,0 +1,9 @@
+{
+  "name": "help-application-list",
+  "argv": [
+    "application",
+    "list",
+    "--help"
+  ],
+  "exit_code": 0
+}

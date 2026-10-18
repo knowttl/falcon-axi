@@ -1,0 +1,9 @@
+{
+  "name": "help-ioc-processes",
+  "argv": [
+    "ioc",
+    "processes",
+    "--help"
+  ],
+  "exit_code": 0
+}

@@ -1,0 +1,9 @@
+{
+  "name": "identity-show-not-a-guid",
+  "argv": [
+    "identity",
+    "show",
+    "synthetic-admin"
+  ],
+  "exit_code": 2
+}

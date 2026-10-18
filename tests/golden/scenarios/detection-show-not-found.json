@@ -1,0 +1,21 @@
+{
+  "name": "detection-show-not-found",
+  "argv": [
+    "detection",
+    "show",
+    "ldt:absent:0"
+  ],
+  "responders": [
+    {
+      "op": "PostEntitiesAlertsV2",
+      "response": {
+        "status": 200,
+        "headers": {},
+        "body": {
+          "resources": []
+        }
+      }
+    }
+  ],
+  "exit_code": 1
+}

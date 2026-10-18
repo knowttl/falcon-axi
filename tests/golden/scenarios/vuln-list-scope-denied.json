@@ -1,0 +1,16 @@
+{
+  "name": "vuln-list-scope-denied",
+  "argv": [
+    "vuln",
+    "list",
+    "--status",
+    "open"
+  ],
+  "responders": [
+    {
+      "op": "combinedQueryVulnerabilities",
+      "fixture": "errors/403-scope.json"
+    }
+  ],
+  "exit_code": 1
+}

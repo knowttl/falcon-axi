@@ -1,0 +1,7 @@
+{
+  "name": "version-long",
+  "argv": [
+    "--version"
+  ],
+  "exit_code": 0
+}

@@ -1,0 +1,15 @@
+{
+  "name": "search-stop",
+  "argv": [
+    "search",
+    "stop",
+    "synthetic-search-job-01"
+  ],
+  "responders": [
+    {
+      "op": "StopSearchV1",
+      "fixture": "ngsiem/stop-search.json"
+    }
+  ],
+  "exit_code": 0
+}

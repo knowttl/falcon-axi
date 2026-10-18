@@ -1,0 +1,15 @@
+{
+  "name": "vuln-show-scope-denied",
+  "argv": [
+    "vuln",
+    "show",
+    "synthetic-vulnerability-01"
+  ],
+  "responders": [
+    {
+      "op": "getVulnerabilities",
+      "fixture": "errors/403-scope.json"
+    }
+  ],
+  "exit_code": 1
+}

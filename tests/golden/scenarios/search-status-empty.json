@@ -1,0 +1,15 @@
+{
+  "name": "search-status-empty",
+  "argv": [
+    "search",
+    "status",
+    "synthetic-search-job-01"
+  ],
+  "responders": [
+    {
+      "op": "GetSearchStatusV1",
+      "fixture": "ngsiem/search-status-empty.json"
+    }
+  ],
+  "exit_code": 0
+}

@@ -1,0 +1,28 @@
+{
+  "name": "host-walk-budget-at-wall",
+  "argv": [
+    "host",
+    "list",
+    "--filter",
+    "platform_name:'Windows'",
+    "--all",
+    "--max-rows",
+    "9999"
+  ],
+  "responders": [
+    {
+      "op": "QueryDevicesByFilter",
+      "generate": {
+        "kind": "host-ids",
+        "total": 24310
+      }
+    },
+    {
+      "op": "PostDeviceDetailsV2",
+      "generate": {
+        "kind": "host-hydrate"
+      }
+    }
+  ],
+  "exit_code": 0
+}

@@ -1,0 +1,10 @@
+{
+  "name": "bad-since",
+  "argv": [
+    "detection",
+    "list",
+    "--since",
+    "yesterday"
+  ],
+  "exit_code": 2
+}

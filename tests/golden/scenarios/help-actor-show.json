@@ -1,0 +1,9 @@
+{
+  "name": "help-actor-show",
+  "argv": [
+    "actor",
+    "show",
+    "--help"
+  ],
+  "exit_code": 0
+}

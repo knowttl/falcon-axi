@@ -73,7 +73,8 @@ Its stage 1 scenarios are also the cross-language parity gate, because the TypeS
 replaced generated their expected documents.
 Changing any output means regenerating nothing; it means the change is a deliberate behavior change that must
 be argued in the design first, as stage 2's four changed stage 1 documents and stage 3's eight were.
-`tests/golden/scenarios.json`'s `comment` records which documents changed and why.
+`tests/golden/history.json` preserves the historical document-change explanations; new explanations belong in
+the affected `tests/golden/scenarios/<name>.json`.
 
 Two seams are worth knowing before changing them:
 
@@ -137,7 +138,8 @@ Read the `axi` skill at `~/.pi/agent/skills/axi/SKILL.md` and the TOON spec it p
 reviewing any CLI behavior here.
 `azure-axi` and `awx-axi` are the sibling references for these patterns; `docs/design/v1.md` §18 lists where
 their assumptions do **not** transfer to Falcon.
-`skills/falcon-axi/SKILL.md` is this repo's generated agent-facing skill; regenerate it with `uv run scripts/skill.py`.
+`skills/falcon-axi/SKILL.md` and its per-command `references/` are this repo's generated agent-facing skill;
+regenerate them with `uv run scripts/skill.py`.
 Its drift check runs in `scripts/verify.py`, and it must never name a command the CLI does not ship (`docs/design/v1.md` §12.2).
 
 ## Maintaining this file

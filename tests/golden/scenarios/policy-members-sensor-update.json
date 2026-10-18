@@ -1,0 +1,19 @@
+{
+  "name": "policy-members-sensor-update",
+  "argv": [
+    "policy",
+    "members",
+    "synthetic-policy-01",
+    "--type",
+    "sensor-update",
+    "--limit",
+    "2"
+  ],
+  "responders": [
+    {
+      "op": "queryCombinedSensorUpdatePolicyMembers",
+      "fixture": "policies/queryCombinedSensorUpdatePolicyMembers.json"
+    }
+  ],
+  "exit_code": 0
+}

@@ -1,0 +1,15 @@
+{
+  "name": "actor-show",
+  "argv": [
+    "actor",
+    "show",
+    "123456"
+  ],
+  "responders": [
+    {
+      "op": "GetIntelActorEntities",
+      "fixture": "intel/actor-one.json"
+    }
+  ],
+  "exit_code": 0
+}

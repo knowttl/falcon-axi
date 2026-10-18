@@ -1,0 +1,21 @@
+{
+  "name": "identity-assessment-empty",
+  "argv": [
+    "identity",
+    "assessment"
+  ],
+  "responders": [
+    {
+      "op": "api_preempt_proxy_post_graphql",
+      "response": {
+        "status": 200,
+        "body": {
+          "data": {
+            "securityAssessment": null
+          }
+        }
+      }
+    }
+  ],
+  "exit_code": 0
+}

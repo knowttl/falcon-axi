@@ -1,0 +1,30 @@
+{
+  "name": "detection-list-chunked-hydrate",
+  "argv": [
+    "detection",
+    "list",
+    "--limit",
+    "2500"
+  ],
+  "responders": [
+    {
+      "op": "GetQueriesAlertsV2",
+      "generate": {
+        "kind": "ids",
+        "count": 1002,
+        "total": 1002
+      }
+    },
+    {
+      "op": "PostEntitiesAlertsV2",
+      "generate": {
+        "kind": "hydrate",
+        "reverse": true,
+        "severity_name": "Medium",
+        "tactic": "Discovery",
+        "hostname": "WIN-WS-11"
+      }
+    }
+  ],
+  "exit_code": 0
+}

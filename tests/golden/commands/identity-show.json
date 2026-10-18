@@ -1,0 +1,15 @@
+{
+  "name": "identity show",
+  "order": 2200,
+  "summary": "  identity show <id>        one identity's risk, accounts, associations, and open incidents",
+  "scopes": [
+    {
+      "scope": "Identity Protection GraphQL:write",
+      "access": "write"
+    },
+    {
+      "scope": "Identity Protection Entities:read",
+      "access": "read"
+    }
+  ]
+}

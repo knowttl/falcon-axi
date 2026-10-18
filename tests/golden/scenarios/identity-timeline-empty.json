@@ -1,0 +1,17 @@
+{
+  "name": "identity-timeline-empty",
+  "argv": [
+    "identity",
+    "timeline",
+    "00000000-0000-4000-8000-000000000001",
+    "--since",
+    "24h"
+  ],
+  "responders": [
+    {
+      "op": "api_preempt_proxy_post_graphql",
+      "fixture": "identity/timeline-empty.json"
+    }
+  ],
+  "exit_code": 0
+}

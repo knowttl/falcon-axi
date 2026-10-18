@@ -1,0 +1,8 @@
+{
+  "name": "search-stop-without-id",
+  "argv": [
+    "search",
+    "stop"
+  ],
+  "exit_code": 2
+}

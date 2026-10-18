@@ -1,0 +1,15 @@
+{
+  "name": "identity list",
+  "order": 2100,
+  "summary": "  identity list             list Identity Protection users and endpoints with their risk",
+  "scopes": [
+    {
+      "scope": "Identity Protection GraphQL:write",
+      "access": "write"
+    },
+    {
+      "scope": "Identity Protection Entities:read",
+      "access": "read"
+    }
+  ]
+}
