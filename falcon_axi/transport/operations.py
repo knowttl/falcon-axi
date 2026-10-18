@@ -23,6 +23,13 @@ OperationId = Literal[
     "cspm_evaluations_iom_queries",
     "cspm_evaluations_iom_entities",
     "combined_cloud_risks",
+    "GetSensorUsageWeekly",
+    "QueryRulesV1",
+    "GetRulesV1",
+    "QueryNotificationsV1",
+    "GetNotificationsDetailedV1",
+    "QueryNotificationsExposedDataRecordsV1",
+    "GetNotificationsExposedDataRecordsV1",
     "queryCombinedPreventionPolicies",
     "queryCombinedPreventionPolicyMembers",
     "queryCombinedSensorUpdatePoliciesV2",
@@ -127,6 +134,118 @@ NGSIEM_DOC = "https://developer.crowdstrike.com/api-reference/collections/ngsiem
 IDENTITY_PROTECTION_DOC = "https://developer.crowdstrike.com/api-reference/collections/identity-protection/"
 
 CANONICAL: tuple[FalconOperation, ...] = (
+    FalconOperation(
+        id="GetSensorUsageWeekly",
+        method="GET",
+        path="/billing-dashboards-usage/aggregates/weekly-average/v1",
+        scopes=("Sensor Usage:read",),
+        effect="read",
+        evidence=Evidence(
+            doc_url="https://developer.crowdstrike.com/api-reference/collections/sensor-usage/",
+            doc_scope="Sensor Usage: READ",
+            falcon_mcp=(
+                "falcon_mcp/common/api_scopes.py maps GetSensorUsageWeekly to Sensor Usage:read; "
+                "falcon_mcp/modules/sensor_usage.py search_sensor_usage passes filter only. "
+                "falconpy/_endpoint/_sensor_usage.py corroborates the route and parameter."
+            ),
+        ),
+    ),
+    FalconOperation(
+        id="QueryRulesV1",
+        method="GET",
+        path="/recon/queries/rules/v1",
+        scopes=("Monitoring rules (Falcon Intelligence Recon):read",),
+        effect="read",
+        evidence=Evidence(
+            doc_url="https://developer.crowdstrike.com/api-reference/collections/recon/",
+            doc_scope="Monitoring rules (Falcon Intelligence Recon): READ",
+            falcon_mcp=(
+                "falcon_mcp/common/api_scopes.py maps QueryRulesV1 to Monitoring rules (Falcon Intelligence Recon):read; "
+                "falcon_mcp/modules/recon.py search_recon_rules queries ids with filter, limit and offset. "
+                "falconpy/_endpoint/_recon.py corroborates the route and parameters."
+            ),
+        ),
+    ),
+    FalconOperation(
+        id="GetRulesV1",
+        method="GET",
+        path="/recon/entities/rules/v1",
+        scopes=("Monitoring rules (Falcon Intelligence Recon):read",),
+        effect="read",
+        evidence=Evidence(
+            doc_url="https://developer.crowdstrike.com/api-reference/collections/recon/",
+            doc_scope="Monitoring rules (Falcon Intelligence Recon): READ",
+            falcon_mcp=(
+                "falcon_mcp/common/api_scopes.py maps GetRulesV1 to Monitoring rules (Falcon Intelligence Recon):read; "
+                "falcon_mcp/modules/recon.py search_recon_rules hydrates query ids with query parameters. "
+                "falconpy/_endpoint/_recon.py corroborates the route and ids parameter."
+            ),
+        ),
+    ),
+    FalconOperation(
+        id="QueryNotificationsV1",
+        method="GET",
+        path="/recon/queries/notifications/v1",
+        scopes=("Monitoring rules (Falcon Intelligence Recon):read",),
+        effect="read",
+        evidence=Evidence(
+            doc_url="https://developer.crowdstrike.com/api-reference/collections/recon/",
+            doc_scope="Monitoring rules (Falcon Intelligence Recon): READ",
+            falcon_mcp=(
+                "falcon_mcp/common/api_scopes.py maps QueryNotificationsV1 to Monitoring rules "
+                "(Falcon Intelligence Recon):read; falcon_mcp/modules/recon.py search_recon_notifications "
+                "queries ids with filter, limit and offset. falconpy/_endpoint/_recon.py corroborates the parameters."
+            ),
+        ),
+    ),
+    FalconOperation(
+        id="GetNotificationsDetailedV1",
+        method="GET",
+        path="/recon/entities/notifications-detailed/v1",
+        scopes=("Monitoring rules (Falcon Intelligence Recon):read",),
+        effect="read",
+        evidence=Evidence(
+            doc_url="https://developer.crowdstrike.com/api-reference/collections/recon/",
+            doc_scope="Monitoring rules (Falcon Intelligence Recon): READ",
+            falcon_mcp=(
+                "falcon_mcp/common/api_scopes.py maps GetNotificationsDetailedV1 to Monitoring rules "
+                "(Falcon Intelligence Recon):read; falcon_mcp/modules/recon.py search_recon_notifications "
+                "hydrates ids and reads fields from nested notification. falconpy/_endpoint/_recon.py corroborates ids."
+            ),
+        ),
+    ),
+    FalconOperation(
+        id="QueryNotificationsExposedDataRecordsV1",
+        method="GET",
+        path="/recon/queries/notifications-exposed-data-records/v1",
+        scopes=("Monitoring rules (Falcon Intelligence Recon):read",),
+        effect="read",
+        evidence=Evidence(
+            doc_url="https://developer.crowdstrike.com/api-reference/collections/recon/",
+            doc_scope="Monitoring rules (Falcon Intelligence Recon): READ",
+            falcon_mcp=(
+                "falcon_mcp/common/api_scopes.py maps QueryNotificationsExposedDataRecordsV1 to Monitoring rules "
+                "(Falcon Intelligence Recon):read; falcon_mcp/modules/recon.py search_recon_exposed_data_records "
+                "queries ids with filter, limit and offset. falconpy/_endpoint/_recon.py corroborates the parameters."
+            ),
+        ),
+    ),
+    FalconOperation(
+        id="GetNotificationsExposedDataRecordsV1",
+        method="GET",
+        path="/recon/entities/notifications-exposed-data-records/v1",
+        scopes=("Monitoring rules (Falcon Intelligence Recon):read",),
+        effect="read",
+        evidence=Evidence(
+            doc_url="https://developer.crowdstrike.com/api-reference/collections/recon/",
+            doc_scope="Monitoring rules (Falcon Intelligence Recon): READ",
+            falcon_mcp=(
+                "falcon_mcp/common/api_scopes.py maps GetNotificationsExposedDataRecordsV1 to Monitoring rules "
+                "(Falcon Intelligence Recon):read; falcon_mcp/modules/recon.py search_recon_exposed_data_records "
+                "hydrates ids with query parameters. falconpy/_endpoint/_recon.py corroborates the route and ids."
+            ),
+        ),
+    ),
     FalconOperation(
         id="queryCombinedPreventionPolicies",
         method="GET",

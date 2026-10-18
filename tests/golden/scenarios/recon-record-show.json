@@ -1,0 +1,16 @@
+{
+  "name": "recon-record-show",
+  "argv": [
+    "recon-record",
+    "show",
+    "synthetic-record-01"
+  ],
+  "responders": [
+    {
+      "op": "GetNotificationsExposedDataRecordsV1",
+      "fixture": "recon/records.json"
+    }
+  ],
+  "exit_code": 0,
+  "comment": "The sensor usage and Recon read slice adds seven commands (design section 2.4). Its list, show and help scenarios pin synthetic documented API shapes. help-top, unknown-command and scopes change to expose the new read commands and required scopes; transport enforcement and existing data outputs remain unchanged."
+}

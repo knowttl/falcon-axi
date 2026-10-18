@@ -1,0 +1,6 @@
+count: 2 of 4 total
+continuation_cursor: eyJvcGVyYXRpb24iOiJRdWVyeVJ1bGVzVjEiLCJtb2RlbCI6Im9mZnNldCIsInBvc2l0aW9uIjoyLCJmaW5nZXJwcmludCI6IjlkYzQ1MzQ5YjlmOGFkNjhjNjg4OTE0ODg0MzMzNjU1MGY2YjAwMTA3NjkxOWQ0YzZkODQ4YTg5YTk3YjZiNTEifQ
+records[2]{id,name,status,priority}:
+  synthetic-rule-01,Synthetic breach monitor,active,high
+  synthetic-rule-02,Synthetic domains,inactive,low
+help[2]: "Run `falcon-axi recon-rule show <id>` for the full record","Run `falcon-axi recon-rule list --limit 2 --cursor eyJvcGVyYXRpb24iOiJRdWVyeVJ1bGVzVjEiLCJtb2RlbCI6Im9mZnNldCIsInBvc2l0aW9uIjoyLCJmaW5nZXJwcmludCI6IjlkYzQ1MzQ5YjlmOGFkNjhjNjg4OTE0ODg0MzMzNjU1MGY2YjAwMTA3NjkxOWQ0YzZkODQ4YTg5YTk3YjZiNTEifQ` for the next page"

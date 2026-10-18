@@ -1,0 +1,3 @@
+count: 1
+usage[1]{date,chrome_os,containers,lumos,mobile,public_cloud_with_containers,public_cloud_without_containers,servers_with_containers,servers_without_containers,workstations}:
+  2026-10-11,0,3,0,0,2,1,4,5,42

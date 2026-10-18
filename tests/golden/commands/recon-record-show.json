@@ -1,0 +1,12 @@
+{
+  "name": "recon-record show",
+  "order": 2707,
+  "summary": "  recon-record show <id>        full record detail",
+  "scopes": [
+    {
+      "scope": "Monitoring rules (Falcon Intelligence Recon):read",
+      "access": "read",
+      "required": "yes"
+    }
+  ]
+}

@@ -1,0 +1,6 @@
+count: 2 of 4 total
+continuation_cursor: eyJvcGVyYXRpb24iOiJRdWVyeU5vdGlmaWNhdGlvbnNWMSIsIm1vZGVsIjoib2Zmc2V0IiwicG9zaXRpb24iOjIsImZpbmdlcnByaW50IjoiMGQ5ZGMxMDE3YzNjMGQzZDVhYWJkMTAzZDgwZDM2NGVkMmNlZjkwODQwZTUzYzljNDM1NDBkZTIzMTVhYTc5MSJ9
+records[2]{id,status,rule_name,created_date}:
+  synthetic-notification-01,new,Synthetic breach monitor,"2026-10-11T00:00:00Z"
+  synthetic-notification-02,in-progress,Synthetic domains,"2026-10-10T00:00:00Z"
+help[2]: "Run `falcon-axi recon-notification show <id>` for the full record","Run `falcon-axi recon-notification list --limit 2 --cursor eyJvcGVyYXRpb24iOiJRdWVyeU5vdGlmaWNhdGlvbnNWMSIsIm1vZGVsIjoib2Zmc2V0IiwicG9zaXRpb24iOjIsImZpbmdlcnByaW50IjoiMGQ5ZGMxMDE3YzNjMGQzZDVhYWJkMTAzZDgwZDM2NGVkMmNlZjkwODQwZTUzYzljNDM1NDBkZTIzMTVhYTc5MSJ9` for the next page"

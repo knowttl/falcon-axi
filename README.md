@@ -60,6 +60,14 @@ What is shipped:
   Both accept `--filter`, `--limit`, and `--cursor` and require only the selected type's read scope.
   Policy precedence, enable/disable, and writes are not exposed.
 
+- weekly sensor usage reports: `sensor-usage list [--filter <FQL>]`;
+- Falcon Recon reads: `recon-rule list|show`, `recon-notification list|show`, and
+  `recon-record list|show` for monitoring rules, notifications, and exposed-data records.
+  Lists take `--filter`, `--limit`, and `--cursor`.
+  Detail views preview long strings; pass `--full` for untruncated content.
+  See [the sensor usage and Recon contract](docs/design/v1.md#24-sensor-usage-and-falcon-recon-reads)
+  for API evidence and validation limits, and run `falcon-axi scopes` for permissions.
+
 What is **not** shipped yet, so no output advertises it:
 
 - every domain `docs/design/v1.md` §1.3 defers,
@@ -453,8 +461,9 @@ A GraphQL error reported on an HTTP 200 is an `UPSTREAM_ERROR`, never an empty r
 ## Output and errors
 
 Output is TOON on stdout.
-A non-empty list view prints a `count:` line, a compact domain-specific schema, and a `help[]` array of
+A non-empty list view generally prints a `count:` line, a compact domain-specific schema, and a `help[]` array of
 the next commands.
+Sensor usage reports follow [their output contract](docs/design/v1.md#24-sensor-usage-and-falcon-recon-reads).
 Empty results are stated explicitly rather than left as ambiguous silence.
 GraphQL identity pages report rows shown without a total; their schemas are defined in
 [the output contract](docs/design/v1.md#102-default-schemas).
@@ -507,6 +516,7 @@ Ask the command rather than guessing its flags.
 ## Pagination
 
 By default, one call reads one page.
+See [the sensor usage contract](docs/design/v1.md#24-sensor-usage-and-falcon-recon-reads) for its unpaginated reports.
 `--limit N` sets the rows for this call; `host logins` applies it to the selected host's login window.
 Use the command's `--help` for defaults and ceilings; the detailed limit contract lives in
 [`docs/design/v1.md` §7.3](docs/design/v1.md#73-default-limits).

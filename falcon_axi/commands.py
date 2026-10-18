@@ -16,8 +16,12 @@ from falcon_axi import (
     ioc,
     iom,
     policy,
+    recon_notification,
+    recon_record,
+    recon_rule,
     scopes,
     search,
+    sensor_usage,
     setup,
     vuln,
 )
@@ -46,6 +50,10 @@ COMMAND_SPECS = {
         diagnostics.COMMAND_SPECS,
         scopes.COMMAND_SPECS,
         setup.COMMAND_SPECS,
+        sensor_usage.COMMAND_SPECS,
+        recon_rule.COMMAND_SPECS,
+        recon_notification.COMMAND_SPECS,
+        recon_record.COMMAND_SPECS,
     )
     for spec in group
 }

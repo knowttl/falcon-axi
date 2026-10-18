@@ -1,0 +1,12 @@
+{
+  "name": "recon-notification list",
+  "order": 2704,
+  "summary": "  recon-notification list       list Recon notifications",
+  "scopes": [
+    {
+      "scope": "Monitoring rules (Falcon Intelligence Recon):read",
+      "access": "read",
+      "required": "yes"
+    }
+  ]
+}
