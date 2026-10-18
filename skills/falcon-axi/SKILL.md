@@ -41,8 +41,8 @@ Do not invent them; an unknown flag or command fails loudly.
 ## Commands
 
 `falcon-axi`: the home view - tenant line plus the five newest detections.
-`detection`: `list` (flags `--severity`, `--status`, `--product`, `--since`, `--filter`, `--limit`, `--cursor`),
-`show <composite id>` (flag `--full`).
+`detection`: see the [README workflow](../../README.md#workflow) for list, summary, and detail usage.
+Use `falcon-axi detection <subcommand> --help` for flags.
 `host`: `list` (flags `--hostname`, `--platform`, `--status`, `--since`, `--filter`, `--limit`, `--cursor`),
 `show <device id>`, `logins <device id>` (exactly one host; flags `--since`, `--limit`).
 `account`: `list` (flags `--filter`, `--limit`, `--cursor`), `show <account id>`; Discover accounts, which need the

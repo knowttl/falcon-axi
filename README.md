@@ -3,8 +3,8 @@
 An agent-facing CLI for reading the CrowdStrike Falcon platform from the shell, built to the
 [AXI](https://agentskills.io) standard for CLI tools that autonomous agents drive through shell execution.
 
-Output is token-efficient TOON on stdout, errors are structured documents rather than prose, and every view
-ends with the commands that are worth running next.
+Output is token-efficient TOON on stdout, errors are structured documents rather than prose, and contextual
+suggestions point to commands worth running next.
 
 ## Status: partial implementation of the v1 design
 
@@ -45,8 +45,7 @@ What is **not** shipped yet, so no output advertises it:
 - `--all` and `--max-rows`, and `--fields` on detection and host lists; list pagination takes
   `--limit` and `--cursor` only;
 
-`docs/design/v1.md` remains the authority for the full v1 surface, and its §17 open questions are
-still open. Nothing here answers one of them.
+`docs/design/v1.md` remains the authority for the full v1 surface; see §17 for open questions and resolutions.
 [`docs/design/v1-python.md`](docs/design/v1-python.md) amends it for language, HTTP client, test
 layout, and packaging: falcon-axi is pure Python on `crowdstrike-falconpy`, with no Node runtime and
 no MCP process anywhere.
