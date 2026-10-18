@@ -2551,6 +2551,144 @@
           "fixture": "discover/network-history.json"
         }
       ]
+    },
+    {
+      "name": "ioc-list",
+      "argv": [
+        "ioc",
+        "list",
+        "--limit",
+        "2"
+      ],
+      "responders": [
+        {
+          "op": "indicator_search_v1",
+          "fixture": "ioc/query-page.json"
+        },
+        {
+          "op": "indicator_get_v1",
+          "fixture": "ioc/details-page.json"
+        }
+      ]
+    },
+    {
+      "name": "ioc-show",
+      "argv": [
+        "ioc",
+        "show",
+        "synthetic-ioc-01"
+      ],
+      "responders": [
+        {
+          "op": "indicator_get_v1",
+          "fixture": "ioc/details-page.json"
+        }
+      ]
+    },
+    {
+      "name": "ioc-hosts",
+      "argv": [
+        "ioc",
+        "hosts",
+        "domain:example.invalid"
+      ],
+      "responders": [
+        {
+          "op": "DevicesRanOn",
+          "fixture": "ioc/hosts-page.json"
+        }
+      ]
+    },
+    {
+      "name": "ioc-processes",
+      "argv": [
+        "ioc",
+        "processes",
+        "domain:example.invalid",
+        "--host",
+        "synthetic-device-01"
+      ],
+      "responders": [
+        {
+          "op": "ProcessesRanOn",
+          "fixture": "ioc/processes-page.json"
+        }
+      ]
+    },
+    {
+      "name": "host-group-list",
+      "argv": [
+        "host-group",
+        "list"
+      ],
+      "responders": [
+        {
+          "op": "queryCombinedHostGroups",
+          "fixture": "host-groups/groups-page.json"
+        }
+      ]
+    },
+    {
+      "name": "host-group-members",
+      "argv": [
+        "host-group",
+        "members",
+        "synthetic-group-01"
+      ],
+      "responders": [
+        {
+          "op": "queryCombinedGroupMembers",
+          "fixture": "host-groups/members-page.json"
+        }
+      ]
+    },
+    {
+      "name": "help-ioc-list",
+      "argv": [
+        "ioc",
+        "list",
+        "--help"
+      ]
+    },
+    {
+      "name": "help-ioc-show",
+      "argv": [
+        "ioc",
+        "show",
+        "--help"
+      ]
+    },
+    {
+      "name": "help-ioc-hosts",
+      "argv": [
+        "ioc",
+        "hosts",
+        "--help"
+      ]
+    },
+    {
+      "name": "help-ioc-processes",
+      "argv": [
+        "ioc",
+        "processes",
+        "--help"
+      ]
+    },
+    {
+      "name": "help-host-group-list",
+      "argv": [
+        "host-group",
+        "list",
+        "--help"
+      ]
+    },
+    {
+      "name": "help-host-group-members",
+      "argv": [
+        "host-group",
+        "members",
+        "--help"
+      ]
     }
   ],
   "pagination_comment": "The shipped bounded walker (docs/design/v1.md sections 7.2 and 10.2) adds three wholly synthetic partial-read examples. The four list help documents, unknown-flag, and list-with-positional deliberately change to advertise --all and --max-rows. Existing data documents and scopes remain unchanged because no operation or permission changed.",

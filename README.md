@@ -47,6 +47,11 @@ What is shipped:
   results and emitting a continuation cursor only when the next position is reachable.
 - `--fields` on detection, host, and vuln lists to append selected columns to the default row.
 
+- custom IOC reads: `ioc list`, `ioc show`, `ioc hosts <type:value>`, and
+  `ioc processes <type:value> --host <device_id>`;
+- host-group reads: `host-group list` and `host-group members <id>`.
+  See [the command reference](docs/design/v1.md#141-custom-iocs-and-host-groups) for pagination and observation inputs.
+
 What is **not** shipped yet, so no output advertises it:
 
 - every domain `docs/design/v1.md` §1.3 defers,

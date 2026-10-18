@@ -77,6 +77,10 @@ def translate_falcon_error(response: FalconResponse, id: OperationId, subject: s
                 command, example = "account list", "username:'synthetic-user'"
             elif "Hosts:read" in scopes:
                 command, example = "host list", "hostname:'WIN-*'"
+            elif "Host Groups:read" in scopes:
+                command, example = "host-group list", "group_type:'dynamic'"
+            elif "IOC Management:read" in scopes:
+                command, example = "ioc list", "type:'domain'"
             elif "Vulnerabilities:read" in scopes:
                 command, example = "vuln list", "status:'open'"
             elif "Indicators (Falcon Intelligence):read" in scopes:
