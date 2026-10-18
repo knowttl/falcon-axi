@@ -198,7 +198,7 @@ The port is a refactor across languages, and v1.md's contract is the test.
   All remaining banner text and every other document stay byte-for-byte comparisons, so releases need no banner-only fixture update.
   The golden files are derived from synthetic fixtures, so they contain no tenant data and may be committed.
   A later stage may change one of those documents only as a deliberate surface change argued in v1.md first, and the affected `tests/golden/scenarios/<name>.json` records which documents changed and why.
-  Each scenario file owns its invocation, recorded responses, and exit code; its sibling `<name>.txt` owns the expected stdout.
+  Each scenario file owns its invocation, recorded responses, and exit code; `tests/golden/<name>.txt` owns the expected stdout or its template.
   `tests/golden/history.json` preserves explanations from the former shared scenario manifest.
   Shared command lists and scope tables are reconstructed from committed `tests/golden/commands/<command>.json` references, never from the running registry or freshly generated CLI output.
   Each reference pins a command's name, summary, ordered scopes and access, and discovery order.
@@ -405,7 +405,7 @@ What the stage 1 build learned that this design did not predict:
   The beta's empty-array divergence was superseded by stable encoder adoption (§8); `tests/offline/test_toon_parity.py` pins the current behavior.
   The encoder exposes no supported single-value escape helper, so the hand-formatted help block carries the TOON §7.1 escaping itself, in `falcon_axi/render.py`.
 - falconpy folds every `requests` exception into a synthetic `500` envelope, which would erase the TLS_UNTRUSTED and NETWORK_UNREACHABLE codes §9.2 owes the caller, and it returns raw bytes rather than a status for a body-less redirect. `falcon_axi/transport/harness.py` therefore passes falconpy a recording `requests.Session` and reads the status, headers, and body from the response falconpy issued rather than from falconpy's own container. falconpy still resolves and executes the operation.
-- The parity gate lives in `tests/golden/`: `scenarios/<name>.json` declares each offline invocation and its exit code, and `<name>.txt` pins its stdout, reconstructing shared sections from committed per-command references as described in §5.
+- The parity gate lives in `tests/golden/`; §5 owns its file layout and comparison contract.
   The original 52 TypeScript stage 1 invocations remain part of that gate.
 
 ## 11. Sources
