@@ -30,8 +30,7 @@ What is shipped:
 - identity-aware detections (`detection list --product idp`, with account and source-endpoint
   fields when present) and `identity activity <account>`, a fixed NG-SIEM search over one account's
   Identity Protection events that adds no operation and no scope beyond N1's;
-- `falcon-axi scopes`, the command-to-scope matrix, printed from the same operation registry the
-  transport enforces and without making a request.
+- `falcon-axi scopes`, the command-to-scope matrix, available without making a request.
 
 What is **not** shipped yet, so no output advertises it:
 

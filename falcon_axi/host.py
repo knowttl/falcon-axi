@@ -10,12 +10,13 @@ from collections.abc import Mapping, Sequence
 from typing import Any
 
 from falcon_axi.auth import Session
+from falcon_axi.command import CommandSpec, Invocation, string
 from falcon_axi.core import CliError
 from falcon_axi.credentials import Credential
 from falcon_axi.cursor import CursorContext, decode_offset, encode_cursor
-from falcon_axi.domain import CommandOutput, rate_limit_note, resources, text, total
+from falcon_axi.domain import DEFAULT_LIMIT, CommandOutput, rate_limit_note, resources, text, total
 from falcon_axi.falcon_error import falcon_messages, translate_falcon_error
-from falcon_axi.fql import HostQuery, describe_host_query, host_filter, window
+from falcon_axi.fql import HOST_STATUSES, PLATFORMS, HostQuery, describe_host_query, host_filter, window
 from falcon_axi.render import raw
 from falcon_axi.transport.types import RequestArgs, Transport
 
@@ -269,3 +270,118 @@ def host_logins(transport: Transport, session: Session, id: str, limit: int, sin
     if note:
         value["rate_limit"] = raw(note)
     return CommandOutput(value=value, help=tuple(help))
+
+
+def _host_list(ctx: Invocation) -> CommandOutput:
+    return list_hosts(
+        ctx.transport,
+        ctx.session,
+        query=_host_query_of(ctx.flags),
+        limit=ctx.limit,
+        cursor=ctx.text("cursor"),
+        credential=ctx.credential,
+        suggestion=ctx.suggestion,
+    )
+
+
+def _host_show(ctx: Invocation) -> CommandOutput:
+    return show_host(ctx.transport, ctx.session, ctx.positionals[0])
+
+
+def _host_logins(ctx: Invocation) -> CommandOutput:
+    return host_logins(
+        ctx.transport,
+        ctx.session,
+        ctx.positionals[0],
+        limit=ctx.limit,
+        since=ctx.text("since"),
+    )
+
+
+def _host_query_of(flags: Mapping[str, str | bool]) -> HostQuery:
+    return HostQuery(
+        filter=string(flags.get("filter")),
+        hostname=string(flags.get("hostname")),
+        platform=string(flags.get("platform")),
+        status=string(flags.get("status")),
+        since=string(flags.get("since")),
+    )
+
+
+COMMAND_SPECS = (
+    CommandSpec(
+        name="host list",
+        help="\n".join(
+            [
+                "falcon-axi host list [--hostname <name>] [--platform <name>] [--status <name>] "
+                "[--since <window>] [--filter <FQL>] [--limit N] [--cursor <token>]",
+                "",
+                "--hostname   hostname to match; Hosts filters accept wildcards, so WIN-* works",
+                f"--platform   one of {', '.join(PLATFORMS)}",
+                f"--status     one of {', '.join(HOST_STATUSES)}",
+                "--since      last_seen within a relative window such as 24h or 7d",
+                "--filter     raw FQL; + is AND, `,` is OR, values are single-quoted, relative dates are lowercase",
+                f"--limit      rows in this call (default {DEFAULT_LIMIT}, ceiling {QUERY_CEILING})",
+                "--cursor     opaque continuation token from a previous call",
+                "",
+                "Filterable fields include hostname, platform_name, os_version, agent_version, status,",
+                "last_seen, first_seen, machine_domain, and local_ip.",
+                "Examples:",
+                "  falcon-axi host list --platform windows --since 24h",
+                "  falcon-axi host list --filter \"hostname:'WIN-*'+platform_name:'Windows'\"",
+                "",
+                "This command is read-only and requires only Hosts:read. It reports containment status as",
+                "data and cannot change it.",
+            ]
+        ),
+        summary="  host list                 list hosts from the Falcon Hosts collection",
+        handler=_host_list,
+        operations=("QueryDevicesByFilter", "PostDeviceDetailsV2"),
+        flags=("filter", "hostname", "platform", "status", "since", "limit", "cursor"),
+        value_flags=("filter", "hostname", "platform", "status", "since", "limit", "cursor"),
+        limit_ceiling=(QUERY_CEILING, "Hosts query"),
+    ),
+    CommandSpec(
+        name="host show",
+        help="\n".join(
+            [
+                "falcon-axi host show <device id>",
+                "",
+                "The device id is the agent id Falcon calls the AID, as printed by `falcon-axi host list`.",
+                "",
+                "Example: falcon-axi host show abc123",
+                "",
+                "This command is read-only and requires only Hosts:read.",
+            ]
+        ),
+        summary="  host show <device id>     the full detail for one host",
+        handler=_host_show,
+        operations=("PostDeviceDetailsV2",),
+        positional=("device identifier", "Run `falcon-axi host list` to see current device identifiers"),
+    ),
+    CommandSpec(
+        name="host logins",
+        help="\n".join(
+            [
+                "falcon-axi host logins <device id> [--since <window>] [--limit N]",
+                "",
+                "The device id is the agent id Falcon calls the AID, as printed by `falcon-axi host list`.",
+                f"--since      window to read, such as 24h or 7d (default {LOGIN_DEFAULT_SINCE}, Falcon's own default)",
+                f"--limit      logins per host in this call (default {DEFAULT_LIMIT}, ceiling {LOGIN_CEILING})",
+                "",
+                "Reports recent interactive logins from the Host Timeline as device_id, user_name, and",
+                "login_time. It is a window, not a full audit trail: a host that returns its limit may have more.",
+                "Example: falcon-axi host logins abc123 --since 24h",
+                "",
+                "This command is read-only and requires only Hosts:read.",
+            ]
+        ),
+        summary="  host logins <device id>   recent interactive logins on one host",
+        handler=_host_logins,
+        operations=("QueryDeviceLoginHistoryV2",),
+        flags=("since", "limit"),
+        value_flags=("since", "limit"),
+        limit_ceiling=(LOGIN_CEILING, "Hosts login history"),
+        positional=("device identifier", "Run `falcon-axi host list` to see current device identifiers"),
+    ),
+)

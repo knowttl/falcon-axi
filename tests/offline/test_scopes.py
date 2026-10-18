@@ -3,7 +3,8 @@
 from toon_format import decode
 
 from falcon_axi.cli import COMMANDS, run
-from falcon_axi.scopes import COMMAND_OPERATIONS, scope_rows
+from falcon_axi.commands import COMMAND_SPECS
+from falcon_axi.scopes import scope_rows
 from falcon_axi.transport.graphql import GRAPHQL_DOCUMENTS
 from falcon_axi.transport.operations import OPERATIONS
 from tests.support.recorded import NO_CREDENTIAL_ENV, RecordedTransport
@@ -59,10 +60,10 @@ def test_the_identity_commands_list_their_per_document_read_scopes() -> None:
 
 
 def test_the_matrix_names_only_commands_the_cli_ships() -> None:
-    for command, _ in COMMAND_OPERATIONS:
-        assert command in COMMANDS
+    for spec in COMMAND_SPECS.values():
+        assert spec.name in COMMANDS
     named = {command for row in scope_rows() for command in row["commands"].split(", ")}
-    assert named == {command for command, _ in COMMAND_OPERATIONS}
+    assert named == {spec.name for spec in COMMAND_SPECS.values() if spec.operations}
 
 
 def test_it_preserves_the_unresolved_member_cid_question_rather_than_claiming_it_settled() -> None:

@@ -9,10 +9,11 @@ from collections.abc import Mapping, Sequence
 from typing import Any
 
 from falcon_axi.auth import Session
+from falcon_axi.command import CommandSpec, Invocation
 from falcon_axi.core import CliError
 from falcon_axi.credentials import Credential
 from falcon_axi.cursor import CursorContext, decode_offset, encode_cursor
-from falcon_axi.domain import CommandOutput, rate_limit_note, resources, text, total
+from falcon_axi.domain import DEFAULT_LIMIT, CommandOutput, rate_limit_note, resources, text, total
 from falcon_axi.falcon_error import translate_falcon_error
 from falcon_axi.render import raw
 from falcon_axi.transport.types import RequestArgs, Transport
@@ -169,3 +170,72 @@ def show_account(transport: Transport, session: Session, id: str) -> CommandOutp
     if aid:
         help.insert(0, f"Run `falcon-axi host logins {aid}` for recent interactive logins on its last login host")
     return CommandOutput(value={"account": detail}, help=tuple(help))
+
+
+def _account_list(ctx: Invocation) -> CommandOutput:
+    return list_accounts(
+        ctx.transport,
+        ctx.session,
+        filter=ctx.text("filter"),
+        limit=ctx.limit,
+        cursor=ctx.text("cursor"),
+        credential=ctx.credential,
+        suggestion=ctx.suggestion,
+    )
+
+
+def _account_show(ctx: Invocation) -> CommandOutput:
+    return show_account(ctx.transport, ctx.session, ctx.positionals[0])
+
+
+COMMAND_SPECS = (
+    CommandSpec(
+        name="account list",
+        help="\n".join(
+            [
+                "falcon-axi account list [--filter <FQL>] [--limit N] [--cursor <token>]",
+                "",
+                "--filter     raw FQL; + is AND, `,` is OR, values are single-quoted",
+                f"--limit      rows in this call (default {DEFAULT_LIMIT}, ceiling {QUERY_CEILING})",
+                "--cursor     opaque continuation token from a previous call",
+                "",
+                "Lists the accounts Falcon Discover has observed logging in on endpoints, which is an",
+                "endpoint-observed inventory and not an identity directory.",
+                "Filterable fields include username, account_name, account_type, login_domain, user_sid,",
+                "admin_privileges, local_admin_privileges, first_seen_timestamp, password_last_set_timestamp,",
+                "last_successful_login_timestamp, and last_failed_login_timestamp.",
+                "Examples:",
+                "  falcon-axi account list --filter \"admin_privileges:'Yes'\"",
+                "  falcon-axi account list --filter \"username:'svc-*'\"",
+                "",
+                "This command is read-only and requires only Assets:read, which is license-gated to Falcon",
+                "Discover or Exposure Management.",
+            ]
+        ),
+        summary="  account list              list Discover accounts observed on endpoints",
+        handler=_account_list,
+        operations=("query_accounts", "get_accounts"),
+        flags=("filter", "limit", "cursor"),
+        value_flags=("filter", "limit", "cursor"),
+        limit_ceiling=(QUERY_CEILING, "Discover accounts query"),
+    ),
+    CommandSpec(
+        name="account show",
+        help="\n".join(
+            [
+                "falcon-axi account show <account id>",
+                "",
+                "The account id is the identifier printed by `falcon-axi account list`.",
+                "",
+                "Example: falcon-axi account show abc123",
+                "",
+                "This command is read-only and requires only Assets:read, which is license-gated to Falcon",
+                "Discover or Exposure Management.",
+            ]
+        ),
+        summary="  account show <id>         the full detail for one account",
+        handler=_account_show,
+        operations=("get_accounts",),
+        positional=("account identifier", "Run `falcon-axi account list` to see current account identifiers"),
+    ),
+)

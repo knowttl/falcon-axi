@@ -7,13 +7,31 @@ from pathlib import Path
 import pytest
 from toon_format import decode
 
-from falcon_axi.cli import COMMAND_FLAGS, COMMANDS, VALUE_FLAGS, _followup_help, _suggestion_for, flag_guard, parse, run
+from falcon_axi.cli import COMMANDS, _followup_help, _suggestion_for, flag_guard, parse, run
+from falcon_axi.command import CommandSpec
+from falcon_axi.commands import COMMAND_SPECS
 from falcon_axi.core import CliError
 from falcon_axi.render import render, truncate
+from falcon_axi.transport.operations import OPERATIONS
 from falcon_axi.version import VERSION
 from tests.support.recorded import CREDENTIAL_ENV, RecordedTransport, fixture, serve
 
 REPO = Path(__file__).resolve().parent.parent.parent
+
+
+@pytest.mark.parametrize("spec", COMMAND_SPECS.values(), ids=lambda spec: spec.name)
+def test_every_registered_command_has_help_a_handler_and_operations(spec: CommandSpec) -> None:
+    recorded = RecordedTransport([])
+    stdout, exit_code = run([*spec.name.split(), "--help"], recorded, {})
+    assert exit_code == 0
+    assert stdout == spec.help + "\n"
+    assert stdout.startswith(f"falcon-axi {spec.name}")
+    assert callable(spec.handler)
+    assert isinstance(spec.operations, tuple)
+    assert all(operation in OPERATIONS for operation in spec.operations)
+    if spec.authentication == "standard":
+        assert spec.operations
+    assert recorded.requests == []
 
 
 def test_an_unknown_flag_is_rejected_by_name_with_the_valid_flags_inlined() -> None:
@@ -40,6 +58,17 @@ def test_an_unknown_command_or_subcommand_fails_before_any_request() -> None:
     assert "valid host subcommands: list, show" in host
     vuln, _ = run(["vuln", "show"], recorded, dict(CREDENTIAL_ENV))
     assert "valid vuln subcommands: list" in vuln
+    assert recorded.requests == []
+
+
+@pytest.mark.parametrize("command", [name for name in COMMANDS if " " in name])
+@pytest.mark.parametrize("flags", [[], ["--help"]])
+def test_a_multiword_command_in_one_argument_is_unknown(command: str, flags: list[str]) -> None:
+    recorded = RecordedTransport([])
+    stdout, exit_code = run([command, *flags], recorded, {})
+    assert exit_code == 2
+    assert decode(stdout)["error"] == f"unknown command {command}"
+    assert decode(stdout)["code"] == "VALIDATION_ERROR"
     assert recorded.requests == []
 
 
@@ -81,7 +110,7 @@ def test_unknown_profile_is_refused_rather_than_silently_ignored() -> None:
 )
 def test_continuation_arguments_survive_shell_parsing_and_expansion(command: str) -> None:
     value = 'O\'Brien * $HOME "quoted" \\ $(printf expanded); &|<> []\n'
-    flags = {name: value for name in ("region", *COMMAND_FLAGS[command]) if name in VALUE_FLAGS and name != "cursor"}
+    flags = {name: value for name in ("region", *COMMAND_SPECS[command].value_flags) if name != "cursor"}
     positionals = (value,) if command == "identity timeline" else ()
     help = _followup_help([f"Run `{_suggestion_for(command, flags, positionals)}` for the next page"], flags, None)
     suggestion = help[0].removeprefix("Run `").removesuffix("` for the next page")

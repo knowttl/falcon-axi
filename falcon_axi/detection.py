@@ -5,12 +5,13 @@ from collections.abc import Mapping, Sequence
 from typing import Any
 
 from falcon_axi.auth import Session
+from falcon_axi.command import CommandSpec, Invocation, string
 from falcon_axi.core import CliError
 from falcon_axi.credentials import Credential
 from falcon_axi.cursor import CursorContext, decode_offset, encode_cursor
-from falcon_axi.domain import CommandOutput, rate_limit_note, resources, text, total
+from falcon_axi.domain import DEFAULT_LIMIT, CommandOutput, rate_limit_note, resources, text, total
 from falcon_axi.falcon_error import translate_falcon_error
-from falcon_axi.fql import DetectionQuery, describe_detection_query, detection_filter
+from falcon_axi.fql import PRODUCTS, SEVERITIES, STATUSES, DetectionQuery, describe_detection_query, detection_filter
 from falcon_axi.identity import is_account_subject
 from falcon_axi.render import raw, truncate
 from falcon_axi.transport.types import RequestArgs, Transport
@@ -248,3 +249,86 @@ def show_detection(transport: Transport, session: Session, id: str, full: bool) 
     if rendered is not None:
         detail["cmdline"] = rendered[0]
     return CommandOutput(value={"detection": detail}, help=tuple(help))
+
+
+def _detection_list(ctx: Invocation) -> CommandOutput:
+    return list_detections(
+        ctx.transport,
+        ctx.session,
+        query=_detection_query_of(ctx.flags),
+        limit=ctx.limit,
+        cursor=ctx.text("cursor"),
+        credential=ctx.credential,
+        suggestion=ctx.suggestion,
+    )
+
+
+def _detection_show(ctx: Invocation) -> CommandOutput:
+    return show_detection(ctx.transport, ctx.session, ctx.positionals[0], bool(ctx.flags.get("full")))
+
+
+def _detection_query_of(flags: Mapping[str, str | bool]) -> DetectionQuery:
+    return DetectionQuery(
+        filter=string(flags.get("filter")),
+        severity=string(flags.get("severity")),
+        status=string(flags.get("status")),
+        since=string(flags.get("since")),
+        product=string(flags.get("product")),
+    )
+
+
+COMMAND_SPECS = (
+    CommandSpec(
+        name="detection list",
+        help="\n".join(
+            [
+                "falcon-axi detection list [--severity <name>] [--status <name>] [--product <name>] [--since <window>] "
+                "[--filter <FQL>] [--limit N] [--cursor <token>]",
+                "",
+                f"--severity   one of {', '.join(SEVERITIES)}",
+                f"--status     one of {', '.join(STATUSES)}",
+                f"--product    one of {', '.join(PRODUCTS)}; epp is endpoint alerts, idp is Identity Protection",
+                "--since      relative window such as 24h or 7d",
+                "--filter     raw FQL; + is AND, `,` is OR, values are single-quoted, relative dates are lowercase",
+                f"--limit      rows in this call (default {DEFAULT_LIMIT}, ceiling {QUERY_CEILING})",
+                "--cursor     opaque continuation token from a previous call",
+                "",
+                "Filterable fields include severity_name, status, product, tactic, technique, created_timestamp,",
+                "and device.hostname.",
+                "Identity Protection alerts have no device: their rows show the endpoint they came from as hostname",
+                "(or `n/a`) and add account, account_id, device_id, and product columns when the page holds any.",
+                "Examples:",
+                "  falcon-axi detection list --severity high --since 24h",
+                "  falcon-axi detection list --product idp --since 7d",
+                "  falcon-axi detection list --filter \"severity_name:'Critical'+status:'new'\"",
+                "",
+                "This command is read-only and requires only Alerts:read.",
+            ]
+        ),
+        summary="  detection list            list detections from the Falcon Alerts collection",
+        handler=_detection_list,
+        operations=("GetQueriesAlertsV2", "PostEntitiesAlertsV2"),
+        flags=("filter", "severity", "status", "product", "since", "limit", "cursor"),
+        value_flags=("filter", "severity", "status", "product", "since", "limit", "cursor"),
+        limit_ceiling=(QUERY_CEILING, "Alerts query"),
+    ),
+    CommandSpec(
+        name="detection show",
+        help="\n".join(
+            [
+                "falcon-axi detection show <composite id> [--full]",
+                "",
+                "--full       print long fields such as the command line without truncation",
+                "",
+                'Example: falcon-axi detection show "ldt:aid:1234"',
+                "",
+                "This command is read-only and requires only Alerts:read.",
+            ]
+        ),
+        summary="  detection show <id>       the full detail for one detection",
+        handler=_detection_show,
+        operations=("PostEntitiesAlertsV2",),
+        flags=("full",),
+        positional=("detection identifier", "Run `falcon-axi detection list` to see current detection identifiers"),
+    ),
+)
