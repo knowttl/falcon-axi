@@ -1,0 +1,25 @@
+{
+  "provenance": {
+    "operation": "QueryGetNetworkAddressHistoryV1",
+    "reference": "https://developer.crowdstrike.com/api-reference/collections/hosts/",
+    "schema_read": "2026-10-18",
+    "provenance": "synthetic"
+  },
+  "response": {
+    "status": 200,
+    "headers": {},
+    "body": [
+      {
+        "device_id": "synthetic-device-01",
+        "cid": "synthetic-cid",
+        "history": [
+          {
+            "ip_address": "192.0.2.10",
+            "mac_address": "02:00:00:00:00:01",
+            "timestamp": "2026-10-18T00:00:00Z"
+          }
+        ]
+      }
+    ]
+  }
+}

@@ -1,0 +1,17 @@
+{
+  "name": "ioc-processes",
+  "argv": [
+    "ioc",
+    "processes",
+    "domain:example.invalid",
+    "--host",
+    "synthetic-device-01"
+  ],
+  "responders": [
+    {
+      "op": "ProcessesRanOn",
+      "fixture": "ioc/processes-page.json"
+    }
+  ],
+  "exit_code": 0
+}

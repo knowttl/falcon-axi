@@ -1,0 +1,23 @@
+{
+  "name": "detection-list-fields",
+  "comment": "Field selection appends columns to the default detection row (design section 10.2).",
+  "argv": [
+    "detection",
+    "list",
+    "--limit",
+    "2",
+    "--fields",
+    "status,technique,created_timestamp"
+  ],
+  "responders": [
+    {
+      "op": "GetQueriesAlertsV2",
+      "fixture": "alerts/query-page.json"
+    },
+    {
+      "op": "PostEntitiesAlertsV2",
+      "fixture": "alerts/hydrate-page.json"
+    }
+  ],
+  "exit_code": 0
+}

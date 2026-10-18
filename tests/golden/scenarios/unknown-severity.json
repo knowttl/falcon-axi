@@ -1,0 +1,10 @@
+{
+  "name": "unknown-severity",
+  "argv": [
+    "detection",
+    "list",
+    "--severity",
+    "urgent"
+  ],
+  "exit_code": 2
+}

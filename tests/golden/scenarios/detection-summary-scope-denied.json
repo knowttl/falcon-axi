@@ -1,0 +1,14 @@
+{
+  "name": "detection-summary-scope-denied",
+  "argv": [
+    "detection",
+    "summary"
+  ],
+  "responders": [
+    {
+      "op": "PostAggregatesAlertsV2",
+      "fixture": "errors/403-scope.json"
+    }
+  ],
+  "exit_code": 1
+}

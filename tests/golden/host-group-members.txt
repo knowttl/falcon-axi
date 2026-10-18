@@ -1,0 +1,6 @@
+count: 2 of 4 total
+members[2]{device_id,hostname,platform_name,status}:
+  synthetic-device-01,SYNTHETIC-01,Linux,normal
+  synthetic-device-02,SYNTHETIC-02,Windows,normal
+continuation_cursor: eyJvcGVyYXRpb24iOiJxdWVyeUNvbWJpbmVkR3JvdXBNZW1iZXJzIiwibW9kZWwiOiJvZmZzZXQiLCJwb3NpdGlvbiI6MiwiZmluZ2VycHJpbnQiOiIwZGQ0MzE0NGIyMGU2YjM1YjQ5ZTRlMTFjMWUzMTNhNDVkZjI0MGY5MmVhMzM1Yzk2ZTc1MGE5ZGNjNTk4OTIzIn0
+help[2]: "Run `falcon-axi host show <device_id>` for host details","Run `falcon-axi host-group members synthetic-group-01 --cursor eyJvcGVyYXRpb24iOiJxdWVyeUNvbWJpbmVkR3JvdXBNZW1iZXJzIiwibW9kZWwiOiJvZmZzZXQiLCJwb3NpdGlvbiI6MiwiZmluZ2VycHJpbnQiOiIwZGQ0MzE0NGIyMGU2YjM1YjQ5ZTRlMTFjMWUzMTNhNDVkZjI0MGY5MmVhMzM1Yzk2ZTc1MGE5ZGNjNTk4OTIzIn0` for the next page"

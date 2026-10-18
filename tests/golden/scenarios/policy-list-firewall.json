@@ -1,0 +1,18 @@
+{
+  "name": "policy-list-firewall",
+  "argv": [
+    "policy",
+    "list",
+    "--type",
+    "firewall",
+    "--limit",
+    "2"
+  ],
+  "responders": [
+    {
+      "op": "queryCombinedFirewallPolicies",
+      "fixture": "policies/queryCombinedFirewallPolicies.json"
+    }
+  ],
+  "exit_code": 0
+}

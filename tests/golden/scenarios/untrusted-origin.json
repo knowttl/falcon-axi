@@ -1,0 +1,10 @@
+{
+  "name": "untrusted-origin",
+  "argv": [
+    "auth",
+    "status",
+    "--region",
+    "https://api.crowdstrike.com.example"
+  ],
+  "exit_code": 1
+}

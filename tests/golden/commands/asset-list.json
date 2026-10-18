@@ -1,0 +1,11 @@
+{
+  "name": "asset list",
+  "order": 801,
+  "summary": "  asset list                list Discover managed and unmanaged assets",
+  "scopes": [
+    {
+      "scope": "Assets:read",
+      "access": "read"
+    }
+  ]
+}

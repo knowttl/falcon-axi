@@ -1,0 +1,14 @@
+{
+  "name": "host-list-scope-denied",
+  "argv": [
+    "host",
+    "list"
+  ],
+  "responders": [
+    {
+      "op": "QueryDevicesByFilter",
+      "fixture": "errors/403-scope.json"
+    }
+  ],
+  "exit_code": 1
+}

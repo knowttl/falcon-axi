@@ -1,0 +1,15 @@
+{
+  "name": "host-show",
+  "argv": [
+    "host",
+    "show",
+    "synthetic-device-01"
+  ],
+  "responders": [
+    {
+      "op": "PostDeviceDetailsV2",
+      "fixture": "hosts/details-one.json"
+    }
+  ],
+  "exit_code": 0
+}

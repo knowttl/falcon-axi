@@ -1,0 +1,19 @@
+{
+  "name": "shield-list",
+  "argv": [
+    "shield",
+    "list",
+    "--status",
+    "failed",
+    "--impact",
+    "high"
+  ],
+  "responders": [
+    {
+      "op": "GetSecurityChecksV3",
+      "fixture": "shield/checks.json"
+    }
+  ],
+  "exit_code": 0,
+  "comment": "Shield posture checks add list, show, empty, scope-denied and help scenarios. help-top, unknown-command, scopes and auth-status scope documents deliberately change to expose the shipped read commands and SaaS Security:read (design section 10.6)."
+}

@@ -1,0 +1,15 @@
+{
+  "name": "search-status-not-found",
+  "argv": [
+    "search",
+    "status",
+    "synthetic-missing-job"
+  ],
+  "responders": [
+    {
+      "op": "GetSearchStatusV1",
+      "fixture": "ngsiem/job-not-found.json"
+    }
+  ],
+  "exit_code": 1
+}

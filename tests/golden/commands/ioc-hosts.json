@@ -1,0 +1,11 @@
+{
+  "name": "ioc hosts",
+  "order": 2306,
+  "summary": "  ioc hosts <type:value>  list observed hosts for a custom IOC",
+  "scopes": [
+    {
+      "scope": "IOCs (Indicators of Compromise):read",
+      "access": "read"
+    }
+  ]
+}

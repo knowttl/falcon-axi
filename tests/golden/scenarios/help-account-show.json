@@ -1,0 +1,9 @@
+{
+  "name": "help-account-show",
+  "argv": [
+    "account",
+    "show",
+    "--help"
+  ],
+  "exit_code": 0
+}

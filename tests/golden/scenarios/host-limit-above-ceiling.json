@@ -1,0 +1,10 @@
+{
+  "name": "host-limit-above-ceiling",
+  "argv": [
+    "host",
+    "list",
+    "--limit",
+    "5001"
+  ],
+  "exit_code": 2
+}

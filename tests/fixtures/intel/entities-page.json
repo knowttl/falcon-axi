@@ -1,0 +1,18 @@
+{
+  "provenance": {
+    "operation": "GetVulnerabilities",
+    "reference": "https://developer.crowdstrike.com/api-reference/collections/intel/",
+    "schema_read": "2026-10-18",
+    "provenance": "synthetic"
+  },
+  "response": {
+    "status": 200,
+    "headers": {},
+    "body": {
+      "resources": [
+        {"cve": "CVE-2099-0001", "severity": "HIGH", "cvss_v3_base": {"score": 7.5}, "exploit_status": "unproven"},
+        {"cve": "CVE-2099-0002", "severity": "CRITICAL", "cvss_v3_base": {"score": 10}, "exploit_status": "unproven"}
+      ]
+    }
+  }
+}

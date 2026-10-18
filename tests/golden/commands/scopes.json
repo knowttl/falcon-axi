@@ -1,0 +1,6 @@
+{
+  "name": "scopes",
+  "order": 2700,
+  "summary": "  scopes                    the command-to-scope matrix, with no request made",
+  "scopes": []
+}

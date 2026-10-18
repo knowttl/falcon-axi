@@ -1,0 +1,11 @@
+{
+  "name": "host network",
+  "order": 601,
+  "summary": "  host network <device id>  IP and MAC address history for one host",
+  "scopes": [
+    {
+      "scope": "Hosts:read",
+      "access": "read"
+    }
+  ]
+}

@@ -1,0 +1,15 @@
+{
+  "name": "identity-activity-start",
+  "argv": [
+    "identity",
+    "activity",
+    "00000000-0000-0000-0000-000000000001"
+  ],
+  "responders": [
+    {
+      "op": "StartSearchV1",
+      "fixture": "ngsiem/start-search.json"
+    }
+  ],
+  "exit_code": 0
+}

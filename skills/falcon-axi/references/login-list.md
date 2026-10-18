@@ -1,0 +1,18 @@
+# login list
+
+login list                list Discover-observed logins across assets
+
+```text
+uvx falcon-axi login list [--filter <FQL>] [--limit N] [--cursor <token>]
+
+Lists Discover-observed logins across assets; host logins reads one sensor host's timeline.
+--filter     raw FQL, including username, hostname, login_status, and login_timestamp
+--limit      rows in this call (default 20, ceiling 100)
+--cursor     opaque continuation token from a previous call
+
+Examples:
+  uvx falcon-axi login list --filter "login_type:'Interactive'"
+  uvx falcon-axi login list --filter "login_status:'Failed'"
+
+Read-only; requires Assets:read (Falcon Discover or Exposure Management).
+```

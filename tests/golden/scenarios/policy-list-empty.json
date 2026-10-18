@@ -1,0 +1,26 @@
+{
+  "name": "policy-list-empty",
+  "argv": [
+    "policy",
+    "list",
+    "--type",
+    "prevention"
+  ],
+  "responders": [
+    {
+      "op": "queryCombinedPreventionPolicies",
+      "response": {
+        "status": 200,
+        "body": {
+          "resources": [],
+          "meta": {
+            "pagination": {
+              "total": 0
+            }
+          }
+        }
+      }
+    }
+  ],
+  "exit_code": 0
+}

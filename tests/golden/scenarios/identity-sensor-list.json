@@ -1,0 +1,21 @@
+{
+  "name": "identity-sensor-list",
+  "argv": [
+    "identity",
+    "sensor",
+    "list",
+    "--limit",
+    "2"
+  ],
+  "responders": [
+    {
+      "op": "QuerySensorsByFilter",
+      "fixture": "identity/sensors-query.json"
+    },
+    {
+      "op": "GetSensorDetails",
+      "fixture": "identity/sensors-details.json"
+    }
+  ],
+  "exit_code": 0
+}

@@ -1,0 +1,11 @@
+{
+  "name": "shield show",
+  "order": 2313,
+  "summary": "  shield show <id>          detail for one SaaS security posture check",
+  "scopes": [
+    {
+      "scope": "SaaS Security:read",
+      "access": "read"
+    }
+  ]
+}

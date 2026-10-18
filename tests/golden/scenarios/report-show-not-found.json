@@ -1,0 +1,20 @@
+{
+  "name": "report-show-not-found",
+  "argv": [
+    "report",
+    "show",
+    "missing"
+  ],
+  "responders": [
+    {
+      "op": "GetIntelReportEntities",
+      "response": {
+        "status": 404,
+        "body": {
+          "resources": []
+        }
+      }
+    }
+  ],
+  "exit_code": 1
+}

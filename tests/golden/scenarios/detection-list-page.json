@@ -1,0 +1,20 @@
+{
+  "name": "detection-list-page",
+  "argv": [
+    "detection",
+    "list",
+    "--limit",
+    "2"
+  ],
+  "responders": [
+    {
+      "op": "GetQueriesAlertsV2",
+      "fixture": "alerts/query-page.json"
+    },
+    {
+      "op": "PostEntitiesAlertsV2",
+      "fixture": "alerts/hydrate-page.json"
+    }
+  ],
+  "exit_code": 0
+}

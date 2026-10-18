@@ -5,29 +5,31 @@ import argparse
 import sys
 from pathlib import Path
 
-from falcon_axi.skill import skill_markdown
+from falcon_axi.skill import skill_files
 
 REPO = Path(__file__).resolve().parent.parent
-SKILL_FILE = REPO / "skills/falcon-axi/SKILL.md"
+SKILL_ROOT = REPO / "skills/falcon-axi"
 
 
 def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--check", action="store_true", help="fail if the committed skill is stale; write nothing")
     args = parser.parse_args(argv)
-    expected = skill_markdown()
+    expected = skill_files()
+    actual = {path.relative_to(SKILL_ROOT).as_posix(): path.read_text(encoding="utf-8") for path in SKILL_ROOT.rglob("*.md")}
     if args.check:
-        try:
-            actual = SKILL_FILE.read_text(encoding="utf-8")
-        except OSError:
-            actual = None
         if actual != expected:
-            sys.stderr.write("SKILL.md is stale; run `uv run scripts/skill.py` to regenerate\n")
+            sys.stderr.write("skill files are stale; run `uv run scripts/skill.py` to regenerate\n")
             return 1
-        sys.stdout.write("SKILL.md is current\n")
+        sys.stdout.write("skill files are current\n")
     else:
-        SKILL_FILE.write_text(expected, encoding="utf-8")
-        sys.stdout.write("wrote skills/falcon-axi/SKILL.md\n")
+        for name, content in expected.items():
+            target = SKILL_ROOT / name
+            target.parent.mkdir(parents=True, exist_ok=True)
+            target.write_text(content, encoding="utf-8")
+        for name in actual.keys() - expected.keys():
+            (SKILL_ROOT / name).unlink()
+        sys.stdout.write("wrote skills/falcon-axi/\n")
     return 0
 
 
