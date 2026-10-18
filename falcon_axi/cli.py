@@ -321,6 +321,8 @@ def _followup_help(help: Sequence[str], flags: Mapping[str, str | bool], member_
     contextual = tuple(command.sub(lambda match: f"`{match.group(1)}{suffix}`", item) for item in help)
     if member_cid and any(command.search(item) for item in help):
         contextual += ("Supply the same tenant selection used for this invocation when following these suggestions",)
+    if any(command.search(item) and "<original-filter>" in item for item in help):
+        contextual += ("Replace <original-filter> with your original --filter value when continuing; CID filters are not echoed",)
     return contextual
 
 

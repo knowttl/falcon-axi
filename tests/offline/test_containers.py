@@ -41,6 +41,54 @@ CASES = [
 FILTER = "repository:'example/service'"
 
 
+@pytest.mark.parametrize(
+    "command,operation,path,empty",
+    [
+        ("container list", "ReadContainerCombined", "containers/containers-page.json", {"resources": []}),
+        ("image list", "GetCombinedImages", "containers/images-page.json", {"resources": []}),
+        (
+            "image vulnerabilities",
+            "ReadCombinedVulnerabilities",
+            "containers/vulnerabilities-page.json",
+            {"resources": []},
+        ),
+        ("serverless list", "GetCombinedVulnerabilitiesSARIF", "serverless/vulnerabilities-page.json", {"runs": []}),
+    ],
+)
+@pytest.mark.parametrize(
+    "filter",
+    [
+        "cid:'synthetic-child-cid'",
+        "severity:'HIGH'+(cid: ['synthetic-child-cid'])",
+        "CID : 'synthetic-child-cid'",
+        "#repo.cid:'synthetic-child-cid'",
+        "member_cid:'synthetic-child-cid'",
+    ],
+)
+def test_cid_filter_continuation_omits_literals_and_reuses_the_original_query(
+    command: str, operation: str, path: str, empty: dict, filter: str, capsys: pytest.CaptureFixture[str]
+) -> None:
+    recorded = RecordedTransport([serve(operation, fixture(path))])
+    stdout, code = run([*command.split(), "--filter", filter, "--limit", "2"], recorded, dict(CREDENTIAL_ENV))
+    assert code == 0
+    assert "synthetic-child-cid" not in stdout + capsys.readouterr().err
+    assert recorded.operation_requests(operation)[0].query["filter"] == filter
+    document = decode(stdout)
+    assert document["help"][-1] == (
+        "Replace <original-filter> with your original --filter value when continuing; CID filters are not echoed"
+    )
+    suggestion = document["help"][-2].split("`", 2)[1]
+    next_command = shlex.split(suggestion)[1:]
+    filter_index = next_command.index("--filter") + 1
+    assert next_command[filter_index] == "<original-filter>"
+    next_command[filter_index] = filter
+    resumed = RecordedTransport([serve(operation, response(200, empty))])
+    _, next_code = run(next_command, resumed, dict(CREDENTIAL_ENV))
+    assert next_code == 0
+    assert resumed.operation_requests(operation)[0].query["filter"] == filter
+    assert resumed.operation_requests(operation)[0].query["offset"] == 2
+
+
 def cursor_at(command: str, sort: str, offset: int, filter: str | None = None) -> str:
     return encode_cursor(
         offset,
