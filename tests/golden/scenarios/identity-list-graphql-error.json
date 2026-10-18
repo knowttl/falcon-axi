@@ -1,0 +1,14 @@
+{
+  "name": "identity-list-graphql-error",
+  "argv": [
+    "identity",
+    "list"
+  ],
+  "responders": [
+    {
+      "op": "api_preempt_proxy_post_graphql",
+      "fixture": "identity/graphql-errors-on-200.json"
+    }
+  ],
+  "exit_code": 1
+}

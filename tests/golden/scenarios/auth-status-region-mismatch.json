@@ -1,0 +1,23 @@
+{
+  "name": "auth-status-region-mismatch",
+  "argv": [
+    "auth",
+    "status"
+  ],
+  "oauth": [
+    {
+      "response": {
+        "status": 201,
+        "headers": {
+          "x-cs-region": "us-gov-2"
+        },
+        "body": {
+          "access_token": "synthetic-access-token",
+          "expires_in": 1799,
+          "token_type": "bearer"
+        }
+      }
+    }
+  ],
+  "exit_code": 1
+}

@@ -1,0 +1,9 @@
+{
+  "name": "help-report-show",
+  "argv": [
+    "report",
+    "show",
+    "--help"
+  ],
+  "exit_code": 0
+}

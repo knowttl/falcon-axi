@@ -1,0 +1,14 @@
+{
+  "name": "identity-assessment-scope-denied",
+  "argv": [
+    "identity",
+    "assessment"
+  ],
+  "responders": [
+    {
+      "op": "api_preempt_proxy_post_graphql",
+      "fixture": "identity/graphql-403-scope.json"
+    }
+  ],
+  "exit_code": 1
+}

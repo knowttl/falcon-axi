@@ -1,0 +1,29 @@
+# detection list
+
+detection list            list detections from the Falcon Alerts collection
+
+```text
+uvx falcon-axi detection list [--severity <name>] [--status <name>] [--product <name>] [--since <window>] [--filter <FQL>] [--limit N] [--cursor <token>] [--all] [--max-rows N] [--fields <names>]
+
+--severity   one of informational, low, medium, high, critical
+--status     one of new, in_progress, closed, reopened
+--product    one of epp, idp, mobile, xdr, overwatch, cwpp, ngsiem, thirdparty, data-protection; epp is endpoint alerts, idp is Identity Protection
+--since      relative window such as 24h or 7d
+--filter     raw FQL; + is AND, `,` is OR, values are single-quoted, relative dates are lowercase
+--limit      rows in this call (default 20, ceiling 10000)
+--cursor     opaque continuation token from a previous call
+--all        walk pages; page size is independent of --limit
+--max-rows   row budget (default 1000; requires --all)
+--fields     extra columns, comma-separated: status, technique, created_timestamp
+
+Filterable fields include severity_name, status, product, tactic, technique, created_timestamp,
+and device.hostname.
+Identity Protection alerts have no device: their rows show the endpoint they came from as hostname
+(or `n/a`) and add account, account_id, device_id, and product columns when the page holds any.
+Examples:
+  uvx falcon-axi detection list --severity high --since 24h
+  uvx falcon-axi detection list --product idp --since 7d
+  uvx falcon-axi detection list --filter "severity_name:'Critical'+status:'new'"
+
+This command is read-only and requires only Alerts:read.
+```

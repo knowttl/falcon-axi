@@ -1,0 +1,25 @@
+{
+  "name": "error-not-found-on-query",
+  "argv": [
+    "detection",
+    "list"
+  ],
+  "responders": [
+    {
+      "op": "GetQueriesAlertsV2",
+      "response": {
+        "status": 404,
+        "headers": {},
+        "body": {
+          "errors": [
+            {
+              "code": 404,
+              "message": "not found"
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "exit_code": 1
+}

@@ -1,0 +1,8 @@
+{
+  "name": "unknown-vuln-subcommand",
+  "argv": [
+    "vuln",
+    "show"
+  ],
+  "exit_code": 2
+}

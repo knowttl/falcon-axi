@@ -1,0 +1,8 @@
+{
+  "name": "help-scopes",
+  "argv": [
+    "scopes",
+    "--help"
+  ],
+  "exit_code": 0
+}

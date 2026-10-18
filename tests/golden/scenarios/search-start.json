@@ -1,0 +1,16 @@
+{
+  "name": "search-start",
+  "argv": [
+    "search",
+    "start",
+    "--query",
+    "#event_simpleName=ProcessRollup2 | head(2)"
+  ],
+  "responders": [
+    {
+      "op": "StartSearchV1",
+      "fixture": "ngsiem/start-search.json"
+    }
+  ],
+  "exit_code": 0
+}

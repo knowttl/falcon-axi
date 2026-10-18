@@ -1,0 +1,19 @@
+{
+  "name": "policy-members-prevention",
+  "argv": [
+    "policy",
+    "members",
+    "synthetic-policy-01",
+    "--type",
+    "prevention",
+    "--limit",
+    "2"
+  ],
+  "responders": [
+    {
+      "op": "queryCombinedPreventionPolicyMembers",
+      "fixture": "policies/queryCombinedPreventionPolicyMembers.json"
+    }
+  ],
+  "exit_code": 0
+}

@@ -1,0 +1,11 @@
+{
+  "name": "host list",
+  "order": 400,
+  "summary": "  host list                 list hosts from the Falcon Hosts collection",
+  "scopes": [
+    {
+      "scope": "Hosts:read",
+      "access": "read"
+    }
+  ]
+}

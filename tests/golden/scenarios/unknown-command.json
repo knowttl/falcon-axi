@@ -1,0 +1,8 @@
+{
+  "name": "unknown-command",
+  "argv": [
+    "incident",
+    "list"
+  ],
+  "exit_code": 2
+}

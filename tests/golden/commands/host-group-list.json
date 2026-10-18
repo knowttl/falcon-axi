@@ -1,0 +1,11 @@
+{
+  "name": "host-group list",
+  "order": 2308,
+  "summary": "  host-group list     list host-group list",
+  "scopes": [
+    {
+      "scope": "Host Groups:read",
+      "access": "read"
+    }
+  ]
+}

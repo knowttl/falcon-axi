@@ -1,0 +1,32 @@
+{
+  "name": "detection-list-at-the-wall",
+  "argv": [
+    "detection",
+    "list",
+    "--limit",
+    "20"
+  ],
+  "cursor": {
+    "position": 9990
+  },
+  "responders": [
+    {
+      "op": "GetQueriesAlertsV2",
+      "generate": {
+        "kind": "ids",
+        "count": 10,
+        "total": 41892
+      }
+    },
+    {
+      "op": "PostEntitiesAlertsV2",
+      "generate": {
+        "kind": "hydrate",
+        "severity_name": "Low",
+        "tactic": "Discovery",
+        "hostname": "WIN-WS-07"
+      }
+    }
+  ],
+  "exit_code": 0
+}

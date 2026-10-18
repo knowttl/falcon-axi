@@ -1,0 +1,19 @@
+{
+  "name": "policy-members-content-update",
+  "argv": [
+    "policy",
+    "members",
+    "synthetic-policy-01",
+    "--type",
+    "content-update",
+    "--limit",
+    "2"
+  ],
+  "responders": [
+    {
+      "op": "queryCombinedContentUpdatePolicyMembers",
+      "fixture": "policies/queryCombinedContentUpdatePolicyMembers.json"
+    }
+  ],
+  "exit_code": 0
+}

@@ -1,0 +1,14 @@
+{
+  "name": "report-list-scope-denied",
+  "argv": [
+    "report",
+    "list"
+  ],
+  "responders": [
+    {
+      "op": "QueryIntelReportEntities",
+      "fixture": "errors/403-scope.json"
+    }
+  ],
+  "exit_code": 1
+}

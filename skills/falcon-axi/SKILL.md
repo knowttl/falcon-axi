@@ -7,7 +7,7 @@ description: >-
 
 # falcon-axi
 
-Read CrowdStrike Falcon detections, hosts, accounts, vulnerabilities, CVE intelligence, indicators, identities, and NG-SIEM searches from the shell.
+Read CrowdStrike Falcon from the shell.
 Run `uvx falcon-axi ...` without a global install.
 
 ## Read-only boundary
@@ -29,53 +29,8 @@ Run `uvx falcon-axi` for recent detections, or invoke a known command directly.
 
 ## Commands
 
-```text
-uvx falcon-axi detection summary         counts of detections by severity
-uvx falcon-axi detection list            list detections from the Falcon Alerts collection
-uvx falcon-axi detection show <id>       the full detail for one detection
-uvx falcon-axi host list                 list hosts from the Falcon Hosts collection
-uvx falcon-axi host show <device id>     the full detail for one host
-uvx falcon-axi host logins <device id>   recent interactive logins on one host
-uvx falcon-axi host network <device id>  IP and MAC address history for one host
-uvx falcon-axi account list              list Discover accounts observed on endpoints
-uvx falcon-axi account show <id>         the full detail for one account
-uvx falcon-axi asset list                list Discover managed and unmanaged assets
-uvx falcon-axi asset show <id>           details for one Discover asset
-uvx falcon-axi application list          list Discover applications
-uvx falcon-axi login list                list Discover-observed logins across assets
-uvx falcon-axi vuln show <id>            details for one Spotlight vulnerability record
-uvx falcon-axi vuln list                 list Spotlight vulnerabilities; a filter is required
-uvx falcon-axi cve list                  list Falcon Intelligence CVEs
-uvx falcon-axi cve show <CVE-ID>         Falcon Intelligence detail for one CVE
-uvx falcon-axi actor list                list Falcon Intelligence actors
-uvx falcon-axi actor show <id>           the detail for one intelligence actor
-uvx falcon-axi report list               list Falcon Intelligence reports
-uvx falcon-axi report show <id>          the detail for one intelligence report
-uvx falcon-axi indicator list            list Falcon Intelligence indicators
-uvx falcon-axi indicator show <id>       detail for one intelligence indicator
-uvx falcon-axi identity activity <acct>  start a search for one account's identity events
-uvx falcon-axi search start              start an NG-SIEM CQL search job
-uvx falcon-axi search status <id>        poll one search job and read its events
-uvx falcon-axi search stop <id>          cancel one search job
-uvx falcon-axi identity list             list Identity Protection users and endpoints with their risk
-uvx falcon-axi identity show <id>        one identity's risk, accounts, associations, and open incidents
-uvx falcon-axi identity timeline <id>    one identity's recent activity
-uvx falcon-axi identity assessment       security assessment score and risk factors
-uvx falcon-axi identity sensor list      list Identity Protection sensors
-uvx falcon-axi identity sensor show <id> one Identity Protection sensor's details
-uvx falcon-axi ioc list                  list custom indicators
-uvx falcon-axi ioc show <id>             read one custom indicator
-uvx falcon-axi ioc hosts <type:value>  list observed hosts for a custom IOC
-uvx falcon-axi ioc processes <type:value>  list observed processes for a custom IOC
-uvx falcon-axi host-group list     list host-group list
-uvx falcon-axi host-group members <id>     list host-group members
-uvx falcon-axi policy list               list policies of one required type
-uvx falcon-axi policy members <id>       list hosts assigned to a policy
-uvx falcon-axi auth status               whether a credential resolved, and where to
-uvx falcon-axi profile list              configured profile names, without reading secrets
-uvx falcon-axi config path               config and write-journal paths
-uvx falcon-axi scopes                    the command-to-scope matrix, with no request made
-```
+Run `uvx falcon-axi --help` for the complete command list.
+Read `references/<command>.md` for a command's reference, replacing spaces with hyphens.
 
 Run `uvx falcon-axi <command> --help` for accepted flags, defaults, arguments, and examples.
 

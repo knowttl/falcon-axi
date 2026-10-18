@@ -1,0 +1,10 @@
+{
+  "name": "unknown-flag-global",
+  "argv": [
+    "auth",
+    "status",
+    "--filter",
+    "x"
+  ],
+  "exit_code": 2
+}

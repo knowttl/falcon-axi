@@ -1,0 +1,19 @@
+{
+  "name": "policy-members-response",
+  "argv": [
+    "policy",
+    "members",
+    "synthetic-policy-01",
+    "--type",
+    "response",
+    "--limit",
+    "2"
+  ],
+  "responders": [
+    {
+      "op": "queryCombinedRTResponsePolicyMembers",
+      "fixture": "policies/queryCombinedRTResponsePolicyMembers.json"
+    }
+  ],
+  "exit_code": 0
+}

@@ -1,0 +1,11 @@
+{
+  "name": "identity sensor show",
+  "order": 2303,
+  "summary": "  identity sensor show <id> one Identity Protection sensor's details",
+  "scopes": [
+    {
+      "scope": "Identity Protection Entities:read",
+      "access": "read"
+    }
+  ]
+}

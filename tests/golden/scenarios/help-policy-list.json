@@ -1,0 +1,9 @@
+{
+  "name": "help-policy-list",
+  "argv": [
+    "policy",
+    "list",
+    "--help"
+  ],
+  "exit_code": 0
+}

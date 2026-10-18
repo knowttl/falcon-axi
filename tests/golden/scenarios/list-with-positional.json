@@ -1,0 +1,9 @@
+{
+  "name": "list-with-positional",
+  "argv": [
+    "detection",
+    "list",
+    "extra"
+  ],
+  "exit_code": 2
+}

@@ -1,0 +1,14 @@
+{
+  "name": "identity-list-scope-denied",
+  "argv": [
+    "identity",
+    "list"
+  ],
+  "responders": [
+    {
+      "op": "api_preempt_proxy_post_graphql",
+      "fixture": "identity/graphql-403-scope.json"
+    }
+  ],
+  "exit_code": 1
+}

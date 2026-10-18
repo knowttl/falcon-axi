@@ -1,0 +1,18 @@
+{
+  "name": "identity-list",
+  "argv": [
+    "identity",
+    "list",
+    "--name",
+    "Admin*",
+    "--limit",
+    "2"
+  ],
+  "responders": [
+    {
+      "op": "api_preempt_proxy_post_graphql",
+      "fixture": "identity/entities-page.json"
+    }
+  ],
+  "exit_code": 0
+}

@@ -1,0 +1,10 @@
+{
+  "name": "help-identity-assessment",
+  "argv": [
+    "identity",
+    "assessment",
+    "--help"
+  ],
+  "comment": "Identity assessment and sensor inventory deliberately extend help, discovery, auth-status scope guidance, and scopes under design section 4.4; enforcement is unchanged.",
+  "exit_code": 0
+}

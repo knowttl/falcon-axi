@@ -4,7 +4,7 @@ import pytest
 from toon_format import decode
 
 from falcon_axi.cli import run
-from falcon_axi.skill import INSTALL_HINT, skill_hint, skill_markdown
+from falcon_axi.skill import INSTALL_HINT, skill_files, skill_hint
 from scripts import skill
 from tests.support.golden import replay, scenarios
 from tests.support.recorded import NO_CREDENTIAL_ENV, RecordedTransport
@@ -13,22 +13,43 @@ REPO = Path(__file__).resolve().parents[2]
 
 
 def test_committed_skill_matches_deterministic_generator(monkeypatch: pytest.MonkeyPatch) -> None:
-    expected = skill_markdown()
+    expected = skill_files()
     monkeypatch.setenv("FALCON_AXI_PROFILE", "synthetic-profile")
     monkeypatch.setenv("CODEX_THREAD_ID", "synthetic-session")
-    assert skill_markdown() == expected
-    assert (REPO / "skills/falcon-axi/SKILL.md").read_text(encoding="utf-8") == expected
+    assert skill_files() == expected
+    root = REPO / "skills/falcon-axi"
+    assert {path.relative_to(root).as_posix(): path.read_text(encoding="utf-8") for path in root.rglob("*.md")} == expected
 
 
 def test_check_refuses_drift_without_writing_and_generation_repairs_it(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     target = tmp_path / "SKILL.md"
-    monkeypatch.setattr(skill, "SKILL_FILE", target)
+    monkeypatch.setattr(skill, "SKILL_ROOT", tmp_path)
     assert skill.main(["--check"]) == 1
     assert not target.exists()
     target.write_text("stale", encoding="utf-8")
     assert skill.main(["--check"]) == 1
     assert target.read_text(encoding="utf-8") == "stale"
     assert skill.main([]) == 0
+    assert skill.main(["--check"]) == 0
+
+
+def test_check_refuses_missing_stale_and_extra_command_references(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.setattr(skill, "SKILL_ROOT", tmp_path)
+    assert skill.main([]) == 0
+    target = tmp_path / "references/host-list.md"
+    target.unlink()
+    assert skill.main(["--check"]) == 1
+    assert not target.exists()
+    assert skill.main([]) == 0
+    target.write_text("stale", encoding="utf-8")
+    assert skill.main(["--check"]) == 1
+    assert target.read_text(encoding="utf-8") == "stale"
+    extra = tmp_path / "references/unshipped.md"
+    extra.write_text("stale", encoding="utf-8")
+    assert skill.main(["--check"]) == 1
+    assert extra.read_text(encoding="utf-8") == "stale"
+    assert skill.main([]) == 0
+    assert not extra.exists()
     assert skill.main(["--check"]) == 0
 
 

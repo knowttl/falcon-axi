@@ -1,0 +1,37 @@
+{
+  "name": "detection-list-rate-limit-note",
+  "argv": [
+    "detection",
+    "list",
+    "--limit",
+    "2"
+  ],
+  "oauth": [
+    {
+      "response": {
+        "status": 201,
+        "headers": {
+          "x-cs-region": "us-1",
+          "x-ratelimit-limit": "6000",
+          "x-ratelimit-remaining": "100"
+        },
+        "body": {
+          "access_token": "synthetic-access-token",
+          "expires_in": 1799,
+          "token_type": "bearer"
+        }
+      }
+    }
+  ],
+  "responders": [
+    {
+      "op": "GetQueriesAlertsV2",
+      "fixture": "alerts/query-page.json"
+    },
+    {
+      "op": "PostEntitiesAlertsV2",
+      "fixture": "alerts/hydrate-page.json"
+    }
+  ],
+  "exit_code": 0
+}
