@@ -31,6 +31,7 @@ What is shipped:
   fields when present) and `identity activity <account>`, a fixed NG-SIEM search over one account's
   Identity Protection events that adds no operation and no scope beyond N1's;
 - `falcon-axi scopes`, the command-to-scope matrix, available without making a request.
+- the generated agent skill, checked for drift by `uv run scripts/verify.py`, and a skill-install hint on the bare home view inside supported agent hosts.
 
 What is **not** shipped yet, so no output advertises it:
 
@@ -40,7 +41,7 @@ What is **not** shipped yet, so no output advertises it:
   beyond the directory and timeline: no standalone incident or security-assessment queries, no policy rules,
   and no GraphQL mutation of any kind.
   `cve show` is the one intel read that ships; there is no `cve list`;
-- `falcon-axi setup`, including the session hook and the generated skill;
+- `falcon-axi setup`, including the session hook;
 - `--all` and `--max-rows`, and `--fields` on detection and host lists; list pagination takes
   `--limit` and `--cursor` only;
 

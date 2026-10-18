@@ -274,7 +274,9 @@ The empty-array encoder expectation becomes `key: []`; falcon-axi still renders 
 `[tool.uv] prerelease = "allow"` remains unchanged because stable end-user resolution does not depend on it.
 
 **Session hook and skill (v1.md §12.2).**
-`falcon-axi setup` writes the Claude Code, Codex, and OpenCode integrations with a PATH-verified `falcon-axi` binary name and the absolute uv tool path as fallback, exactly as AXI §7 asks; the skill examples use the `uvx --from git+...` form.
+The session-hook installer remains planned, with a PATH-verified binary name and an absolute uv tool path as fallback.
+The generated skill is implemented independently: `uv run scripts/skill.py` renders the command registry and shared home guidance, using `uvx falcon-axi` examples.
+Its `--check` mode runs in the offline required-check set and fails on drift.
 
 ## 9. Commissioning plan
 

@@ -16,6 +16,7 @@ STEPS: tuple[tuple[str, list[str]], ...] = (
     ("ruff format", ["ruff", "format", "--check", "falcon_axi", "scripts", "tests"]),
     ("mypy", ["mypy", "--strict", "falcon_axi", "scripts"]),
     ("architecture", [sys.executable, "scripts/architecture_check.py"]),
+    ("skill drift", [sys.executable, "scripts/skill.py", "--check"]),
     ("pytest", [sys.executable, "-m", "pytest", "tests/offline", "-q"]),
 )
 
