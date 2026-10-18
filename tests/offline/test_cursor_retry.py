@@ -1,5 +1,6 @@
 import base64
 import json
+from dataclasses import replace
 
 import pytest
 
@@ -32,6 +33,20 @@ def test_a_cursor_round_trips_its_position() -> None:
     assert decode_cursor(encode_cursor(40, CONTEXT, SECRET), CONTEXT, SECRET) == 40
 
 
+@pytest.mark.parametrize("position", (40, "synthetic-next-page"))
+def test_firewall_cursors_round_trip_both_positions(position: int | str) -> None:
+    context = replace(CONTEXT, operation="query_rules", model="offset-or-token")
+    assert decode_cursor(encode_cursor(position, context, SECRET), context, SECRET) == position
+    _rejects(encode_cursor(position, context, SECRET), replace(context, operation="query_rule_groups"))
+    _rejects(encode_cursor(position, context, SECRET), replace(context, query="name:'changed'"))
+
+
+@pytest.mark.parametrize("position", (-1, True, ""))
+def test_firewall_cursors_reject_invalid_positions(position: int | str) -> None:
+    context = replace(CONTEXT, operation="query_rules", model="offset-or-token")
+    _rejects(encode_cursor(position, context, SECRET), context)
+
+
 def test_a_cursor_carries_no_credential_or_tenant_value() -> None:
     decoded = _decoded(encode_cursor(40, CONTEXT, SECRET))
     assert SECRET not in decoded
@@ -41,8 +56,6 @@ def test_a_cursor_carries_no_credential_or_tenant_value() -> None:
 
 
 def test_any_changed_context_element_rejects_the_cursor_before_a_request() -> None:
-    from dataclasses import replace
-
     token = encode_cursor(40, CONTEXT, SECRET)
     _rejects(token, replace(CONTEXT, query="severity_name:'Critical'"))
     _rejects(token, replace(CONTEXT, sort="created_timestamp|desc"))

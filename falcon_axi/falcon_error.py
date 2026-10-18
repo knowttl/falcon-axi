@@ -37,7 +37,9 @@ def trace_id(response: FalconResponse) -> str | None:
     return None
 
 
-def translate_falcon_error(response: FalconResponse, id: OperationId, subject: str, document: str | None = None) -> CliError:
+def translate_falcon_error(
+    response: FalconResponse, id: OperationId, subject: str, document: str | None = None, *, command: str | None = None
+) -> CliError:
     """Maps a Falcon failure onto falcon-axi's own envelope.
 
     Raw Falcon bodies, HTTP status numbers, and endpoint paths never reach stdout. `document` names
@@ -62,7 +64,9 @@ def translate_falcon_error(response: FalconResponse, id: OperationId, subject: s
         )
     if response.status == 400:
         if any(_FILTER_WORDS.search(message) for message in messages):
-            if "Assets:read" in scopes:
+            if command is not None:
+                example = ""
+            elif "Assets:read" in scopes:
                 command, example = "account list", "username:'synthetic-user'"
             elif "Hosts:read" in scopes:
                 command, example = "host list", "hostname:'WIN-*'"
@@ -75,7 +79,7 @@ def translate_falcon_error(response: FalconResponse, id: OperationId, subject: s
                 f"the filter for {subject} was rejected",
                 [
                     "FQL uses + for AND, `,` for OR, and values must be quoted",
-                    f'Example: `--filter "{example}"`',
+                    *([f'Example: `--filter "{example}"`'] if example else []),
                     f"Run `falcon-axi {command} --help` for the filterable fields",
                 ],
             )
@@ -138,7 +142,7 @@ def translate_falcon_error(response: FalconResponse, id: OperationId, subject: s
         return CliError(
             "NOT_FOUND",
             f"no {subject} matched that identifier",
-            ["Run `falcon-axi detection list` to see current identifiers"],
+            [f"Run `falcon-axi {command or 'detection list'}` to see current identifiers"],
         )
     if response.status == 429:
         return CliError(

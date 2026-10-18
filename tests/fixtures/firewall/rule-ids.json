@@ -1,4 +1,4 @@
 {
   "provenance": {"operation": "query_rules", "reference": "https://developer.crowdstrike.com/api-reference/collections/firewall-management/", "schema_read": "2026-10-18", "provenance": "synthetic"},
-  "response": {"status": 200, "body": {"meta": {"pagination": {"total": 3, "after": "synthetic-next-rule"}}, "resources": ["1001", "1002"]}}
+  "response": {"status": 200, "body": {"meta": {"pagination": {"offset": 0, "limit": 2, "total": 3, "after": "synthetic-next-rule"}}, "resources": ["1001", "1002"]}}
 }

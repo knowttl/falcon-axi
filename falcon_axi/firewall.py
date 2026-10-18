@@ -9,7 +9,7 @@ RULES = Collection(
     ("id", "name", "enabled", "action"),
     5000,
     "get_rules",
-    "token",
+    "offset-or-token",
 )
 GROUPS = Collection(
     "firewall group",
@@ -18,6 +18,6 @@ GROUPS = Collection(
     ("id", "name", "enabled", "platform"),
     5000,
     "get_rule_groups",
-    "token",
+    "offset-or-token",
 )
 COMMAND_SPECS = (*RULES.commands(show=True), *GROUPS.commands())

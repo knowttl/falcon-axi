@@ -120,6 +120,121 @@ def test_show_selects_the_requested_record_and_truncates_long_fields(noun: str, 
     assert "y" * 900 in stdout
 
 
+@pytest.mark.parametrize("full", (False, True))
+def test_firewall_customer_id_is_redacted_in_default_tenant_detail(full: bool) -> None:
+    recorded = RecordedTransport([serve("get_rules", fixture("firewall/rules.json"))])
+    argv = ["firewall", "rule", "show", "1001", *(["--full"] if full else [])]
+    stdout, code = run(argv, recorded, CREDENTIAL_ENV)
+    assert code == 0
+    assert decode(stdout)["firewall_rule"]["customer_id"] == "[redacted]"
+    assert "synthetic-sensitive-customer" not in stdout
+
+
+@pytest.mark.parametrize("noun,query,hydrate,query_fixture,details_fixture,key", LISTS[:2])
+@pytest.mark.parametrize("total", (3, None))
+def test_firewall_offset_pages_continue_until_exhausted(
+    noun: str, query: str, hydrate: str, query_fixture: str, details_fixture: str, key: str, total: int | None
+) -> None:
+    ids = ["first", "second", "third"]
+
+    def page(args: RequestArgs):
+        offset = args.query.get("offset", 0)
+        return response(
+            200,
+            {
+                "resources": ids[offset : offset + 1],
+                "meta": {"pagination": {"offset": offset, "limit": 1, "total": total}},
+            },
+        )
+
+    recorded = RecordedTransport(
+        [serve(query, page), serve(hydrate, response(200, {"resources": [{"id": id} for id in ids]}))]
+    )
+    argv = [*noun.split(), "list", "--limit", "1"]
+    first, code = run(argv, recorded, CREDENTIAL_ENV)
+    assert code == 0
+    second, code = run([*argv, "--cursor", decode(first)["continuation_cursor"]], recorded, CREDENTIAL_ENV)
+    assert code == 0
+    assert decode(second)[key][0]["id"] == "second"
+    third, code = run([*argv, "--cursor", decode(second)["continuation_cursor"]], recorded, CREDENTIAL_ENV)
+    assert code == 0
+    assert decode(third)[key][0]["id"] == "third"
+    assert recorded.operation_requests(query)[1].query == {"limit": 1, "offset": 1}
+    assert recorded.operation_requests(query)[2].query == {"limit": 1, "offset": 2}
+    if total is None:
+        empty, code = run([*argv, "--cursor", decode(third)["continuation_cursor"]], recorded, CREDENTIAL_ENV)
+        assert code == 0
+        assert decode(empty)[key] == f"no more {key}"
+        assert "continuation_cursor" not in decode(empty)
+    else:
+        assert "continuation_cursor" not in decode(third)
+
+
+@pytest.mark.parametrize("noun,query,hydrate,query_fixture,details_fixture,key", LISTS[:2])
+@pytest.mark.parametrize("token_field", ("next", "after"))
+def test_firewall_server_tokens_take_precedence_over_offsets(
+    noun: str, query: str, hydrate: str, query_fixture: str, details_fixture: str, key: str, token_field: str
+) -> None:
+    first = response(
+        200,
+        {"resources": ["first"], "meta": {"pagination": {"offset": 0, "total": 2, token_field: "next-page"}}},
+    )
+    details = response(200, {"resources": [{"id": "first"}, {"id": "last"}]})
+    initial = RecordedTransport([serve(query, first), serve(hydrate, details)])
+    argv = [*noun.split(), "list", "--limit", "1"]
+    stdout, code = run(argv, initial, CREDENTIAL_ENV)
+    assert code == 0
+    continued = RecordedTransport(
+        [serve(query, response(200, {"resources": ["last"]})), serve(hydrate, details)]
+    )
+    stdout, code = run([*argv, "--cursor", decode(stdout)["continuation_cursor"]], continued, CREDENTIAL_ENV)
+    assert code == 0
+    assert continued.operation_requests(query)[0].query == {"limit": 1, "after": "next-page"}
+    assert decode(stdout)[key][0]["id"] == "last"
+    assert "continuation_cursor" not in decode(stdout)
+
+
+@pytest.mark.parametrize("noun,query,hydrate,query_fixture,details_fixture,key", LISTS)
+def test_rejected_filters_suggest_the_failed_domain(
+    noun: str, query: str, hydrate: str | None, query_fixture: str, details_fixture: str | None, key: str
+) -> None:
+    recorded = RecordedTransport([serve(query, response(400, {"errors": [{"message": "invalid filter"}]}))])
+    stdout, code = run([*noun.split(), "list", "--filter", "bad"], recorded, CREDENTIAL_ENV)
+    assert code == 2
+    parsed = decode(stdout)
+    assert parsed["code"] == "FQL_INVALID"
+    assert f"Run `falcon-axi {noun} list --help` for the filterable fields" in parsed["help"]
+    assert "detection" not in stdout
+
+
+@pytest.mark.parametrize(
+    "noun,query,hydrate,query_fixture,details_fixture,key", (LISTS[0], LISTS[1], LISTS[4])
+)
+@pytest.mark.parametrize("status,expected_code", ((400, 2), (404, 1)))
+def test_hydration_errors_suggest_the_failed_domain(
+    noun: str, query: str, hydrate: str, query_fixture: str, details_fixture: str, key: str, status: int, expected_code: int
+) -> None:
+    recorded = RecordedTransport(
+        [
+            serve(query, fixture(query_fixture)),
+            serve(hydrate, response(status, {"errors": [{"message": "invalid filter"}]})),
+        ]
+    )
+    stdout, code = run([*noun.split(), "list"], recorded, CREDENTIAL_ENV)
+    assert code == expected_code
+    assert f"falcon-axi {noun} list" in stdout
+    assert "detection" not in stdout
+
+
+@pytest.mark.parametrize("noun,hydrate", (("firewall rule", "get_rules"), ("case", "entities_cases_post_v2")))
+def test_detail_404_suggests_the_failed_domain(noun: str, hydrate: str) -> None:
+    recorded = RecordedTransport([serve(hydrate, response(404, {}))])
+    stdout, code = run([*noun.split(), "show", "missing"], recorded, CREDENTIAL_ENV)
+    assert code == 1
+    assert decode(stdout)["code"] == "NOT_FOUND"
+    assert f"Run `falcon-axi {noun} list` to see current identifiers" in decode(stdout)["help"]
+
+
 @pytest.mark.parametrize("noun,hydrate", (("firewall rule", "get_rules"), ("case", "entities_cases_post_v2")))
 def test_show_reports_a_missing_record(noun: str, hydrate: str) -> None:
     recorded = RecordedTransport([serve(hydrate, response(200, {"resources": []}))])

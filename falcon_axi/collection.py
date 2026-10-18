@@ -22,7 +22,7 @@ class Collection:
     columns: tuple[str, ...]
     ceiling: int
     hydrate: OperationId | None = None
-    model: Literal["offset", "token"] = "offset"
+    model: Literal["offset", "offset-or-token"] = "offset"
     chunk: int = 100
 
     def _request(
@@ -39,7 +39,7 @@ class Collection:
             ),
         )
         if response.status != 200:
-            raise translate_falcon_error(response, id, self.key)
+            raise translate_falcon_error(response, id, self.key, command=f"{self.noun} list")
         return response
 
     def _details(self, ctx: Invocation, ids: list[str]) -> list[Mapping[str, Any]]:
@@ -68,7 +68,7 @@ class Collection:
         cursor = ctx.text("cursor")
         position = decode_cursor(cursor, context, ctx.credential.client_secret) if cursor else None
         query: dict[str, Any] = {"limit": ctx.limit}
-        if self.model == "offset":
+        if self.model == "offset" or isinstance(position, int):
             query["offset"] = position or 0
         elif position is not None:
             query["after"] = position
@@ -88,15 +88,16 @@ class Collection:
         count = total(response)
         value: dict[str, Any] = {"count": raw(f"{len(rows)} of {count if count is not None else 'unknown'} total")}
         next_position: int | str | None = None
-        if self.model == "offset":
-            next_offset = int(position or 0) + len(listed)
+        meta = body_of(response).get("meta", {})
+        pagination = meta.get("pagination", {}) if isinstance(meta, Mapping) else {}
+        if self.model == "offset-or-token" and isinstance(pagination, Mapping):
+            next_position = text(pagination.get("next")) or text(pagination.get("after"))
+        offset = pagination.get("offset") if isinstance(pagination, Mapping) else None
+        if next_position is None and (not isinstance(position, str) or isinstance(offset, int)):
+            base_offset = offset if isinstance(offset, int) else position
+            next_offset = (base_offset if isinstance(base_offset, int) else 0) + len(listed)
             if (count is not None and next_offset < count) or (count is None and len(listed) >= ctx.limit):
                 next_position = next_offset
-        else:
-            meta = body_of(response).get("meta", {})
-            pagination = meta.get("pagination", {}) if isinstance(meta, Mapping) else {}
-            if isinstance(pagination, Mapping):
-                next_position = text(pagination.get("next")) or text(pagination.get("after"))
         help = []
         if self.hydrate and self.noun != "firewall group":
             help.append(f"Run `falcon-axi {self.noun} show <id>` for the full record")
