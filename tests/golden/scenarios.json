@@ -3,6 +3,13 @@
   "stable_encoder_comment": "Adopting toon-format>=1.2,<2 deliberately changes only hash-prefixed CQL quoting in search-start, search-status-done, and search-status-empty (docs/design/v1.md section 10.1 and v1-python.md section 8).",
   "scenarios": [
     {
+      "name": "home-view-skill-hint",
+      "comment": "The bare home view in a supported agent host suggests installing the generated skill, including before credentials are configured (design section 12.2).",
+      "argv": [],
+      "env": "none",
+      "envExtra": {"CODEX_THREAD_ID": "synthetic-session", "HOME": "/nonexistent/skill-probe-home"}
+    },
+    {
       "name": "help-top",
       "argv": [
         "--help"

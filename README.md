@@ -30,7 +30,9 @@ What is shipped:
 - identity-aware detections (`detection list --product idp`, with account and source-endpoint
   fields when present) and `identity activity <account>`, a fixed NG-SIEM search over one account's
   Identity Protection events that adds no operation and no scope beyond N1's;
-- `falcon-axi scopes`, the command-to-scope matrix, available without making a request.
+- `falcon-axi scopes`, the command-to-scope matrix, available without making a request;
+- the generated [agent skill](#agent-skill) and its bare-home install hint, specified in
+  [the integration contract](docs/design/v1.md#122-session-hook-and-skill).
 
 What is **not** shipped yet, so no output advertises it:
 
@@ -40,7 +42,7 @@ What is **not** shipped yet, so no output advertises it:
   beyond the directory and timeline: no standalone incident or security-assessment queries, no policy rules,
   and no GraphQL mutation of any kind.
   `cve show` is the one intel read that ships; there is no `cve list`;
-- `falcon-axi setup`, including the session hook and the generated skill;
+- `falcon-axi setup`, including the session hook;
 - `--all` and `--max-rows`, and `--fields` on detection and host lists; list pagination takes
   `--limit` and `--cursor` only;
 
@@ -468,9 +470,8 @@ uv sync
 uv run scripts/verify.py
 ```
 
-`uv run scripts/verify.py` is the single local entry point and runs entirely offline: ruff,
-`mypy --strict`, the architecture boundary check, and the offline test suite against wholly
-synthetic fixtures.
+[`scripts/verify.py`](scripts/verify.py) defines the complete check sequence and is the single local
+entry point, running entirely offline against wholly synthetic fixtures.
 A pytest fixture refuses any socket, so no test can reach the network, and no fixture contains a
 captured Falcon response, credential, token, or tenant identifier.
 
