@@ -26,6 +26,7 @@ dependencies = [
 
 [project.scripts]
 falcon-axi = "falcon_axi.cli:main"
+falcon-axi-hook = "falcon_axi.hook:main"
 
 [project.urls]
 Repository = "https://github.com/knowttl/falcon-axi"

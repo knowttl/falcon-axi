@@ -1,6 +1,6 @@
 """Private reads and the Windows diagnostic DACL check.
 
-falcon-axi never writes configuration or persists credentials.
+This reader never writes configuration or persists credentials.
 """
 
 import os

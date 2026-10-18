@@ -1,4 +1,8 @@
 {
+  "setup": 0,
+  "help-setup": 0,
+  "help-setup-hooks": 0,
+  "setup-app-refused": 2,
   "home-view-skill-hint": 1,
   "auth-status": 0,
   "auth-status-forbidden": 1,

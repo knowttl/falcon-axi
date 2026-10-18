@@ -50,6 +50,8 @@ uvx falcon-axi auth status               whether a credential resolved, and wher
 uvx falcon-axi profile list              configured profile names, without reading secrets
 uvx falcon-axi config path               config and write-journal paths
 uvx falcon-axi scopes                    the command-to-scope matrix, with no request made
+uvx falcon-axi setup                     offline installation and credential guidance
+uvx falcon-axi setup hooks               install or repair all three session integrations
 ```
 
 Run `uvx falcon-axi <command> --help` for accepted flags, defaults, arguments, and examples.

@@ -62,6 +62,57 @@ def check() -> bool:
         text = path.read_text(encoding="utf-8")
         tree = ast.parse(text)
         imported = _imported_modules(tree)
+        if path != PACKAGE / "setup.py":
+            for node in ast.walk(tree):
+                if not isinstance(node, ast.Call):
+                    continue
+                if isinstance(node.func, ast.Attribute) and node.func.attr in {
+                    "write_text",
+                    "write_bytes",
+                    "mkdir",
+                    "unlink",
+                    "rename",
+                    "touch",
+                    "chmod",
+                    "remove",
+                    "rmdir",
+                    "makedirs",
+                    "symlink",
+                    "symlink_to",
+                    "hardlink_to",
+                }:
+                    raise AssertionError(f"local file mutation outside setup.py: {path}")
+                if (
+                    isinstance(node.func, ast.Name)
+                    and node.func.id == "open"
+                    or isinstance(node.func, ast.Attribute)
+                    and node.func.attr in {"open", "fdopen"}
+                    and ast.unparse(node.func) != "os.open"
+                ):
+                    mode_index = 0 if isinstance(node.func, ast.Attribute) and node.func.attr == "open" else 1
+                    mode = (
+                        node.args[mode_index]
+                        if len(node.args) > mode_index
+                        else next((item.value for item in node.keywords if item.arg == "mode"), ast.Constant("r"))
+                    )
+                    if not isinstance(mode, ast.Constant) or any(flag in str(mode.value) for flag in "wax+"):
+                        raise AssertionError(f"writable file open outside setup.py: {path}")
+                if (
+                    isinstance(node.func, ast.Attribute)
+                    and node.func.attr == "write"
+                    and ast.unparse(node.func.value) not in {"sys.stdout", "sys.stderr"}
+                ):
+                    raise AssertionError(f"local file write outside setup.py: {path}")
+                if (
+                    isinstance(node.func, ast.Attribute)
+                    and ast.unparse(node.func) == "os.open"
+                    and any(
+                        isinstance(flag, ast.Attribute)
+                        and flag.attr in {"O_WRONLY", "O_RDWR", "O_CREAT", "O_TRUNC", "O_APPEND"}
+                        for flag in ast.walk(node)
+                    )
+                ):
+                    raise AssertionError(f"writable file open outside setup.py: {path}")
         forbidden = {module for module in imported if module.split(".")[0] in PROCESS_MODULES}
         if forbidden and path != PACKAGE / "private_file.py":
             raise AssertionError(f"process execution is forbidden: {path} imports {', '.join(sorted(forbidden))}")

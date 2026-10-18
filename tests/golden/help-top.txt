@@ -21,6 +21,8 @@ Commands:
   profile list              configured profile names, without reading secrets
   config path               config and write-journal paths
   scopes                    the command-to-scope matrix, with no request made
+  setup                     offline installation and credential guidance
+  setup hooks               install or repair all three session integrations
 
 Global flags:
   --help, --region <name|url>, --allow-unknown-origin, --member-cid <cid>, --no-member-cid

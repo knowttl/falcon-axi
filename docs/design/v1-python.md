@@ -275,7 +275,8 @@ The empty-array encoder expectation becomes `key: []`; falcon-axi still renders 
 `[tool.uv] prerelease = "allow"` remains unchanged because stable end-user resolution does not depend on it.
 
 **Session hook and skill (v1.md §12.2).**
-The session-hook installer remains planned, with a PATH-verified binary name and an absolute uv tool path as fallback.
+`setup` prints offline guidance; `setup hooks` installs all three session integrations with a PATH-verified sibling `falcon-axi-hook` name and an absolute installed path as fallback.
+The hook resolves local credential status only, makes no network calls, and always exits 0 with one line.
 [v1.md §12.2](v1.md#122-session-hook-and-skill) owns the independently shipped generated skill, its regeneration and drift checks, and the home-view install hint.
 
 ## 9. Commissioning plan

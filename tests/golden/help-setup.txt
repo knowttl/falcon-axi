@@ -1,0 +1,7 @@
+falcon-axi setup
+
+Print offline guidance without writing files.
+
+Examples:
+  falcon-axi setup
+  falcon-axi setup hooks

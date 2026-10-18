@@ -31,6 +31,7 @@ What is shipped:
   fields when present) and `identity activity <account>`, a fixed NG-SIEM search over one account's
   Identity Protection events that adds no operation and no scope beyond N1's;
 - `falcon-axi scopes`, the command-to-scope matrix, available without making a request;
+- `falcon-axi setup` for offline guidance and `falcon-axi setup hooks` for Claude Code, Codex, and OpenCode session integrations;
 - the generated [agent skill](#agent-skill) and its bare-home install hint, specified in
   [the integration contract](docs/design/v1.md#122-session-hook-and-skill).
 
@@ -42,7 +43,6 @@ What is **not** shipped yet, so no output advertises it:
   beyond the directory and timeline: no standalone incident or security-assessment queries, no policy rules,
   and no GraphQL mutation of any kind.
   `cve show` is the one intel read that ships; there is no `cve list`;
-- `falcon-axi setup`, including the session hook;
 - `--all` and `--max-rows`, and `--fields` on detection and host lists; list pagination takes
   `--limit` and `--cursor` only;
 
@@ -499,8 +499,11 @@ npx skills add knowttl/falcon-axi --skill falcon-axi -g
 ```
 
 Drop `-g` for a project-scoped install.
-`falcon-axi setup` does not exist yet, so the CLI installs no skill, session hook, or plugin
-itself.
+Run `falcon-axi setup` for offline guidance, or `falcon-axi setup hooks` to install or repair all three session integrations.
+Install the CLI in a durable location first, for example with `uv tool install falcon-axi`.
+The hook prints local profile status and region without contacting Falcon and always exits successfully.
+Setup preserves unrelated agent settings and refuses malformed configuration or an unmanaged OpenCode plugin.
+The skill remains a separate installation through the command above.
 
 ## Relationship to falcon-mcp
 

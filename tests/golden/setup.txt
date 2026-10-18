@@ -1,0 +1,2 @@
+setup: Install falcon-axi in a durable location before registering session integrations
+help[3]: "Run `falcon-axi setup hooks` to install or repair Claude Code, Codex, and OpenCode integrations","Set FALCON_AXI_CLIENT_ID and FALCON_AXI_CLIENT_SECRET, or configure a profile with a SecretRef","Run `npx skills add knowttl/falcon-axi --skill falcon-axi` to install the agent skill separately"
