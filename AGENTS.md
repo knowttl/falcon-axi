@@ -83,7 +83,7 @@ Two seams are worth knowing before changing them:
   them, losing both the sort order and the pagination metadata, so `detection.py` and `host.py` capture the
   total before hydrating and reapply the query order after (§2.3).
   `vuln.py` is the exception, a single combined request paginated by an opaque `after` token rather than an
-  offset; `cursor.py` carries both models behind one `--cursor` vocabulary.
+  offset; `cursor.py` carries the models in `docs/design/v1.md` §7.1 behind one `--cursor` vocabulary.
   `search.py` is a third shape again: an NG-SIEM query job carries no pagination metadata at all, so it has
   neither `--limit` nor `--cursor`, and the caller owns the polling loop rather than the CLI blocking on it.
   Its three routes are also the only ones with `{path}` variables, which `path_arguments()` validates against

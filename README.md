@@ -30,7 +30,7 @@ What is shipped:
 - identity-aware detections (`detection list --product idp`, with account and source-endpoint
   fields when present) and `identity activity <account>`, a fixed NG-SIEM search over one account's
   Identity Protection events that adds no operation and no scope beyond N1's;
-- `falcon-axi scopes`, the command-to-scope matrix, available without making a request.
+- `falcon-axi scopes`, the command-to-scope matrix, available without making a request;
 - Falcon Intelligence indicators: `indicator list` with opaque marker continuation and `indicator show`.
   These reads match first-party API sources and are tested offline, without tenant validation.
 
@@ -41,7 +41,7 @@ What is **not** shipped yet, so no output advertises it:
   files, no parser or dashboard writes, and no Charlotte AI), and every Identity Protection capability
   beyond the directory and timeline: no standalone incident or security-assessment queries, no policy rules,
   and no GraphQL mutation of any kind.
-  `cve show` and `indicator list|show` are the intel reads that ship; there is no `cve list`;
+  There is no `cve list`;
 - `falcon-axi setup`, including the session hook and the generated skill;
 - `--all` and `--max-rows`, and `--fields` on detection and host lists; list pagination takes
   `--limit` and `--cursor` only;
@@ -204,6 +204,7 @@ credential.
 `Vulnerabilities:read`.
 `Assets:read` is needed only by the two `account` commands and is license-gated to Falcon Discover or
 Exposure Management; a client that cannot be granted it loses those two commands and nothing else.
+The indicator commands also require a Falcon Intelligence license; the matrix above names their scope.
 Grant only the scopes for the domains you intend to read: each is independent, and a command whose
 scope is missing fails with `SCOPE_DENIED` naming exactly what to grant.
 
@@ -290,6 +291,8 @@ falcon-axi account show abc123                      one Discover account
 falcon-axi vuln list --severity critical --status open
 falcon-axi vuln list --host abc123                  one host's vulnerabilities
 falcon-axi cve show CVE-2021-44228               Falcon Intelligence detail for one CVE
+falcon-axi indicator list --filter "type:'domain'"  Falcon Intelligence indicators, not custom IOCs
+falcon-axi indicator show <id>                     full record using an id from indicator list
 falcon-axi identity activity <account_id> --since 7d  an account's identity events
 falcon-axi search start --query '#event_simpleName=ProcessRollup2 | head(5)'
 falcon-axi search status 01JABCDEF                  one poll: running, cancelled, or done

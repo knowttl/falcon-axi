@@ -118,7 +118,7 @@ def decode_offset(token: str, context: CursorContext, client_secret: str) -> int
 
 
 def decode_after(token: str, context: CursorContext, client_secret: str) -> str:
-    """The token-model position, for Spotlight's `after` pagination (§7.1)."""
+    """The string position, for opaque tokens and Intel indicator markers (§7.1)."""
     position = decode_cursor(token, context, client_secret)
     if not isinstance(position, str):
         raise _reject()

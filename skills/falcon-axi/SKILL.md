@@ -32,11 +32,8 @@ user or endpoint and its risk, accounts, and activity timeline, and to check whe
 resolves and into which region and tenant.
 
 `setup` does not exist, and neither do `--all`, `--max-rows`, or `--fields` on detection and host lists.
-Neither does any command for a Falcon domain outside detections, hosts, Discover accounts, Spotlight vulnerabilities, `cve show`,
-NG-SIEM search, and the Identity Protection directory and timeline; there is no `cve list`, no intel actor,
-indicator, or report command, and no ingest, lookup-file, parser, dashboard, Charlotte AI, identity incident,
-or identity security-assessment command.
-Do not invent them; an unknown flag or command fails loudly.
+The [README's status section](../../README.md#status-partial-implementation-of-the-v1-design) owns the shipped and deferred command inventory.
+Do not invent commands; an unknown flag or command fails loudly.
 
 ## Commands
 
@@ -50,6 +47,7 @@ license-gated `Assets:read`.
 `vuln`: `list` (flags `--host`, `--severity`, `--status`, `--since`, `--filter`, `--limit`, `--cursor`, `--fields`).
 `cve`: `show <CVE-ID>` only.
 There is no `cve list`.
+For Falcon Intelligence indicator lookup, use `falcon-axi indicator list --help` and `falcon-axi indicator show --help`.
 `search`: `start` (flags `--query`, `--repository`, `--since`), `status <search id>` (flag `--repository`),
 `stop <search id>` (flag `--repository`).
 `identity`: `activity <account objectGUID, sAMAccountName, or UPN>` (flag `--since`),
@@ -193,7 +191,7 @@ A truncated result prints a `continuation_cursor` and a ready-to-run next-page c
 with `--cursor`.
 The cursor is opaque and bound to the credential and filter that produced it, so never edit it or reuse it
 across a different query.
-It hides whether the API paginates by offset, an `after` token, or a GraphQL `endCursor`.
+The API pagination models hidden by the cursor are described in [`docs/design/v1.md` §7.1](../../docs/design/v1.md#71-falcon-has-three-pagination-models-not-one).
 Reading past 10000 Alerts results fails with `PAGINATION_LIMIT`; narrow the filter instead of paging on,
 and `host list` stops at the same ceiling on `limit + offset`.
 
