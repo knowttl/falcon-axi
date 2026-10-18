@@ -31,8 +31,8 @@ search over NG-SIEM event data when the question is not one of those domains, to
 user or endpoint and its risk, accounts, and activity timeline, and to check whether a Falcon credential
 resolves and into which region and tenant.
 
-`setup` does not exist, and neither do `--all`, `--max-rows`, or `--fields` on detection and host lists.
-Neither does any command for a Falcon domain outside detections, hosts, Discover accounts, Spotlight vulnerabilities, `cve show`,
+See the [README's status section](../../README.md#status-partial-implementation-of-the-v1-design) for shipped and deferred features.
+There is no command for a Falcon domain outside detections, hosts, Discover accounts, Spotlight vulnerabilities, `cve show`,
 NG-SIEM search, and the Identity Protection directory and timeline; there is no `cve list`, no intel actor,
 indicator, or report command, and no ingest, lookup-file, parser, dashboard, Charlotte AI, identity incident,
 or identity security-assessment command.
@@ -41,13 +41,13 @@ Do not invent them; an unknown flag or command fails loudly.
 ## Commands
 
 `falcon-axi`: the home view - tenant line plus the five newest detections.
-`detection`: `list` (flags `--severity`, `--status`, `--product`, `--since`, `--filter`, `--limit`, `--cursor`),
+`detection`: `list` (flags: `falcon-axi detection list --help`),
 `show <composite id>` (flag `--full`).
-`host`: `list` (flags `--hostname`, `--platform`, `--status`, `--since`, `--filter`, `--limit`, `--cursor`),
+`host`: `list` (flags: `falcon-axi host list --help`),
 `show <device id>`, `logins <device id>` (exactly one host; flags `--since`, `--limit`).
-`account`: `list` (flags `--filter`, `--limit`, `--cursor`), `show <account id>`; Discover accounts, which need the
+`account`: `list` (flags: `falcon-axi account list --help`), `show <account id>`; Discover accounts, which need the
 license-gated `Assets:read`.
-`vuln`: `list` (flags `--host`, `--severity`, `--status`, `--since`, `--filter`, `--limit`, `--cursor`, `--fields`).
+`vuln`: `list` (flags: `falcon-axi vuln list --help`).
 `cve`: `show <CVE-ID>` only.
 There is no `cve list`.
 `search`: `start` (flags `--query`, `--repository`, `--since`), `status <search id>` (flag `--repository`),
@@ -184,7 +184,8 @@ flags, filterable fields, and examples instead of guessing.
 
 ## Pagination
 
-One list call reads one page.
+For single-page reads, bounded walks, partial results, and pagination walls, follow the
+[README's pagination guidance](../../README.md#pagination).
 Use the command's `--help` for limit defaults and ceilings; `docs/design/v1.md` §7.3 owns the limit contract.
 `host logins` has no cursor: follow its saturation warning instead of treating a full window as complete.
 `search status` has neither `--limit` nor `--cursor`, because a query job carries no pagination metadata;
@@ -194,8 +195,6 @@ with `--cursor`.
 The cursor is opaque and bound to the credential and filter that produced it, so never edit it or reuse it
 across a different query.
 It hides whether the API paginates by offset, an `after` token, or a GraphQL `endCursor`.
-Reading past 10000 Alerts results fails with `PAGINATION_LIMIT`; narrow the filter instead of paging on,
-and `host list` stops at the same ceiling on `limit + offset`.
 
 ## Tips
 

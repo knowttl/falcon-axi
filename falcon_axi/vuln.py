@@ -1,4 +1,4 @@
-"""The Spotlight vulnerabilities domain: one combined request, paginated by `after` token.
+"""The Spotlight vulnerabilities domain: one combined request per page, paginated by `after` token.
 
 `combinedQueryVulnerabilities` returns entities directly, so there is no hydrate step (§2.3), and
 its cursor lives in `meta.pagination.after` rather than an offset (§7.1).
@@ -213,7 +213,7 @@ def list_vulnerabilities(
     fields: Sequence[str] = (),
     max_rows: int | None = None,
 ) -> CommandOutput:
-    """`vuln list`: one combined read, rendered as the default row plus any `--fields` (§10.2)."""
+    """`vuln list`: combined reads, rendered as the default row plus any `--fields` (§10.2)."""
     selected = parse_fields(",".join(fields)) if fields else ()
     filter = vuln_filter(query)
     context = _cursor_context(session, credential, filter)
