@@ -1,0 +1,3 @@
+device_id: synthetic-device-01
+network_history[1]{ip_address,mac_address,timestamp}:
+  192.0.2.10,"02:00:00:00:00:01","2026-10-18T00:00:00Z"

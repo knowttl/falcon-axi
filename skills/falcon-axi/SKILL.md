@@ -36,9 +36,16 @@ uvx falcon-axi detection show <id>       the full detail for one detection
 uvx falcon-axi host list                 list hosts from the Falcon Hosts collection
 uvx falcon-axi host show <device id>     the full detail for one host
 uvx falcon-axi host logins <device id>   recent interactive logins on one host
+uvx falcon-axi host network <device id>  IP and MAC address history for one host
 uvx falcon-axi account list              list Discover accounts observed on endpoints
 uvx falcon-axi account show <id>         the full detail for one account
+uvx falcon-axi asset list                list Discover managed and unmanaged assets
+uvx falcon-axi asset show <id>           details for one Discover asset
+uvx falcon-axi application list          list Discover applications
+uvx falcon-axi login list                list Discover-observed logins across assets
+uvx falcon-axi vuln show <id>            details for one Spotlight vulnerability record
 uvx falcon-axi vuln list                 list Spotlight vulnerabilities; a filter is required
+uvx falcon-axi cve list                  list Falcon Intelligence CVEs
 uvx falcon-axi cve show <CVE-ID>         Falcon Intelligence detail for one CVE
 uvx falcon-axi actor list                list Falcon Intelligence actors
 uvx falcon-axi actor show <id>           the detail for one intelligence actor
@@ -53,6 +60,17 @@ uvx falcon-axi search stop <id>          cancel one search job
 uvx falcon-axi identity list             list Identity Protection users and endpoints with their risk
 uvx falcon-axi identity show <id>        one identity's risk, accounts, associations, and open incidents
 uvx falcon-axi identity timeline <id>    one identity's recent activity
+uvx falcon-axi identity assessment       security assessment score and risk factors
+uvx falcon-axi identity sensor list      list Identity Protection sensors
+uvx falcon-axi identity sensor show <id> one Identity Protection sensor's details
+uvx falcon-axi ioc list                  list custom indicators
+uvx falcon-axi ioc show <id>             read one custom indicator
+uvx falcon-axi ioc hosts <type:value>  list observed hosts for a custom IOC
+uvx falcon-axi ioc processes <type:value>  list observed processes for a custom IOC
+uvx falcon-axi host-group list     list host-group list
+uvx falcon-axi host-group members <id>     list host-group members
+uvx falcon-axi policy list               list policies of one required type
+uvx falcon-axi policy members <id>       list hosts assigned to a policy
 uvx falcon-axi auth status               whether a credential resolved, and where to
 uvx falcon-axi profile list              configured profile names, without reading secrets
 uvx falcon-axi config path               config and write-journal paths

@@ -7,9 +7,16 @@ Commands:
   host list                 list hosts from the Falcon Hosts collection
   host show <device id>     the full detail for one host
   host logins <device id>   recent interactive logins on one host
+  host network <device id>  IP and MAC address history for one host
   account list              list Discover accounts observed on endpoints
   account show <id>         the full detail for one account
+  asset list                list Discover managed and unmanaged assets
+  asset show <id>           details for one Discover asset
+  application list          list Discover applications
+  login list                list Discover-observed logins across assets
+  vuln show <id>            details for one Spotlight vulnerability record
   vuln list                 list Spotlight vulnerabilities; a filter is required
+  cve list                  list Falcon Intelligence CVEs
   cve show <CVE-ID>         Falcon Intelligence detail for one CVE
   actor list                list Falcon Intelligence actors
   actor show <id>           the detail for one intelligence actor
@@ -24,6 +31,17 @@ Commands:
   identity list             list Identity Protection users and endpoints with their risk
   identity show <id>        one identity's risk, accounts, associations, and open incidents
   identity timeline <id>    one identity's recent activity
+  identity assessment       security assessment score and risk factors
+  identity sensor list      list Identity Protection sensors
+  identity sensor show <id> one Identity Protection sensor's details
+  ioc list                  list custom indicators
+  ioc show <id>             read one custom indicator
+  ioc hosts <type:value>  list observed hosts for a custom IOC
+  ioc processes <type:value>  list observed processes for a custom IOC
+  host-group list     list host-group list
+  host-group members <id>     list host-group members
+  policy list               list policies of one required type
+  policy members <id>       list hosts assigned to a policy
   auth status               whether a credential resolved, and where to
   profile list              configured profile names, without reading secrets
   config path               config and write-journal paths
@@ -37,9 +55,10 @@ Regions: us-1, us-2, eu-1, us-gov-1
 
 falcon-axi lists no command that changes a host, a detection, a policy, or an identity. It
 requires Alerts:read, Hosts:read, Vulnerabilities:read, Vulnerabilities (Falcon Intelligence):read,
-NGSIEM:read, Identity Protection Entities:read, and Identity Protection Timeline:read, plus two
+NGSIEM:read, Identity Protection Entities:read, Identity Protection Timeline:read, and
+Identity Protection Assessment:read, plus two
 write-labelled scopes: NGSIEM:write for `search start`, `search stop`, and `identity activity`, and
-Identity Protection GraphQL:write for `identity list`, `identity show`, and `identity timeline`,
+Identity Protection GraphQL:write for the fixed Identity Protection query commands,
 which Falcon requires even for read-only queries.
-The `account` commands also need Assets:read, a license-gated scope that only some tenants can grant.
+The `account`, `asset`, `application`, and `login` commands need license-gated Assets:read.
 The `indicator` commands require the license-gated Indicators (Falcon Intelligence):read scope.

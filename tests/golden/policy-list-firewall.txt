@@ -1,0 +1,6 @@
+count: 2 of 3 total
+continuation_cursor: eyJvcGVyYXRpb24iOiJxdWVyeUNvbWJpbmVkRmlyZXdhbGxQb2xpY2llcyIsIm1vZGVsIjoib2Zmc2V0IiwicG9zaXRpb24iOjIsImZpbmdlcnByaW50IjoiZWI4OTM2NTg2ZmI5MDY5NjMxNzdiNjZmYTI2MzJmN2RjMzM3YzY2NzhjZGU5YjU1NzQ4YWE5ZWEwNjU5NDk2YyJ9
+policies[2]{id,name,platform_name,enabled}:
+  synthetic-policy-01,Synthetic policy one,Windows,true
+  synthetic-policy-02,Synthetic policy two,Linux,false
+help[2]: "Run `falcon-axi policy members <id> --type firewall` for assigned hosts","Run `falcon-axi policy list --limit 2 --type firewall --cursor eyJvcGVyYXRpb24iOiJxdWVyeUNvbWJpbmVkRmlyZXdhbGxQb2xpY2llcyIsIm1vZGVsIjoib2Zmc2V0IiwicG9zaXRpb24iOjIsImZpbmdlcnByaW50IjoiZWI4OTM2NTg2ZmI5MDY5NjMxNzdiNjZmYTI2MzJmN2RjMzM3YzY2NzhjZGU5YjU1NzQ4YWE5ZWEwNjU5NDk2YyJ9` for the next page"

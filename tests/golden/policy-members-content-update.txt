@@ -1,0 +1,6 @@
+count: 2 of 3 total
+continuation_cursor: eyJvcGVyYXRpb24iOiJxdWVyeUNvbWJpbmVkQ29udGVudFVwZGF0ZVBvbGljeU1lbWJlcnMiLCJtb2RlbCI6Im9mZnNldCIsInBvc2l0aW9uIjoyLCJmaW5nZXJwcmludCI6IjM4ZTBlMjA4ZWJmZjQ4NTBjMzAyMTdmNWI1NWIyYmQzZDIzNDUyZDhlZGQ2MjA5ZmI2ZWE5YTZjYTIxOGU4M2IifQ
+members[2]{device_id,hostname,platform_name,status}:
+  synthetic-device-01,SYNTHETIC-HOST-01,Windows,normal
+  synthetic-device-02,SYNTHETIC-HOST-02,Linux,normal
+help[2]: "Run `falcon-axi host show <device_id>` for a member's host details","Run `falcon-axi policy members synthetic-policy-01 --limit 2 --type content-update --cursor eyJvcGVyYXRpb24iOiJxdWVyeUNvbWJpbmVkQ29udGVudFVwZGF0ZVBvbGljeU1lbWJlcnMiLCJtb2RlbCI6Im9mZnNldCIsInBvc2l0aW9uIjoyLCJmaW5nZXJwcmludCI6IjM4ZTBlMjA4ZWJmZjQ4NTBjMzAyMTdmNWI1NWIyYmQzZDIzNDUyZDhlZGQ2MjA5ZmI2ZWE5YTZjYTIxOGU4M2IifQ` for the next page"

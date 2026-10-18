@@ -57,10 +57,11 @@ There is no Node runtime, no MCP process, and no `falcon-mcp` dependency anywher
 
 The implemented surface includes the package foundation, the sealed transport and its closed registry,
 AXI credential profiles with `auth status`, `profile list`, and `config path`, the read domains (`detection list`, `detection show`,
-`detection summary`, `host list`, `host show`, `host logins`, `account list`, `account show`, `vuln list`, `cve show`,
+`detection summary`, `host list`, `host show`, `host logins`, `host network`, `account list`, `account show`, `asset list`, `asset show`, `application list`, `login list`, `vuln list`, `vuln show`, `cve list`, `cve show`,
 `actor list`, `actor show`, `report list`, `report show`, `indicator list`, `indicator show`),
 the NG-SIEM search lifecycle (`search start`, `search status`,
-`search stop`), the Identity Protection GraphQL reads (`identity list`, `identity show`, `identity timeline`),
+`search stop`), the Identity Protection GraphQL reads (`identity list`, `identity show`, `identity timeline`, `identity assessment`),
+the REST sensor inventory (`identity sensor list`, `identity sensor show`),
 plus the `scopes` matrix and the home view.
 The README's status section is the authoritative list of what is shipped and what is deliberately absent, and
 no help text, suggestion, or skill may advertise an unshipped command.

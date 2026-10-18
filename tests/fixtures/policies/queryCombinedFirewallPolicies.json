@@ -1,0 +1,39 @@
+{
+  "provenance": {
+    "operation": "queryCombinedFirewallPolicies",
+    "reference": "https://developer.crowdstrike.com/api-reference/collections/firewall-policies/",
+    "schema_read": "2026-10-18",
+    "provenance": "synthetic"
+  },
+  "response": {
+    "status": 200,
+    "headers": {},
+    "body": {
+      "meta": {
+        "pagination": {
+          "total": 3,
+          "offset": 0,
+          "limit": 2
+        }
+      },
+      "errors": [],
+      "resources": [
+        {
+          "id": "synthetic-policy-01",
+          "name": "Synthetic policy one",
+          "platform_name": "Windows",
+          "enabled": true,
+          "description": "Synthetic policy",
+          "cid": "synthetic-cid"
+        },
+        {
+          "id": "synthetic-policy-02",
+          "name": "Synthetic policy two",
+          "platform_name": "Linux",
+          "enabled": false,
+          "cid": "synthetic-cid"
+        }
+      ]
+    }
+  }
+}

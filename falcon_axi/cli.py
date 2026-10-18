@@ -23,6 +23,7 @@ from falcon_axi.fql import (
     window,
 )
 from falcon_axi.origin import REGIONS, assert_trusted_origin, resolve_base_url
+from falcon_axi.policy import validate_policy_type
 from falcon_axi.redaction import redact_text, redaction_scope
 from falcon_axi.render import raw, render
 from falcon_axi.skill import HOME_GUIDANCE, skill_hint
@@ -102,16 +103,18 @@ def parse(argv: Sequence[str]) -> Parsed:
     first = argv[0] if argv else None
     if first in SUBCOMMANDS:
         noun = str(first)
-        second = argv[1] if len(argv) > 1 else None
-        if second in SUBCOMMANDS[noun]:
-            command = f"{noun} {second}"
-            index = 2
-        else:
-            raise CliError(
-                "VALIDATION_ERROR",
-                f"unknown {noun} subcommand {second or ''}".strip(),
-                [f"valid {noun} subcommands: {', '.join(SUBCOMMANDS[noun])}"],
-            )
+        index = 1
+        while noun in SUBCOMMANDS:
+            child = argv[index] if len(argv) > index else None
+            if child not in SUBCOMMANDS[noun]:
+                raise CliError(
+                    "VALIDATION_ERROR",
+                    f"unknown {noun} subcommand {child or ''}".strip(),
+                    [f"valid {noun} subcommands: {', '.join(SUBCOMMANDS[noun])}"],
+                )
+            noun = f"{noun} {child}"
+            index += 1
+        command = noun
     elif first is not None and " " not in first and first in COMMAND_SPECS:
         command = str(first)
         index = 1
@@ -184,7 +187,7 @@ def parse(argv: Sequence[str]) -> Parsed:
         raise CliError("VALIDATION_ERROR", "--filter requires a value")
     if "since" in flags:
         window(str(flags["since"]))
-    if command == "identity list":
+    if command in ("identity list", "identity assessment"):
         validate_identity_query(_identity_query_of(flags))
     if command in ("identity show", "identity timeline"):
         validate_entity_id(positionals[0])
@@ -194,6 +197,12 @@ def parse(argv: Sequence[str]) -> Parsed:
         since_seconds(_str(flags.get("since")) or IDENTITY_DEFAULT_SINCE)
     if command == "identity activity":
         activity_query(positionals[0])
+    if command in ("ioc hosts", "ioc processes"):
+        from falcon_axi.ioc import validate_observation
+
+        validate_observation(positionals[0], command == "ioc processes", _str(flags.get("host")))
+    if command in ("policy list", "policy members"):
+        validate_policy_type(_str(flags.get("type")))
     return Parsed(command, flags, tuple(positionals))
 
 
@@ -217,11 +226,12 @@ def help_text(command: str) -> str:
             "",
             "falcon-axi lists no command that changes a host, a detection, a policy, or an identity. It",
             "requires Alerts:read, Hosts:read, Vulnerabilities:read, Vulnerabilities (Falcon Intelligence):read,",
-            "NGSIEM:read, Identity Protection Entities:read, and Identity Protection Timeline:read, plus two",
+            "NGSIEM:read, Identity Protection Entities:read, Identity Protection Timeline:read, and",
+            "Identity Protection Assessment:read, plus two",
             "write-labelled scopes: NGSIEM:write for `search start`, `search stop`, and `identity activity`, and",
-            "Identity Protection GraphQL:write for `identity list`, `identity show`, and `identity timeline`,",
+            "Identity Protection GraphQL:write for the fixed Identity Protection query commands,",
             "which Falcon requires even for read-only queries.",
-            "The `account` commands also need Assets:read, a license-gated scope that only some tenants can grant.",
+            "The `account`, `asset`, `application`, and `login` commands need license-gated Assets:read.",
             "The `indicator` commands require the license-gated Indicators (Falcon Intelligence):read scope.",
         ]
     )

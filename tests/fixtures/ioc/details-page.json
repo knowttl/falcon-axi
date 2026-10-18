@@ -1,0 +1,43 @@
+{
+  "provenance": {
+    "operation": "indicator_get_v1",
+    "reference": "https://developer.crowdstrike.com/api-reference/collections/ioc/",
+    "schema_read": "2026-10-18",
+    "provenance": "synthetic"
+  },
+  "response": {
+    "status": 200,
+    "headers": {},
+    "body": {
+      "resources": [
+        {
+          "id": "synthetic-ioc-02",
+          "type": "ipv4",
+          "value": "192.0.2.25",
+          "action": "no_action",
+          "source": "synthetic"
+        },
+        {
+          "id": "synthetic-ioc-01",
+          "type": "domain",
+          "value": "example.invalid",
+          "action": "detect",
+          "severity": "High",
+          "description": "Synthetic custom indicator",
+          "platforms": [
+            "windows"
+          ],
+          "host_groups": [
+            "synthetic-group-01"
+          ],
+          "applied_globally": false,
+          "expired": false,
+          "source": "synthetic",
+          "metadata": {
+            "filename": "sample.bin"
+          }
+        }
+      ]
+    }
+  }
+}
