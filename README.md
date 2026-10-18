@@ -48,7 +48,7 @@ What is **not** shipped yet, so no output advertises it:
 - `falcon-axi setup`, including the session hook;
 - `--fields` on detection and host lists;
 
-`docs/design/v1.md` remains the authority for the full v1 surface; see §17 for open questions and resolutions.
+`docs/design/v1.md` remains the authority for the full v1 surface; §17 records closed decisions and distinguishes approvals from shipped implementations.
 [`docs/design/v1-python.md`](docs/design/v1-python.md) amends it for language, HTTP client, test
 layout, and packaging: falcon-axi is pure Python on `crowdstrike-falconpy`, with no Node runtime and
 no MCP process anywhere.
@@ -85,8 +85,6 @@ wrong tool and will not be persuaded otherwise.
 
 See [API client permissions](#api-client-permissions) for provisioning, including optional search writes
 and license-gated account and CVE access.
-Whether member-CID token minting additionally requires `Flight Control:read` remains an explicitly
-unresolved question in `docs/design/v1.md` §17.7.
 A falcon-axi release that asks for any other write scope is wrong.
 
 ## Quick start for agents
@@ -225,10 +223,8 @@ Protection Timeline` (read).
 A command missing required permissions answers `SCOPE_DENIED` naming its required scopes; use
 `falcon-axi scopes` for the per-command requirements.
 
-Whether minting a member-CID token additionally requires `Flight Control:read` is an open design
-question (`docs/design/v1.md` §17.7), not a settled requirement.
-If `--member-cid` fails with `TENANT_DENIED` on a client that reads its own tenant fine, that scope is
-the first thing to check.
+See `docs/design/v1.md` §17.7 for the member-CID source-parity decision and its scope-evidence limitation.
+If `--member-cid` fails with `TENANT_DENIED` on a client that reads its own tenant fine, check Flight Control access in the Falcon console.
 
 ## Region and tenant
 
@@ -492,8 +488,7 @@ The offline suite includes the recorded-invocation gate in `tests/golden/`.
 Offline fixtures prove deterministic behavior, not upstream fidelity.
 [`docs/design/v1.md` §9.4](docs/design/v1.md#94-translation-never-passthrough) owns the error-evidence policy
 and points to the recorded endpoint-specific confirmations.
-Live Falcon calls are run by hand and stay outside the required checks; the opt-in live smoke suite
-of §15 is not implemented yet.
+[`docs/design/v1.md` §15](docs/design/v1.md#15-safe-live-test-boundaries) owns the validation policy and boundaries for any separately authorized future live validation.
 
 GitHub Actions runs the same offline gate, `uv run scripts/verify.py`, on every pull request and every push
 to `main`.
