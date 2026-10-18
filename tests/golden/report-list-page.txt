@@ -1,0 +1,6 @@
+count: 2 of 3 total
+continuation_cursor: eyJvcGVyYXRpb24iOiJRdWVyeUludGVsUmVwb3J0RW50aXRpZXMiLCJtb2RlbCI6Im9mZnNldCIsInBvc2l0aW9uIjoyLCJmaW5nZXJwcmludCI6IjhjMThkNjgwNjc1ZmYzNDgzODgyN2JjMDQwMWZlNmIyZGVjOGIzMDVjYjYxNWRiODA2MjA1ZDQwZTI1MWRjZjQifQ
+reports[2]{id,name,created_date,last_modified_date}:
+  123456,Synthetic threat report,4000000000,4000000001
+  123457,Synthetic activity report,4000000000,4000000002
+help[2]: "Run `falcon-axi report show <id>` for the full report record","Run `falcon-axi report list --limit 2 --cursor eyJvcGVyYXRpb24iOiJRdWVyeUludGVsUmVwb3J0RW50aXRpZXMiLCJtb2RlbCI6Im9mZnNldCIsInBvc2l0aW9uIjoyLCJmaW5nZXJwcmludCI6IjhjMThkNjgwNjc1ZmYzNDgzODgyN2JjMDQwMWZlNmIyZGVjOGIzMDVjYjYxNWRiODA2MjA1ZDQwZTI1MWRjZjQifQ` for the next page"

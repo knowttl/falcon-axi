@@ -8,7 +8,7 @@ suggestions point to commands worth running next.
 
 ## Status: partial implementation of the v1 design
 
-The package is real and installable, and it ships six read domains plus NG-SIEM search.
+The package is real and installable, and it ships eight read domains plus NG-SIEM search.
 The shipped and deferred commands are listed below; [`docs/design/v1.md`](docs/design/v1.md) owns the full v1 design.
 
 What is shipped:
@@ -26,6 +26,8 @@ What is shipped:
 - `detection summary`, an on-demand severity count with the same filters as `detection list`;
 - NG-SIEM search: `search start`, `search status`, and `search stop`, the three operations captain
   exception N1 admits;
+- Falcon Intelligence: `actor list`, `actor show` (including `--mitre` for JSON ATT&CK mappings),
+  `report list`, and `report show`, with FQL filters and cursor pagination on lists;
 - the Identity Protection directory and timeline: `identity list`, `identity show`, and
   `identity timeline`, sending only fixed read-only GraphQL query documents under captain exception
   N2, the other place falcon-axi asks for a write-labelled scope;
@@ -43,12 +45,12 @@ What is shipped:
 
 What is **not** shipped yet, so no output advertises it:
 
-- every domain `docs/design/v1.md` §1.3 defers, including intel actors and reports,
+- every domain `docs/design/v1.md` §1.3 defers,
   every NG-SIEM capability outside the three search lifecycle operations (no ingest, no lookup
   files, no parser or dashboard writes, and no Charlotte AI), and every Identity Protection capability
   beyond the directory and timeline: no standalone incident or security-assessment queries, no policy rules,
   and no GraphQL mutation of any kind.
-  There is no `cve list`;
+  There is no `cve list`, report PDF, or rule-file download;
 - `falcon-axi setup`, including the session hook;
 
 `docs/design/v1.md` remains the authority for the full v1 surface; §17 records closed decisions and distinguishes approvals from shipped implementations.
@@ -206,7 +208,7 @@ credential.
 `Vulnerabilities:read`.
 `Assets:read` is needed only by the two `account` commands and is license-gated to Falcon Discover or
 Exposure Management; a client that cannot be granted it loses those two commands and nothing else.
-The indicator commands also require a Falcon Intelligence license; `falcon-axi scopes` names their scope.
+The actor, report, and indicator commands also require a Falcon Intelligence license; `falcon-axi scopes` names their scopes.
 Grant only the scopes for the domains you intend to read: each is independent, and a command whose
 scope is missing fails with `SCOPE_DENIED` naming exactly what to grant.
 
@@ -292,6 +294,10 @@ falcon-axi account show abc123                      one Discover account
 falcon-axi vuln list --severity critical --status open
 falcon-axi vuln list --host abc123                  one host's vulnerabilities
 falcon-axi cve show CVE-2021-44228               Falcon Intelligence detail for one CVE
+falcon-axi actor list --filter "name:'Synthetic*'"   find intelligence actors
+falcon-axi actor show <id> --mitre                   actor profile and JSON ATT&CK mappings
+falcon-axi report list                              find intelligence reports
+falcon-axi report show <id> --full                   report detail without text truncation
 falcon-axi indicator list --filter "type:'domain'"  Falcon Intelligence indicators, not custom IOCs
 falcon-axi indicator show <id>                     full record using an id from indicator list
 falcon-axi identity activity <account_id> --since 7d  an account's identity events
@@ -302,6 +308,9 @@ falcon-axi identity list --name 'Admin*' --type user   Identity Protection users
 falcon-axi identity show 00000000-0000-0000-0000-000000000001      one identity in full
 falcon-axi identity timeline 00000000-0000-0000-0000-000000000001 --since 24h
 ```
+
+Copy actor and report identifiers from their list output.
+See the [Intel contract](docs/design/v1.md#23-the-two-step-query-then-hydrate-pattern) for list limits, cursor behavior, detail fields, and JSON ATT&CK output.
 
 `detection list` takes `--severity` (`informational`, `low`, `medium`, `high`, `critical`),
 `--status` (`new`, `in_progress`, `closed`, `reopened`), `--product` (`epp` for endpoint alerts, `idp`
@@ -459,8 +468,8 @@ Pass it back with `--cursor <token>`.
 
 The cursor is opaque and bound to the credential and the filter that produced it, so it cannot be
 edited, reused across a different query, or shared between tenants.
-It hides the fact that Falcon paginates detections, hosts, and accounts by offset, vulnerabilities by an
-`after` token, and identities by a GraphQL `endCursor`: the CLI vocabulary is `--cursor` for every paginated command.
+The CLI vocabulary is `--cursor` for every paginated command.
+See [the pagination models](docs/design/v1.md#71-falcon-has-three-pagination-models-not-one) for the underlying Falcon mechanisms.
 `host logins` has no cursor: a full window warns that more logins may exist rather than claiming completeness.
 Detection, host, account, and vuln lists accept `--all` to walk pages and `--max-rows N` to cap query rows
 (default 1000; requires `--all`).

@@ -11,6 +11,10 @@ Commands:
   account show <id>         the full detail for one account
   vuln list                 list Spotlight vulnerabilities; a filter is required
   cve show <CVE-ID>         Falcon Intelligence detail for one CVE
+  actor list                list Falcon Intelligence actors
+  actor show <id>           the detail for one intelligence actor
+  report list               list Falcon Intelligence reports
+  report show <id>          the detail for one intelligence report
   indicator list            list Falcon Intelligence indicators
   indicator show <id>       detail for one intelligence indicator
   identity activity <acct>  start a search for one account's identity events

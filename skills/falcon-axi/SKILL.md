@@ -40,6 +40,10 @@ uvx falcon-axi account list              list Discover accounts observed on endp
 uvx falcon-axi account show <id>         the full detail for one account
 uvx falcon-axi vuln list                 list Spotlight vulnerabilities; a filter is required
 uvx falcon-axi cve show <CVE-ID>         Falcon Intelligence detail for one CVE
+uvx falcon-axi actor list                list Falcon Intelligence actors
+uvx falcon-axi actor show <id>           the detail for one intelligence actor
+uvx falcon-axi report list               list Falcon Intelligence reports
+uvx falcon-axi report show <id>          the detail for one intelligence report
 uvx falcon-axi indicator list            list Falcon Intelligence indicators
 uvx falcon-axi indicator show <id>       detail for one intelligence indicator
 uvx falcon-axi identity activity <acct>  start a search for one account's identity events

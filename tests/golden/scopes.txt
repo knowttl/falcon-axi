@@ -1,10 +1,12 @@
 posture: read-only except two write-labelled scopes: NGSIEM:write for NG-SIEM search start and stop and identity activity (captain exception N1), and Identity Protection GraphQL:write for fixed read-only identity queries (captain exception N2)
-scopes[11]{scope,access,commands,required}:
+scopes[13]{scope,access,commands,required}:
   "Alerts:read",read,"detection summary, detection list, detection show",yes
   "Hosts:read",read,"host list, host show, host logins",yes
   "Assets:read",read,"account list, account show",yes
   "Vulnerabilities:read",read,vuln list,yes
   "Vulnerabilities (Falcon Intelligence):read",read,cve show,yes
+  "Actors (Falcon Intelligence):read",read,"actor list, actor show",yes
+  "Reports (Falcon Intelligence):read",read,"report list, report show",yes
   "Indicators (Falcon Intelligence):read",read,"indicator list, indicator show",yes
   "NGSIEM:write",write,"identity activity, search start, search stop",yes
   "NGSIEM:read",read,search status,yes

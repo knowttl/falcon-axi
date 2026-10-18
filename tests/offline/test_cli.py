@@ -49,8 +49,8 @@ def test_an_unknown_command_or_subcommand_fails_before_any_request() -> None:
     assert exit_code == 2
     assert (
         "valid commands: detection summary, detection list, detection show, host list, host show, host logins, account list, "
-        "account show, vuln list, cve show, indicator list, indicator show, identity activity, "
-        "search start, search status, search stop, identity list, "
+        "account show, vuln list, cve show, actor list, actor show, report list, report show, "
+        "indicator list, indicator show, identity activity, search start, search status, search stop, identity list, "
         "identity show, identity timeline, auth status, profile list, config path, scopes" in stdout
     )
     subcommand, _ = run(["detection", "contain"], recorded, dict(CREDENTIAL_ENV))
