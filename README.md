@@ -453,8 +453,9 @@ A GraphQL error reported on an HTTP 200 is an `UPSTREAM_ERROR`, never an empty r
 ## Output and errors
 
 Output is TOON on stdout.
-A non-empty list view prints a `count:` line, a compact domain-specific schema, and a `help[]` array of
+A non-empty list view generally prints a `count:` line, a compact domain-specific schema, and a `help[]` array of
 the next commands.
+Sensor usage reports follow [their output contract](docs/design/v1.md#24-sensor-usage-and-falcon-recon-reads).
 Empty results are stated explicitly rather than left as ambiguous silence.
 GraphQL identity pages report rows shown without a total; their schemas are defined in
 [the output contract](docs/design/v1.md#102-default-schemas).
@@ -507,7 +508,7 @@ Ask the command rather than guessing its flags.
 ## Pagination
 
 By default, one call reads one page.
-`sensor-usage list` returns all reports supplied by the endpoint and has no limit, cursor, or detail command.
+See [the sensor usage contract](docs/design/v1.md#24-sensor-usage-and-falcon-recon-reads) for its unpaginated reports.
 `--limit N` sets the rows for this call; `host logins` applies it to the selected host's login window.
 Use the command's `--help` for defaults and ceilings; the detailed limit contract lives in
 [`docs/design/v1.md` §7.3](docs/design/v1.md#73-default-limits).
