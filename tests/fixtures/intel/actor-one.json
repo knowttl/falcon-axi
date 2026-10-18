@@ -1,0 +1,28 @@
+{
+  "provenance": {
+    "operation": "GetIntelActorEntities",
+    "reference": "https://developer.crowdstrike.com/api-reference/collections/intel/",
+    "schema_read": "2026-10-18",
+    "provenance": "synthetic"
+  },
+  "response": {
+    "status": 200,
+    "headers": {},
+    "body": {
+      "resources": [
+        {
+          "id": 123456,
+          "name": "Synthetic Fox",
+          "slug": "synthetic-fox",
+          "description": "A wholly synthetic adversary profile.",
+          "target_countries": [
+            {
+              "id": 1,
+              "value": "Synthetic Country"
+            }
+          ]
+        }
+      ]
+    }
+  }
+}

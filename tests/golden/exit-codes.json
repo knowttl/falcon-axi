@@ -130,5 +130,20 @@
   "identity-activity-start": 0,
   "identity-activity-scope-denied": 1,
   "identity-activity-without-account": 2,
-  "identity-activity-unsafe-account": 2
+  "identity-activity-unsafe-account": 2,
+  "help-actor-list": 0,
+  "help-actor-show": 0,
+  "actor-list-page": 0,
+  "actor-list-empty": 0,
+  "actor-show": 0,
+  "actor-show-not-found": 1,
+  "actor-list-scope-denied": 1,
+  "help-report-list": 0,
+  "help-report-show": 0,
+  "report-list-page": 0,
+  "report-list-empty": 0,
+  "report-show": 0,
+  "report-show-not-found": 1,
+  "report-list-scope-denied": 1,
+  "actor-show-mitre": 0
 }

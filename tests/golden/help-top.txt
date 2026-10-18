@@ -1,4 +1,4 @@
-falcon-axi 0.4.0 - Read CrowdStrike Falcon detections, hosts, vulnerabilities, and NG-SIEM searches from the shell
+falcon-axi 0.4.1 - Read CrowdStrike Falcon detections, hosts, vulnerabilities, and NG-SIEM searches from the shell
 
 Commands:
   detection list            list detections from the Falcon Alerts collection
@@ -10,6 +10,10 @@ Commands:
   account show <id>         the full detail for one account
   vuln list                 list Spotlight vulnerabilities; a filter is required
   cve show <CVE-ID>         Falcon Intelligence detail for one CVE
+  actor list                list Falcon Intelligence actors
+  actor show <id>           the detail for one intelligence actor
+  report list               list Falcon Intelligence reports
+  report show <id>          the detail for one intelligence report
   identity activity <acct>  start a search for one account's identity events
   search start              start an NG-SIEM CQL search job
   search status <id>        poll one search job and read its events

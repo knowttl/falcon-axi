@@ -19,12 +19,49 @@ from falcon_axi.transport.operations import (
 #: has no tool for them, mapped to the falconpy endpoint module that lists each one.
 NO_FALCON_MCP_TOOL = {
     "GetVulnerabilities": "_intel",
+    "GetIntelActorEntities": "_intel",
+    "GetIntelReportEntities": "_intel",
     "QueryDeviceLoginHistoryV2": "_hosts",
     "query_accounts": "_discover",
     "get_accounts": "_discover",
 }
 
 EXPECTED = {
+    "QueryIntelActorEntities": {
+        "method": "GET",
+        "path": "/intel/combined/actors/v1",
+        "scopes": ("Actors (Falcon Intelligence):read",),
+        "effect": "read",
+        "doc_scope": "Actors (Falcon Intelligence): READ",
+    },
+    "GetIntelActorEntities": {
+        "method": "GET",
+        "path": "/intel/entities/actors/v1",
+        "scopes": ("Actors (Falcon Intelligence):read",),
+        "effect": "read",
+        "doc_scope": "Actors (Falcon Intelligence): READ",
+    },
+    "QueryIntelReportEntities": {
+        "method": "GET",
+        "path": "/intel/combined/reports/v1",
+        "scopes": ("Reports (Falcon Intelligence):read",),
+        "effect": "read",
+        "doc_scope": "Reports (Falcon Intelligence): READ",
+    },
+    "GetIntelReportEntities": {
+        "method": "GET",
+        "path": "/intel/entities/reports/v1",
+        "scopes": ("Reports (Falcon Intelligence):read",),
+        "effect": "read",
+        "doc_scope": "Reports (Falcon Intelligence): READ",
+    },
+    "GetMitreReport": {
+        "method": "GET",
+        "path": "/intel/entities/mitre-reports/v1",
+        "scopes": ("Actors (Falcon Intelligence):read",),
+        "effect": "read",
+        "doc_scope": "Actors (Falcon Intelligence): READ",
+    },
     "GetQueriesAlertsV2": {
         "method": "GET",
         "path": "/alerts/queries/alerts/v2",

@@ -8,7 +8,7 @@ ends with the commands that are worth running next.
 
 ## Status: partial implementation of the v1 design
 
-The package is real and installable, and it ships five read domains plus NG-SIEM search.
+The package is real and installable, and it ships Falcon read domains plus NG-SIEM search.
 The shipped and deferred commands are listed below; [`docs/design/v1.md`](docs/design/v1.md) owns the full v1 design.
 
 What is shipped:
@@ -24,6 +24,8 @@ What is shipped:
   `host show`, `host logins`, `account list`, `account show`, `vuln list`, and `cve show`;
 - NG-SIEM search: `search start`, `search status`, and `search stop`, the three operations captain
   exception N1 admits;
+- Falcon Intelligence: `actor list`, `actor show` (including `--mitre` for JSON ATT&CK mappings),
+  `report list`, and `report show`, with FQL filters and cursor pagination on lists;
 - the Identity Protection directory and timeline: `identity list`, `identity show`, and
   `identity timeline`, sending only fixed read-only GraphQL query documents under captain exception
   N2, the other place falcon-axi asks for a write-labelled scope;
@@ -34,12 +36,12 @@ What is shipped:
 
 What is **not** shipped yet, so no output advertises it:
 
-- every domain `docs/design/v1.md` §1.3 defers, including intel actors, indicators, and reports,
+- every domain `docs/design/v1.md` §1.3 defers, including intel indicators,
   every NG-SIEM capability outside the three search lifecycle operations (no ingest, no lookup
   files, no parser or dashboard writes, and no Charlotte AI), and every Identity Protection capability
   beyond the directory and timeline: no standalone incident or security-assessment queries, no policy rules,
   and no GraphQL mutation of any kind.
-  `cve show` is the one intel read that ships; there is no `cve list`;
+  actor and report reads and `cve show` ship; there is no `cve list`, report PDF, or rule-file download;
 - `falcon-axi setup`, including the session hook and the generated skill;
 - `--all` and `--max-rows`, and `--fields` on detection and host lists; list pagination takes
   `--limit` and `--cursor` only;

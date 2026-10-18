@@ -24,6 +24,11 @@ OperationId = Literal[
     "PostDeviceDetailsV2",
     "combinedQueryVulnerabilities",
     "GetVulnerabilities",
+    "QueryIntelActorEntities",
+    "GetIntelActorEntities",
+    "QueryIntelReportEntities",
+    "GetIntelReportEntities",
+    "GetMitreReport",
     "QueryDeviceLoginHistoryV2",
     "query_accounts",
     "get_accounts",
@@ -86,6 +91,73 @@ NGSIEM_DOC = "https://developer.crowdstrike.com/api-reference/collections/ngsiem
 IDENTITY_PROTECTION_DOC = "https://developer.crowdstrike.com/api-reference/collections/identity-protection/"
 
 CANONICAL: tuple[FalconOperation, ...] = (
+    FalconOperation(
+        id="QueryIntelActorEntities",
+        method="GET",
+        path="/intel/combined/actors/v1",
+        scopes=("Actors (Falcon Intelligence):read",),
+        effect="read",
+        evidence=Evidence(
+            doc_url=INTEL_DOC,
+            doc_scope="Actors (Falcon Intelligence): READ",
+            falcon_mcp="falcon_mcp/common/api_scopes.py maps QueryIntelActorEntities to Actors (Falcon Intelligence):read; "
+            "falcon_mcp/modules/intel.py query_actor_entities (search_actors) uses the combined endpoint",
+        ),
+    ),
+    FalconOperation(
+        id="GetIntelActorEntities",
+        method="GET",
+        path="/intel/entities/actors/v1",
+        scopes=("Actors (Falcon Intelligence):read",),
+        effect="read",
+        evidence=Evidence(
+            doc_url=INTEL_DOC,
+            doc_scope="Actors (Falcon Intelligence): READ",
+            falcon_mcp="falcon-mcp has no tool for GetIntelActorEntities. "
+            "falconpy/_endpoint/_intel.py maps GetIntelActorEntities to GET /intel/entities/actors/v1. "
+            "PSFalcon Get-FalconActor in public/intel.ps1 wraps this entity read with ids and fields.",
+        ),
+    ),
+    FalconOperation(
+        id="QueryIntelReportEntities",
+        method="GET",
+        path="/intel/combined/reports/v1",
+        scopes=("Reports (Falcon Intelligence):read",),
+        effect="read",
+        evidence=Evidence(
+            doc_url=INTEL_DOC,
+            doc_scope="Reports (Falcon Intelligence): READ",
+            falcon_mcp="falcon_mcp/common/api_scopes.py maps QueryIntelReportEntities to Reports (Falcon Intelligence):read; "
+            "falcon_mcp/modules/intel.py query_report_entities (search_reports) uses the combined endpoint",
+        ),
+    ),
+    FalconOperation(
+        id="GetIntelReportEntities",
+        method="GET",
+        path="/intel/entities/reports/v1",
+        scopes=("Reports (Falcon Intelligence):read",),
+        effect="read",
+        evidence=Evidence(
+            doc_url=INTEL_DOC,
+            doc_scope="Reports (Falcon Intelligence): READ",
+            falcon_mcp="falcon-mcp has no tool for GetIntelReportEntities. "
+            "falconpy/_endpoint/_intel.py maps GetIntelReportEntities to GET /intel/entities/reports/v1. "
+            "PSFalcon Get-FalconIntel in public/intel.ps1 wraps this entity read with ids and fields.",
+        ),
+    ),
+    FalconOperation(
+        id="GetMitreReport",
+        method="GET",
+        path="/intel/entities/mitre-reports/v1",
+        scopes=("Actors (Falcon Intelligence):read",),
+        effect="read",
+        evidence=Evidence(
+            doc_url=INTEL_DOC,
+            doc_scope="Actors (Falcon Intelligence): READ",
+            falcon_mcp="falcon_mcp/common/api_scopes.py maps GetMitreReport to Actors (Falcon Intelligence):read; "
+            "falcon_mcp/modules/intel.py get_mitre_report requests format=json and parses a top-level JSON list",
+        ),
+    ),
     FalconOperation(
         id="GetQueriesAlertsV2",
         method="GET",
