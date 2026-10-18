@@ -1,0 +1,23 @@
+{
+  "provenance": {
+    "operation": "query_logins",
+    "reference": "https://developer.crowdstrike.com/api-reference/collections/discover/",
+    "schema_read": "2026-10-18",
+    "provenance": "synthetic"
+  },
+  "response": {
+    "status": 200,
+    "headers": {},
+    "body": {
+      "meta": {
+        "pagination": {
+          "total": 3
+        }
+      },
+      "resources": [
+        "synthetic-login-01",
+        "synthetic-login-02"
+      ]
+    }
+  }
+}

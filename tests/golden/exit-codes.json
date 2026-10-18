@@ -130,5 +130,15 @@
   "identity-activity-start": 0,
   "identity-activity-scope-denied": 1,
   "identity-activity-without-account": 2,
-  "identity-activity-unsafe-account": 2
+  "identity-activity-unsafe-account": 2,
+  "help-asset-list": 0,
+  "help-asset-show": 0,
+  "help-application-list": 0,
+  "help-login-list": 0,
+  "help-host-network": 0,
+  "asset-list": 0,
+  "asset-show": 0,
+  "application-list": 0,
+  "login-list": 0,
+  "host-network": 0
 }

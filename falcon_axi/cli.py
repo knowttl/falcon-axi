@@ -212,7 +212,7 @@ def help_text(command: str) -> str:
             "write-labelled scopes: NGSIEM:write for `search start`, `search stop`, and `identity activity`, and",
             "Identity Protection GraphQL:write for `identity list`, `identity show`, and `identity timeline`,",
             "which Falcon requires even for read-only queries.",
-            "The `account` commands also need Assets:read, a license-gated scope that only some tenants can grant.",
+            "The `account`, `asset`, `application`, and `login` commands need license-gated Assets:read.",
         ]
     )
 

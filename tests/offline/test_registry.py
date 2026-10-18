@@ -18,6 +18,10 @@ from falcon_axi.transport.operations import (
 #: Operations whose §2.2 corroboration is falconpy's generated table plus PSFalcon, because falcon-mcp
 #: has no tool for them, mapped to the falconpy endpoint module that lists each one.
 NO_FALCON_MCP_TOOL = {
+    "get_hosts": "_discover",
+    "query_logins": "_discover",
+    "get_logins": "_discover",
+    "QueryGetNetworkAddressHistoryV1": "_hosts",
     "GetVulnerabilities": "_intel",
     "QueryDeviceLoginHistoryV2": "_hosts",
     "query_accounts": "_discover",
@@ -25,6 +29,48 @@ NO_FALCON_MCP_TOOL = {
 }
 
 EXPECTED = {
+    "combined_hosts": {
+        "method": "GET",
+        "path": "/discover/combined/hosts/v1",
+        "scopes": ("Assets:read",),
+        "effect": "read",
+        "doc_scope": "Assets: READ",
+    },
+    "combined_applications": {
+        "method": "GET",
+        "path": "/discover/combined/applications/v1",
+        "scopes": ("Assets:read",),
+        "effect": "read",
+        "doc_scope": "Assets: READ",
+    },
+    "get_hosts": {
+        "method": "GET",
+        "path": "/discover/entities/hosts/v1",
+        "scopes": ("Assets:read",),
+        "effect": "read",
+        "doc_scope": "Assets: READ",
+    },
+    "query_logins": {
+        "method": "GET",
+        "path": "/discover/queries/logins/v1",
+        "scopes": ("Assets:read",),
+        "effect": "read",
+        "doc_scope": "Assets: READ",
+    },
+    "get_logins": {
+        "method": "GET",
+        "path": "/discover/entities/logins/v1",
+        "scopes": ("Assets:read",),
+        "effect": "read",
+        "doc_scope": "Assets: READ",
+    },
+    "QueryGetNetworkAddressHistoryV1": {
+        "method": "POST",
+        "path": "/devices/combined/devices/network-address-history/v1",
+        "scopes": ("Hosts:read",),
+        "effect": "read",
+        "doc_scope": "Hosts: READ",
+    },
     "GetQueriesAlertsV2": {
         "method": "GET",
         "path": "/alerts/queries/alerts/v2",

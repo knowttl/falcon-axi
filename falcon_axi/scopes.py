@@ -65,7 +65,7 @@ def scope_matrix() -> CommandOutput:
             "Omit Identity Protection GraphQL:write and `identity list`, `identity show`, and `identity timeline` "
             "fail with SCOPE_DENIED",
             "Assets:read is license-gated to Falcon Discover or Exposure Management; "
-            "omit it and only the `account` commands fail with SCOPE_DENIED",
+            "omit it and the `account`, `asset`, `application`, and `login` commands fail with SCOPE_DENIED",
         ),
     )
 

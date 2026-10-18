@@ -1,0 +1,5 @@
+count: 1 of 2 total
+continuation_cursor: eyJvcGVyYXRpb24iOiJjb21iaW5lZF9hcHBsaWNhdGlvbnMiLCJtb2RlbCI6InRva2VuIiwicG9zaXRpb24iOiJzeW50aGV0aWMtYXBwbGljYXRpb25zLW5leHQiLCJmaW5nZXJwcmludCI6IjQ2Y2EwODcyMmM0NjcwYzRjODI0MjY3MTIzY2QwZDk1M2E4ZjAwMWFlZjI2NWI0YzIyNjAwMmRhY2RmN2MzYWQifQ
+applications[1]{id,name,version,vendor}:
+  synthetic-application-01,Synthetic Browser,"1.0",Synthetic Vendor
+help[1]: "Run `falcon-axi application list --limit 1 --cursor eyJvcGVyYXRpb24iOiJjb21iaW5lZF9hcHBsaWNhdGlvbnMiLCJtb2RlbCI6InRva2VuIiwicG9zaXRpb24iOiJzeW50aGV0aWMtYXBwbGljYXRpb25zLW5leHQiLCJmaW5nZXJwcmludCI6IjQ2Y2EwODcyMmM0NjcwYzRjODI0MjY3MTIzY2QwZDk1M2E4ZjAwMWFlZjI2NWI0YzIyNjAwMmRhY2RmN2MzYWQifQ` for the next page"
