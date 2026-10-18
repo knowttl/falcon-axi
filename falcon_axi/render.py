@@ -18,6 +18,7 @@ REDACTED_KEYS = frozenset(
         "authorization",
         "cid",
         "#repo.cid",
+        "children_cids",
         "clientsecret",
         "clientid",
         "membercid",

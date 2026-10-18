@@ -1,0 +1,6 @@
+count: 2 of 3 total
+continuation_cursor: eyJvcGVyYXRpb24iOiJRdWVyeVF1YXJhbnRpbmVGaWxlcyIsIm1vZGVsIjoib2Zmc2V0IiwicG9zaXRpb24iOjIsImZpbmdlcnByaW50IjoiNzEzNzZiYTNlYzRkYzNjNDYyOWQxNGNjOTdlNzQwYzg4YzQ0MzZmNzRiNTY1ZmExODNiOTE5NWZjMzA0ZGRmNSJ9
+quarantined_files[2]{id,hostname,sha256,state}:
+  synthetic-quarantine-01,SYNTHETIC-HOST-01,aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa,quarantined
+  synthetic-quarantine-02,SYNTHETIC-HOST-02,aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa,quarantined
+help[2]: "Run `falcon-axi quarantine show <id>` for the full record","Run `falcon-axi quarantine list --limit 2 --cursor eyJvcGVyYXRpb24iOiJRdWVyeVF1YXJhbnRpbmVGaWxlcyIsIm1vZGVsIjoib2Zmc2V0IiwicG9zaXRpb24iOjIsImZpbmdlcnByaW50IjoiNzEzNzZiYTNlYzRkYzNjNDYyOWQxNGNjOTdlNzQwYzg4YzQ0MzZmNzRiNTY1ZmExODNiOTE5NWZjMzA0ZGRmNSJ9` for the next page"

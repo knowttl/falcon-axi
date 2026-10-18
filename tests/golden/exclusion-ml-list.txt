@@ -1,0 +1,6 @@
+count: 2 of 3 total
+continuation_cursor: eyJvcGVyYXRpb24iOiJleGNsdXNpb25zX3NlYXJjaF92MiIsIm1vZGVsIjoib2Zmc2V0IiwicG9zaXRpb24iOjIsImZpbmdlcnByaW50IjoiOTBjNTg5YTI2NjkxMTQ1NDYzMGFjN2Y1ZTg4NjdkMjdmZTZhYWFmZDhmYjY3M2RhNzM3ZDg0MGVmYTk5MjVhZSJ9
+exclusions[2]{id,value,applied_globally}:
+  synthetic-ml-01,/opt/synthetic-1/*,true
+  synthetic-ml-02,/opt/synthetic-2/*,true
+help[2]: "Run `falcon-axi exclusion show <id> --type ml` for the full record","Run `falcon-axi exclusion list --limit 2 --type ml --cursor eyJvcGVyYXRpb24iOiJleGNsdXNpb25zX3NlYXJjaF92MiIsIm1vZGVsIjoib2Zmc2V0IiwicG9zaXRpb24iOjIsImZpbmdlcnByaW50IjoiOTBjNTg5YTI2NjkxMTQ1NDYzMGFjN2Y1ZTg4NjdkMjdmZTZhYWFmZDhmYjY3M2RhNzM3ZDg0MGVmYTk5MjVhZSJ9` for the next page"

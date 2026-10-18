@@ -1,0 +1,6 @@
+count: 2 of 3 total
+continuation_cursor: eyJvcGVyYXRpb24iOiJjYl9leGNsdXNpb25zX3F1ZXJ5X3YxIiwibW9kZWwiOiJvZmZzZXQiLCJwb3NpdGlvbiI6MiwiZmluZ2VycHJpbnQiOiI4MWI5YWZkOTAxOGRlZDI3NjllMjZjYTM5MzZiMjY4Y2RiNDBmOTJiNTdiMjI1MjY2ZjgyZjhlNzJjYTRkODhlIn0
+exclusions[2]{id,name,status}:
+  synthetic-certificate-01,Synthetic signer 1,active
+  synthetic-certificate-02,Synthetic signer 2,active
+help[2]: "Run `falcon-axi exclusion show <id> --type certificate` for the full record","Run `falcon-axi exclusion list --limit 2 --type certificate --cursor eyJvcGVyYXRpb24iOiJjYl9leGNsdXNpb25zX3F1ZXJ5X3YxIiwibW9kZWwiOiJvZmZzZXQiLCJwb3NpdGlvbiI6MiwiZmluZ2VycHJpbnQiOiI4MWI5YWZkOTAxOGRlZDI3NjllMjZjYTM5MzZiMjY4Y2RiNDBmOTJiNTdiMjI1MjY2ZjgyZjhlNzJjYTRkODhlIn0` for the next page"

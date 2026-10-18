@@ -1,0 +1,26 @@
+{
+  "provenance": {
+    "operation": "QueryQuarantineFiles",
+    "reference": "https://developer.crowdstrike.com/api-reference/collections/quarantine/",
+    "schema_read": "2026-10-18",
+    "provenance": "synthetic"
+  },
+  "response": {
+    "status": 200,
+    "headers": {},
+    "body": {
+      "meta": {
+        "pagination": {
+          "offset": 0,
+          "limit": 2,
+          "total": 3
+        }
+      },
+      "errors": [],
+      "resources": [
+        "synthetic-quarantine-01",
+        "synthetic-quarantine-02"
+      ]
+    }
+  }
+}

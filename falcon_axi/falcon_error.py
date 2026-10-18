@@ -62,7 +62,11 @@ def translate_falcon_error(response: FalconResponse, id: OperationId, subject: s
         )
     if response.status == 400:
         if any(_FILTER_WORDS.search(message) for message in messages):
-            if "Assets:read" in scopes:
+            if "Quarantined Files:read" in scopes:
+                command, example = "quarantine list", "state:'quarantined'"
+            elif any("Exclusions:read" in scope for scope in scopes):
+                command, example = "exclusion list", "applied_globally:true"
+            elif "Assets:read" in scopes:
                 command, example = "account list", "username:'synthetic-user'"
             elif "Hosts:read" in scopes:
                 command, example = "host list", "hostname:'WIN-*'"

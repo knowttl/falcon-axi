@@ -1,0 +1,10 @@
+quarantine:
+  id: synthetic-quarantine-01
+  hostname: SYNTHETIC-HOST-01
+  sha256: aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa
+  state: quarantined
+  paths[1]{path,state}:
+    "C:\\Synthetic\\sample.exe",quarantined
+  alert_ids[1]: synthetic-alert
+  detect_ids[1]: synthetic-detection
+  cid: "[redacted]"
