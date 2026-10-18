@@ -703,7 +703,7 @@ def _rule_list(ctx: Invocation) -> CommandOutput:
         for rule in _rule_records(ctx, ids)
     ]
     return CommandOutput(
-        {"count": raw(f"{len(rows)} of {len(ids)} total"), "rules": rows},
+        _rate_limit(ctx.session, {"count": raw(f"{len(rows)} of {len(ids)} total"), "rules": rows}),
         ("Run `falcon-axi identity rule show <id>` for the full policy rule",),
     )
 

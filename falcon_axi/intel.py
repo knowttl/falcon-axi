@@ -207,6 +207,9 @@ def _malware_list(ctx: Invocation) -> CommandOutput:
         continuation = encode_cursor(offset + len(entries), context, ctx.credential.client_secret)
         value["continuation_cursor"] = continuation
         help.append(f"Run `{ctx.suggestion} --cursor {continuation}` for the next page")
+    note = rate_limit_note(ctx.session)
+    if note:
+        value["rate_limit"] = raw(note)
     return CommandOutput(value, tuple(help))
 
 

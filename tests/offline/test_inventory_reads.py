@@ -1,11 +1,39 @@
 """Read-only malware, identity rules, and Discover IoT through the CLI interface."""
 
 import re
+from dataclasses import replace
 
 import pytest
 
 from falcon_axi.cli import run
 from tests.support.recorded import CREDENTIAL_ENV, RecordedTransport, fixture, response, serve
+
+
+@pytest.mark.parametrize(
+    ("argv", "responses"),
+    [
+        (["malware", "list"], [("QueryMalwareEntities", "intel/malware.json")]),
+        (
+            ["iot", "list"],
+            [("query_iot_hostsV2", "discover/iot-query.json"), ("get_iot_hosts", "discover/iot.json")],
+        ),
+        (
+            ["identity", "rule", "list"],
+            [("get_policy_rules_query", "identity/rules-query.json"), ("get_policy_rules", "identity/rules.json")],
+        ),
+    ],
+)
+@pytest.mark.parametrize(("remaining", "expected_note"), [(5, True), (10, False)])
+def test_inventory_list_rate_budget(argv: list, responses: list, remaining: int, expected_note: bool) -> None:
+    token = replace(
+        fixture("oauth2/token-success.json"),
+        headers={"x-cs-region": "us-1", "x-ratelimit-limit": "100", "x-ratelimit-remaining": str(remaining)},
+    )
+    recorded = RecordedTransport([serve(operation, fixture(path)) for operation, path in responses], [token])
+    stdout, code = run(argv, recorded, dict(CREDENTIAL_ENV))
+    assert code == 0
+    assert ("rate_limit: 5 of 100 requests remaining in this rate limit window\n" in stdout) is expected_note
+    assert ("rate_limit:" in stdout) is expected_note
 
 
 @pytest.mark.parametrize(
@@ -59,10 +87,15 @@ def test_inventory_reads(argv: list, responders: list, expected: str) -> None:
     ],
 )
 def test_empty_query_skips_hydration(argv: list, operation: str, label: str) -> None:
-    recorded = RecordedTransport([serve(operation, response(200, {"resources": []}))])
+    token = replace(
+        fixture("oauth2/token-success.json"),
+        headers={"x-cs-region": "us-1", "x-ratelimit-limit": "100", "x-ratelimit-remaining": "5"},
+    )
+    recorded = RecordedTransport([serve(operation, response(200, {"resources": []}))], [token])
     stdout, code = run(argv, recorded, dict(CREDENTIAL_ENV))
     assert code == 0
     assert label in stdout
+    assert "rate_limit:" not in stdout
     assert len(recorded.requests) == 2
 
 
