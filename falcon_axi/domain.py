@@ -5,11 +5,12 @@ rows (docs/design/v1-python.md §4), and these are the parts all three read the 
 resource list, the server's `total`, and the rate-limit note §7.4 puts on list output.
 """
 
-from collections.abc import Mapping
+from collections.abc import Collection, Mapping, Sequence
 from dataclasses import dataclass
 from typing import Any
 
 from falcon_axi.auth import Session
+from falcon_axi.core import CliError
 from falcon_axi.transport.types import FalconResponse
 
 #: Rows in one non-walking call, for every list command (docs/design/v1.md §7.3).
@@ -20,6 +21,28 @@ DEFAULT_LIMIT = 20
 class CommandOutput:
     value: dict[str, Any]
     help: tuple[str, ...]
+
+
+def parse_fields(value: str, allowed: Collection[str], defaults: Sequence[str]) -> tuple[str, ...]:
+    """Validate extra columns and retain their first-requested order (§10.2)."""
+    names = [part.strip() for part in value.split(",")]
+    if any(not name for name in names):
+        raise CliError(
+            "VALIDATION_ERROR",
+            "--fields requires one or more field names",
+            [f"valid --fields names: {', '.join(allowed)}"],
+        )
+    unknown = [name for name in names if name not in allowed]
+    if unknown:
+        raise CliError(
+            "VALIDATION_ERROR",
+            f"unknown --fields name {', '.join(unknown)}",
+            [
+                f"valid --fields names: {', '.join(allowed)}",
+                f"default columns {', '.join(defaults)} are always included",
+            ],
+        )
+    return tuple(dict.fromkeys(names))
 
 
 def body_of(response: FalconResponse) -> Mapping[str, Any]:

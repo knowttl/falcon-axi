@@ -1,4 +1,4 @@
-falcon-axi detection list [--severity <name>] [--status <name>] [--product <name>] [--since <window>] [--filter <FQL>] [--limit N] [--cursor <token>] [--all] [--max-rows N]
+falcon-axi detection list [--severity <name>] [--status <name>] [--product <name>] [--since <window>] [--filter <FQL>] [--limit N] [--cursor <token>] [--all] [--max-rows N] [--fields <names>]
 
 --severity   one of informational, low, medium, high, critical
 --status     one of new, in_progress, closed, reopened
@@ -9,6 +9,7 @@ falcon-axi detection list [--severity <name>] [--status <name>] [--product <name
 --cursor     opaque continuation token from a previous call
 --all        walk pages; page size is independent of --limit
 --max-rows   row budget (default 1000; requires --all)
+--fields     extra columns, comma-separated: status, technique, created_timestamp
 
 Filterable fields include severity_name, status, product, tactic, technique, created_timestamp,
 and device.hostname.

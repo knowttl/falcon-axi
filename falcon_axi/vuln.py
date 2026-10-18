@@ -9,10 +9,9 @@ from typing import Any
 
 from falcon_axi.auth import Session
 from falcon_axi.command import CommandSpec, Invocation, string
-from falcon_axi.core import CliError
 from falcon_axi.credentials import Credential
 from falcon_axi.cursor import CursorContext, Position, decode_after, encode_cursor
-from falcon_axi.domain import DEFAULT_LIMIT, CommandOutput, after_token, rate_limit_note, resources, text, total
+from falcon_axi.domain import DEFAULT_LIMIT, CommandOutput, after_token, parse_fields, rate_limit_note, resources, text, total
 from falcon_axi.falcon_error import translate_falcon_error
 from falcon_axi.fql import VULN_SEVERITIES, VULN_STATUSES, VulnQuery, describe_vuln_query, vuln_filter
 from falcon_axi.render import raw
@@ -24,6 +23,7 @@ QUERY_CEILING = 5_000
 
 #: Default columns always need these facets; Spotlight omits them otherwise (docs/design/v1.md §10.2).
 DEFAULT_FACETS = ("cve", "host_info")
+DEFAULT_FIELDS = ("id", "cve", "severity", "hostname")
 
 #: `--fields` extends the default row; each name maps to the facet it needs, or none (§7.2, §10).
 EXTRA_FIELDS: Mapping[str, str | None] = {
@@ -51,35 +51,6 @@ def _cve_of(record: Vulnerability) -> Mapping[str, Any]:
 def _host_of(record: Vulnerability) -> Mapping[str, Any]:
     host = record.get("host_info")
     return host if isinstance(host, Mapping) else {}
-
-
-def parse_fields(value: str) -> tuple[str, ...]:
-    """`--fields` is a comma-separated extension of the default row (§7.2).
-
-    An unknown name is a validation error listing the allowlist. It is never dropped.
-    """
-    names = [part.strip() for part in value.split(",")]
-    if not names or any(not name for name in names):
-        raise CliError(
-            "VALIDATION_ERROR",
-            "--fields requires one or more field names",
-            [f"valid --fields names: {', '.join(EXTRA_FIELDS)}"],
-        )
-    unknown = [name for name in names if name not in EXTRA_FIELDS]
-    if unknown:
-        raise CliError(
-            "VALIDATION_ERROR",
-            f"unknown --fields name {', '.join(unknown)}",
-            [
-                f"valid --fields names: {', '.join(EXTRA_FIELDS)}",
-                "default columns id, cve, severity, hostname are always included",
-            ],
-        )
-    selected: list[str] = []
-    for name in names:
-        if name not in selected:
-            selected.append(name)
-    return tuple(selected)
 
 
 def facets_for(fields: Sequence[str]) -> tuple[str, ...]:
@@ -214,7 +185,7 @@ def list_vulnerabilities(
     max_rows: int | None = None,
 ) -> CommandOutput:
     """`vuln list`: combined reads, rendered as the default row plus any `--fields` (§10.2)."""
-    selected = parse_fields(",".join(fields)) if fields else ()
+    selected = parse_fields(",".join(fields), EXTRA_FIELDS, DEFAULT_FIELDS) if fields else ()
     filter = vuln_filter(query)
     context = _cursor_context(session, credential, filter)
     after = None if cursor is None else decode_after(cursor, context, credential.client_secret)
@@ -276,7 +247,9 @@ def _vuln_list(ctx: Invocation) -> CommandOutput:
         credential=ctx.credential,
         suggestion=ctx.suggestion,
         max_rows=max_rows_of(ctx.flags),
-        fields=parse_fields(ctx.text("fields") or "") if ctx.flags.get("fields") else (),
+        fields=parse_fields(ctx.text("fields") or "", ctx.spec.extra_fields, ctx.spec.default_fields)
+        if "fields" in ctx.flags
+        else (),
     )
 
 
@@ -329,5 +302,7 @@ COMMAND_SPECS = (
         flags=("filter", "host", "severity", "status", "since", "limit", "cursor", "fields", "all", "max-rows"),
         value_flags=("filter", "host", "severity", "status", "since", "limit", "cursor", "fields", "max-rows"),
         limit_ceiling=(QUERY_CEILING, "Spotlight query"),
+        extra_fields=tuple(EXTRA_FIELDS),
+        default_fields=DEFAULT_FIELDS,
     ),
 )

@@ -14,7 +14,7 @@ from falcon_axi.command import CommandSpec, Invocation, string
 from falcon_axi.core import CliError
 from falcon_axi.credentials import Credential
 from falcon_axi.cursor import CursorContext, Position, decode_offset, encode_cursor
-from falcon_axi.domain import DEFAULT_LIMIT, CommandOutput, rate_limit_note, resources, text, total
+from falcon_axi.domain import DEFAULT_LIMIT, CommandOutput, parse_fields, rate_limit_note, resources, text, total
 from falcon_axi.falcon_error import falcon_messages, translate_falcon_error
 from falcon_axi.fql import HOST_STATUSES, PLATFORMS, HostQuery, describe_host_query, host_filter, window
 from falcon_axi.render import raw
@@ -29,6 +29,8 @@ HOSTS_WALL = 9_999
 LOGIN_CEILING = 100
 #: Falcon's own window when `from` is omitted (documented default `now-7d`).
 LOGIN_DEFAULT_SINCE = "7d"
+
+EXTRA_FIELDS = ("os_version", "agent_version", "status", "first_seen", "machine_domain")
 
 Device = Mapping[str, Any]
 
@@ -113,8 +115,9 @@ def list_hosts(
     suggestion: str,
     cursor: str | None = None,
     max_rows: int | None = None,
+    fields: Sequence[str] = (),
 ) -> CommandOutput:
-    """`host list`: query ids, hydrate them, and render the four-field schema (§10.2)."""
+    """`host list`: query ids, hydrate them, and render the selected schema (§10.2)."""
     filter = host_filter(query)
     context = _cursor_context(session, credential, filter)
     offset = 0 if cursor is None else decode_offset(cursor, context, credential.client_secret)
@@ -152,6 +155,7 @@ def list_hosts(
             "hostname": text(device.get("hostname")) or "unknown",
             "platform": _platform_of(device),
             "last_seen": text(device.get("last_seen")) or "unknown",
+            **{name: text(device.get(name)) or "unknown" for name in fields},
         }
         for device in devices
     ]
@@ -289,6 +293,9 @@ def _host_list(ctx: Invocation) -> CommandOutput:
         credential=ctx.credential,
         suggestion=ctx.suggestion,
         max_rows=max_rows_of(ctx.flags),
+        fields=parse_fields(ctx.text("fields") or "", ctx.spec.extra_fields, ctx.spec.default_fields)
+        if "fields" in ctx.flags
+        else (),
     )
 
 
@@ -322,7 +329,7 @@ COMMAND_SPECS = (
         help="\n".join(
             [
                 "falcon-axi host list [--hostname <name>] [--platform <name>] [--status <name>] "
-                "[--since <window>] [--filter <FQL>] [--limit N] [--cursor <token>] [--all] [--max-rows N]",
+                "[--since <window>] [--filter <FQL>] [--limit N] [--cursor <token>] [--all] [--max-rows N] [--fields <names>]",
                 "",
                 "--hostname   hostname to match; Hosts filters accept wildcards, so WIN-* works",
                 f"--platform   one of {', '.join(PLATFORMS)}",
@@ -333,6 +340,7 @@ COMMAND_SPECS = (
                 "--cursor     opaque continuation token from a previous call",
                 "--all        walk pages; page size is independent of --limit",
                 "--max-rows   row budget (default 1000; requires --all)",
+                f"--fields     extra columns, comma-separated: {', '.join(EXTRA_FIELDS)}",
                 "",
                 "Filterable fields include hostname, platform_name, os_version, agent_version, status,",
                 "last_seen, first_seen, machine_domain, and local_ip.",
@@ -347,9 +355,11 @@ COMMAND_SPECS = (
         summary="  host list                 list hosts from the Falcon Hosts collection",
         handler=_host_list,
         operations=("QueryDevicesByFilter", "PostDeviceDetailsV2"),
-        flags=("filter", "hostname", "platform", "status", "since", "limit", "cursor", "all", "max-rows"),
-        value_flags=("filter", "hostname", "platform", "status", "since", "limit", "cursor", "max-rows"),
+        flags=("filter", "hostname", "platform", "status", "since", "limit", "cursor", "all", "max-rows", "fields"),
+        value_flags=("filter", "hostname", "platform", "status", "since", "limit", "cursor", "max-rows", "fields"),
         limit_ceiling=(QUERY_CEILING, "Hosts query"),
+        extra_fields=EXTRA_FIELDS,
+        default_fields=("device_id", "hostname", "platform", "last_seen"),
     ),
     CommandSpec(
         name="host show",

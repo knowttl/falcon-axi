@@ -316,6 +316,7 @@ The golden set adds the identity scenarios as regression pins, and `tests/golden
 
 **P4. Setup and delivery surface.**
 `setup` with hook and skill, and `--fields` on detection and host lists.
+For the field-selection contract, see [v1.md §10.2](v1.md#102-default-schemas).
 Validation policy is owned by v1.md §15.
 For the pagination contract, see [v1.md §7.2](v1.md#72-what-the-cli-exposes); the [README's status section](../../README.md#status-partial-implementation-of-the-v1-design) owns delivery status.
 Profile configuration shipped separately under v1.md §5.2 and §12.1.
