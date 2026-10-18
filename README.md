@@ -353,11 +353,9 @@ Its rows are recent interactive logins from the Host Timeline, not a full audit 
 `asset list` includes Discover managed and unmanaged assets, distinct from the sensor inventory in `host list`.
 Use `--filter "entity_type:'managed'"` or `--filter "entity_type:'unmanaged'"` to select either inventory.
 Discover asset IDs come from `asset list`; sensor device IDs come from `host list`.
-`asset list` and `application list` use `--filter`, `--limit` (ceiling 1000), and `--cursor` for token pagination.
-Without `--filter`, they send the API-required broad filters `id:'*'` and `name:'*'`, respectively.
 `asset show` includes the asset's available MAC addresses.
-`login list` uses the same flags with offset pagination and a ceiling of 100.
 `host network <device_id>` returns the address history Falcon retains and has no pagination flags.
+See [the Discover reference](docs/design/v1.md#17-discover-inventory-and-host-network-history) for default filters, page bounds, and pagination models.
 These shapes match the official API reference and SDKs; they have not been validated against a tenant.
 `account list` takes `--filter` (raw FQL on Discover account fields), `--limit`, and
 `--cursor`; the accounts are the ones Discover has seen log in on endpoints, not an identity

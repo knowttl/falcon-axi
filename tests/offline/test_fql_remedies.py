@@ -90,21 +90,19 @@ def test_cve_filter_errors_name_intelligence_fields(argv: list[str], operation: 
     assert exit_code == 2
     assert document["code"] == "FQL_INVALID"
     assert document["help"][1:] == [
-        'Example: `--filter "severity:\'CRITICAL\'"`',
+        "Example: `--filter \"severity:'CRITICAL'\"`",
         "Run `falcon-axi cve list --help` for the filterable fields",
     ]
 
 
 def test_host_group_members_filter_errors_name_host_attributes() -> None:
     recorded = RecordedTransport([serve("queryCombinedGroupMembers", fixture("errors/400-fql.json"))])
-    stdout, exit_code = run(
-        ["host-group", "members", "synthetic-group", "--filter", "bad"], recorded, dict(CREDENTIAL_ENV)
-    )
+    stdout, exit_code = run(["host-group", "members", "synthetic-group", "--filter", "bad"], recorded, dict(CREDENTIAL_ENV))
     document = decode(stdout)
     assert exit_code == 2
     assert document["code"] == "FQL_INVALID"
     assert document["help"][1:] == [
-        'Example: `--filter "platform_name:\'Windows\'"`',
+        "Example: `--filter \"platform_name:'Windows'\"`",
         "Run `falcon-axi host-group members --help` for the filterable fields",
     ]
 
