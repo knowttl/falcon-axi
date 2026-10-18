@@ -208,7 +208,7 @@ credential.
 `Vulnerabilities:read`.
 `Assets:read` is needed only by the two `account` commands and is license-gated to Falcon Discover or
 Exposure Management; a client that cannot be granted it loses those two commands and nothing else.
-The indicator commands also require a Falcon Intelligence license; `falcon-axi scopes` names their scope.
+The actor, report, and indicator commands also require a Falcon Intelligence license; `falcon-axi scopes` names their scopes.
 Grant only the scopes for the domains you intend to read: each is independent, and a command whose
 scope is missing fails with `SCOPE_DENIED` naming exactly what to grant.
 
@@ -468,8 +468,8 @@ Pass it back with `--cursor <token>`.
 
 The cursor is opaque and bound to the credential and the filter that produced it, so it cannot be
 edited, reused across a different query, or shared between tenants.
-It hides the fact that Falcon paginates detections, hosts, and accounts by offset, vulnerabilities by an
-`after` token, and identities by a GraphQL `endCursor`: the CLI vocabulary is `--cursor` for every paginated command.
+The CLI vocabulary is `--cursor` for every paginated command.
+See [the pagination models](docs/design/v1.md#71-falcon-has-three-pagination-models-not-one) for the underlying Falcon mechanisms.
 `host logins` has no cursor: a full window warns that more logins may exist rather than claiming completeness.
 Detection, host, account, and vuln lists accept `--all` to walk pages and `--max-rows N` to cap query rows
 (default 1000; requires `--all`).
