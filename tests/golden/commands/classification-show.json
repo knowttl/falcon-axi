@@ -1,0 +1,11 @@
+{
+  "name": "classification show",
+  "order": 1621,
+  "summary": "  classification show <id>  full Data Protection classification",
+  "scopes": [
+    {
+      "scope": "Data Protection:read",
+      "access": "read"
+    }
+  ]
+}

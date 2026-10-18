@@ -2,10 +2,12 @@
 
 from falcon_axi import (
     account,
+    classification,
     cloud_asset,
     cloud_risk,
     container,
     cve,
+    data_policy,
     detection,
     diagnostics,
     discover,
@@ -24,9 +26,9 @@ from falcon_axi import (
     scopes,
     search,
     sensor_usage,
+    serverless,
     setup,
     shield,
-    serverless,
     vuln,
 )
 
@@ -45,6 +47,8 @@ COMMAND_SPECS = {
         container.COMMAND_SPECS,
         image.COMMAND_SPECS,
         serverless.COMMAND_SPECS,
+        classification.COMMAND_SPECS,
+        data_policy.COMMAND_SPECS,
         identity.COMMAND_SPECS[:1],
         search.COMMAND_SPECS,
         identity.COMMAND_SPECS[1:],
@@ -57,11 +61,11 @@ COMMAND_SPECS = {
         shield.COMMAND_SPECS,
         diagnostics.COMMAND_SPECS,
         scopes.COMMAND_SPECS,
-        setup.COMMAND_SPECS,
         sensor_usage.COMMAND_SPECS,
         recon_rule.COMMAND_SPECS,
         recon_notification.COMMAND_SPECS,
         recon_record.COMMAND_SPECS,
+        setup.COMMAND_SPECS,
     )
     for spec in group
 }

@@ -1,0 +1,4 @@
+count: 1 of 1 total
+policies[1]{id,name,is_enabled,precedence}:
+  synthetic-policy-01,Synthetic workstation policy,true,1
+help[1]: "Run `falcon-axi data-policy show <id>` for the full record"

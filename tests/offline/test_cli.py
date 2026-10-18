@@ -52,6 +52,7 @@ def test_an_unknown_command_or_subcommand_fails_before_any_request() -> None:
         "host network, account list, account show, asset list, asset show, application list, login list, "
         "vuln show, vuln list, cve list, cve show, actor list, actor show, report list, report show, "
         "indicator list, indicator show, container list, image list, image vulnerabilities, serverless list, "
+        "classification list, classification show, data-policy list, data-policy show, "
         "identity activity, search start, search status, search stop, identity list, "
         "identity show, identity timeline, identity assessment, identity sensor list, identity sensor show, "
         "ioc list, ioc show, ioc hosts, ioc processes, host-group list, host-group members, policy list, policy members, "

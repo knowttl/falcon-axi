@@ -17,6 +17,7 @@ from falcon_axi.credentials import (
     read_only,
     resolve_credential,
 )
+from falcon_axi.data_protection import validate_sort as validate_data_protection_sort
 from falcon_axi.fql import (
     DetectionQuery,
     since_seconds,
@@ -194,6 +195,14 @@ def parse(argv: Sequence[str]) -> Parsed:
             "serverless list requires --filter",
             ["Run `falcon-axi serverless list --filter \"cloud_provider:'aws'\"`"],
         )
+    if command == "data-policy list" and flags.get("platform") not in ("win", "mac"):
+        raise CliError(
+            "VALIDATION_ERROR",
+            "--platform is required: win or mac",
+            ["Run `falcon-axi data-policy list --platform win` for Windows policies"],
+        )
+    if command in ("classification list", "data-policy list"):
+        validate_data_protection_sort(_str(flags.get("sort")), command == "data-policy list")
     if "since" in flags:
         window(str(flags["since"]))
     if command in ("identity list", "identity assessment"):

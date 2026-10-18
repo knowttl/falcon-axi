@@ -13,6 +13,8 @@ The shipped and deferred commands are listed below; [`docs/design/v1.md`](docs/d
 
 What is shipped:
 
+- Data Protection configuration reads: `classification list`, `classification show`,
+  `data-policy list`, and `data-policy show`; see [Data Protection](#data-protection) for usage.
 - the package foundation: a Python package, the `falcon-axi` console script, and one offline
   `uv run scripts/verify.py` entry point;
 - `-v`, `-V`, and `--version`, printing the bare version;
@@ -74,7 +76,7 @@ What is shipped:
 
 What is **not** shipped yet, so no output advertises it:
 
-- every domain `docs/design/v1.md` §1.3 defers,
+- the remaining domains `docs/design/v1.md` §1.3 defers,
   every NG-SIEM capability outside the three search lifecycle operations (no ingest, no lookup
   files, no parser or dashboard writes, and no Charlotte AI), and every Identity Protection capability
   beyond the directory, timeline, security assessment, and sensor inventory: no standalone incident queries, no policy rules,
@@ -462,6 +464,20 @@ The schema CrowdStrike publishes for it is not public, so the documents follow C
 falcon-mcp's own queries; `docs/design/v1.md` §17 records that they are not yet validated against a
 live tenant.
 A GraphQL error reported on an HTTP 200 is an `UPSTREAM_ERROR`, never an empty result.
+
+### Data Protection
+
+`classification list` reads classifications; `data-policy list --platform win|mac` reads policies for the selected platform.
+Use `classification show <id>` or `data-policy show <id>` for the full record; policy detail does not require a platform.
+Both lists accept `--filter`, `--sort`, `--limit`, and `--cursor`.
+Run the command with `--help` for filter and sort fields; [the design contract](docs/design/v1.md#106-data-protection-reads) owns pagination bounds and output schemas.
+These commands require `Data Protection:read` and a Data Protection license.
+They are tested offline, without tenant validation.
+
+Data Protection detections use `falcon-axi detection list --product data-protection`.
+For classified-file events, use `falcon-axi search start --query '#event_simpleName=Event_DataProtectionClassifiedFileEvent | head(200)'`,
+then `falcon-axi search status <id>` to read the results and `falcon-axi search stop <id>` if the job is left running.
+There is no standalone Data Protection event command; the [design rationale](docs/design/v1.md#106-data-protection-reads) records the supported API boundary.
 
 ## Output and errors
 

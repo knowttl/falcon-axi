@@ -1,6 +1,6 @@
 {
   "name": "shield list",
-  "order": 2312,
+  "order": 2320,
   "summary": "  shield list               list SaaS security posture checks",
   "scopes": [
     {

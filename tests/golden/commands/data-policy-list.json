@@ -1,0 +1,11 @@
+{
+  "name": "data-policy list",
+  "order": 1630,
+  "summary": "  data-policy list          list Data Protection policies",
+  "scopes": [
+    {
+      "scope": "Data Protection:read",
+      "access": "read"
+    }
+  ]
+}

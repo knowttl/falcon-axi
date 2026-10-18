@@ -1,0 +1,5 @@
+count: 2 of 2 total
+classifications[2]{id,name,protection_mode}:
+  synthetic-classification-01,Synthetic confidential documents,enforce
+  synthetic-classification-02,Synthetic public documents,monitor
+help[1]: "Run `falcon-axi classification show <id>` for the full record"

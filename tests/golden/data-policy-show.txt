@@ -1,0 +1,11 @@
+policy:
+  id: synthetic-policy-01
+  cid: "[redacted]"
+  name: Synthetic workstation policy
+  description: Wholly synthetic policy for offline tests
+  is_enabled: true
+  precedence: 1
+  host_groups[1]: synthetic-group-01
+  policy_properties:
+    classifications[1]: synthetic-classification-01
+    enable_content_inspection: true
