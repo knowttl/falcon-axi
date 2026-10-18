@@ -6,17 +6,17 @@
     {
       "scope": "Machine Learning Exclusions:read",
       "access": "read",
-      "required": "yes"
+      "required": "selected --type"
     },
     {
       "scope": "IOA Exclusions:read",
       "access": "read",
-      "required": "yes"
+      "required": "selected --type"
     },
     {
       "scope": "Sensor Visibility Exclusions:read",
       "access": "read",
-      "required": "yes"
+      "required": "selected --type"
     }
   ]
 }
