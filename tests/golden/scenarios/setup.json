@@ -1,0 +1,9 @@
+{
+  "name": "setup",
+  "comment": "Offline setup guidance ships without writes or credentials (design section 12.2). The command surface deliberately changes help-top and unknown-command; scopes remains byte-identical because setup needs no Falcon scope.",
+  "argv": [
+    "setup"
+  ],
+  "env": "none",
+  "exit_code": 0
+}

@@ -1,0 +1,10 @@
+{
+  "name": "help-setup-hooks",
+  "argv": [
+    "setup",
+    "hooks",
+    "--help"
+  ],
+  "env": "none",
+  "exit_code": 0
+}

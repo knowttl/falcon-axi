@@ -38,12 +38,13 @@ The report `report.md` in this directory carries the comparison that led here.
 falconpy supports 3.8 and up, but 3.11 is the floor falcon-mcp uses and gives `tomllib`, modern typing, and exception groups without backports.
 uv provisions the interpreter on demand, so the operator never needs a system Python (§8).
 
-**Runtime dependencies, exactly two.**
+**Runtime dependencies, exactly three.**
 
 | Package | Pin | Why | License |
 | --- | --- | --- | --- |
 | `crowdstrike-falconpy` | `>=1.6.5,<2` | Operation-ID routing, request execution, proxy, User-Agent, timeout; only `requests` and `urllib3` underneath | Unlicense |
 | `toon-format` | See `pyproject.toml` | Stable TOON 1.x encoder for stdout; golden documents pin the emitted format | MIT |
+| `tomlkit` | `>=0.13,<1` | Enable Codex hooks across valid TOML spellings while preserving unrelated settings and comments | MIT |
 
 **Explicit non-dependencies.**
 
@@ -53,7 +54,7 @@ uv provisions the interpreter on demand, so the operator never needs a system Py
 - Not `mcp`, not `pydantic`, not a CLI framework.
   Argument parsing is hand-written as in stage 1, because the AXI fail-loud rules (unknown flag by name, per-subcommand flag sets, secret-shaped flag guard) are easier to guarantee in forty lines than to coax out of argparse or click.
 - Not any Node package.
-  There is no npm shim and no Node process anywhere in C1.
+  The CLI has no npm shim or Node process; the optional OpenCode integration is a JavaScript plugin (§12.2 of v1.md).
 
 **falconpy usage is confined to one class.**
 Only `APIHarnessV2` is imported, and only inside the network sink (§3.2).
@@ -120,7 +121,7 @@ flags, value flags, limit ceiling, positional argument, help, handler, operation
 Domain functions still accept a transport and session directly, and recorded outputs remain byte-identical.
 
 ```
-pyproject.toml                 name falcon-axi, console script falcon-axi = falcon_axi.cli:main
+pyproject.toml                 package metadata and console-script entry points (§8)
 falcon_axi/
   __init__.py
   __main__.py                  python -m falcon_axi
@@ -250,8 +251,8 @@ It reaches the network, so it is opt-in and never part of `verify`.
 
 ## 8. Packaging and distribution
 
-**Build.** `pyproject.toml` with the `hatchling` backend, static version, `[project.scripts] falcon-axi = "falcon_axi.cli:main"`.
-`uv build` produces the wheel and sdist; `uv lock` pins the two dependencies and their transitive closure for reproducible installs.
+**Build.** `pyproject.toml` defines the `hatchling` backend, static version, and console-script entry points under `[project.scripts]`.
+`uv build` produces the wheel and sdist; `uv lock` pins the declared dependencies and their transitive closure for reproducible installs.
 The sdist includes only `falcon_axi/`, `README.md`, `LICENSE`, `pyproject.toml`, generated package metadata, and Hatchling's automatically included root `.gitignore`.
 The wheel includes the package and generated distribution metadata, including the README long description and MIT license.
 Tests, fixtures, local configuration, and development automation are excluded from both archives.
@@ -283,8 +284,7 @@ The empty-array encoder expectation becomes `key: []`; falcon-axi still renders 
 `[tool.uv] prerelease = "allow"` remains unchanged because stable end-user resolution does not depend on it.
 
 **Session hook and skill (v1.md §12.2).**
-The session-hook installer remains planned, with a PATH-verified binary name and an absolute uv tool path as fallback.
-[v1.md §12.2](v1.md#122-session-hook-and-skill) owns the independently shipped generated skill, its regeneration and drift checks, and the home-view install hint.
+[v1.md §12.2](v1.md#122-session-hook-and-skill) owns the shipped setup commands, session integrations, executable-path selection, and independently installed generated skill.
 
 ## 9. Commissioning plan
 
@@ -324,7 +324,7 @@ The v0.3.0 release covers those stages and the subsequent additions in the [READ
 The golden set adds the identity scenarios as regression pins, and `tests/golden/history.json` records which existing documents changed and why.
 
 **P4. Setup and delivery surface.**
-`setup` with hook and skill, and `--fields` on detection and host lists.
+Setup and the hook are implemented under [v1.md §12.2](v1.md#122-session-hook-and-skill); the skill is installed separately.
 For the field-selection contract, see [v1.md §10.2](v1.md#102-default-schemas).
 Validation policy is owned by v1.md §15.
 For the pagination contract, see [v1.md §7.2](v1.md#72-what-the-cli-exposes); the [README's status section](../../README.md#status-partial-implementation-of-the-v1-design) owns delivery status.

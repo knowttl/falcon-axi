@@ -22,6 +22,25 @@ def test_the_architecture_boundary_check_passes() -> None:
     assert check() is True
 
 
+@pytest.mark.parametrize(
+    "body",
+    [
+        'from pathlib import Path; Path("state").write_text("data")',
+        'from pathlib import Path; Path("state").open("w")',
+        'open("state", "a")',
+        'import os; os.open("state", os.O_WRONLY | os.O_CREAT)',
+    ],
+)
+def test_architecture_confines_file_writers_to_setup(body, tmp_path, monkeypatch):
+    path = tmp_path / "unexpected_writer.py"
+    path.write_text(body)
+    monkeypatch.setattr(architecture_check, "PACKAGE", tmp_path)
+    with pytest.raises(AssertionError, match="outside setup.py"):
+        check()
+    path.rename(tmp_path / "setup.py")
+    assert check() is True
+
+
 def test_architecture_rejects_dynamic_acl_commands(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     path = tmp_path / "private_file.py"
     path.write_text((REPO / "falcon_axi/private_file.py").read_text().replace('"powershell.exe"', '"sh"'))

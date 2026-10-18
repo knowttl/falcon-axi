@@ -1,0 +1,8 @@
+falcon-axi setup hooks
+
+Install or repair Claude Code, Codex, and OpenCode session integrations.
+Requires a durable installation. No network calls or skill installation.
+
+Examples:
+  falcon-axi setup hooks
+  falcon-axi setup hooks --help

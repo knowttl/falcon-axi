@@ -1,0 +1,6 @@
+{
+  "name": "setup hooks",
+  "order": 2900,
+  "summary": "  setup hooks               install or repair all three session integrations",
+  "scopes": []
+}

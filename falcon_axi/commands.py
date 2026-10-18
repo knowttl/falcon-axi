@@ -15,6 +15,7 @@ from falcon_axi import (
     policy,
     scopes,
     search,
+    setup,
     vuln,
 )
 
@@ -38,6 +39,7 @@ COMMAND_SPECS = {
         policy.COMMAND_SPECS,
         diagnostics.COMMAND_SPECS,
         scopes.COMMAND_SPECS,
+        setup.COMMAND_SPECS,
     )
     for spec in group
 }

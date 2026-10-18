@@ -101,7 +101,7 @@ def parse(argv: Sequence[str]) -> Parsed:
     command: str = "home"
     index = 0
     first = argv[0] if argv else None
-    if first in SUBCOMMANDS:
+    if first in SUBCOMMANDS and not (first in COMMAND_SPECS and (len(argv) == 1 or argv[1].startswith("-"))):
         noun = str(first)
         index = 1
         while noun in SUBCOMMANDS:

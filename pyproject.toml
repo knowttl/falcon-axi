@@ -22,10 +22,12 @@ classifiers = [
 dependencies = [
   "crowdstrike-falconpy>=1.6.5,<2",
   "toon-format>=1.2,<2",
+  "tomlkit>=0.13,<1",
 ]
 
 [project.scripts]
 falcon-axi = "falcon_axi.cli:main"
+falcon-axi-hook = "falcon_axi.hook:main"
 
 [project.urls]
 Repository = "https://github.com/knowttl/falcon-axi"

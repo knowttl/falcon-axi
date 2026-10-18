@@ -39,6 +39,7 @@ What is shipped:
   fields when present) and `identity activity <account>`, a fixed NG-SIEM search over one account's
   Identity Protection events that adds no operation and no scope beyond N1's;
 - `falcon-axi scopes`, the command-to-scope matrix, available without making a request;
+- `falcon-axi setup` for offline guidance and `falcon-axi setup hooks` for Claude Code, Codex, and OpenCode session integrations;
 - Falcon Intelligence indicators: `indicator list` with opaque marker continuation and `indicator show`.
   These reads match first-party API sources and are tested offline, without tenant validation.
 - the generated [agent skill](#agent-skill) and its bare-home install hint, specified in
@@ -64,12 +65,10 @@ What is **not** shipped yet, so no output advertises it:
   beyond the directory, timeline, security assessment, and sensor inventory: no standalone incident queries, no policy rules,
   and no GraphQL mutation of any kind.
   There is no report PDF or rule-file download;
-- `falcon-axi setup`, including the session hook;
 
 `docs/design/v1.md` remains the authority for the full v1 surface; §17 records closed decisions and distinguishes approvals from shipped implementations.
 [`docs/design/v1-python.md`](docs/design/v1-python.md) amends it for language, HTTP client, test
-layout, and packaging: falcon-axi is pure Python on `crowdstrike-falconpy`, with no Node runtime and
-no MCP process anywhere.
+layout, and packaging: the falcon-axi CLI is pure Python on `crowdstrike-falconpy`, requiring no Node runtime or MCP process.
 
 ## Read-only, with two captain-granted exceptions
 
@@ -176,7 +175,8 @@ On POSIX, config files must be owned by the caller, regular, and not group/world
 secret files must have no group/world permissions (0400 and 0600 both work).
 On Windows, reads reject reparse points, including symlinks and junctions;
 `auth status` additionally verifies a protected DACL granting FullControl only to the current user, SYSTEM, and Administrators.
-No file-writing command or persistent token cache exists.
+Credential configuration is read-only and no persistent token cache exists.
+For the explicit agent integration installer, see [Agent skill](#agent-skill).
 
 Selection order is `--profile`, `FALCON_AXI_PROFILE`, a complete environment profile,
 `defaultProfile`, then the only configured profile.
@@ -561,8 +561,11 @@ npx skills add knowttl/falcon-axi --skill falcon-axi -g
 ```
 
 Drop `-g` for a project-scoped install.
-`falcon-axi setup` does not exist yet, so the CLI installs no skill, session hook, or plugin
-itself.
+Run `falcon-axi setup` for offline guidance, or `falcon-axi setup hooks` to install or repair all three session integrations.
+Install the CLI in a durable location first, for example with `uv tool install falcon-axi`.
+The hook prints local profile status and region without contacting Falcon and always exits successfully.
+Setup preserves unrelated agent settings and refuses malformed configuration or an unmanaged OpenCode plugin.
+The skill remains a separate installation through the command above.
 
 ## Relationship to falcon-mcp
 
@@ -570,7 +573,7 @@ itself.
 domain, scope, FQL, credential, and test reference only.
 It is not a fork base, not a dependency, and not part of falcon-axi at runtime: falcon-axi runs no
 MCP process, imports no `falcon_mcp` or `mcp` module, and installs neither.
-Its only runtime dependencies are `crowdstrike-falconpy` and `toon-format`.
+Runtime dependencies are declared in [`pyproject.toml`](pyproject.toml).
 
 ## License
 
