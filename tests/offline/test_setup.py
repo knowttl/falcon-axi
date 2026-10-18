@@ -44,8 +44,13 @@ def test_guidance_is_offline_and_writes_nothing(tmp_path):
     assert set(tmp_path.rglob("*")) == before
 
 
-def test_all_integrations_install_and_rerun_without_writes(installation):
+@pytest.mark.parametrize("relative_path", [False, True])
+def test_all_integrations_install_and_rerun_without_writes(installation, monkeypatch, relative_path):
     env, binary = installation
+    if relative_path:
+        monkeypatch.chdir(binary.parent.parent)
+        env["PATH"] = "bin"
+    hook_command = str(binary.with_name("falcon-axi-hook")) if relative_path else "falcon-axi-hook"
     output, code = run(["setup", "hooks"], env=env)
     assert code == 0
     assert "status: installed" in output
@@ -55,9 +60,9 @@ def test_all_integrations_install_and_rerun_without_writes(installation):
     for relative in (".claude/settings.json", ".codex/hooks.json"):
         entry = json.loads((home / relative).read_text())["hooks"]["SessionStart"][0]
         assert entry["matcher"] == ""
-        assert entry["hooks"] == [{"type": "command", "command": f"falcon-axi-hook # {MARKER}", "timeout": 10}]
+        assert entry["hooks"] == [{"type": "command", "command": f"{hook_command} # {MARKER}", "timeout": 10}]
         result = subprocess.run(  # noqa: S602 - exercise the emitted host shell command
-            entry["hooks"][0]["command"], shell=True, env={**os.environ, **env}, capture_output=True
+            entry["hooks"][0]["command"], shell=True, cwd=home, env={**os.environ, **env}, capture_output=True
         )
         assert result.returncode == 0
         assert result.stdout == b"local hook context\n"
@@ -98,11 +103,15 @@ def test_repair_moved_binary_preserves_other_hooks_and_config(installation, monk
     assert "# keep this" in config.read_text()
 
 
-def test_opencode_plugin_injects_local_context_and_fails_open(installation):
+@pytest.mark.parametrize("relative_path", [False, True])
+def test_opencode_plugin_injects_local_context_and_fails_open(installation, monkeypatch, relative_path):
     env, binary = installation
     node = shutil.which("node")
     if node is None:
         pytest.skip("Node is needed only to exercise the OpenCode plugin consumer")
+    if relative_path:
+        monkeypatch.chdir(binary.parent.parent)
+        env["PATH"] = "bin"
     assert run(["setup", "hooks"], env=env)[1] == 0
     plugin = Path(env["HOME"]) / ".config/opencode/plugins/axi-falcon-axi.js"
     program = """
@@ -115,13 +124,59 @@ await hooks['experimental.chat.system.transform']({}, output);
 console.log(JSON.stringify(output));
 """
     command = [node, "--input-type=module", "-e", program, str(plugin)]
-    result = subprocess.run(command, env={**os.environ, **env}, capture_output=True, text=True, check=True)  # noqa: S603
+    result = subprocess.run(  # noqa: S603
+        command, cwd=env["HOME"], env={**os.environ, **env}, capture_output=True, text=True, check=True
+    )
     assert json.loads(result.stdout) == {"system": ["existing context", "local hook context"]}
     binary.with_name("falcon-axi-hook").unlink()
-    result = subprocess.run(command, env={**os.environ, **env}, capture_output=True, text=True, check=True)  # noqa: S603
+    result = subprocess.run(  # noqa: S603
+        command, cwd=env["HOME"], env={**os.environ, **env}, capture_output=True, text=True, check=True
+    )
     assert json.loads(result.stdout) == {
         "system": ["existing context", "falcon-axi: local status unavailable; run falcon-axi setup"]
     }
+
+
+@pytest.mark.parametrize(
+    "features",
+    [
+        '[features]\n"hooks" = false # hook setting\nother = true\n',
+        "[features]\n'hooks' = false # hook setting\nother = true\n",
+        '["features"]\nhooks = false # hook setting\nother = true\n',
+        "['features']\nhooks = false # hook setting\nother = true\n",
+        '[ "features" ]\nhooks = false # hook setting\nother = true\n',
+        'features = { hooks = false, other = true } # hook setting\n',
+        'features.hooks = false # hook setting\nfeatures.other = true\n',
+        '"features"."hooks" = false # hook setting\nfeatures.other = true\n',
+        'features = {} # hook setting\n',
+        'features.other = true # hook setting\n',
+        '[features]\nother = true # hook setting',
+        '[features]\nnote = """\n[example]\n""" # hook setting\n[features.nested]\nother = true\n',
+    ],
+)
+def test_codex_features_preserve_valid_toml_settings_and_comments(installation, features):
+    env, _ = installation
+    config = Path(env["HOME"]) / ".codex/config.toml"
+    config.parent.mkdir(parents=True)
+    previous = '# keep this\nmodel = "example"\n' + features
+    config.write_text(previous)
+    expected = tomllib.loads(previous)
+    expected["features"]["hooks"] = True
+
+    output, code = run(["setup", "hooks"], env=env)
+
+    assert code == 0
+    assert "claude: updated" in output
+    assert "codex: updated" in output
+    assert "opencode: updated" in output
+    installed = config.read_text()
+    assert tomllib.loads(installed) == expected
+    assert "# keep this" in installed
+    assert "# hook setting" in installed
+    output, code = run(["setup", "hooks"], env=env)
+    assert code == 0
+    assert "status: unchanged" in output
+    assert config.read_text() == installed
 
 
 @pytest.mark.parametrize(
@@ -130,6 +185,8 @@ console.log(JSON.stringify(output));
         (".claude/settings.json", "{damaged"),
         (".codex/hooks.json", '{"hooks":{"SessionStart":{}}}'),
         (".codex/config.toml", "[broken"),
+        (".codex/config.toml", "features = false\n"),
+        (".codex/config.toml", "[[features]]\nhooks = false\n"),
         (".config/opencode/plugins/axi-falcon-axi.js", "// user plugin\n"),
         (".config/opencode/plugins/axi-falcon-axi.js", ""),
     ],
@@ -163,6 +220,37 @@ def test_non_durable_executable_is_refused(tmp_path, monkeypatch, kind):
         target = Path("/opt") / kind / "bin/falcon-axi-hook"
     with pytest.raises(Exception, match="durable installation"):
         _durable(target)
+
+
+@pytest.mark.parametrize("temporary_name", ["falcon-axi", "falcon-axi-hook"])
+def test_resolved_temporary_boundary_refuses_either_executable_before_writes(tmp_path, monkeypatch, temporary_name):
+    from falcon_axi import setup
+
+    temporary = tmp_path / "temporary"
+    temporary.mkdir()
+    alias = tmp_path / "tmp-alias"
+    alias.symlink_to(temporary, target_is_directory=True)
+    monkeypatch.setattr(setup, "TEMP_ROOT", alias)
+    binary = tmp_path / "bin/falcon-axi"
+    binary.parent.mkdir()
+    binary.touch()
+    hook = binary.with_name("falcon-axi-hook")
+    hook.touch()
+    hook.chmod(0o700)
+    target = temporary / temporary_name
+    target.touch()
+    target.chmod(0o700)
+    link = binary.parent / temporary_name
+    link.unlink()
+    link.symlink_to(target)
+    monkeypatch.setattr(sys, "argv", [str(binary)])
+    home = tmp_path / "destination"
+
+    output, code = run(["setup", "hooks"], env={"HOME": str(home), "PATH": str(binary.parent)})
+
+    assert code == 2
+    assert "durable installation" in output
+    assert not home.exists()
 
 
 @pytest.mark.parametrize("configured", [False, True, "invalid"])

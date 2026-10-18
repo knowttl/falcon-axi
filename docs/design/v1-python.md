@@ -38,12 +38,13 @@ The report `report.md` in this directory carries the comparison that led here.
 falconpy supports 3.8 and up, but 3.11 is the floor falcon-mcp uses and gives `tomllib`, modern typing, and exception groups without backports.
 uv provisions the interpreter on demand, so the operator never needs a system Python (§8).
 
-**Runtime dependencies, exactly two.**
+**Runtime dependencies, exactly three.**
 
 | Package | Pin | Why | License |
 | --- | --- | --- | --- |
 | `crowdstrike-falconpy` | `>=1.6.5,<2` | Operation-ID routing, request execution, proxy, User-Agent, timeout; only `requests` and `urllib3` underneath | Unlicense |
 | `toon-format` | See `pyproject.toml` | Stable TOON 1.x encoder for stdout; golden documents pin the emitted format | MIT |
+| `tomlkit` | `>=0.13,<1` | Enable Codex hooks across valid TOML spellings while preserving unrelated settings and comments | MIT |
 
 **Explicit non-dependencies.**
 

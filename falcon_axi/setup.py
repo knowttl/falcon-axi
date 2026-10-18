@@ -2,7 +2,6 @@
 
 import json
 import os
-import re
 import shlex
 import shutil
 import sys
@@ -10,6 +9,8 @@ import tomllib
 from collections.abc import Mapping
 from pathlib import Path
 from typing import Any
+
+import tomlkit
 
 from falcon_axi.command import CommandSpec, Invocation
 from falcon_axi.core import CliError
@@ -36,11 +37,11 @@ def _invalid(message: str) -> CliError:
 
 
 def _durable(path: Path) -> None:
+    temporary_roots = (TEMP_ROOT, TEMP_ROOT.resolve())
     # Check both the installation path and its resolved target, including parent symlinks.
     for candidate in (path.absolute(), path.resolve()):
         if (
-            candidate == TEMP_ROOT
-            or TEMP_ROOT in candidate.parents
+            any(candidate == root or root in candidate.parents for root in temporary_roots)
             or any(part in {".treehouse", "worktrees", ".no-mistakes"} for part in candidate.parts)
             or any((parent / ".git").is_file() for parent in candidate.parents)
         ):
@@ -64,7 +65,7 @@ def _hook_binary(env: Mapping[str, str]) -> str:
     _durable(executable)
     _durable(hook)
     found = shutil.which(hook.name, path=env.get("PATH", ""))
-    return hook.name if found and Path(found).resolve() == hook.resolve() else str(hook)
+    return hook.name if found and Path(found).is_absolute() and Path(found).resolve() == hook.resolve() else str(hook)
 
 
 def _text(path: Path) -> str:
@@ -115,25 +116,9 @@ def _codex_features(path: Path) -> str:
         raise _invalid("Codex features must be a table")
     if features.get("hooks") is True:
         return previous
-    # Preserve comments and unrelated TOML instead of rewriting the user's configuration.
-    lines = previous.splitlines(keepends=True)
-    start = next((i for i, line in enumerate(lines) if re.fullmatch(r"\s*\[features\]\s*(?:#.*)?\n?", line)), None)
-    if start is None:
-        if features:
-            raise _invalid("use a [features] table in Codex config.toml before installing hooks")
-        candidate = previous.rstrip() + "\n\n[features]\nhooks = true\n"
-    else:
-        end = next((i for i in range(start + 1, len(lines)) if lines[i].lstrip().startswith("[")), len(lines))
-        index = next((i for i in range(start + 1, end) if re.match(r"\s*hooks\s*=", lines[i])), None)
-        if index is None:
-            lines[start] = lines[start].rstrip("\r\n") + "\n"
-            lines.insert(start + 1, "hooks = true\n")
-        else:
-            lines[index] = "hooks = true\n"
-        candidate = "".join(lines)
-    if tomllib.loads(candidate).get("features", {}).get("hooks") is not True:
-        raise _invalid("could not enable Codex hooks while preserving config.toml")
-    return candidate
+    editable = tomlkit.parse(previous)
+    editable.setdefault("features", tomlkit.table())["hooks"] = True
+    return tomlkit.dumps(editable)
 
 
 def _plugin(binary: str) -> str:
