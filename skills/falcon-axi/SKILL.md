@@ -7,6 +7,7 @@ user-invocable: false
 # falcon-axi
 
 Read CrowdStrike Falcon detections, hosts, recent interactive logins, Discover accounts, vulnerabilities, CVE intelligence, NG-SIEM event data, and Identity Protection users from the shell.
+It also reads exclusion inventories and quarantined file metadata.
 Prefer this CLI over the Falcon console or hand-rolled REST calls when a task needs to read any of them.
 
 The CLI changes nothing in the tenant except an NG-SIEM search job: it exposes no write, create, update,
@@ -32,10 +33,8 @@ user or endpoint and its risk, accounts, and activity timeline, and to check whe
 resolves and into which region and tenant.
 
 `setup` does not exist, and neither do `--all`, `--max-rows`, or `--fields` on detection and host lists.
-Neither does any command for a Falcon domain outside detections, hosts, Discover accounts, Spotlight vulnerabilities, `cve show`,
-NG-SIEM search, and the Identity Protection directory and timeline; there is no `cve list`, no intel actor,
-indicator, or report command, and no ingest, lookup-file, parser, dashboard, Charlotte AI, identity incident,
-or identity security-assessment command.
+The [README status section](../../README.md#status-partial-implementation-of-the-v1-design) owns the shipped and absent command inventory.
+For exclusion and quarantine commands, use the [inventory read contract](../../docs/design/v1.md#121-exclusion-and-quarantine-inventory-reads) and each command's `--help`.
 Do not invent them; an unknown flag or command fails loudly.
 
 ## Commands
