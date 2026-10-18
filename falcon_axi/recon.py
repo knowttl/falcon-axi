@@ -14,6 +14,12 @@ from falcon_axi.transport.types import FalconResponse, QueryValue, RequestArgs
 
 QUERY_CEILING = 500
 OFFSET_WALL = 10_000
+_FILTER_HELP = {
+    "recon-rule": ("recon-rule list", "status:'active'"),
+    "recon-notification": ("recon-notification list", "status:'new'"),
+    "recon-record": ("recon-record list", "domain:'example.com'"),
+    "sensor-usage": ("sensor-usage list", "period:'30'"),
+}
 
 
 def read(ctx: Invocation, operation: OperationId, query: Mapping[str, QueryValue]) -> FalconResponse:
@@ -28,7 +34,9 @@ def read(ctx: Invocation, operation: OperationId, query: Mapping[str, QueryValue
         ),
     )
     if response.status != 200:
-        raise translate_falcon_error(response, operation, ctx.spec.name)
+        raise translate_falcon_error(
+            response, operation, ctx.spec.name, filter_help=_FILTER_HELP[ctx.spec.name.split()[0]]
+        )
     return response
 
 

@@ -232,6 +232,30 @@ def test_scope_errors_name_required_read_scope(argv, op, scope):
 
 
 @pytest.mark.parametrize(
+    "noun,operation,example",
+    [
+        ("recon-rule", "QueryRulesV1", "status:'active'"),
+        ("recon-notification", "QueryNotificationsV1", "status:'new'"),
+        ("recon-record", "QueryNotificationsExposedDataRecordsV1", "domain:'example.com'"),
+        ("sensor-usage", "GetSensorUsageWeekly", "period:'30'"),
+    ],
+)
+def test_rejected_filter_guidance_uses_the_originating_domain(noun, operation, example):
+    recorded = RecordedTransport(
+        [serve(operation, response(400, {"errors": [{"message": "invalid FQL filter"}]}))]
+    )
+    stdout, code = run([noun, "list", "--filter", "bad"], recorded, dict(CREDENTIAL_ENV))
+    parsed = decode(stdout)
+    assert code == 2
+    assert parsed["code"] == "FQL_INVALID"
+    assert parsed["help"] == [
+        "FQL uses + for AND, `,` for OR, and values must be quoted",
+        f'Example: `--filter "{example}"`',
+        f"Run `falcon-axi {noun} list --help` for the filterable fields",
+    ]
+
+
+@pytest.mark.parametrize(
     "argv",
     [
         ["recon-rule", "list", "--limit", "501"],

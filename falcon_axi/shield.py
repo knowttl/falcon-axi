@@ -9,7 +9,7 @@ from falcon_axi.core import CliError
 from falcon_axi.cursor import CursorContext, decode_offset, encode_cursor
 from falcon_axi.domain import CommandOutput, rate_limit_note
 from falcon_axi.falcon_error import translate_falcon_error
-from falcon_axi.render import raw, truncate
+from falcon_axi.render import raw, redact, truncate
 from falcon_axi.transport.types import RequestArgs
 
 # The API documents no maximum. This is a local page-size cap, not a server claim.
@@ -106,7 +106,7 @@ def _show(ctx: Invocation) -> CommandOutput:
             return [detail(entry) for entry in value]
         return value
 
-    value = {"check": detail(matched)}
+    value = {"check": detail(redact(matched))}
     help = (f"Run `falcon-axi shield show {requested} --full` for untruncated text",) if truncated else ()
     return CommandOutput(value, help)
 

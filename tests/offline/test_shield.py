@@ -1,6 +1,7 @@
 """Exercise Shield through the CLI with wholly synthetic responses, never a tenant."""
 
 import pytest
+from toon_format import decode
 
 from falcon_axi.cli import run
 from tests.support.recorded import CREDENTIAL_ENV, RecordedTransport, fixture, response, serve
@@ -80,6 +81,28 @@ def test_show_truncation_has_a_full_escape_hatch() -> None:
     assert code == 0
     assert "x" * 900 in full
     assert "truncated" not in full
+
+
+@pytest.mark.parametrize("flags", [[], ["--full"]])
+def test_show_redacts_complete_private_keys_before_preview(flags: list[str]) -> None:
+    private_key = "-----BEGIN PRIVATE KEY-----\n" + "synthetic-key-material" * 60 + "\n-----END PRIVATE KEY-----"
+    record = {
+        "id": "check",
+        "remediation_plan": private_key,
+        "details": {"content": private_key},
+        "matches": [private_key, {"content": private_key}],
+    }
+    recorded = RecordedTransport([serve(OP, response(200, [record]))])
+    stdout, code = run(["shield", "show", "check", *flags], recorded, CREDENTIAL_ENV)
+    assert code == 0
+    assert decode(stdout) == {
+        "check": {
+            "id": "check",
+            "remediation_plan": "[redacted]",
+            "details": {"content": "[redacted]"},
+            "matches": ["[redacted]", {"content": "[redacted]"}],
+        }
+    }
 
 
 def test_scope_denied_names_the_required_read_scope() -> None:
