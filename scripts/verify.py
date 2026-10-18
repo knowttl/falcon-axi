@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 """The single local entry point for the complete offline required-check set (§14.5, §15.4).
 
-`uv run scripts/verify.py` runs ruff, mypy --strict, the architecture boundary check, and the
-offline pytest suite. It must stay offline: the suite refuses to open a socket.
+`uv run scripts/verify.py` runs the checks declared in STEPS.
+It must stay offline: the suite refuses to open a socket.
 """
 
 import subprocess
