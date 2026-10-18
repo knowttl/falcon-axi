@@ -134,5 +134,9 @@
   "identity-activity-unsafe-account": 2,
   "detection-walk-budget": 0,
   "detection-walk-wall": 0,
-  "host-walk-budget-at-wall": 0
+  "host-walk-budget-at-wall": 0,
+  "help-detection-summary": 0,
+  "detection-summary": 0,
+  "detection-summary-empty": 0,
+  "detection-summary-scope-denied": 1
 }

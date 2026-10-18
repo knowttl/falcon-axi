@@ -1779,7 +1779,59 @@
         "activity",
         "synthetic*"
       ]
+    },
+    {
+      "name": "help-detection-summary",
+      "argv": [
+        "detection",
+        "summary",
+        "--help"
+      ]
+    },
+    {
+      "name": "detection-summary",
+      "argv": [
+        "detection",
+        "summary",
+        "--since",
+        "24h"
+      ],
+      "responders": [
+        {
+          "op": "PostAggregatesAlertsV2",
+          "fixture": "alerts/aggregate-severity.json"
+        }
+      ]
+    },
+    {
+      "name": "detection-summary-empty",
+      "argv": [
+        "detection",
+        "summary",
+        "--severity",
+        "critical"
+      ],
+      "responders": [
+        {
+          "op": "PostAggregatesAlertsV2",
+          "fixture": "alerts/aggregate-empty.json"
+        }
+      ]
+    },
+    {
+      "name": "detection-summary-scope-denied",
+      "argv": [
+        "detection",
+        "summary"
+      ],
+      "responders": [
+        {
+          "op": "PostAggregatesAlertsV2",
+          "fixture": "errors/403-scope.json"
+        }
+      ]
     }
   ],
-  "pagination_comment": "The shipped bounded walker (docs/design/v1.md sections 7.2 and 10.2) adds three wholly synthetic partial-read examples. The four list help documents, unknown-flag, and list-with-positional deliberately change to advertise --all and --max-rows. Existing data documents and scopes remain unchanged because no operation or permission changed."
+  "pagination_comment": "The shipped bounded walker (docs/design/v1.md sections 7.2 and 10.2) adds three wholly synthetic partial-read examples. The four list help documents, unknown-flag, and list-with-positional deliberately change to advertise --all and --max-rows. Existing data documents and scopes remain unchanged because no operation or permission changed.",
+  "detection_summary_comment": "Detection summary adds on-demand severity scenarios and updates help-top, unknown-command, unknown-detection-subcommand, and scopes (design section 10.3); the home view makes no aggregate request."
 }

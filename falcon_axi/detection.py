@@ -256,6 +256,71 @@ def show_detection(transport: Transport, session: Session, id: str, full: bool) 
     return CommandOutput(value={"detection": detail}, help=tuple(help))
 
 
+def summarize_detections(transport: Transport, session: Session, query: DetectionQuery) -> CommandOutput:
+    """Count severity terms server-side without walking the Alerts result window (§10.3)."""
+    spec: dict[str, Any] = {
+        "name": "severity",
+        "type": "terms",
+        "field": "severity_name",
+        "size": 100,
+        "missing": "unknown",
+    }
+    filter = detection_filter(query)
+    if filter:
+        spec["filter"] = filter
+    response = transport.request(
+        "PostAggregatesAlertsV2",
+        RequestArgs(
+            base_url=session.base_url,
+            token=session.token,
+            allow_unknown_origin=session.allow_unknown_origin,
+            body=[spec],
+        ),
+    )
+    if response.status != 200:
+        raise translate_falcon_error(response, "PostAggregatesAlertsV2", "detection summary")
+    invalid = CliError(
+        "UPSTREAM_ERROR",
+        "Falcon returned an incomplete detection summary",
+        ["Retry shortly; report this command if the problem persists"],
+    )
+    body = response.body
+    if not isinstance(body, Mapping) or body.get("errors") or not isinstance(body.get("resources"), list):
+        raise invalid
+    aggregates = body["resources"]
+    if not aggregates:
+        buckets: Any = []
+        other = 0
+    else:
+        aggregate = next((item for item in aggregates if isinstance(item, Mapping) and item.get("name") == "severity"), {})
+        buckets = aggregate.get("buckets")
+        other = aggregate.get("sum_other_doc_count", 0)
+        if not isinstance(buckets, list) or type(other) is not int or other < 0:
+            raise invalid
+    rows = []
+    for bucket in buckets:
+        if (
+            not isinstance(bucket, Mapping)
+            or not isinstance(bucket.get("label"), str)
+            or type(bucket.get("count")) is not int
+            or bucket["count"] < 0
+        ):
+            raise invalid
+        rows.append({"severity": bucket["label"], "count": bucket["count"]})
+    if not rows and not other:
+        describe = describe_detection_query(query)
+        empty = f"0 detections matching {describe}" if describe else "0 detections in this tenant"
+        return CommandOutput(value={"detections": raw(empty)}, help=())
+    value: dict[str, Any] = {"severities": rows}
+    if other:
+        value["other_count"] = other
+    return CommandOutput(value=value, help=())
+
+
+def _detection_summary(ctx: Invocation) -> CommandOutput:
+    return summarize_detections(ctx.transport, ctx.session, _detection_query_of(ctx.flags))
+
+
 def _detection_list(ctx: Invocation) -> CommandOutput:
     return list_detections(
         ctx.transport,
@@ -284,6 +349,34 @@ def _detection_query_of(flags: Mapping[str, str | bool]) -> DetectionQuery:
 
 
 COMMAND_SPECS = (
+    CommandSpec(
+        name="detection summary",
+        help="\n".join(
+            [
+                "falcon-axi detection summary [--severity <name>] [--status <name>] [--product <name>] "
+                "[--since <window>] [--filter <FQL>]",
+                "",
+                f"--severity   one of {', '.join(SEVERITIES)}",
+                f"--status     one of {', '.join(STATUSES)}",
+                f"--product    one of {', '.join(PRODUCTS)}",
+                "--since      relative window such as 24h or 7d",
+                "--filter     raw FQL, combined with the shorthand filters as in detection list",
+                "",
+                "Counts by severity across matching alerts, including hidden alerts, without listing them.",
+                "other_count, when present, counts alerts in buckets omitted by Falcon.",
+                "Examples:",
+                "  falcon-axi detection summary --since 24h",
+                "  falcon-axi detection summary --product idp --status new",
+                "",
+                "This command is read-only and requires only Alerts:read.",
+            ]
+        ),
+        summary="  detection summary         counts of detections by severity",
+        handler=_detection_summary,
+        operations=("PostAggregatesAlertsV2",),
+        flags=("filter", "severity", "status", "product", "since"),
+        value_flags=("filter", "severity", "status", "product", "since"),
+    ),
     CommandSpec(
         name="detection list",
         help="\n".join(
