@@ -449,8 +449,9 @@ A GraphQL error reported on an HTTP 200 is an `UPSTREAM_ERROR`, never an empty r
 ## Output and errors
 
 Output is TOON on stdout.
-A non-empty list view prints a `count:` line, a compact domain-specific schema, and a `help[]` array of
+Most non-empty list views print a `count:` line, a compact domain-specific schema, and a `help[]` array of
 the next commands.
+For the serverless SARIF representation, see [the container and serverless contract](docs/design/v1.md#24-container-and-serverless-reads).
 Empty results are stated explicitly rather than left as ambiguous silence.
 GraphQL identity pages report rows shown without a total; their schemas are defined in
 [the output contract](docs/design/v1.md#102-default-schemas).
@@ -503,11 +504,11 @@ Ask the command rather than guessing its flags.
 ## Pagination
 
 By default, one call reads one page.
-`--limit N` sets the rows for this call; `host logins` applies it to the selected host's login window.
-Use the command's `--help` for defaults and ceilings; the detailed limit contract lives in
+`--limit N` sets the page budget; `host logins` applies it to the selected host's login window.
+Use the command's `--help` for units, defaults, and ceilings; the detailed limit contract lives in
 [`docs/design/v1.md` §7.3](docs/design/v1.md#73-default-limits).
-A truncated result prints a `continuation_cursor` plus a ready-to-run next-page suggestion that
-replays the same filters.
+A result with reachable continuation prints a `continuation_cursor` plus a next-page suggestion.
+Follow [the suggestion redaction contract](docs/design/v1.md#55-redaction) when the suggestion requires restoring the original filter.
 Pass it back with `--cursor <token>`.
 
 The cursor is opaque and bound to the credential and the filter that produced it, so it cannot be
