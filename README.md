@@ -55,7 +55,7 @@ What is shipped:
 - `--fields` on detection, host, and vuln lists to append selected columns to the default row.
 - container and serverless reads: `container list`, `image list`, `image vulnerabilities`, and `serverless list`.
   They match first-party API sources and are tested offline, without tenant validation.
-  See the [container and serverless contract](docs/design/v1.md#24-container-and-serverless-reads) for filters, paging boundaries, and SARIF output, and [API client permissions](#api-client-permissions) for provisioning.
+  See the [container and serverless contract](docs/design/v1.md#25-container-and-serverless-reads) for filters, paging boundaries, and SARIF output, and [API client permissions](#api-client-permissions) for provisioning.
 
 - custom IOC reads: `ioc list`, `ioc show`, `ioc hosts <type:value>`, and
   `ioc processes <type:value> --host <device_id>`;
@@ -470,14 +470,14 @@ A GraphQL error reported on an HTTP 200 is an `UPSTREAM_ERROR`, never an empty r
 `classification list` reads classifications; `data-policy list --platform win|mac` reads policies for the selected platform.
 Use `classification show <id>` or `data-policy show <id>` for the full record; policy detail does not require a platform.
 Both lists accept `--filter`, `--sort`, `--limit`, and `--cursor`.
-Run the command with `--help` for filter and sort fields; [the design contract](docs/design/v1.md#106-data-protection-reads) owns pagination bounds and output schemas.
+Run the command with `--help` for filter and sort fields; [the design contract](docs/design/v1.md#107-data-protection-reads) owns pagination bounds and output schemas.
 These commands require `Data Protection:read` and a Data Protection license.
 They are tested offline, without tenant validation.
 
 Data Protection detections use `falcon-axi detection list --product data-protection`.
 For classified-file events, use `falcon-axi search start --query '#event_simpleName=Event_DataProtectionClassifiedFileEvent | head(200)'`,
 then `falcon-axi search status <id>` to read the results and `falcon-axi search stop <id>` if the job is left running.
-There is no standalone Data Protection event command; the [design rationale](docs/design/v1.md#106-data-protection-reads) records the supported API boundary.
+There is no standalone Data Protection event command; the [design rationale](docs/design/v1.md#107-data-protection-reads) records the supported API boundary.
 
 ## Output and errors
 
@@ -485,9 +485,7 @@ Output is TOON on stdout.
 A non-empty list view generally prints a `count:` line, a compact domain-specific schema, and a `help[]` array of
 the next commands.
 Sensor usage reports follow [their output contract](docs/design/v1.md#24-sensor-usage-and-falcon-recon-reads).
-Most non-empty list views print a `count:` line, a compact domain-specific schema, and a `help[]` array of
-the next commands.
-For the serverless SARIF representation, see [the container and serverless contract](docs/design/v1.md#24-container-and-serverless-reads).
+For the serverless SARIF representation, see [the container and serverless contract](docs/design/v1.md#25-container-and-serverless-reads).
 Empty results are stated explicitly rather than left as ambiguous silence.
 GraphQL identity pages report rows shown without a total; their schemas are defined in
 [the output contract](docs/design/v1.md#102-default-schemas).
@@ -541,8 +539,6 @@ Ask the command rather than guessing its flags.
 
 By default, one call reads one page.
 See [the sensor usage contract](docs/design/v1.md#24-sensor-usage-and-falcon-recon-reads) for its unpaginated reports.
-`--limit N` sets the rows for this call; `host logins` applies it to the selected host's login window.
-Use the command's `--help` for defaults and ceilings; the detailed limit contract lives in
 `--limit N` sets the page budget; `host logins` applies it to the selected host's login window.
 Use the command's `--help` for units, defaults, and ceilings; the detailed limit contract lives in
 [`docs/design/v1.md` §7.3](docs/design/v1.md#73-default-limits).

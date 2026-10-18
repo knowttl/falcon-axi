@@ -34,9 +34,7 @@ def read(ctx: Invocation, operation: OperationId, query: Mapping[str, QueryValue
         ),
     )
     if response.status != 200:
-        raise translate_falcon_error(
-            response, operation, ctx.spec.name, filter_help=_FILTER_HELP[ctx.spec.name.split()[0]]
-        )
+        raise translate_falcon_error(response, operation, ctx.spec.name, filter_help=_FILTER_HELP[ctx.spec.name.split()[0]])
     return response
 
 
