@@ -20,7 +20,7 @@ What is shipped:
   operations, and a single permitted network sink;
 - AXI credential profiles and SecretRefs, per-call XDG paths, region selection and
   `X-Cs-Region` autodiscovery, Flight Control member-CID selection, `auth status`, `profile list`, and `config path`;
-- the home view and five read domains: `falcon-axi`, `detection list`, `detection show`, `host list`,
+- the home view and core read domains: `falcon-axi`, `detection list`, `detection show`, `host list`,
   `host show`, `host logins`, `account list`, `account show`, `vuln list`, and `cve show`;
 - NG-SIEM search: `search start`, `search status`, and `search stop`, the three operations captain
   exception N1 admits;
@@ -34,7 +34,7 @@ What is shipped:
 - malware families: `malware list` and `malware show`;
 - Identity Protection policy rules: `identity rule list` and `identity rule show`, using REST reads;
 - Discover IoT inventory: `iot list`, with token pagination and the license-gated Falcon Discover IoT:read scope.
-  These three areas follow the official API reference, falconpy, and PSFalcon; they have synthetic offline tests and are not tenant-validated.
+  See [the inventory read contract](docs/design/v1.md#23-the-two-step-query-then-hydrate-pattern) for these three areas' API evidence and validation boundary.
 
 What is **not** shipped yet, so no output advertises it:
 
@@ -446,7 +446,8 @@ Ask the command rather than guessing its flags.
 
 ## Pagination
 
-One call reads one page.
+For paginated commands, one call reads one page.
+`identity rule list` returns all matching rules; its API has no pagination parameters.
 `--limit N` sets the rows for this call; `host logins` applies it to the selected host's login window.
 Use the command's `--help` for defaults and ceilings; the detailed limit contract lives in
 [`docs/design/v1.md` §7.3](docs/design/v1.md#73-default-limits).
@@ -456,8 +457,8 @@ Pass it back with `--cursor <token>`.
 
 The cursor is opaque and bound to the credential and the filter that produced it, so it cannot be
 edited, reused across a different query, or shared between tenants.
-It hides the fact that Falcon paginates detections, hosts, and accounts by offset, vulnerabilities by an
-`after` token, and identities by a GraphQL `endCursor`: the CLI vocabulary is `--cursor` for every paginated command.
+The CLI vocabulary is `--cursor` for every paginated command.
+The underlying models are described in [the pagination contract](docs/design/v1.md#71-falcon-has-three-pagination-models-not-one).
 `host logins` has no cursor: a full window warns that more logins may exist rather than claiming completeness.
 `--all` and `--max-rows` do not exist yet: loop on `--cursor` when more than one
 page is genuinely needed.

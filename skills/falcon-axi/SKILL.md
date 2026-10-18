@@ -32,11 +32,9 @@ user or endpoint and its risk, accounts, and activity timeline, and to check whe
 resolves and into which region and tenant.
 
 `setup` does not exist, and neither do `--all`, `--max-rows`, or `--fields` on detection and host lists.
-Neither does any command for a Falcon domain outside detections, hosts, Discover accounts, Spotlight vulnerabilities, `cve show`,
-NG-SIEM search, and the Identity Protection directory and timeline; there is no `cve list`, no intel actor,
-indicator, or report command, and no ingest, lookup-file, parser, dashboard, Charlotte AI, identity incident,
-or identity security-assessment command.
-Do not invent them; an unknown flag or command fails loudly.
+The [README status section](../../README.md#status-partial-implementation-of-the-v1-design) owns the shipped and deferred command inventory, including malware families, identity policy rules, and Discover IoT.
+Run `falcon-axi --help` to discover commands and each command's `--help` for its flags.
+Do not invent commands or flags; unknown input fails loudly.
 
 ## Commands
 
