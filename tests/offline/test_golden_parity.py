@@ -1,4 +1,4 @@
-"""The cross-language parity gate: every scenario must reproduce TypeScript stage 1 byte for byte."""
+"""Recorded-invocation comparisons follow docs/design/v1-python.md §5."""
 
 import re
 
