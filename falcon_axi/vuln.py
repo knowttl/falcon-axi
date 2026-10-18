@@ -1,4 +1,4 @@
-"""The Spotlight vulnerabilities domain: one combined request, paginated by `after` token.
+"""Spotlight vulnerability lists and record detail reads.
 
 `combinedQueryVulnerabilities` returns entities directly, so there is no hydrate step (§2.3), and
 its cursor lives in `meta.pagination.after` rather than an offset (§7.1).

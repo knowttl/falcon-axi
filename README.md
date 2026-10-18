@@ -39,13 +39,11 @@ What is **not** shipped yet, so no output advertises it:
   files, no parser or dashboard writes, and no Charlotte AI), and every Identity Protection capability
   beyond the directory and timeline: no standalone incident or security-assessment queries, no policy rules,
   and no GraphQL mutation of any kind.
-  `cve list` and `cve show` ship for CVE intelligence;
 - `falcon-axi setup`, including the session hook and the generated skill;
 - `--all` and `--max-rows`, and `--fields` on detection and host lists; list pagination takes
   `--limit` and `--cursor` only;
 
-`docs/design/v1.md` remains the authority for the full v1 surface, and its §17 open questions are
-still open. Nothing here answers one of them.
+[`docs/design/v1.md` §17](docs/design/v1.md#17-open-questions) records open questions and their resolutions.
 [`docs/design/v1-python.md`](docs/design/v1-python.md) amends it for language, HTTP client, test
 layout, and packaging: falcon-axi is pure Python on `crowdstrike-falconpy`, with no Node runtime and
 no MCP process anywhere.
@@ -310,6 +308,9 @@ Run `falcon-axi detection list --help` for the complete product values.
 `vuln list --fields description,base_score` adds those columns to the default
 `id,cve,severity,hostname` row; run `falcon-axi vuln list --help` for the allowed names.
 An unknown name is refused and the valid names are listed.
+`vuln show <id>` takes a Spotlight record identifier from `vuln list`, rather than a CVE identifier.
+`cve list` searches Falcon Intelligence with optional FQL `--filter`, `--severity`, and `--since` on publication time.
+Run `falcon-axi cve list --help` for filter values and examples.
 `host logins <device_id>` accepts exactly one host and takes `--since` (a relative window) and `--limit`.
 Run `falcon-axi host logins --help` for defaults and limits.
 Its rows are recent interactive logins from the Host Timeline, not a full audit trail.
@@ -454,8 +455,8 @@ Pass it back with `--cursor <token>`.
 
 The cursor is opaque and bound to the credential and the filter that produced it, so it cannot be
 edited, reused across a different query, or shared between tenants.
-It hides the fact that Falcon paginates detections, hosts, and accounts by offset, vulnerabilities by an
-`after` token, and identities by a GraphQL `endCursor`: the CLI vocabulary is `--cursor` for every paginated command.
+The CLI vocabulary is `--cursor` for every paginated command;
+[`docs/design/v1.md` §7.1](docs/design/v1.md#71-falcon-has-three-pagination-models-not-one) owns the underlying pagination models.
 `host logins` has no cursor: a full window warns that more logins may exist rather than claiming completeness.
 `--all` and `--max-rows` do not exist yet: loop on `--cursor` when more than one
 page is genuinely needed.
