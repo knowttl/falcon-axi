@@ -34,8 +34,7 @@ What is shipped:
 - custom IOC reads: `ioc list`, `ioc show`, `ioc hosts <type:value>`, and
   `ioc processes <type:value> --host <device_id>`;
 - host-group reads: `host-group list` and `host-group members <id>`.
-  IOC and host-group commands use `--limit` and `--cursor` for pagination.
-  They match documented API and SDK request shapes and have offline fixture coverage; they have not been tenant-validated.
+  See [the command reference](docs/design/v1.md#141-custom-iocs-and-host-groups) for pagination and observation inputs.
 
 What is **not** shipped yet, so no output advertises it:
 
@@ -197,11 +196,6 @@ The default journal path is `$XDG_STATE_HOME/falcon-axi/writes.log`, or
 Invalid boolean values fail closed with `CONFIG_INVALID`.
 
 ## API client permissions
-
-Custom IOC inventory reads require `IOC Management:read`.
-IOC host and process observations require `IOCs (Indicators of Compromise):read`.
-Host-group inventory and membership reads require `Host Groups:read`.
-Run `falcon-axi scopes` for the complete command-to-scope matrix.
 
 Create the client in the Falcon console under Support and resources > API clients and keys.
 

@@ -30,12 +30,11 @@ the fleet's Spotlight vulnerabilities, to read what Falcon Intelligence knows ab
 search over NG-SIEM event data when the question is not one of those domains, to look up an Identity Protection
 user or endpoint and its risk, accounts, and activity timeline, and to check whether a Falcon credential
 resolves and into which region and tenant.
+Custom IOC lookup, observed host and process identifiers, and host-group browsing are described in the
+[command reference](../../docs/design/v1.md#141-custom-iocs-and-host-groups).
 
 `setup` does not exist, and neither do `--all`, `--max-rows`, or `--fields` on detection and host lists.
-Neither does any command for a Falcon domain outside detections, hosts, Discover accounts, Spotlight vulnerabilities, `cve show`,
-NG-SIEM search, and the Identity Protection directory and timeline; there is no `cve list`, no intel actor,
-indicator, or report command, and no ingest, lookup-file, parser, dashboard, Charlotte AI, identity incident,
-or identity security-assessment command.
+The README's [status section](../../README.md#status-partial-implementation-of-the-v1-design) owns the shipped and deferred domain inventory.
 Do not invent them; an unknown flag or command fails loudly.
 
 ## Commands
