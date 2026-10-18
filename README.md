@@ -290,6 +290,10 @@ falcon-axi account show abc123                      one Discover account
 falcon-axi vuln list --severity critical --status open
 falcon-axi vuln list --host abc123                  one host's vulnerabilities
 falcon-axi cve show CVE-2021-44228               Falcon Intelligence detail for one CVE
+falcon-axi actor list --filter "name:'Synthetic*'"   find intelligence actors
+falcon-axi actor show <id> --mitre                   actor profile and JSON ATT&CK mappings
+falcon-axi report list                              find intelligence reports
+falcon-axi report show <id> --full                   report detail without text truncation
 falcon-axi identity activity <account_id> --since 7d  an account's identity events
 falcon-axi search start --query '#event_simpleName=ProcessRollup2 | head(5)'
 falcon-axi search status 01JABCDEF                  one poll: running, cancelled, or done
@@ -298,6 +302,9 @@ falcon-axi identity list --name 'Admin*' --type user   Identity Protection users
 falcon-axi identity show 00000000-0000-0000-0000-000000000001      one identity in full
 falcon-axi identity timeline 00000000-0000-0000-0000-000000000001 --since 24h
 ```
+
+Copy actor and report identifiers from their list output.
+See the [Intel contract](docs/design/v1.md#23-the-two-step-query-then-hydrate-pattern) for list limits, cursor behavior, detail fields, and JSON ATT&CK output.
 
 `detection list` takes `--severity` (`informational`, `low`, `medium`, `high`, `critical`),
 `--status` (`new`, `in_progress`, `closed`, `reopened`), `--product` (`epp` for endpoint alerts, `idp`

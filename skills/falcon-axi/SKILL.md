@@ -1,12 +1,12 @@
 ---
 name: falcon-axi
-description: "Read CrowdStrike Falcon detections, hosts, vulnerabilities, CVE intelligence, NG-SIEM searches, and Identity Protection users and timelines from the shell with falcon-axi. Use for Falcon alerts and detections, detection triage, host and sensor inventory, recent interactive host logins, Discover account inventory, Spotlight vulnerability exposure, Falcon Intelligence CVE detail, NG-SIEM CQL event search, Identity Protection user and endpoint risk, accounts, and activity timelines, severity and status filtering, tenant and region checks, and Falcon API credential diagnostics."
+description: "Read CrowdStrike Falcon detections, hosts, vulnerabilities, CVE intelligence, intelligence actors and reports, NG-SIEM searches, and Identity Protection users and timelines from the shell with falcon-axi. Use for Falcon alerts and detections, detection triage, host and sensor inventory, recent interactive host logins, Discover account inventory, Spotlight vulnerability exposure, Falcon Intelligence CVE detail, adversary profiles, MITRE ATT&CK mappings, threat reports, NG-SIEM CQL event search, Identity Protection user and endpoint risk, accounts, and activity timelines, severity and status filtering, tenant and region checks, and Falcon API credential diagnostics."
 user-invocable: false
 ---
 
 # falcon-axi
 
-Read CrowdStrike Falcon detections, hosts, recent interactive logins, Discover accounts, vulnerabilities, CVE intelligence, NG-SIEM event data, and Identity Protection users from the shell.
+Read CrowdStrike Falcon detections, hosts, recent interactive logins, Discover accounts, vulnerabilities, CVE intelligence, intelligence actors and reports, NG-SIEM event data, and Identity Protection users from the shell.
 Prefer this CLI over the Falcon console or hand-rolled REST calls when a task needs to read any of them.
 
 The CLI changes nothing in the tenant except an NG-SIEM search job: it exposes no write, create, update,
@@ -26,17 +26,13 @@ If output suggests a `falcon-axi` command, run the equivalent command through th
 
 Use falcon-axi to answer what is firing in Falcon right now, to filter detections by severity, status, or
 time window, to read one detection in full, to find hosts, read one host's detail, see recent interactive logins, and list Discover accounts, to read a host's or
-the fleet's Spotlight vulnerabilities, to read what Falcon Intelligence knows about one CVE, to run a CQL
+the fleet's Spotlight vulnerabilities, to read what Falcon Intelligence knows about one CVE, adversary, or threat report, to run a CQL
 search over NG-SIEM event data when the question is not one of those domains, to look up an Identity Protection
 user or endpoint and its risk, accounts, and activity timeline, and to check whether a Falcon credential
 resolves and into which region and tenant.
 
-`setup` does not exist, and neither do `--all`, `--max-rows`, or `--fields` on detection and host lists.
-Neither does any command for a Falcon domain outside detections, hosts, Discover accounts, Spotlight vulnerabilities, `cve show`,
-NG-SIEM search, and the Identity Protection directory and timeline; there is no `cve list`, no intel actor,
-indicator, or report command, and no ingest, lookup-file, parser, dashboard, Charlotte AI, identity incident,
-or identity security-assessment command.
-Do not invent them; an unknown flag or command fails loudly.
+The [README status section](../../README.md#status-partial-implementation-of-the-v1-design) owns the shipped and deferred surface.
+Do not invent commands or flags; an unknown flag or command fails loudly.
 
 ## Commands
 
@@ -50,6 +46,7 @@ license-gated `Assets:read`.
 `vuln`: `list` (flags `--host`, `--severity`, `--status`, `--since`, `--filter`, `--limit`, `--cursor`, `--fields`).
 `cve`: `show <CVE-ID>` only.
 There is no `cve list`.
+For actor and report commands, use the [README's Intel examples](../../README.md#workflow) and the [Intel contract](../../docs/design/v1.md#23-the-two-step-query-then-hydrate-pattern).
 `search`: `start` (flags `--query`, `--repository`, `--since`), `status <search id>` (flag `--repository`),
 `stop <search id>` (flag `--repository`).
 `identity`: `activity <account objectGUID, sAMAccountName, or UPN>` (flag `--since`),
