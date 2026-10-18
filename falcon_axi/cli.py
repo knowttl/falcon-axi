@@ -107,7 +107,7 @@ def parse(argv: Sequence[str]) -> Parsed:
                 f"unknown {noun} subcommand {second or ''}".strip(),
                 [f"valid {noun} subcommands: {', '.join(SUBCOMMANDS[noun])}"],
             )
-    elif first in COMMAND_SPECS:
+    elif first is not None and " " not in first and first in COMMAND_SPECS:
         command = str(first)
         index = 1
     elif first is not None and not first.startswith("-"):

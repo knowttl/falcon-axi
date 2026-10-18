@@ -61,6 +61,17 @@ def test_an_unknown_command_or_subcommand_fails_before_any_request() -> None:
     assert recorded.requests == []
 
 
+@pytest.mark.parametrize("command", [name for name in COMMANDS if " " in name])
+@pytest.mark.parametrize("flags", [[], ["--help"]])
+def test_a_multiword_command_in_one_argument_is_unknown(command: str, flags: list[str]) -> None:
+    recorded = RecordedTransport([])
+    stdout, exit_code = run([command, *flags], recorded, {})
+    assert exit_code == 2
+    assert decode(stdout)["error"] == f"unknown command {command}"
+    assert decode(stdout)["code"] == "VALIDATION_ERROR"
+    assert recorded.requests == []
+
+
 def test_the_surface_lists_no_mutating_verb() -> None:
     for verb in ("contain", "update", "assign", "close", "release", "run", "execute", "create", "delete"):
         with pytest.raises(CliError) as first:
