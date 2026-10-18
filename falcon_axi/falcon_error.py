@@ -11,6 +11,8 @@ from falcon_axi.transport.types import FalconResponse
 
 _FILTER_WORDS = re.compile(r"\b(fql|filter|query)\b", re.IGNORECASE)
 _INVENTORY_REMEDIES: dict[OperationId, tuple[str, str]] = {
+    "QueryVulnerabilities": ("cve list", "severity:'CRITICAL'"),
+    "GetVulnerabilities": ("cve list", "severity:'CRITICAL'"),
     "combined_hosts": ("asset list", "entity_type:'managed'"),
     "get_hosts": ("asset list", "entity_type:'managed'"),
     "combined_applications": ("application list", "name:'Chrome'"),

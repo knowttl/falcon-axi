@@ -575,7 +575,7 @@ def _sensor_request(
         ),
     )
     if response.status != 200:
-        raise translate_falcon_error(response, operation, "identity sensors")
+        raise translate_falcon_error(response, operation, "identity sensors", not_found_command="identity sensor list")
     return response
 
 

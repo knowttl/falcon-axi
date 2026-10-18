@@ -49,7 +49,12 @@ def _list(ctx: Invocation) -> CommandOutput:
     if response.status == 404:
         raise CliError("NOT_FOUND", "no host group matched that identifier", ["Run `falcon-axi host-group list`"])
     if response.status != 200:
-        raise translate_falcon_error(response, operation, "host-group members" if members else "host groups")
+        raise translate_falcon_error(
+            response,
+            operation,
+            "host-group members" if members else "host groups",
+            filter_help=("host-group members", "platform_name:'Windows'") if members else None,
+        )
     records = resources(response)
     keys = ("device_id", "hostname", "platform_name", "status") if members else ("id", "name", "group_type", "description")
     rows = [{key: record.get(key) for key in keys} for record in records if isinstance(record, Mapping)]
