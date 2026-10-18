@@ -1,4 +1,4 @@
-"""Identity Protection directory and timeline reads over GraphQL, plus NG-SIEM account activity.
+"""Identity Protection reads and NG-SIEM account activity.
 
 The directory commands send fixed, registered GraphQL documents through captain exception N2
 (docs/design/v1.md §4.4), with variables and Relay pagination behind the same `--cursor` (§7.1).

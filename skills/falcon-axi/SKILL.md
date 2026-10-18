@@ -14,7 +14,7 @@ delete, containment, quarantine, release, Real Time Response, ingest, parser, or
 and that boundary is enforced by a closed transport registry rather than by convention.
 `search start` and `search stop` create and cancel a query job and nothing else.
 `identity activity` is a canned `search start`, so it creates a query job and nothing else.
-`identity list`, `identity show`, and `identity timeline` send only fixed read-only GraphQL queries; Falcon labels their scope write, but
+The GraphQL identity commands described in [the README](../../README.md#identity-protection) send only fixed read-only queries; Falcon labels their scope write, but
 falcon-axi cannot send a mutation, password reset, account disable, or any GraphQL a caller supplies.
 If a task needs to change anything else in the tenant, falcon-axi is the wrong tool; say so rather than
 looking for a flag.
@@ -32,10 +32,7 @@ user or endpoint and its risk, accounts, and activity timeline, and to check whe
 resolves and into which region and tenant.
 
 `setup` does not exist, and neither do `--all`, `--max-rows`, or `--fields` on detection and host lists.
-Neither does any command for a Falcon domain outside detections, hosts, Discover accounts, Spotlight vulnerabilities, `cve show`,
-NG-SIEM search, and the Identity Protection directory and timeline; there is no `cve list`, no intel actor,
-indicator, or report command, and no ingest, lookup-file, parser, dashboard, Charlotte AI, identity incident,
-or identity security-assessment command.
+The [README's status section](../../README.md#status-partial-implementation-of-the-v1-design) owns the shipped and absent domains.
 Do not invent them; an unknown flag or command fails loudly.
 
 ## Commands
@@ -53,9 +50,8 @@ There is no `cve list`.
 `search`: `start` (flags `--query`, `--repository`, `--since`), `status <search id>` (flag `--repository`),
 `stop <search id>` (flag `--repository`).
 `identity`: `activity <account objectGUID, sAMAccountName, or UPN>` (flag `--since`),
-`list` (flags `--name`, `--email`, `--domain`, `--type`, `--limit`, `--cursor`),
-`show <identity id>` (flag `--full`), `timeline <identity id>` (flags `--since`, `--category`, `--limit`,
-`--cursor`).
+plus the directory, timeline, assessment, and sensor commands documented in
+[the README's Identity Protection section](../../README.md#identity-protection).
 `auth`: `status`.
 `scopes`: the command-to-scope matrix, printed locally with no request.
 
@@ -166,7 +162,7 @@ Output is TOON on stdout.
 Nonempty list views print a definitive `count:` line and compact rows, with contextual next commands.
 Empty results state the answer rather than leaving a silence to re-query.
 Default schemas, including login and account rows, are specified in `docs/design/v1.md` §10.2.
-Identity pages report rows shown without a total.
+GraphQL identity pages report rows shown without a total.
 `vuln list --fields` appends the selected columns.
 `search status` has no fixed schema, because a CQL result set's columns are whatever the query projected.
 For identity row schemas, counts, and detail truncation, see `docs/design/v1.md` §10.2.

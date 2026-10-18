@@ -72,7 +72,7 @@ See `docs/design/v1.md` §0, §1.5, §3, §4.3, and §4.4.
 **N2 is not general write authority.**
 Falcon scopes the one Identity Protection GraphQL endpoint `WRITE` even for read-only queries, and the
 same endpoint also accepts mutations.
-So falcon-axi never sends GraphQL a caller supplies: the GraphQL directory and timeline commands name one of a closed set
+So falcon-axi never sends GraphQL a caller supplies: the GraphQL commands name one of a closed set
 of registered `query` documents, every caller value travels as a JSON variable and never inside the
 document text, and the network sink refuses any other body.
 The GraphQL commands have no `--query` flag or passthrough, and there is no password reset, account disable,
@@ -378,7 +378,7 @@ The fixed query matches CrowdStrike's PSFalcon sample; it has offline fixture co
 `identity sensor list [--filter <FQL>] [--limit N] [--cursor <token>]` lists sensor IDs, hostnames, status, and agent version.
 `identity sensor show <device_id>` adds heartbeat and policy details.
 Both use REST reads requiring `Identity Protection Entities:read`, with no GraphQL permission required.
-The list defaults to 20 rows with a maximum of 200 per call.
+See [the limit contract](docs/design/v1.md#73-default-limits) for page defaults and ceilings.
 
 `identity list` reads the Falcon Identity Protection directory, users and endpoints with their risk
 severity.
@@ -391,7 +391,7 @@ and narrowed with `--category` (`activity`, `notification`, `threat`, `entity`, 
 An identity id is an entity GUID, as printed by `identity list`.
 For detail bounds and truncation markers, see [the output contract](docs/design/v1.md#102-default-schemas).
 
-These commands are backed by Identity Protection's GraphQL endpoint, not NG-SIEM, and they send only
+The directory, timeline, and assessment commands are backed by Identity Protection's GraphQL endpoint, not NG-SIEM, and they send only
 fixed, read-only query documents (captain exception N2, above).
 The schema CrowdStrike publishes for it is not public, so the documents follow CrowdStrike's and
 falcon-mcp's own queries; `docs/design/v1.md` §17 records that they are not yet validated against a
