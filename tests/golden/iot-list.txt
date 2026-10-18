@@ -1,0 +1,3 @@
+count: 1 of 1 total
+iot[1]{id,hostname,device_type,device_family}:
+  synthetic-iot,SYNTHETIC-PRINTER,Printer,Office

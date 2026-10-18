@@ -1,6 +1,6 @@
 {
   "name": "firewall rule list",
-  "order": 2312,
+  "order": 2370,
   "summary": "  firewall rule list         read firewall_rules",
   "scopes": [
     {

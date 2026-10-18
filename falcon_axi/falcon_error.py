@@ -118,6 +118,10 @@ def translate_falcon_error(
             elif "Data Protection:read" in scopes:
                 command = "classification list" if "classification" in id else "data-policy list"
                 example = "name:'Confidential*'"
+            elif "Malware Families (Falcon Intelligence):read" in scopes:
+                command, example = "malware list", "slug:'synthetic-family'"
+            elif "Falcon Discover IoT:read" in scopes:
+                command, example = "iot list", "device_type:'Printer'"
             elif "Identity Protection Entities:read" in scopes:
                 command, example = "identity sensor list", "hostname:'SYNTH-DC-01'+status:'healthy'"
             else:

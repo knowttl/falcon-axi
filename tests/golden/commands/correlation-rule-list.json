@@ -1,6 +1,6 @@
 {
   "name": "correlation-rule list",
-  "order": 2316,
+  "order": 2374,
   "summary": "  correlation-rule list      read correlation_rules",
   "scopes": [
     {

@@ -68,6 +68,8 @@ the firewall rule list/show and group list, IOA group list, correlation-rule lis
 plus the `scopes` matrix and the home view.
 The exclusion inventories (`exclusion list|show` with `--type`) and quarantined file metadata
 (`quarantine list|show`) also ship as read-only commands.
+Malware family reads (`malware list`, `malware show`), Identity Protection policy-rule reads
+(`identity rule list`, `identity rule show`), and Discover IoT inventory (`iot list`) also ship.
 The README's status section is the authoritative list of what is shipped and what is deliberately absent, and
 no help text, suggestion, or skill may advertise an unshipped command.
 `uv run scripts/verify.py` is the single local entry point for the complete offline required-check set

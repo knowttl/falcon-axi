@@ -642,7 +642,84 @@ def show_identity_sensor(ctx: Invocation) -> CommandOutput:
     return CommandOutput(value=_rate_limit(ctx.session, {"sensor": detail}), help=())
 
 
-COMMAND_SPECS = (
+def _rule_records(ctx: Invocation, ids: Sequence[str]) -> list[Mapping[str, Any]]:
+    by_id: dict[str, Mapping[str, Any]] = {}
+    for index in range(0, len(ids), 100):
+        response = ctx.transport.request(
+            "get_policy_rules",
+            RequestArgs(
+                base_url=ctx.session.base_url,
+                token=ctx.session.token,
+                allow_unknown_origin=ctx.session.allow_unknown_origin,
+                query={"ids": tuple(ids[index : index + 100])},
+            ),
+        )
+        if response.status == 404:
+            continue
+        if response.status != 200:
+            raise translate_falcon_error(response, "get_policy_rules", "identity rules")
+        for entry in resources(response):
+            if isinstance(entry, Mapping) and text(entry.get("id")):
+                by_id[entry["id"]] = entry
+    return [by_id[id] for id in ids if id in by_id]
+
+
+def rule_query(flags: Mapping[str, str | bool]) -> dict[str, Any]:
+    query: dict[str, Any] = {}
+    for flag, parameter in (("name", "name"), ("enabled", "enabled"), ("simulation-mode", "simulation_mode")):
+        value = string(flags.get(flag))
+        if value is not None:
+            if flag != "name":
+                if value not in ("true", "false"):
+                    raise CliError("VALIDATION_ERROR", f"--{flag} must be true or false")
+                query[parameter] = value == "true"
+            else:
+                query[parameter] = value
+    return query
+
+
+def _rule_list(ctx: Invocation) -> CommandOutput:
+    response = ctx.transport.request(
+        "get_policy_rules_query",
+        RequestArgs(
+            base_url=ctx.session.base_url,
+            token=ctx.session.token,
+            allow_unknown_origin=ctx.session.allow_unknown_origin,
+            query=rule_query(ctx.flags),
+        ),
+    )
+    if response.status != 200:
+        raise translate_falcon_error(response, "get_policy_rules_query", "identity rules")
+    ids = [entry for entry in resources(response) if isinstance(entry, str)]
+    if not ids:
+        return CommandOutput({"rules": raw("0 identity policy rules matching this query")}, ())
+    rows = [
+        {
+            "id": rule["id"],
+            "name": rule.get("name", "unknown"),
+            "enabled": rule.get("enabled", "unknown"),
+            "simulation_mode": rule.get("simulationMode", "unknown"),
+        }
+        for rule in _rule_records(ctx, ids)
+    ]
+    return CommandOutput(
+        _rate_limit(ctx.session, {"count": raw(f"{len(rows)} of {len(ids)} total"), "rules": rows}),
+        ("Run `falcon-axi identity rule show <id>` for the full policy rule",),
+    )
+
+
+def _rule_show(ctx: Invocation) -> CommandOutput:
+    entries = _rule_records(ctx, ctx.positionals)
+    if not entries:
+        raise CliError(
+            "NOT_FOUND",
+            "no identity policy rule matched that identifier",
+            ["Run `falcon-axi identity rule list` to see rule identifiers"],
+        )
+    return CommandOutput({"rule": dict(entries[0])}, ())
+
+
+COMMAND_SPECS: tuple[CommandSpec, ...] = (
     CommandSpec(
         name="identity activity",
         help="\n".join(
@@ -815,5 +892,49 @@ COMMAND_SPECS = (
         handler=show_identity_sensor,
         operations=("GetSensorDetails",),
         positional=("device identifier", "Run `falcon-axi identity sensor list` to see current sensor identifiers"),
+    ),
+)
+
+COMMAND_SPECS += (
+    CommandSpec(
+        name="identity rule list",
+        handler=_rule_list,
+        operations=("get_policy_rules_query", "get_policy_rules"),
+        summary="  identity rule list        list Identity Protection policy rules",
+        flags=("name", "enabled", "simulation-mode"),
+        value_flags=("name", "enabled", "simulation-mode"),
+        help="\n".join(
+            [
+                "falcon-axi identity rule list [--name <name>] [--enabled true|false] [--simulation-mode true|false]",
+                "",
+                "--name             filter by rule name",
+                "--enabled          filter by enablement status",
+                "--simulation-mode  filter by simulation mode",
+                "",
+                "Queries all matching IDs and hydrates them in chunks of 100; this API has no pagination parameters.",
+                "Examples:",
+                "  falcon-axi identity rule list",
+                "  falcon-axi identity rule list --enabled true",
+                "",
+                "Read-only. Requires Identity Protection Policy Rules:read; no GraphQL permission needed.",
+            ]
+        ),
+    ),
+    CommandSpec(
+        name="identity rule show",
+        handler=_rule_show,
+        operations=("get_policy_rules",),
+        summary="  identity rule show <id>   the full Identity Protection policy rule",
+        positional=("rule identifier", "Run `falcon-axi identity rule list` to see rule identifiers"),
+        help="\n".join(
+            [
+                "falcon-axi identity rule show <id>",
+                "",
+                "Use a rule identifier printed by identity rule list.",
+                "Example: falcon-axi identity rule show synthetic-rule",
+                "",
+                "Read-only. Requires Identity Protection Policy Rules:read; no GraphQL permission needed.",
+            ]
+        ),
     ),
 )

@@ -51,6 +51,10 @@ What is shipped:
   These reads match CrowdStrike's documented APIs and falcon-mcp; they have not been tenant-validated.
 - Falcon Intelligence indicators: `indicator list` with opaque marker continuation and `indicator show`.
   These reads match first-party API sources and are tested offline, without tenant validation.
+- malware families: `malware list` and `malware show`;
+- Identity Protection policy rules: `identity rule list` and `identity rule show`, using REST reads;
+- Discover IoT inventory: `iot list`, with token pagination and the license-gated Falcon Discover IoT:read scope.
+  These three areas follow the official API reference, falconpy, and PSFalcon; they have synthetic offline tests and are not tenant-validated.
 - the generated [agent skill](#agent-skill) and its bare-home install hint, specified in
   [the integration contract](docs/design/v1.md#122-session-hook-and-skill);
 - bounded `--all` walks with `--max-rows` on detection, host, account, and vuln lists, retaining partial
@@ -85,7 +89,7 @@ What is **not** shipped yet, so no output advertises it:
 - the remaining domains `docs/design/v1.md` §1.3 defers,
   every NG-SIEM capability outside the three search lifecycle operations (no ingest, no lookup
   files, no parser or dashboard writes, and no Charlotte AI), and every Identity Protection capability
-  beyond the directory, timeline, security assessment, and sensor inventory: no standalone incident queries, no policy rules,
+  beyond the directory, timeline, security assessment, sensor inventory, and policy-rule reads: no standalone incident queries,
   and no GraphQL mutation of any kind.
   There is no report PDF or rule-file download;
 

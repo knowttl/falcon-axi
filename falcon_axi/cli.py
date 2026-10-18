@@ -92,6 +92,7 @@ def parse(argv: Sequence[str]) -> Parsed:
         _identity_query_of,
         activity_query,
         parse_categories,
+        rule_query,
         validate_entity_id,
         validate_identity_query,
     )
@@ -211,6 +212,8 @@ def parse(argv: Sequence[str]) -> Parsed:
         window(str(flags["since"]))
     if command in ("identity list", "identity assessment"):
         validate_identity_query(_identity_query_of(flags))
+    if command == "identity rule list":
+        rule_query(flags)
     if command in ("identity show", "identity timeline"):
         validate_entity_id(positionals[0])
     if command == "identity timeline":

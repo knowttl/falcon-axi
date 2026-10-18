@@ -1,6 +1,6 @@
 {
   "name": "firewall rule show",
-  "order": 2313,
+  "order": 2371,
   "summary": "  firewall rule show <id>    read one record",
   "scopes": [
     {

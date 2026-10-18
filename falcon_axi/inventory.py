@@ -1,4 +1,4 @@
-"""Container inventory paging with Falcon's bounded offset window."""
+"""Combined inventory paging and query-and-hydrate configuration reads."""
 
 from collections.abc import Mapping, Sequence
 from typing import Any
