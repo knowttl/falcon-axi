@@ -1,0 +1,22 @@
+{
+  "name": "policy-members-empty",
+  "argv": [
+    "policy",
+    "members",
+    "synthetic-policy-01",
+    "--type",
+    "prevention"
+  ],
+  "responders": [
+    {
+      "op": "queryCombinedPreventionPolicyMembers",
+      "response": {
+        "status": 200,
+        "body": {
+          "resources": []
+        }
+      }
+    }
+  ],
+  "exit_code": 0
+}

@@ -1,0 +1,24 @@
+{
+  "provenance": {
+    "operation": "getVulnerabilities",
+    "reference": "https://developer.crowdstrike.com/api-reference/collections/spotlight-vulnerabilities/",
+    "schema_read": "2026-10-18",
+    "provenance": "synthetic"
+  },
+  "response": {
+    "status": 200,
+    "headers": {},
+    "body": {
+      "resources": [{
+        "id": "synthetic-vulnerability-01",
+        "aid": "synthetic-device-01",
+        "status": "open",
+        "created_timestamp": "2099-01-01T00:00:00Z",
+        "updated_timestamp": "2099-01-02T00:00:00Z",
+        "cve": {"id": "CVE-2099-0001", "severity": "CRITICAL", "description": "Synthetic vulnerability description.", "base_score": 9.8, "exprt_rating": "CRITICAL"},
+        "host_info": {"hostname": "synthetic-host-01", "platform_name": "Windows", "os_version": "Windows 11", "local_ip": "192.0.2.1"},
+        "apps": [{"product_name_version": "Synthetic Product 1.0"}]
+      }]
+    }
+  }
+}

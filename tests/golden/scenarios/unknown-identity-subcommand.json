@@ -1,0 +1,9 @@
+{
+  "name": "unknown-identity-subcommand",
+  "argv": [
+    "identity",
+    "disable"
+  ],
+  "exit_code": 2,
+  "comment": "Identity policy-rule reads add the rule group to the nested identity subcommand remedies."
+}

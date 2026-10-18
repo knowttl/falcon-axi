@@ -1,0 +1,22 @@
+{
+  "name": "detection-list-member-cid",
+  "argv": [
+    "detection",
+    "list",
+    "--limit",
+    "2",
+    "--member-cid",
+    "synthetic-child-cid"
+  ],
+  "responders": [
+    {
+      "op": "GetQueriesAlertsV2",
+      "fixture": "alerts/query-page.json"
+    },
+    {
+      "op": "PostEntitiesAlertsV2",
+      "fixture": "alerts/hydrate-page.json"
+    }
+  ],
+  "exit_code": 0
+}

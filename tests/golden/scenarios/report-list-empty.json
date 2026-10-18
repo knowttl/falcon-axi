@@ -1,0 +1,19 @@
+{
+  "name": "report-list-empty",
+  "argv": [
+    "report",
+    "list"
+  ],
+  "responders": [
+    {
+      "op": "QueryIntelReportEntities",
+      "response": {
+        "status": 200,
+        "body": {
+          "resources": []
+        }
+      }
+    }
+  ],
+  "exit_code": 0
+}

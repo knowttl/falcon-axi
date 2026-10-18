@@ -1,0 +1,11 @@
+{
+  "name": "detection list",
+  "order": 200,
+  "summary": "  detection list            list detections from the Falcon Alerts collection",
+  "scopes": [
+    {
+      "scope": "Alerts:read",
+      "access": "read"
+    }
+  ]
+}

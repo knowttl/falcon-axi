@@ -1,0 +1,15 @@
+{
+  "name": "host-group-members",
+  "argv": [
+    "host-group",
+    "members",
+    "synthetic-group-01"
+  ],
+  "responders": [
+    {
+      "op": "queryCombinedGroupMembers",
+      "fixture": "host-groups/members-page.json"
+    }
+  ],
+  "exit_code": 0
+}

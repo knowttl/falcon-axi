@@ -1,0 +1,9 @@
+{
+  "name": "help-login-list",
+  "argv": [
+    "login",
+    "list",
+    "--help"
+  ],
+  "exit_code": 0
+}

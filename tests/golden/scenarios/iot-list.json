@@ -1,0 +1,19 @@
+{
+  "name": "iot-list",
+  "comment": "Discover IoT v2 query with entity hydration",
+  "argv": [
+    "iot",
+    "list"
+  ],
+  "responders": [
+    {
+      "op": "query_iot_hostsV2",
+      "fixture": "discover/iot-query.json"
+    },
+    {
+      "op": "get_iot_hosts",
+      "fixture": "discover/iot.json"
+    }
+  ],
+  "exit_code": 0
+}

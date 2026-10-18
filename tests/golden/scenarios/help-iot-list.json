@@ -1,0 +1,10 @@
+{
+  "name": "help-iot-list",
+  "comment": "IoT list help",
+  "argv": [
+    "iot",
+    "list",
+    "--help"
+  ],
+  "exit_code": 0
+}

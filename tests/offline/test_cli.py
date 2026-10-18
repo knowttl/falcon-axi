@@ -7,9 +7,9 @@ from pathlib import Path
 import pytest
 from toon_format import decode
 
-from falcon_axi.cli import COMMANDS, _followup_help, _suggestion_for, flag_guard, parse, run
+from falcon_axi.cli import _followup_help, _suggestion_for, flag_guard, parse, run
 from falcon_axi.command import CommandSpec
-from falcon_axi.commands import COMMAND_SPECS
+from falcon_axi.commands import COMMAND_SPECS, COMMANDS
 from falcon_axi.core import CliError
 from falcon_axi.render import render, truncate
 from falcon_axi.transport.operations import OPERATIONS
@@ -48,17 +48,22 @@ def test_an_unknown_command_or_subcommand_fails_before_any_request() -> None:
     stdout, exit_code = run(["incident", "list"], recorded, dict(CREDENTIAL_ENV))
     assert exit_code == 2
     assert (
-        "valid commands: detection list, detection show, host list, host show, host logins, account list, "
-        "account show, vuln list, cve show, identity activity, search start, search status, search stop, identity list, "
-        "identity show, identity timeline, identity rule list, identity rule show, malware list, malware show, "
-        "iot list, auth status, profile list, config path, scopes" in stdout
+        "valid commands: detection summary, detection list, detection show, host list, host show, host logins, "
+        "host network, account list, account show, asset list, asset show, application list, login list, iot list, "
+        "vuln show, vuln list, cve list, cve show, actor list, actor show, report list, report show, "
+        "malware list, malware show, "
+        "indicator list, indicator show, identity activity, search start, search status, search stop, identity list, "
+        "identity show, identity timeline, identity assessment, identity sensor list, identity sensor show, "
+        "identity rule list, identity rule show, "
+        "ioc list, ioc show, ioc hosts, ioc processes, host-group list, host-group members, policy list, policy members, "
+        "auth status, profile list, config path, scopes" in stdout
     )
     subcommand, _ = run(["detection", "contain"], recorded, dict(CREDENTIAL_ENV))
-    assert "valid detection subcommands: list, show" in subcommand
+    assert "valid detection subcommands: summary, list, show" in subcommand
     host, _ = run(["host", "contain"], recorded, dict(CREDENTIAL_ENV))
     assert "valid host subcommands: list, show" in host
-    vuln, _ = run(["vuln", "show"], recorded, dict(CREDENTIAL_ENV))
-    assert "valid vuln subcommands: list" in vuln
+    vuln, _ = run(["vuln", "missing"], recorded, dict(CREDENTIAL_ENV))
+    assert "valid vuln subcommands: show, list" in vuln
     assert recorded.requests == []
 
 
@@ -143,6 +148,8 @@ def test_help_never_advertises_a_command_the_cli_does_not_have() -> None:
         ["host", "list", "--help"],
         ["host", "show", "--help"],
         ["vuln", "list", "--help"],
+        ["vuln", "show", "--help"],
+        ["cve", "list", "--help"],
         ["cve", "show", "--help"],
         ["search", "start", "--help"],
         ["search", "status", "--help"],
@@ -156,9 +163,9 @@ def test_help_never_advertises_a_command_the_cli_does_not_have() -> None:
     for argv in shipped:
         stdout, exit_code = run(argv, RecordedTransport([]), dict(CREDENTIAL_ENV))
         assert exit_code == 0
-        for absent in ("falcon-axi setup", "--max-rows", "vuln show", "tenant list"):
+        for absent in ("falcon-axi setup", "tenant list"):
             assert absent not in stdout, f"{' '.join(argv)} advertises {absent}"
-        if argv == ["vuln", "list", "--help"]:
+        if argv in (["detection", "list", "--help"], ["host", "list", "--help"], ["vuln", "list", "--help"]):
             assert "--fields" in stdout
         else:
             assert "--fields" not in stdout, f"{' '.join(argv)} advertises --fields"

@@ -1,0 +1,16 @@
+{
+  "name": "identity-sensor-show",
+  "argv": [
+    "identity",
+    "sensor",
+    "show",
+    "synthetic-sensor-01"
+  ],
+  "responders": [
+    {
+      "op": "GetSensorDetails",
+      "fixture": "identity/sensors-details.json"
+    }
+  ],
+  "exit_code": 0
+}

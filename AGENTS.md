@@ -46,7 +46,7 @@ See `docs/design/v1.md` §0 (the invariant), §1.5 (excluded capability classes)
 Control tenancy, pagination and rate limits, error envelope, TOON output, fixtures, live-test boundaries, and
 the API-client evaluation.
 Read it before adding or changing any command surface, and update it in the same change when the surface moves.
-Its §17 records open questions; check there before re-deriving a decision that was already argued, and its §18
+Its §17 records closed decisions; check there before re-deriving a decision that was already argued, and its §18
 cites every source, so a claim can be re-verified rather than trusted.
 
 `docs/design/v1-python.md` is the committed amendment that made falcon-axi a pure Python CLI on
@@ -57,8 +57,11 @@ There is no Node runtime, no MCP process, and no `falcon-mcp` dependency anywher
 
 The implemented surface includes the package foundation, the sealed transport and its closed registry,
 AXI credential profiles with `auth status`, `profile list`, and `config path`, the read domains (`detection list`, `detection show`,
-`host list`, `host show`, `host logins`, `account list`, `account show`, `vuln list`, `cve show`), the NG-SIEM search lifecycle (`search start`, `search status`,
-`search stop`), the Identity Protection GraphQL reads (`identity list`, `identity show`, `identity timeline`),
+`detection summary`, `host list`, `host show`, `host logins`, `host network`, `account list`, `account show`, `asset list`, `asset show`, `application list`, `login list`, `vuln list`, `vuln show`, `cve list`, `cve show`,
+`actor list`, `actor show`, `report list`, `report show`, `indicator list`, `indicator show`),
+the NG-SIEM search lifecycle (`search start`, `search status`,
+`search stop`), the Identity Protection GraphQL reads (`identity list`, `identity show`, `identity timeline`, `identity assessment`),
+the REST sensor inventory (`identity sensor list`, `identity sensor show`),
 plus malware family reads (`malware list`, `malware show`), Identity Protection policy-rule reads
 (`identity rule list`, `identity rule show`), Discover IoT inventory (`iot list`), the `scopes` matrix, and the home view.
 The README's status section is the authoritative list of what is shipped and what is deliberately absent, and
@@ -71,7 +74,8 @@ Its stage 1 scenarios are also the cross-language parity gate, because the TypeS
 replaced generated their expected documents.
 Changing any output means regenerating nothing; it means the change is a deliberate behavior change that must
 be argued in the design first, as stage 2's four changed stage 1 documents and stage 3's eight were.
-`tests/golden/scenarios.json`'s `comment` records which documents changed and why.
+`tests/golden/history.json` preserves the historical document-change explanations; new explanations belong in
+the affected `tests/golden/scenarios/<name>.json`.
 
 Two seams are worth knowing before changing them:
 
@@ -84,7 +88,7 @@ Two seams are worth knowing before changing them:
   them, losing both the sort order and the pagination metadata, so `detection.py` and `host.py` capture the
   total before hydrating and reapply the query order after (§2.3).
   `vuln.py` is the exception, a single combined request paginated by an opaque `after` token rather than an
-  offset; `cursor.py` carries both models behind one `--cursor` vocabulary.
+  offset; `cursor.py` carries the models in `docs/design/v1.md` §7.1 behind one `--cursor` vocabulary.
   `search.py` is a third shape again: an NG-SIEM query job carries no pagination metadata at all, so it has
   neither `--limit` nor `--cursor`, and the caller owns the polling loop rather than the CLI blocking on it.
   Its three routes are also the only ones with `{path}` variables, which `path_arguments()` validates against
@@ -135,8 +139,9 @@ Read the `axi` skill at `~/.pi/agent/skills/axi/SKILL.md` and the TOON spec it p
 reviewing any CLI behavior here.
 `azure-axi` and `awx-axi` are the sibling references for these patterns; `docs/design/v1.md` §18 lists where
 their assumptions do **not** transfer to Falcon.
-`skills/falcon-axi/SKILL.md` is this repo's agent-facing skill; it is hand-written until `setup` generation
-lands and must never name a command the CLI does not ship (`docs/design/v1.md` §12.2).
+`skills/falcon-axi/SKILL.md` and its per-command `references/` are this repo's generated agent-facing skill;
+regenerate them with `uv run scripts/skill.py`.
+Its drift check runs in `scripts/verify.py`, and it must never name a command the CLI does not ship (`docs/design/v1.md` §12.2).
 
 ## Maintaining this file
 

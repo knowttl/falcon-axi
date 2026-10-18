@@ -1,0 +1,11 @@
+{
+  "name": "ioc processes",
+  "order": 2307,
+  "summary": "  ioc processes <type:value>  list observed processes for a custom IOC",
+  "scopes": [
+    {
+      "scope": "IOCs (Indicators of Compromise):read",
+      "access": "read"
+    }
+  ]
+}

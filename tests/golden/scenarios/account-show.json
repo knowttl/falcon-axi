@@ -1,0 +1,15 @@
+{
+  "name": "account-show",
+  "argv": [
+    "account",
+    "show",
+    "synthetic-account-01"
+  ],
+  "responders": [
+    {
+      "op": "get_accounts",
+      "fixture": "discover/accounts-details-one.json"
+    }
+  ],
+  "exit_code": 0
+}

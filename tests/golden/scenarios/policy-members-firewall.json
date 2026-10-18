@@ -1,0 +1,19 @@
+{
+  "name": "policy-members-firewall",
+  "argv": [
+    "policy",
+    "members",
+    "synthetic-policy-01",
+    "--type",
+    "firewall",
+    "--limit",
+    "2"
+  ],
+  "responders": [
+    {
+      "op": "queryCombinedFirewallPolicyMembers",
+      "fixture": "policies/queryCombinedFirewallPolicyMembers.json"
+    }
+  ],
+  "exit_code": 0
+}

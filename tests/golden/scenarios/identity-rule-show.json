@@ -1,0 +1,17 @@
+{
+  "name": "identity-rule-show",
+  "comment": "Read-only policy rule detail",
+  "argv": [
+    "identity",
+    "rule",
+    "show",
+    "synthetic-rule"
+  ],
+  "responders": [
+    {
+      "op": "get_policy_rules",
+      "fixture": "identity/rules.json"
+    }
+  ],
+  "exit_code": 0
+}

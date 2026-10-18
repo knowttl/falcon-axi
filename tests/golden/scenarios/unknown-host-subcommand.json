@@ -1,0 +1,8 @@
+{
+  "name": "unknown-host-subcommand",
+  "argv": [
+    "host",
+    "contain"
+  ],
+  "exit_code": 2
+}

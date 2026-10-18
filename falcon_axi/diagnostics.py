@@ -28,7 +28,7 @@ def _auth_status(ctx: Invocation) -> CommandOutput:
     value["tenant"] = raw(tenant_line(ctx.session))
     value["scopes"] = raw(
         "read scopes, plus NGSIEM:write for `search start`, `search stop`, and `identity activity`, "
-        "and Identity Protection GraphQL:write for `identity list`, `identity show`, and `identity timeline`, alone"
+        "and Identity Protection GraphQL:write for the fixed Identity Protection query commands, alone"
     )
     if limit is not None and remaining is not None:
         value["rate_limit"] = raw(f"{remaining} of {limit} requests remaining")

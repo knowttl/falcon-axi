@@ -1,0 +1,14 @@
+{
+  "name": "host-group-list",
+  "argv": [
+    "host-group",
+    "list"
+  ],
+  "responders": [
+    {
+      "op": "queryCombinedHostGroups",
+      "fixture": "host-groups/groups-page.json"
+    }
+  ],
+  "exit_code": 0
+}

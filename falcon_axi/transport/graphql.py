@@ -266,6 +266,26 @@ def _seal_document(entry: GraphqlDocument) -> GraphqlDocument:
 
 
 _CANONICAL = (
+    # falcon-mcp's modules/idp.py has no securityAssessment document. Field names match
+    # PSFalcon samples/identity-protection/security-assessment-for-domain.ps1;
+    # common/api_scopes.py corroborates Identity Protection Assessment:read.
+    GraphqlDocument(
+        name="identity_assessment",
+        command="identity assessment",
+        text="""query IdentityAssessment($domain: String) {
+  securityAssessment(domain: $domain) {
+    overallScore
+    overallScoreLevel
+    assessmentFactors {
+      riskFactorType
+      severity
+      likelihood
+    }
+  }
+}""",
+        variables=("domain",),
+        read_scopes=("Identity Protection Assessment:read",),
+    ),
     _list_document("identity_list", ""),
     _list_document("identity_list_users", "types: [USER]\n    "),
     _list_document("identity_list_endpoints", "types: [ENDPOINT]\n    "),

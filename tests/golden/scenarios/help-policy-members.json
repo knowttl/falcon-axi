@@ -1,0 +1,9 @@
+{
+  "name": "help-policy-members",
+  "argv": [
+    "policy",
+    "members",
+    "--help"
+  ],
+  "exit_code": 0
+}

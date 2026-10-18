@@ -1,0 +1,10 @@
+{
+  "name": "limit-not-an-integer",
+  "argv": [
+    "detection",
+    "list",
+    "--limit",
+    "two"
+  ],
+  "exit_code": 2
+}

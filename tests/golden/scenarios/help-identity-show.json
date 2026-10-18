@@ -1,0 +1,9 @@
+{
+  "name": "help-identity-show",
+  "argv": [
+    "identity",
+    "show",
+    "--help"
+  ],
+  "exit_code": 0
+}

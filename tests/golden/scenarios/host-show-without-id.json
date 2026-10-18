@@ -1,0 +1,8 @@
+{
+  "name": "host-show-without-id",
+  "argv": [
+    "host",
+    "show"
+  ],
+  "exit_code": 2
+}
