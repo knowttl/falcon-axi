@@ -1,0 +1,6 @@
+count: 2 of 4 total
+hosts[2]{device_id}:
+  synthetic-device-01
+  synthetic-device-02
+continuation_cursor: eyJvcGVyYXRpb24iOiJEZXZpY2VzUmFuT24iLCJtb2RlbCI6Im9mZnNldCIsInBvc2l0aW9uIjoyLCJmaW5nZXJwcmludCI6IjQ1MmUwOGEyMGE3ZWRmY2IxMzQzYTllNzM4ZGEyYmY5MTM3Zjg4Y2U0OGUxMjBiOWVhMjcwZDY0MmM5ZGMzZDUifQ
+help[3]: "Run `falcon-axi host show <device_id>` for host details","Run `falcon-axi ioc processes domain:example.invalid --host <device_id>` for process IDs","Run `falcon-axi ioc hosts domain:example.invalid --cursor eyJvcGVyYXRpb24iOiJEZXZpY2VzUmFuT24iLCJtb2RlbCI6Im9mZnNldCIsInBvc2l0aW9uIjoyLCJmaW5nZXJwcmludCI6IjQ1MmUwOGEyMGE3ZWRmY2IxMzQzYTllNzM4ZGEyYmY5MTM3Zjg4Y2U0OGUxMjBiOWVhMjcwZDY0MmM5ZGMzZDUifQ` for the next page"

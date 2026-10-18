@@ -1,0 +1,8 @@
+{
+  "name": "unknown-auth-subcommand",
+  "argv": [
+    "auth",
+    "login"
+  ],
+  "exit_code": 2
+}

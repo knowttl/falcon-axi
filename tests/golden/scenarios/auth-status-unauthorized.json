@@ -1,0 +1,13 @@
+{
+  "name": "auth-status-unauthorized",
+  "argv": [
+    "auth",
+    "status"
+  ],
+  "oauth": [
+    {
+      "fixture": "oauth2/token-401.json"
+    }
+  ],
+  "exit_code": 1
+}

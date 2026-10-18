@@ -1,0 +1,11 @@
+{
+  "name": "indicator list",
+  "order": 1500,
+  "summary": "  indicator list            list Falcon Intelligence indicators",
+  "scopes": [
+    {
+      "scope": "Indicators (Falcon Intelligence):read",
+      "access": "read"
+    }
+  ]
+}

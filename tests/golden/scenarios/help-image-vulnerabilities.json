@@ -1,0 +1,9 @@
+{
+  "name": "help-image-vulnerabilities",
+  "argv": [
+    "image",
+    "vulnerabilities",
+    "--help"
+  ],
+  "exit_code": 0
+}

@@ -1,0 +1,21 @@
+{
+  "name": "identity-sensor-show-not-found",
+  "argv": [
+    "identity",
+    "sensor",
+    "show",
+    "synthetic-sensor-09"
+  ],
+  "responders": [
+    {
+      "op": "GetSensorDetails",
+      "response": {
+        "status": 200,
+        "body": {
+          "resources": []
+        }
+      }
+    }
+  ],
+  "exit_code": 1
+}

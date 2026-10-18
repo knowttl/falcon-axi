@@ -1,0 +1,15 @@
+actor:
+  id: 123456
+  name: Synthetic Fox
+  slug: synthetic-fox
+  description: A wholly synthetic adversary profile.
+  target_countries[1]{id,value}:
+    1,Synthetic Country
+mitre[1]:
+  - id: synthetic-fox_TA0002_T1059
+    tactic_id: TA0002
+    tactic_name: Execution
+    technique_id: T1059
+    technique_name: Command and Scripting Interpreter
+    reports[1]: SYNTHETIC001
+    observables[1]: Wholly synthetic procedure.

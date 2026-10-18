@@ -1,0 +1,16 @@
+{
+  "name": "image-vulnerabilities-page",
+  "argv": [
+    "image",
+    "vulnerabilities",
+    "--limit",
+    "2"
+  ],
+  "responders": [
+    {
+      "op": "ReadCombinedVulnerabilities",
+      "fixture": "containers/vulnerabilities-page.json"
+    }
+  ],
+  "exit_code": 0
+}

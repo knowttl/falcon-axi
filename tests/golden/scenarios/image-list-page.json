@@ -1,0 +1,16 @@
+{
+  "name": "image-list-page",
+  "argv": [
+    "image",
+    "list",
+    "--limit",
+    "2"
+  ],
+  "responders": [
+    {
+      "op": "GetCombinedImages",
+      "fixture": "containers/images-page.json"
+    }
+  ],
+  "exit_code": 0
+}

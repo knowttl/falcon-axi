@@ -1,0 +1,11 @@
+{
+  "name": "ioc list",
+  "order": 2304,
+  "summary": "  ioc list                  list custom indicators",
+  "scopes": [
+    {
+      "scope": "IOC Management:read",
+      "access": "read"
+    }
+  ]
+}

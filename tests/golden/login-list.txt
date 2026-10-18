@@ -1,0 +1,6 @@
+count: 2 of 3 total
+continuation_cursor: eyJvcGVyYXRpb24iOiJxdWVyeV9sb2dpbnMiLCJtb2RlbCI6Im9mZnNldCIsInBvc2l0aW9uIjoyLCJmaW5nZXJwcmludCI6IjQ0MjIzN2QzZGZmZjczMWQ2NGQyOWI0MDUyMmFhMzRiZmYzNDg2NTBjOWZjYjM4MzA1MTc1N2JmMDljMGE5YjMifQ
+logins[2]{id,username,hostname,login_timestamp}:
+  synthetic-login-01,synthetic-admin,SYNTHETIC-WS,"2026-10-18T00:00:00Z"
+  synthetic-login-02,synthetic-user,SYNTHETIC-WS,"2026-10-17T00:00:00Z"
+help[1]: "Run `falcon-axi login list --limit 2 --cursor eyJvcGVyYXRpb24iOiJxdWVyeV9sb2dpbnMiLCJtb2RlbCI6Im9mZnNldCIsInBvc2l0aW9uIjoyLCJmaW5nZXJwcmludCI6IjQ0MjIzN2QzZGZmZjczMWQ2NGQyOWI0MDUyMmFhMzRiZmYzNDg2NTBjOWZjYjM4MzA1MTc1N2JmMDljMGE5YjMifQ` for the next page"

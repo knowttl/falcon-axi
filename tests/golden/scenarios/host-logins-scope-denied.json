@@ -1,0 +1,15 @@
+{
+  "name": "host-logins-scope-denied",
+  "argv": [
+    "host",
+    "logins",
+    "synthetic-device-01"
+  ],
+  "responders": [
+    {
+      "op": "QueryDeviceLoginHistoryV2",
+      "fixture": "errors/403-scope.json"
+    }
+  ],
+  "exit_code": 1
+}

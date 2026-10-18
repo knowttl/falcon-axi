@@ -1,0 +1,23 @@
+{
+  "provenance": {
+    "operation": "DevicesRanOn",
+    "reference": "https://developer.crowdstrike.com/api-reference/collections/iocs/",
+    "schema_read": "2026-10-18",
+    "provenance": "synthetic"
+  },
+  "response": {
+    "status": 200,
+    "headers": {},
+    "body": {
+      "meta": {
+        "pagination": {
+          "total": 4
+        }
+      },
+      "resources": [
+        "synthetic-device-01",
+        "synthetic-device-02"
+      ]
+    }
+  }
+}

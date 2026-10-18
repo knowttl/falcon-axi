@@ -1,0 +1,21 @@
+{
+  "name": "serverless-list-empty",
+  "argv": [
+    "serverless",
+    "list",
+    "--filter",
+    "cloud_provider:'aws'"
+  ],
+  "responders": [
+    {
+      "op": "GetCombinedVulnerabilitiesSARIF",
+      "response": {
+        "status": 200,
+        "body": {
+          "runs": []
+        }
+      }
+    }
+  ],
+  "exit_code": 0
+}

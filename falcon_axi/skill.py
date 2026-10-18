@@ -15,9 +15,6 @@ INSTALL_HINT = "Run `npx skills add knowttl/falcon-axi --skill falcon-axi` to in
 
 def skill_markdown() -> str:
     """Render only durable CLI guidance, never credentials or tenant state."""
-    from falcon_axi.cli import DESCRIPTION
-    from falcon_axi.commands import COMMAND_SPECS
-
     return "\n".join(
         [
             "---",
@@ -29,7 +26,7 @@ def skill_markdown() -> str:
             "",
             "# falcon-axi",
             "",
-            f"{DESCRIPTION}.",
+            "Read CrowdStrike Falcon from the shell.",
             "Run `uvx falcon-axi ...` without a global install.",
             "",
             "## Read-only boundary",
@@ -47,9 +44,8 @@ def skill_markdown() -> str:
             "",
             "## Commands",
             "",
-            "```text",
-            *(f"uvx falcon-axi {spec.summary.strip()}" for spec in COMMAND_SPECS.values()),
-            "```",
+            "Run `uvx falcon-axi --help` for the complete command list.",
+            "Read `references/<command>.md` for a command's reference, replacing spaces with hyphens.",
             "",
             "Run `uvx falcon-axi <command> --help` for accepted flags, defaults, arguments, and examples.",
             "",
@@ -70,6 +66,25 @@ def skill_markdown() -> str:
             "",
         ]
     )
+
+
+def skill_files() -> dict[str, str]:
+    """Keep command references separate so additions do not rewrite shared guidance."""
+    from falcon_axi.commands import COMMAND_SPECS
+
+    return {
+        "SKILL.md": skill_markdown(),
+        **{
+            f"references/{spec.name.replace(' ', '-')}.md": (
+                f"# {spec.name}\n\n"
+                f"{spec.summary.strip()}\n\n"
+                "```text\n"
+                f"{spec.help.replace('falcon-axi', 'uvx falcon-axi')}\n"
+                "```\n"
+            )
+            for spec in COMMAND_SPECS.values()
+        },
+    }
 
 
 def skill_hint(env: Mapping[str, str]) -> tuple[str, ...]:

@@ -1,0 +1,15 @@
+{
+  "name": "search-status-running",
+  "argv": [
+    "search",
+    "status",
+    "synthetic-search-job-01"
+  ],
+  "responders": [
+    {
+      "op": "GetSearchStatusV1",
+      "fixture": "ngsiem/search-status-running.json"
+    }
+  ],
+  "exit_code": 0
+}

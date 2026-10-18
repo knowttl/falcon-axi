@@ -1,0 +1,19 @@
+{
+  "provenance": {
+    "operation": "GetSensorDetails",
+    "reference": "https://developer.crowdstrike.com/api-reference/collections/identity-protection/#getsensordetails",
+    "schema_read": "2026-10-18",
+    "provenance": "synthetic"
+  },
+  "response": {
+    "status": 200,
+    "body": {
+      "resources": [
+        {"device_id": "synthetic-sensor-02", "hostname": "SYNTH-DC-02", "status": "healthy", "agent_version": "7.0.0"},
+        {"device_id": "synthetic-sensor-01", "hostname": "SYNTH-DC-01", "status": "healthy", "agent_version": "7.0.0",
+         "heartbeat_time": 1792281600000, "idp_policy_id": "synthetic-policy", "idp_policy_name": "Synthetic policy",
+         "directory_auditing": "enabled", "status_causes": []}
+      ]
+    }
+  }
+}

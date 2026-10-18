@@ -1,0 +1,16 @@
+{
+  "name": "actor-list-page",
+  "argv": [
+    "actor",
+    "list",
+    "--limit",
+    "2"
+  ],
+  "responders": [
+    {
+      "op": "QueryIntelActorEntities",
+      "fixture": "intel/actors-page.json"
+    }
+  ],
+  "exit_code": 0
+}

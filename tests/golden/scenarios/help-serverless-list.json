@@ -1,0 +1,9 @@
+{
+  "name": "help-serverless-list",
+  "argv": [
+    "serverless",
+    "list",
+    "--help"
+  ],
+  "exit_code": 0
+}

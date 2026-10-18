@@ -283,6 +283,33 @@ def host_logins(transport: Transport, session: Session, id: str, limit: int, sin
     return CommandOutput(value=value, help=tuple(help))
 
 
+def _host_network(ctx: Invocation) -> CommandOutput:
+    id = ctx.positionals[0]
+    response = ctx.transport.request(
+        "QueryGetNetworkAddressHistoryV1",
+        RequestArgs(
+            base_url=ctx.session.base_url,
+            token=ctx.session.token,
+            allow_unknown_origin=ctx.session.allow_unknown_origin,
+            body={"ids": [id]},
+        ),
+    )
+    if response.status != 200:
+        raise translate_falcon_error(response, "QueryGetNetworkAddressHistoryV1", "hosts")
+    # The official response schema is an array of device_id/history objects.
+    entries = response.body if isinstance(response.body, list) else resources(response)
+    history = [
+        item
+        for entry in entries
+        if isinstance(entry, Mapping) and entry.get("device_id") == id
+        for item in (entry.get("history") or [])
+    ]
+    return CommandOutput(
+        value={"device_id": id, "network_history": history if history else raw("0 network address history entries")},
+        help=(),
+    )
+
+
 def _host_list(ctx: Invocation) -> CommandOutput:
     return list_hosts(
         ctx.transport,
@@ -402,6 +429,23 @@ COMMAND_SPECS = (
         flags=("since", "limit"),
         value_flags=("since", "limit"),
         limit_ceiling=(LOGIN_CEILING, "Hosts login history"),
+        positional=("device identifier", "Run `falcon-axi host list` to see current device identifiers"),
+    ),
+    CommandSpec(
+        name="host network",
+        help="\n".join(
+            [
+                "falcon-axi host network <device id>",
+                "",
+                "Retrieves the IP and MAC address history Falcon retains for one sensor host.",
+                "The device id is the AID printed by `falcon-axi host list`.",
+                "Example: falcon-axi host network abc123",
+                "Read-only; requires Hosts:read. This endpoint has no pagination parameters.",
+            ]
+        ),
+        summary="  host network <device id>  IP and MAC address history for one host",
+        handler=_host_network,
+        operations=("QueryGetNetworkAddressHistoryV1",),
         positional=("device identifier", "Run `falcon-axi host list` to see current device identifiers"),
     ),
 )

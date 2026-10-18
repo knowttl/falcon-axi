@@ -1,0 +1,14 @@
+{
+  "name": "error-rate-limited",
+  "argv": [
+    "detection",
+    "list"
+  ],
+  "responders": [
+    {
+      "op": "GetQueriesAlertsV2",
+      "fixture": "errors/429-rate-limited.json"
+    }
+  ],
+  "exit_code": 1
+}

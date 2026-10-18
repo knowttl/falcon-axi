@@ -1,0 +1,11 @@
+{
+  "name": "ioc show",
+  "order": 2305,
+  "summary": "  ioc show <id>             read one custom indicator",
+  "scopes": [
+    {
+      "scope": "IOC Management:read",
+      "access": "read"
+    }
+  ]
+}

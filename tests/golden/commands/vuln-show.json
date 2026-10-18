@@ -1,0 +1,11 @@
+{
+  "name": "vuln show",
+  "order": 805,
+  "summary": "  vuln show <id>            details for one Spotlight vulnerability record",
+  "scopes": [
+    {
+      "scope": "Vulnerabilities:read",
+      "access": "read"
+    }
+  ]
+}

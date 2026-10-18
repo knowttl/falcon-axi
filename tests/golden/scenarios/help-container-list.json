@@ -1,0 +1,10 @@
+{
+  "name": "help-container-list",
+  "comment": "Container/serverless reads deliberately extend help-top, unknown-command, scopes and authenticated status scope documents (design section 2.4).",
+  "argv": [
+    "container",
+    "list",
+    "--help"
+  ],
+  "exit_code": 0
+}

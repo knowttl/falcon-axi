@@ -1,0 +1,18 @@
+# image vulnerabilities
+
+image vulnerabilities     list container image vulnerabilities
+
+```text
+uvx falcon-axi image vulnerabilities [--filter <FQL>] [--limit N] [--cursor <token>]
+
+Lists vulnerabilities across container images in fixed cve_id.asc order.
+--filter     FQL fields include cve_id, cvss_score, image_id, repository, severity
+--limit      rows per call (default 20, ceiling 100)
+--cursor     opaque continuation token; keep the same filter and credential
+Falcon exposes at most 10000 records per query; narrow --filter at that boundary.
+Examples:
+  uvx falcon-axi image vulnerabilities --filter "cvss_score:>7"
+  uvx falcon-axi image vulnerabilities --filter "image_id:'synthetic-image'"
+
+Read-only; requires Falcon Container Image:read and the corresponding license.
+```

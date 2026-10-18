@@ -1,0 +1,11 @@
+{
+  "name": "serverless list",
+  "order": 1613,
+  "summary": "  serverless list           read serverless vulnerability SARIF",
+  "scopes": [
+    {
+      "scope": "Falcon Container Image:read",
+      "access": "read"
+    }
+  ]
+}

@@ -1,0 +1,5 @@
+falcon-axi ioc show <id>
+
+Example: falcon-axi ioc show <id>
+
+Read-only; requires IOC Management:read.
