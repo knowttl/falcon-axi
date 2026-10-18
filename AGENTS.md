@@ -65,8 +65,7 @@ no help text, suggestion, or skill may advertise an unshipped command.
 `uv run scripts/verify.py` is the single local entry point for the complete offline required-check set
 (§14.5, §15.4); it runs ruff, `mypy --strict`, `scripts/architecture_check.py`, and the `tests/offline/` suite,
 and it must stay offline: a pytest fixture refuses every socket.
-`tests/golden/` is the recorded-invocation gate: every scenario in `scenarios.json` must reproduce its
-expected document byte for byte.
+`tests/golden/` is the recorded-invocation gate; `docs/design/v1-python.md` §5 owns its comparison contract and release-version exception.
 Its stage 1 scenarios are also the cross-language parity gate, because the TypeScript stage 1 this port
 replaced generated their expected documents.
 Changing any output means regenerating nothing; it means the change is a deliberate behavior change that must

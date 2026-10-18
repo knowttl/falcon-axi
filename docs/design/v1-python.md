@@ -187,6 +187,8 @@ The port is a refactor across languages, and v1.md's contract is the test.
   Stage 2 widens it to the original three read domains plus `scopes`, and stage 3 adds the `search` noun captain exception N1 admits (v1.md §4.3); both are the design's own surface rather than port decisions.
 - Every flag name, error code, help line, and TOON schema stays identical.
 - **Parity gate.** Before any TypeScript is deleted, the ship task generates golden outputs from the TypeScript stage 1 for every offline test scenario (each fixture set plus argv), commits them under `tests/golden/`, and the Python port must reproduce them byte for byte.
+  The ongoing gate compares every recorded invocation's output and exit code, with one release-version exception: `help-top` substitutes `falcon_axi.version.VERSION` for the expected banner's version before comparing bytes.
+  All remaining banner text and every other document stay byte-for-byte comparisons, so releases need no banner-only fixture update.
   The golden files are derived from synthetic fixtures, so they contain no tenant data and may be committed.
   A later stage may change one of those documents only as a deliberate surface change argued in v1.md first, and `tests/golden/scenarios.json` records which documents changed and why.
 - Redaction on stdout and stderr, including anything falconpy logs, follows v1.md §5.5; falconpy's `debug` stays off and `sanitize_log` on.

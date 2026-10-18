@@ -1,7 +1,10 @@
-"""The cross-language parity gate: every scenario must reproduce TypeScript stage 1 byte for byte."""
+"""Recorded-invocation comparisons follow docs/design/v1-python.md §5."""
+
+import re
 
 import pytest
 
+from falcon_axi.version import VERSION
 from tests.support.golden import exit_codes, expected_stdout, replay, scenarios
 
 SCENARIOS = scenarios()
@@ -15,5 +18,8 @@ def test_every_generated_scenario_has_an_expected_document() -> None:
 @pytest.mark.parametrize("scenario", SCENARIOS, ids=lambda entry: entry["name"])
 def test_python_reproduces_the_typescript_document(scenario: dict) -> None:
     stdout, exit_code = replay(scenario)
-    assert stdout == expected_stdout(scenario["name"])
+    expected = expected_stdout(scenario["name"])
+    if scenario["name"] == "help-top":
+        expected = re.sub(r"\Afalcon-axi \S+ - ", f"falcon-axi {VERSION} - ", expected, count=1)
+    assert stdout == expected
     assert exit_code == exit_codes()[scenario["name"]]
