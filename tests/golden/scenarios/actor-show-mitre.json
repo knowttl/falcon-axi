@@ -1,0 +1,20 @@
+{
+  "name": "actor-show-mitre",
+  "argv": [
+    "actor",
+    "show",
+    "123456",
+    "--mitre"
+  ],
+  "responders": [
+    {
+      "op": "GetIntelActorEntities",
+      "fixture": "intel/actor-one.json"
+    },
+    {
+      "op": "GetMitreReport",
+      "fixture": "intel/mitre.json"
+    }
+  ],
+  "exit_code": 0
+}

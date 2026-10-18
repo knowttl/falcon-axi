@@ -1,0 +1,8 @@
+{
+  "name": "unknown-search-subcommand",
+  "argv": [
+    "search",
+    "contain"
+  ],
+  "exit_code": 2
+}

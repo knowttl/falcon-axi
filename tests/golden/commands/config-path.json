@@ -1,0 +1,6 @@
+{
+  "name": "config path",
+  "order": 2600,
+  "summary": "  config path               config and write-journal paths",
+  "scopes": []
+}

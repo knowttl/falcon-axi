@@ -1,0 +1,12 @@
+{
+  "name": "sensor-usage list",
+  "order": 2701,
+  "summary": "  sensor-usage list         weekly sensor usage reports",
+  "scopes": [
+    {
+      "scope": "Sensor Usage:read",
+      "access": "read",
+      "required": "yes"
+    }
+  ]
+}

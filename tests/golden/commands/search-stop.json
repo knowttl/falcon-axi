@@ -1,0 +1,11 @@
+{
+  "name": "search stop",
+  "order": 2000,
+  "summary": "  search stop <id>          cancel one search job",
+  "scopes": [
+    {
+      "scope": "NGSIEM:write",
+      "access": "write"
+    }
+  ]
+}

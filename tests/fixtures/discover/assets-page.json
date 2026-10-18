@@ -1,0 +1,34 @@
+{
+  "provenance": {
+    "operation": "combined_hosts",
+    "reference": "https://developer.crowdstrike.com/api-reference/collections/discover/",
+    "schema_read": "2026-10-18",
+    "provenance": "synthetic"
+  },
+  "response": {
+    "status": 200,
+    "headers": {},
+    "body": {
+      "meta": {
+        "pagination": {
+          "total": 3,
+          "after": "synthetic-assets-next"
+        }
+      },
+      "resources": [
+        {
+          "id": "synthetic-asset-01",
+          "hostname": "SYNTHETIC-WS",
+          "entity_type": "managed",
+          "platform_name": "Windows"
+        },
+        {
+          "id": "synthetic-asset-02",
+          "hostname": "SYNTHETIC-PRINTER",
+          "entity_type": "unmanaged",
+          "platform_name": "Linux"
+        }
+      ]
+    }
+  }
+}

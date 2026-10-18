@@ -1,0 +1,10 @@
+{
+  "name": "help-identity-sensor-list",
+  "argv": [
+    "identity",
+    "sensor",
+    "list",
+    "--help"
+  ],
+  "exit_code": 0
+}

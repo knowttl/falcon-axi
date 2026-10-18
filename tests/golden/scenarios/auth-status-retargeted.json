@@ -1,0 +1,16 @@
+{
+  "name": "auth-status-retargeted",
+  "argv": [
+    "auth",
+    "status"
+  ],
+  "oauth": [
+    {
+      "fixture": "oauth2/token-region-us-2.json"
+    },
+    {
+      "fixture": "oauth2/token-success.json"
+    }
+  ],
+  "exit_code": 0
+}

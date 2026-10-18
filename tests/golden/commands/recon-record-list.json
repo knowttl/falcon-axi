@@ -1,0 +1,12 @@
+{
+  "name": "recon-record list",
+  "order": 2706,
+  "summary": "  recon-record list             list Recon exposed-data records",
+  "scopes": [
+    {
+      "scope": "Monitoring rules (Falcon Intelligence Recon):read",
+      "access": "read",
+      "required": "yes"
+    }
+  ]
+}

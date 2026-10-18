@@ -1,0 +1,28 @@
+{
+  "name": "policy-members-not-found",
+  "argv": [
+    "policy",
+    "members",
+    "synthetic-policy-99",
+    "--type",
+    "prevention"
+  ],
+  "responders": [
+    {
+      "op": "queryCombinedPreventionPolicyMembers",
+      "response": {
+        "status": 404,
+        "body": {
+          "errors": [
+            {
+              "code": 404,
+              "message": "policy not found"
+            }
+          ],
+          "resources": []
+        }
+      }
+    }
+  ],
+  "exit_code": 1
+}

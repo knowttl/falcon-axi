@@ -1,0 +1,34 @@
+{
+  "provenance": {
+    "operation": "queryCombinedHostGroups",
+    "reference": "https://developer.crowdstrike.com/api-reference/collections/host-group/",
+    "schema_read": "2026-10-18",
+    "provenance": "synthetic"
+  },
+  "response": {
+    "status": 200,
+    "headers": {},
+    "body": {
+      "meta": {
+        "pagination": {
+          "total": 3
+        }
+      },
+      "resources": [
+        {
+          "id": "synthetic-group-01",
+          "name": "Synthetic servers",
+          "group_type": "dynamic",
+          "description": "Synthetic host group",
+          "assignment_rule": "platform_name:'Linux'"
+        },
+        {
+          "id": "synthetic-group-02",
+          "name": "Synthetic workstations",
+          "group_type": "static",
+          "description": "Synthetic static group"
+        }
+      ]
+    }
+  }
+}

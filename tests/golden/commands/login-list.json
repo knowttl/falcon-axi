@@ -1,0 +1,11 @@
+{
+  "name": "login list",
+  "order": 804,
+  "summary": "  login list                list Discover-observed logins across assets",
+  "scopes": [
+    {
+      "scope": "Assets:read",
+      "access": "read"
+    }
+  ]
+}

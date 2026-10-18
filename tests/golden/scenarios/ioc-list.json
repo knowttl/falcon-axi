@@ -1,0 +1,20 @@
+{
+  "name": "ioc-list",
+  "argv": [
+    "ioc",
+    "list",
+    "--limit",
+    "2"
+  ],
+  "responders": [
+    {
+      "op": "indicator_search_v1",
+      "fixture": "ioc/query-page.json"
+    },
+    {
+      "op": "indicator_get_v1",
+      "fixture": "ioc/details-page.json"
+    }
+  ],
+  "exit_code": 0
+}

@@ -1,0 +1,6 @@
+{
+  "name": "auth status",
+  "order": 2400,
+  "summary": "  auth status               whether a credential resolved, and where to",
+  "scopes": []
+}

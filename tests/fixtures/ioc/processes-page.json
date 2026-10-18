@@ -1,0 +1,22 @@
+{
+  "provenance": {
+    "operation": "ProcessesRanOn",
+    "reference": "https://developer.crowdstrike.com/api-reference/collections/iocs/",
+    "schema_read": "2026-10-18",
+    "provenance": "synthetic"
+  },
+  "response": {
+    "status": 200,
+    "headers": {},
+    "body": {
+      "meta": {
+        "pagination": {
+          "total": 2
+        }
+      },
+      "resources": [
+        "pid:synthetic-device-01:1234"
+      ]
+    }
+  }
+}

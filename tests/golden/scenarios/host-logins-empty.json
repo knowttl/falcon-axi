@@ -1,0 +1,15 @@
+{
+  "name": "host-logins-empty",
+  "argv": [
+    "host",
+    "logins",
+    "synthetic-device-01"
+  ],
+  "responders": [
+    {
+      "op": "QueryDeviceLoginHistoryV2",
+      "fixture": "hosts/login-history-empty.json"
+    }
+  ],
+  "exit_code": 0
+}

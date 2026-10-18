@@ -1,0 +1,19 @@
+{
+  "name": "host-logins",
+  "argv": [
+    "host",
+    "logins",
+    "synthetic-device-01",
+    "--since",
+    "24h",
+    "--limit",
+    "2"
+  ],
+  "responders": [
+    {
+      "op": "QueryDeviceLoginHistoryV2",
+      "fixture": "hosts/login-history.json"
+    }
+  ],
+  "exit_code": 0
+}

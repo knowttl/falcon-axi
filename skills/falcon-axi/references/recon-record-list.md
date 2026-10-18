@@ -1,0 +1,16 @@
+# recon-record list
+
+recon-record list             list Recon exposed-data records
+
+```text
+uvx falcon-axi recon-record list [--filter <FQL>] [--limit N] [--cursor <token>]
+
+list Recon exposed-data records
+--filter     raw FQL; + is AND, `,` is OR, values are single-quoted
+--limit      rows in this call (default 20, ceiling 500)
+--cursor     opaque continuation token; queries stop at 10000 results
+Requires Monitoring rules (Falcon Intelligence Recon):read. Read-only.
+Examples:
+  uvx falcon-axi recon-record list --filter "domain:'example.com'"
+  uvx falcon-axi recon-record list --limit 100
+```

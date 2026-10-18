@@ -1,0 +1,33 @@
+{
+  "name": "detection-walk-wall",
+  "argv": [
+    "detection",
+    "list",
+    "--since",
+    "30d",
+    "--all",
+    "--max-rows",
+    "25000"
+  ],
+  "responders": [
+    {
+      "op": "GetQueriesAlertsV2",
+      "generate": {
+        "kind": "ids",
+        "count": 10000,
+        "total": 41892
+      }
+    },
+    {
+      "op": "PostEntitiesAlertsV2",
+      "generate": {
+        "kind": "hydrate",
+        "severity_name": "High",
+        "tactic": "Discovery",
+        "hostname": "synthetic-host",
+        "reverse": true
+      }
+    }
+  ],
+  "exit_code": 0
+}

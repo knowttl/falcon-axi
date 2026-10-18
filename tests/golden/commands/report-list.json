@@ -1,0 +1,11 @@
+{
+  "name": "report list",
+  "order": 1300,
+  "summary": "  report list               list Falcon Intelligence reports",
+  "scopes": [
+    {
+      "scope": "Reports (Falcon Intelligence):read",
+      "access": "read"
+    }
+  ]
+}

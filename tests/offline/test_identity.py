@@ -22,6 +22,177 @@ DETAIL = [serve(GRAPHQL, fixture("identity/entity-detail.json"))]
 TIMELINE = [serve(GRAPHQL, fixture("identity/timeline-page.json"))]
 SCHEMA = build_schema((FIXTURES / "identity/schema.graphql").read_text(encoding="utf-8"))
 
+SENSOR_ID = "synthetic-sensor-01"
+SENSORS = [
+    serve("QuerySensorsByFilter", fixture("identity/sensors-query.json")),
+    serve("GetSensorDetails", fixture("identity/sensors-details.json")),
+]
+
+
+@pytest.mark.parametrize("domain", [None, "example.test", 'example.test") { mutation { disableAccount } }'])
+def test_assessment_executes_the_fixed_psfalcon_selection_with_domain_only_in_variables(domain: str | None) -> None:
+    """PSFalcon's security-assessment-for-domain sample supplies the selection; idp.py has no equivalent."""
+    assessment = fixture("identity/assessment.json").body["data"]["securityAssessment"]
+    recorded = RecordedTransport([serve(GRAPHQL, lambda args: _execute_query(args, {"securityAssessment": assessment}))])
+    argv = ["identity", "assessment"] + (["--domain", domain] if domain is not None else [])
+    stdout, code = run(argv, recorded, dict(CREDENTIAL_ENV))
+    assert code == 0
+    sent = _sent(recorded)
+    assert sent.document == "identity_assessment"
+    assert sent.variables == ({"domain": domain} if domain is not None else {})
+    result = decode(stdout)["assessment"]
+    assert result["score"] == 0.75
+    assert result["level"] == "HIGH"
+    assert result["factors"] == [{"type": "STALE_PASSWORD", "severity": "HIGH", "likelihood": "MEDIUM"}]
+
+
+def test_assessment_without_data_is_a_definitive_empty_state() -> None:
+    recorded = RecordedTransport([serve(GRAPHQL, response(200, {"data": {"securityAssessment": None}}))])
+    stdout, code = run(["identity", "assessment"], recorded, dict(CREDENTIAL_ENV))
+    assert code == 0
+    assert decode(stdout)["assessment"] == "0 security assessments"
+
+
+@pytest.mark.parametrize(
+    "file,code",
+    [
+        ("graphql-403-scope.json", "SCOPE_DENIED"),
+        ("graphql-errors-on-200.json", "UPSTREAM_ERROR"),
+        ("graphql-400.json", "UPSTREAM_ERROR"),
+    ],
+)
+def test_assessment_errors_are_never_rendered_as_empty_data(file: str, code: str) -> None:
+    recorded = RecordedTransport([serve(GRAPHQL, fixture("identity/" + file))])
+    stdout, exit_code = run(["identity", "assessment"], recorded, dict(CREDENTIAL_ENV))
+    assert exit_code == 1
+    assert decode(stdout)["code"] == code
+    if code == "SCOPE_DENIED":
+        assert "Identity Protection Assessment:read" in stdout
+        assert "Identity Protection GraphQL:write" in stdout
+
+
+def test_sensor_list_hydrates_in_query_order_and_carries_the_query_total() -> None:
+    recorded = RecordedTransport(SENSORS)
+    stdout, code = run(
+        ["identity", "sensor", "list", "--filter", "status:'healthy'", "--limit", "2"], recorded, dict(CREDENTIAL_ENV)
+    )
+    assert code == 0
+    assert recorded.operation_requests("QuerySensorsByFilter")[0].query == {
+        "filter": "status:'healthy'",
+        "limit": 2,
+        "offset": 0,
+    }
+    assert recorded.operation_requests("GetSensorDetails")[0].body == {
+        "ids": [SENSOR_ID, "synthetic-sensor-02"],
+    }
+    result = decode(stdout)
+    assert result["count"] == "2 of 3 total"
+    assert result["sensors"][0] == {
+        "device_id": SENSOR_ID,
+        "hostname": "SYNTH-DC-01",
+        "status": "healthy",
+        "agent_version": "7.0.0",
+    }
+    assert result["sensors"][1]["device_id"] == "synthetic-sensor-02"
+
+
+def test_sensor_cursor_continues_with_the_same_filter_and_offset() -> None:
+    recorded = RecordedTransport(SENSORS)
+    stdout, _ = run(
+        ["identity", "sensor", "list", "--filter", "hostname:'SYNTH-*'", "--limit", "2"], recorded, dict(CREDENTIAL_ENV)
+    )
+    next_page = shlex.split(decode(stdout)["help"][-1].removeprefix("Run `").split("` for the next page")[0])[1:]
+    continued = RecordedTransport([serve("QuerySensorsByFilter", response(200, {"resources": []}))])
+    result, code = run(next_page, continued, dict(CREDENTIAL_ENV))
+    assert code == 0
+    assert continued.operation_requests("QuerySensorsByFilter")[0].query == {
+        "filter": "hostname:'SYNTH-*'",
+        "limit": 2,
+        "offset": 2,
+    }
+    assert decode(result)["sensors"] == "no more identity sensors"
+
+
+@pytest.mark.parametrize("change", ["filter", "tamper"])
+def test_sensor_cursor_refuses_changed_queries_or_tampering_before_scoped_requests(change: str) -> None:
+    stdout, _ = run(["identity", "sensor", "list", "--limit", "2"], RecordedTransport(SENSORS), dict(CREDENTIAL_ENV))
+    cursor = _cursor_of(stdout)
+    argv = ["identity", "sensor", "list", "--cursor", cursor + "x" if change == "tamper" else cursor]
+    if change == "filter":
+        argv += ["--filter", "status:'unhealthy'"]
+    recorded = RecordedTransport([])
+    result, code = run(argv, recorded, dict(CREDENTIAL_ENV))
+    assert code == 2
+    assert decode(result)["code"] == "VALIDATION_ERROR"
+    assert recorded.operation_requests("QuerySensorsByFilter") == []
+
+
+def test_empty_sensor_list_skips_hydration() -> None:
+    recorded = RecordedTransport([serve("QuerySensorsByFilter", response(200, {"resources": []}))])
+    stdout, code = run(["identity", "sensor", "list"], recorded, dict(CREDENTIAL_ENV))
+    assert code == 0
+    assert decode(stdout)["sensors"] == "0 identity sensors matching this query"
+    assert recorded.operation_requests("GetSensorDetails") == []
+
+
+def test_sensor_show_returns_one_sensors_details() -> None:
+    recorded = RecordedTransport(SENSORS)
+    stdout, code = run(["identity", "sensor", "show", SENSOR_ID], recorded, dict(CREDENTIAL_ENV))
+    assert code == 0
+    sensor = decode(stdout)["sensor"]
+    assert sensor["device_id"] == SENSOR_ID
+    assert sensor["heartbeat_time"] == 1792281600000
+    assert sensor["idp_policy_name"] == "Synthetic policy"
+    assert recorded.operation_requests("GetSensorDetails")[0].body == {"ids": [SENSOR_ID]}
+    assert recorded.operation_requests("QuerySensorsByFilter") == []
+
+
+def test_sensor_show_missing_id_is_not_found() -> None:
+    recorded = RecordedTransport([serve("GetSensorDetails", response(200, {"resources": []}))])
+    stdout, code = run(["identity", "sensor", "show", SENSOR_ID], recorded, dict(CREDENTIAL_ENV))
+    assert code == 1
+    assert decode(stdout)["code"] == "NOT_FOUND"
+
+
+@pytest.mark.parametrize(
+    "argv,operation",
+    [
+        (["identity", "sensor", "list"], "QuerySensorsByFilter"),
+        (["identity", "sensor", "list"], "GetSensorDetails"),
+        (["identity", "sensor", "show", SENSOR_ID], "GetSensorDetails"),
+    ],
+)
+def test_sensor_scope_errors_name_the_read_permission(argv: list[str], operation: str) -> None:
+    recorded = RecordedTransport(
+        [
+            serve(operation, fixture("errors/403-scope.json")),
+            *SENSORS,
+        ]
+    )
+    stdout, code = run(argv, recorded, dict(CREDENTIAL_ENV))
+    assert code == 1
+    assert decode(stdout)["code"] == "SCOPE_DENIED"
+    assert "Identity Protection Entities:read" in stdout
+
+
+@pytest.mark.parametrize(
+    "argv",
+    [
+        ["identity", "assessment", "--domain", " \t "],
+        ["identity", "sensor", "list", "--limit", "201"],
+        ["identity", "sensor", "list", "--filter", " "],
+        ["identity", "sensor", "show"],
+        ["identity", "sensor", "delete", SENSOR_ID],
+        ["identity", "sensor", "list", "--domain", "example.test"],
+    ],
+)
+def test_new_identity_usage_errors_are_refused_before_authentication(argv: list[str]) -> None:
+    recorded = RecordedTransport([])
+    stdout, code = run(argv, recorded, dict(NO_CREDENTIAL_ENV))
+    assert code == 2
+    assert decode(stdout)["code"] == "VALIDATION_ERROR"
+    assert recorded.requests == []
+
 
 def _execute_query(args: RequestArgs, root: dict[str, Any]) -> FalconResponse:
     body = request_body(operation(GRAPHQL), args.document, args.variables, args.body)
@@ -529,6 +700,7 @@ def test_no_identity_command_can_reach_a_document_outside_the_registry() -> None
     """Every document an identity command names resolves from the closed registry."""
     sent: set[str] = set()
     for argv in (
+        ["identity", "assessment"],
         ["identity", "list"],
         ["identity", "list", "--type", "user"],
         ["identity", "list", "--type", "endpoint"],

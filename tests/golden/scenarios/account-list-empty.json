@@ -1,0 +1,16 @@
+{
+  "name": "account-list-empty",
+  "argv": [
+    "account",
+    "list",
+    "--filter",
+    "username:'nobody'"
+  ],
+  "responders": [
+    {
+      "op": "query_accounts",
+      "fixture": "discover/accounts-query-empty.json"
+    }
+  ],
+  "exit_code": 0
+}

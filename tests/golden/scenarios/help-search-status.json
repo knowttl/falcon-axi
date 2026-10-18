@@ -1,0 +1,9 @@
+{
+  "name": "help-search-status",
+  "argv": [
+    "search",
+    "status",
+    "--help"
+  ],
+  "exit_code": 0
+}

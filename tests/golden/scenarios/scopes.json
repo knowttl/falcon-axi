@@ -1,0 +1,8 @@
+{
+  "name": "scopes",
+  "argv": [
+    "scopes"
+  ],
+  "env": "none",
+  "exit_code": 0
+}

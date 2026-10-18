@@ -1,0 +1,7 @@
+{
+  "name": "version-short-lower",
+  "argv": [
+    "-v"
+  ],
+  "exit_code": 0
+}

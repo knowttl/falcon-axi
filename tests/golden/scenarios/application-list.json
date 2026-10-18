@@ -1,0 +1,16 @@
+{
+  "name": "application-list",
+  "argv": [
+    "application",
+    "list",
+    "--limit",
+    "1"
+  ],
+  "responders": [
+    {
+      "op": "combined_applications",
+      "fixture": "discover/applications-page.json"
+    }
+  ],
+  "exit_code": 0
+}

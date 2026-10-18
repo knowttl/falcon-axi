@@ -1,0 +1,11 @@
+{
+  "name": "account list",
+  "order": 700,
+  "summary": "  account list              list Discover accounts observed on endpoints",
+  "scopes": [
+    {
+      "scope": "Assets:read",
+      "access": "read"
+    }
+  ]
+}

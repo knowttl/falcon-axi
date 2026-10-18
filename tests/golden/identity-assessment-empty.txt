@@ -1,0 +1,2 @@
+assessment: 0 security assessments
+help[1]: "Run `falcon-axi identity assessment --domain <name>` for a configured domain"
