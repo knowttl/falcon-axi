@@ -23,6 +23,7 @@ from falcon_axi.fql import (
     window,
 )
 from falcon_axi.origin import REGIONS, assert_trusted_origin, resolve_base_url
+from falcon_axi.policy import validate_policy_type
 from falcon_axi.redaction import redact_text, redaction_scope
 from falcon_axi.render import raw, render
 from falcon_axi.skill import HOME_GUIDANCE, skill_hint
@@ -200,6 +201,8 @@ def parse(argv: Sequence[str]) -> Parsed:
         from falcon_axi.ioc import validate_observation
 
         validate_observation(positionals[0], command == "ioc processes", _str(flags.get("host")))
+    if command in ("policy list", "policy members"):
+        validate_policy_type(_str(flags.get("type")))
     return Parsed(command, flags, tuple(positionals))
 
 

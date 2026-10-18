@@ -51,6 +51,10 @@ What is shipped:
   `ioc processes <type:value> --host <device_id>`;
 - host-group reads: `host-group list` and `host-group members <id>`.
   See [the command reference](docs/design/v1.md#141-custom-iocs-and-host-groups) for pagination and observation inputs.
+- policy inventory and host membership: `policy list --type <type>` and `policy members <id> --type <type>`
+  for `prevention`, `sensor-update`, `firewall`, `device-control`, `response`, and `content-update`.
+  Both accept `--filter`, `--limit`, and `--cursor` and require only the selected type's read scope.
+  Policy precedence, enable/disable, and writes are not exposed.
 
 What is **not** shipped yet, so no output advertises it:
 

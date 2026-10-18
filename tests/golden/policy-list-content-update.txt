@@ -1,0 +1,6 @@
+count: 2 of 3 total
+continuation_cursor: eyJvcGVyYXRpb24iOiJxdWVyeUNvbWJpbmVkQ29udGVudFVwZGF0ZVBvbGljaWVzIiwibW9kZWwiOiJvZmZzZXQiLCJwb3NpdGlvbiI6MiwiZmluZ2VycHJpbnQiOiI5NjExNTYwNTYyNTk2M2M1ZDUxYjA2NGJmNzhkOTk2YjAwMWU0ODNkZmE0ZDNiNDA3Y2ZjMGI4ZjY0NmQyZjQ1In0
+policies[2]{id,name,platform_name,enabled}:
+  synthetic-policy-01,Synthetic policy one,all,true
+  synthetic-policy-02,Synthetic policy two,all,false
+help[2]: "Run `falcon-axi policy members <id> --type content-update` for assigned hosts","Run `falcon-axi policy list --limit 2 --type content-update --cursor eyJvcGVyYXRpb24iOiJxdWVyeUNvbWJpbmVkQ29udGVudFVwZGF0ZVBvbGljaWVzIiwibW9kZWwiOiJvZmZzZXQiLCJwb3NpdGlvbiI6MiwiZmluZ2VycHJpbnQiOiI5NjExNTYwNTYyNTk2M2M1ZDUxYjA2NGJmNzhkOTk2YjAwMWU0ODNkZmE0ZDNiNDA3Y2ZjMGI4ZjY0NmQyZjQ1In0` for the next page"

@@ -12,6 +12,7 @@ from falcon_axi import (
     indicator,
     intel,
     ioc,
+    policy,
     scopes,
     search,
     vuln,
@@ -34,6 +35,7 @@ COMMAND_SPECS = {
         identity.COMMAND_SPECS[1:],
         ioc.COMMAND_SPECS,
         host_group.COMMAND_SPECS,
+        policy.COMMAND_SPECS,
         diagnostics.COMMAND_SPECS,
         scopes.COMMAND_SPECS,
     )

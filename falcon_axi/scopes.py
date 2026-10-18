@@ -37,7 +37,7 @@ def scope_rows() -> list[dict[str, str]]:
             "scope": scope,
             "access": "write" if scope.endswith(":write") else "read",
             "commands": ", ".join(named),
-            "required": "yes",
+            "required": "selected --type" if all(name.startswith("policy ") for name in named) else "yes",
         }
         for scope, named in commands.items()
     ]

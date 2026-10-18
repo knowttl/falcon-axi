@@ -2689,6 +2689,345 @@
         "members",
         "--help"
       ]
+    },
+    {
+      "name": "policy-list-prevention",
+      "argv": [
+        "policy",
+        "list",
+        "--type",
+        "prevention",
+        "--limit",
+        "2"
+      ],
+      "responders": [
+        {
+          "op": "queryCombinedPreventionPolicies",
+          "fixture": "policies/queryCombinedPreventionPolicies.json"
+        }
+      ]
+    },
+    {
+      "name": "policy-members-prevention",
+      "argv": [
+        "policy",
+        "members",
+        "synthetic-policy-01",
+        "--type",
+        "prevention",
+        "--limit",
+        "2"
+      ],
+      "responders": [
+        {
+          "op": "queryCombinedPreventionPolicyMembers",
+          "fixture": "policies/queryCombinedPreventionPolicyMembers.json"
+        }
+      ]
+    },
+    {
+      "name": "policy-list-sensor-update",
+      "argv": [
+        "policy",
+        "list",
+        "--type",
+        "sensor-update",
+        "--limit",
+        "2"
+      ],
+      "responders": [
+        {
+          "op": "queryCombinedSensorUpdatePoliciesV2",
+          "fixture": "policies/queryCombinedSensorUpdatePoliciesV2.json"
+        }
+      ]
+    },
+    {
+      "name": "policy-members-sensor-update",
+      "argv": [
+        "policy",
+        "members",
+        "synthetic-policy-01",
+        "--type",
+        "sensor-update",
+        "--limit",
+        "2"
+      ],
+      "responders": [
+        {
+          "op": "queryCombinedSensorUpdatePolicyMembers",
+          "fixture": "policies/queryCombinedSensorUpdatePolicyMembers.json"
+        }
+      ]
+    },
+    {
+      "name": "policy-list-firewall",
+      "argv": [
+        "policy",
+        "list",
+        "--type",
+        "firewall",
+        "--limit",
+        "2"
+      ],
+      "responders": [
+        {
+          "op": "queryCombinedFirewallPolicies",
+          "fixture": "policies/queryCombinedFirewallPolicies.json"
+        }
+      ]
+    },
+    {
+      "name": "policy-members-firewall",
+      "argv": [
+        "policy",
+        "members",
+        "synthetic-policy-01",
+        "--type",
+        "firewall",
+        "--limit",
+        "2"
+      ],
+      "responders": [
+        {
+          "op": "queryCombinedFirewallPolicyMembers",
+          "fixture": "policies/queryCombinedFirewallPolicyMembers.json"
+        }
+      ]
+    },
+    {
+      "name": "policy-list-device-control",
+      "argv": [
+        "policy",
+        "list",
+        "--type",
+        "device-control",
+        "--limit",
+        "2"
+      ],
+      "responders": [
+        {
+          "op": "queryCombinedDeviceControlPolicies",
+          "fixture": "policies/queryCombinedDeviceControlPolicies.json"
+        }
+      ]
+    },
+    {
+      "name": "policy-members-device-control",
+      "argv": [
+        "policy",
+        "members",
+        "synthetic-policy-01",
+        "--type",
+        "device-control",
+        "--limit",
+        "2"
+      ],
+      "responders": [
+        {
+          "op": "queryCombinedDeviceControlPolicyMembers",
+          "fixture": "policies/queryCombinedDeviceControlPolicyMembers.json"
+        }
+      ]
+    },
+    {
+      "name": "policy-list-response",
+      "argv": [
+        "policy",
+        "list",
+        "--type",
+        "response",
+        "--limit",
+        "2"
+      ],
+      "responders": [
+        {
+          "op": "queryCombinedRTResponsePolicies",
+          "fixture": "policies/queryCombinedRTResponsePolicies.json"
+        }
+      ]
+    },
+    {
+      "name": "policy-members-response",
+      "argv": [
+        "policy",
+        "members",
+        "synthetic-policy-01",
+        "--type",
+        "response",
+        "--limit",
+        "2"
+      ],
+      "responders": [
+        {
+          "op": "queryCombinedRTResponsePolicyMembers",
+          "fixture": "policies/queryCombinedRTResponsePolicyMembers.json"
+        }
+      ]
+    },
+    {
+      "name": "policy-list-content-update",
+      "argv": [
+        "policy",
+        "list",
+        "--type",
+        "content-update",
+        "--limit",
+        "2"
+      ],
+      "responders": [
+        {
+          "op": "queryCombinedContentUpdatePolicies",
+          "fixture": "policies/queryCombinedContentUpdatePolicies.json"
+        }
+      ]
+    },
+    {
+      "name": "policy-members-content-update",
+      "argv": [
+        "policy",
+        "members",
+        "synthetic-policy-01",
+        "--type",
+        "content-update",
+        "--limit",
+        "2"
+      ],
+      "responders": [
+        {
+          "op": "queryCombinedContentUpdatePolicyMembers",
+          "fixture": "policies/queryCombinedContentUpdatePolicyMembers.json"
+        }
+      ]
+    },
+    {
+      "name": "help-policy-list",
+      "argv": [
+        "policy",
+        "list",
+        "--help"
+      ]
+    },
+    {
+      "name": "help-policy-members",
+      "argv": [
+        "policy",
+        "members",
+        "--help"
+      ]
+    },
+    {
+      "name": "policy-list-without-type",
+      "argv": [
+        "policy",
+        "list"
+      ]
+    },
+    {
+      "name": "policy-list-unknown-type",
+      "argv": [
+        "policy",
+        "list",
+        "--type",
+        "unknown"
+      ]
+    },
+    {
+      "name": "policy-members-without-id",
+      "argv": [
+        "policy",
+        "members",
+        "--type",
+        "prevention"
+      ]
+    },
+    {
+      "name": "policy-list-empty",
+      "argv": [
+        "policy",
+        "list",
+        "--type",
+        "prevention"
+      ],
+      "responders": [
+        {
+          "op": "queryCombinedPreventionPolicies",
+          "response": {
+            "status": 200,
+            "body": {
+              "resources": [],
+              "meta": {
+                "pagination": {
+                  "total": 0
+                }
+              }
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "policy-members-empty",
+      "argv": [
+        "policy",
+        "members",
+        "synthetic-policy-01",
+        "--type",
+        "prevention"
+      ],
+      "responders": [
+        {
+          "op": "queryCombinedPreventionPolicyMembers",
+          "response": {
+            "status": 200,
+            "body": {
+              "resources": []
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "policy-list-scope-denied",
+      "argv": [
+        "policy",
+        "list",
+        "--type",
+        "prevention"
+      ],
+      "responders": [
+        {
+          "op": "queryCombinedPreventionPolicies",
+          "fixture": "errors/403-scope.json"
+        }
+      ]
+    },
+    {
+      "name": "policy-members-not-found",
+      "argv": [
+        "policy",
+        "members",
+        "synthetic-policy-99",
+        "--type",
+        "prevention"
+      ],
+      "responders": [
+        {
+          "op": "queryCombinedPreventionPolicyMembers",
+          "response": {
+            "status": 404,
+            "body": {
+              "errors": [
+                {
+                  "code": 404,
+                  "message": "policy not found"
+                }
+              ],
+              "resources": []
+            }
+          }
+        }
+      ]
     }
   ],
   "pagination_comment": "The shipped bounded walker (docs/design/v1.md sections 7.2 and 10.2) adds three wholly synthetic partial-read examples. The four list help documents, unknown-flag, and list-with-positional deliberately change to advertise --all and --max-rows. Existing data documents and scopes remain unchanged because no operation or permission changed.",
