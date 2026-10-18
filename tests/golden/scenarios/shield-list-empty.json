@@ -1,0 +1,20 @@
+{
+  "name": "shield-list-empty",
+  "argv": [
+    "shield",
+    "list"
+  ],
+  "responders": [
+    {
+      "op": "GetSecurityChecksV3",
+      "response": {
+        "status": 200,
+        "body": {
+          "resources": []
+        }
+      }
+    }
+  ],
+  "exit_code": 0,
+  "comment": "Shield posture checks add list, show, empty, scope-denied and help scenarios. help-top, unknown-command, scopes and auth-status scope documents deliberately change to expose the shipped read commands and SaaS Security:read (design section 10.6)."
+}

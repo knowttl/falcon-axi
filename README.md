@@ -24,6 +24,7 @@ What is shipped:
 - the home view and five read domains: `falcon-axi`, `detection list`, `detection show`, `host list`,
   `host show`, `host logins`, `account list`, `account show`, `vuln list`, `vuln show`, `cve list`, and `cve show`;
 - `detection summary`, an on-demand severity count with the same filters as `detection list`;
+- Falcon Shield SaaS posture checks: `shield list` and `shield show`, using `SaaS Security:read`;
 - cloud inventory and findings: `cloud-asset list`, `cloud-asset show`, `iom list`, `iom show`,
   and `cloud-risk list`.
   See the [cloud contract](docs/design/v1.md#121-cloud-inventory-and-posture) for pagination, output, and the risk-detail limitation;

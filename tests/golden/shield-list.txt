@@ -1,0 +1,4 @@
+count: 1 of 1 total
+checks[1]{id,name,status,impact}:
+  synthetic-check-01,Synthetic MFA posture check,Failed,High
+help[1]: "Run `falcon-axi shield show <id>` for the full posture check"

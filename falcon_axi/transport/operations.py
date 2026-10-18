@@ -18,6 +18,7 @@ from typing import Literal, get_args
 from falcon_axi.core import CliError
 
 OperationId = Literal[
+    "GetSecurityChecksV3",
     "cloud_security_assets_queries",
     "cloud_security_assets_entities_get",
     "cspm_evaluations_iom_queries",
@@ -127,6 +128,24 @@ NGSIEM_DOC = "https://developer.crowdstrike.com/api-reference/collections/ngsiem
 IDENTITY_PROTECTION_DOC = "https://developer.crowdstrike.com/api-reference/collections/identity-protection/"
 
 CANONICAL: tuple[FalconOperation, ...] = (
+    FalconOperation(
+        id="GetSecurityChecksV3",
+        method="GET",
+        path="/saas-security/entities/checks/v3",
+        scopes=("SaaS Security:read",),
+        effect="read",
+        evidence=Evidence(
+            doc_url="https://developer.crowdstrike.com/api-reference/collections/saas-security/#getsecuritychecksv3",
+            doc_scope="SaaS Security (Falcon Shield): READ",
+            falcon_mcp=(
+                "falcon_mcp/common/api_scopes.py maps GetSecurityChecksV3 to SaaS Security:read; "
+                "https://github.com/CrowdStrike/falcon-mcp/blob/main/falcon_mcp/modules/shield.py "
+                "search_shield_checks sends id, status, impact, limit and offset; "
+                "falconpy/_endpoint/_saas_security.py maps GetSecurityChecksV3 to "
+                "GET /saas-security/entities/checks/v3"
+            ),
+        ),
+    ),
     FalconOperation(
         id="queryCombinedPreventionPolicies",
         method="GET",

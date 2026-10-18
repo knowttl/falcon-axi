@@ -38,6 +38,13 @@ NO_FALCON_MCP_TOOL = {
 }
 
 EXPECTED = {
+    "GetSecurityChecksV3": {
+        "method": "GET",
+        "path": "/saas-security/entities/checks/v3",
+        "scopes": ("SaaS Security:read",),
+        "effect": "read",
+        "doc_scope": "SaaS Security (Falcon Shield): READ",
+    },
     "queryCombinedPreventionPolicies": {
         "method": "GET",
         "path": "/policy/combined/prevention/v1",
