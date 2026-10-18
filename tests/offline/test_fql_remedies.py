@@ -17,6 +17,20 @@ from tests.support.recorded import CREDENTIAL_ENV, RecordedTransport, fixture, s
             "severity_name:'High'+status:'new'",
         ),
         ("host", "QueryDevicesByFilter", "PostDeviceDetailsV2", "hosts/query-page.json", "hostname:'WIN-*'"),
+        (
+            "cloud-asset",
+            "cloud_security_assets_queries",
+            "cloud_security_assets_entities_get",
+            "cloud/assets-query.json",
+            "cloud_provider:'aws'",
+        ),
+        (
+            "iom",
+            "cspm_evaluations_iom_queries",
+            "cspm_evaluations_iom_entities",
+            "cloud/iom-query.json",
+            "severity:'critical'+status:'non-compliant'",
+        ),
     ],
 )
 def test_query_and_entity_filter_rejections_teach_the_failed_domains_fields(
@@ -48,6 +62,7 @@ def test_query_and_entity_filter_rejections_teach_the_failed_domains_fields(
     [
         (["host", "logins", "synthetic-id"], "QueryDeviceLoginHistoryV2", "host", "hostname:'WIN-*'"),
         (["vuln", "list", "--status", "open"], "combinedQueryVulnerabilities", "vuln", "status:'open'"),
+        (["cloud-risk", "list"], "combined_cloud_risks", "cloud-risk", "severity:'Critical'+status:'Open'"),
     ],
 )
 def test_combined_reads_use_their_own_fql_remedy(argv: list[str], operation: str, noun: str, example: str) -> None:

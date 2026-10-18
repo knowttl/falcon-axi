@@ -10,6 +10,11 @@ from falcon_axi.transport.operations import OperationId, operation
 from falcon_axi.transport.types import FalconResponse
 
 _FILTER_WORDS = re.compile(r"\b(fql|filter|query)\b", re.IGNORECASE)
+_CLOUD_GUIDANCE = {
+    "Cloud Security API Assets:read": ("cloud-asset list", "cloud_provider:'aws'"),
+    "Cloud Security API Detections:read": ("iom list", "severity:'critical'+status:'non-compliant'"),
+    "Cloud Security API Risks:read": ("cloud-risk list", "severity:'Critical'+status:'Open'"),
+}
 
 #: License prerequisites for scope-denied remedies; provisioning guidance lives in README.md.
 #: Console picker visibility is inferred, not observed (docs/design/v1.md §17.17).
@@ -47,6 +52,7 @@ def translate_falcon_error(response: FalconResponse, id: OperationId, subject: s
     trace = trace_id(response)
     descriptor = operation(id)
     scopes = descriptor.scopes + (graphql_document(document).read_scopes if document else ())
+    cloud_guidance = next((_CLOUD_GUIDANCE[scope] for scope in scopes if scope in _CLOUD_GUIDANCE), None)
     details = {"trace_id": trace} if trace else {}
     if response.status == 400 and descriptor.effect == "graphql-query":
         # A GraphQL validation message says "query" and "field", which the FQL branch below would
@@ -62,7 +68,9 @@ def translate_falcon_error(response: FalconResponse, id: OperationId, subject: s
         )
     if response.status == 400:
         if any(_FILTER_WORDS.search(message) for message in messages):
-            if "Assets:read" in scopes:
+            if cloud_guidance:
+                command, example = cloud_guidance
+            elif "Assets:read" in scopes:
                 command, example = "account list", "username:'synthetic-user'"
             elif "Hosts:read" in scopes:
                 command, example = "host list", "hostname:'WIN-*'"
@@ -137,10 +145,11 @@ def translate_falcon_error(response: FalconResponse, id: OperationId, subject: s
             {"required_scopes": list(scopes)},
         )
     if response.status == 404:
+        command = cloud_guidance[0] if cloud_guidance else "detection list"
         return CliError(
             "NOT_FOUND",
             f"no {subject} matched that identifier",
-            ["Run `falcon-axi detection list` to see current identifiers"],
+            [f"Run `falcon-axi {command}` to see current identifiers"],
         )
     if response.status == 429:
         return CliError(

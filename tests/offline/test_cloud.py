@@ -7,6 +7,7 @@ the simplified root-level severity in some falcon-mcp test doubles.
 import re
 
 import pytest
+from toon_format import decode
 
 from falcon_axi.cli import run
 from falcon_axi.transport.types import RequestArgs
@@ -101,6 +102,35 @@ def test_show_not_found_on_empty_entity_response(noun, query_op, entity_op, pref
     stdout, code = run([noun, "show", "synthetic-missing"], recorded, CREDENTIAL_ENV)
     assert code == 1
     assert "NOT_FOUND" in stdout
+
+
+@pytest.mark.parametrize(
+    ("argv", "operation", "before"),
+    [
+        (["cloud-asset", "list"], "cloud_security_assets_queries", []),
+        (["iom", "list"], "cspm_evaluations_iom_queries", []),
+        (["cloud-risk", "list"], "combined_cloud_risks", []),
+        (
+            ["cloud-asset", "list"],
+            "cloud_security_assets_entities_get",
+            [serve("cloud_security_assets_queries", fixture("cloud/assets-query.json"))],
+        ),
+        (
+            ["iom", "list"],
+            "cspm_evaluations_iom_entities",
+            [serve("cspm_evaluations_iom_queries", fixture("cloud/iom-query.json"))],
+        ),
+        (["cloud-asset", "show", "synthetic-missing"], "cloud_security_assets_entities_get", []),
+        (["iom", "show", "synthetic-missing"], "cspm_evaluations_iom_entities", []),
+    ],
+)
+def test_upstream_not_found_suggests_the_corresponding_cloud_list(argv, operation, before):
+    recorded = RecordedTransport([*before, serve(operation, response(404, {}))])
+    stdout, code = run(argv, recorded, CREDENTIAL_ENV)
+    document = decode(stdout)
+    assert code == 1
+    assert document["code"] == "NOT_FOUND"
+    assert document["help"] == [f"Run `falcon-axi {argv[0]} list` to see current identifiers"]
 
 
 @pytest.mark.parametrize(
