@@ -110,7 +110,7 @@ def decode_cursor(token: str, context: CursorContext, client_secret: str) -> Pos
 
 
 def decode_offset(token: str, context: CursorContext, client_secret: str) -> int:
-    """The offset-model position, for the Alerts and Hosts walks (§7.1)."""
+    """The offset-model position (§7.1)."""
     position = decode_cursor(token, context, client_secret)
     if not isinstance(position, int):
         raise _reject()
