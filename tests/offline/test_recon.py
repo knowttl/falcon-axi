@@ -241,9 +241,7 @@ def test_scope_errors_name_required_read_scope(argv, op, scope):
     ],
 )
 def test_rejected_filter_guidance_uses_the_originating_domain(noun, operation, example):
-    recorded = RecordedTransport(
-        [serve(operation, response(400, {"errors": [{"message": "invalid FQL filter"}]}))]
-    )
+    recorded = RecordedTransport([serve(operation, response(400, {"errors": [{"message": "invalid FQL filter"}]}))])
     stdout, code = run([noun, "list", "--filter", "bad"], recorded, dict(CREDENTIAL_ENV))
     parsed = decode(stdout)
     assert code == 2
