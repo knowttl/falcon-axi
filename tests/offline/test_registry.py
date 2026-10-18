@@ -18,6 +18,8 @@ from falcon_axi.transport.operations import (
 #: Operations whose §2.2 corroboration is falconpy's generated table plus PSFalcon, because falcon-mcp
 #: has no tool for them, mapped to the falconpy endpoint module that lists each one.
 NO_FALCON_MCP_TOOL = {
+    "QuerySensorsByFilter": "_identity_protection",
+    "GetSensorDetails": "_identity_protection",
     "GetVulnerabilities": "_intel",
     "QueryDeviceLoginHistoryV2": "_hosts",
     "query_accounts": "_discover",
@@ -25,6 +27,20 @@ NO_FALCON_MCP_TOOL = {
 }
 
 EXPECTED = {
+    "QuerySensorsByFilter": {
+        "method": "GET",
+        "path": "/identity-protection/queries/devices/v1",
+        "scopes": ("Identity Protection Entities:read",),
+        "effect": "read",
+        "doc_scope": "Identity Protection Entities: READ",
+    },
+    "GetSensorDetails": {
+        "method": "POST",
+        "path": "/identity-protection/entities/devices/GET/v1",
+        "scopes": ("Identity Protection Entities:read",),
+        "effect": "read",
+        "doc_scope": "Identity Protection Entities: READ",
+    },
     "GetQueriesAlertsV2": {
         "method": "GET",
         "path": "/alerts/queries/alerts/v2",

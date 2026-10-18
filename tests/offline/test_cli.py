@@ -50,7 +50,8 @@ def test_an_unknown_command_or_subcommand_fails_before_any_request() -> None:
     assert (
         "valid commands: detection list, detection show, host list, host show, host logins, account list, "
         "account show, vuln list, cve show, identity activity, search start, search status, search stop, identity list, "
-        "identity show, identity timeline, auth status, profile list, config path, scopes" in stdout
+        "identity show, identity timeline, identity assessment, identity sensor list, identity sensor show, "
+        "auth status, profile list, config path, scopes" in stdout
     )
     subcommand, _ = run(["detection", "contain"], recorded, dict(CREDENTIAL_ENV))
     assert "valid detection subcommands: list, show" in subcommand

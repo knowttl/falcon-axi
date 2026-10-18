@@ -27,6 +27,8 @@ What is shipped:
 - the Identity Protection directory and timeline: `identity list`, `identity show`, and
   `identity timeline`, sending only fixed read-only GraphQL query documents under captain exception
   N2, the other place falcon-axi asks for a write-labelled scope;
+- `identity assessment [--domain <name>]`, a fixed read-only security-assessment query under N2,
+  and `identity sensor list` / `identity sensor show`, ordinary REST reads of sensor inventory;
 - identity-aware detections (`detection list --product idp`, with account and source-endpoint
   fields when present) and `identity activity <account>`, a fixed NG-SIEM search over one account's
   Identity Protection events that adds no operation and no scope beyond N1's;
@@ -37,7 +39,7 @@ What is **not** shipped yet, so no output advertises it:
 - every domain `docs/design/v1.md` §1.3 defers, including intel actors, indicators, and reports,
   every NG-SIEM capability outside the three search lifecycle operations (no ingest, no lookup
   files, no parser or dashboard writes, and no Charlotte AI), and every Identity Protection capability
-  beyond the directory and timeline: no standalone incident or security-assessment queries, no policy rules,
+  beyond the directory, timeline, security assessment, and sensor inventory: no standalone incident queries, no policy rules,
   and no GraphQL mutation of any kind.
   `cve show` is the one intel read that ships; there is no `cve list`;
 - `falcon-axi setup`, including the session hook and the generated skill;
@@ -368,6 +370,15 @@ Compare it with the query sent: NG-SIEM demotes an unrecognised word to a free-t
 erroring, so a malformed pipe returns the wrong rows silently rather than failing.
 
 ### Identity Protection
+
+`identity assessment [--domain <name>]` prints the security assessment score, level, and risk factors.
+It requires `Identity Protection Assessment:read` and `Identity Protection GraphQL:write`.
+The fixed query matches CrowdStrike's PSFalcon sample; it has offline fixture coverage and has not been tenant-validated.
+
+`identity sensor list [--filter <FQL>] [--limit N] [--cursor <token>]` lists sensor IDs, hostnames, status, and agent version.
+`identity sensor show <device_id>` adds heartbeat and policy details.
+Both use REST reads requiring `Identity Protection Entities:read`, with no GraphQL permission required.
+The list defaults to 20 rows with a maximum of 200 per call.
 
 `identity list` reads the Falcon Identity Protection directory, users and endpoints with their risk
 severity.

@@ -35,7 +35,7 @@ def test_the_only_write_scopes_in_the_matrix_are_the_two_the_captain_exceptions_
     write_rows = {row["scope"]: row["commands"] for row in parsed["scopes"] if row["access"] == "write"}
     assert write_rows == {
         "NGSIEM:write": "identity activity, search start, search stop",
-        "Identity Protection GraphQL:write": "identity list, identity show, identity timeline",
+        "Identity Protection GraphQL:write": "identity list, identity show, identity timeline, identity assessment",
     }
 
 
@@ -45,7 +45,8 @@ def test_provisioning_hints_describe_each_write_scope_without_claiming_the_other
     hints = decode(stdout)["help"]
     assert "Omit NGSIEM:write and `search start`, `search stop`, and `identity activity` fail with SCOPE_DENIED" in hints
     assert (
-        "Omit Identity Protection GraphQL:write and `identity list`, `identity show`, and `identity timeline` "
+        "Omit Identity Protection GraphQL:write and `identity list`, `identity show`, `identity timeline`, "
+        "and `identity assessment` "
         "fail with SCOPE_DENIED" in hints
     )
     assert not any("wholly read-only client" in hint for hint in hints)
@@ -54,7 +55,10 @@ def test_provisioning_hints_describe_each_write_scope_without_claiming_the_other
 def test_the_identity_commands_list_their_per_document_read_scopes() -> None:
     stdout, _ = run(["scopes"], RecordedTransport([]), dict(NO_CREDENTIAL_ENV))
     rows = {row["scope"]: row for row in decode(stdout)["scopes"]}
-    assert rows["Identity Protection Entities:read"]["commands"] == "identity list, identity show"
+    assert rows["Identity Protection Entities:read"]["commands"] == (
+        "identity list, identity show, identity sensor list, identity sensor show"
+    )
+    assert rows["Identity Protection Assessment:read"]["commands"] == "identity assessment"
     assert rows["Identity Protection Timeline:read"]["commands"] == "identity timeline"
     assert rows["Identity Protection Entities:read"]["access"] == "read"
 

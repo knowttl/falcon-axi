@@ -1,0 +1,6 @@
+assessment:
+  domain: example.test
+  score: 0.75
+  level: HIGH
+  factors[1]{type,severity,likelihood}:
+    STALE_PASSWORD,HIGH,MEDIUM

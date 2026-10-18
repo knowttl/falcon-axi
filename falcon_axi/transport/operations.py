@@ -31,6 +31,8 @@ OperationId = Literal[
     "GetSearchStatusV1",
     "StopSearchV1",
     "api_preempt_proxy_post_graphql",
+    "QuerySensorsByFilter",
+    "GetSensorDetails",
 ]
 
 OPERATION_IDS: tuple[str, ...] = get_args(OperationId)
@@ -86,6 +88,40 @@ NGSIEM_DOC = "https://developer.crowdstrike.com/api-reference/collections/ngsiem
 IDENTITY_PROTECTION_DOC = "https://developer.crowdstrike.com/api-reference/collections/identity-protection/"
 
 CANONICAL: tuple[FalconOperation, ...] = (
+    FalconOperation(
+        id="QuerySensorsByFilter",
+        method="GET",
+        path="/identity-protection/queries/devices/v1",
+        scopes=("Identity Protection Entities:read",),
+        effect="read",
+        evidence=Evidence(
+            doc_url=IDENTITY_PROTECTION_DOC + "#querysensorsbyfilter",
+            doc_scope="Identity Protection Entities: READ",
+            falcon_mcp=(
+                "falcon-mcp has no tool for QuerySensorsByFilter (falcon_mcp/modules/idp.py). "
+                "falconpy/_endpoint/_identity_protection.py maps QuerySensorsByFilter to GET "
+                "/identity-protection/queries/devices/v1. "
+                "PSFalcon Get-FalconIdentityHost in public/identity-protection.ps1 wraps the same operation."
+            ),
+        ),
+    ),
+    FalconOperation(
+        id="GetSensorDetails",
+        method="POST",
+        path="/identity-protection/entities/devices/GET/v1",
+        scopes=("Identity Protection Entities:read",),
+        effect="read",
+        evidence=Evidence(
+            doc_url=IDENTITY_PROTECTION_DOC + "#getsensordetails",
+            doc_scope="Identity Protection Entities: READ",
+            falcon_mcp=(
+                "falcon-mcp has no tool for GetSensorDetails (falcon_mcp/modules/idp.py). "
+                "falconpy/_endpoint/_identity_protection.py maps GetSensorDetails to POST "
+                "/identity-protection/entities/devices/GET/v1. "
+                "PSFalcon Get-FalconIdentityHost -Id in public/identity-protection.ps1 wraps the same operation."
+            ),
+        ),
+    ),
     FalconOperation(
         id="GetQueriesAlertsV2",
         method="GET",
