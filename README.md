@@ -49,8 +49,7 @@ What is **not** shipped yet, so no output advertises it:
 `docs/design/v1.md` remains the authority for the full v1 surface, and its §17 open questions are
 still open. Nothing here answers one of them.
 [`docs/design/v1-python.md`](docs/design/v1-python.md) amends it for language, HTTP client, test
-layout, and packaging: falcon-axi is pure Python on `crowdstrike-falconpy`, with no Node runtime and
-no MCP process anywhere.
+layout, and packaging: the falcon-axi CLI is pure Python on `crowdstrike-falconpy`, requiring no Node runtime or MCP process.
 
 ## Read-only, with two captain-granted exceptions
 
@@ -159,7 +158,8 @@ On POSIX, config files must be owned by the caller, regular, and not group/world
 secret files must have no group/world permissions (0400 and 0600 both work).
 On Windows, reads reject reparse points, including symlinks and junctions;
 `auth status` additionally verifies a protected DACL granting FullControl only to the current user, SYSTEM, and Administrators.
-No file-writing command or persistent token cache exists.
+Credential configuration is read-only and no persistent token cache exists.
+For the explicit agent integration installer, see [Agent skill](#agent-skill).
 
 Selection order is `--profile`, `FALCON_AXI_PROFILE`, a complete environment profile,
 `defaultProfile`, then the only configured profile.

@@ -54,7 +54,7 @@ uv provisions the interpreter on demand, so the operator never needs a system Py
 - Not `mcp`, not `pydantic`, not a CLI framework.
   Argument parsing is hand-written as in stage 1, because the AXI fail-loud rules (unknown flag by name, per-subcommand flag sets, secret-shaped flag guard) are easier to guarantee in forty lines than to coax out of argparse or click.
 - Not any Node package.
-  There is no npm shim and no Node process anywhere in C1.
+  The CLI has no npm shim or Node process; the optional OpenCode integration is a JavaScript plugin (§12.2 of v1.md).
 
 **falconpy usage is confined to one class.**
 Only `APIHarnessV2` is imported, and only inside the network sink (§3.2).
@@ -276,9 +276,7 @@ The empty-array encoder expectation becomes `key: []`; falcon-axi still renders 
 `[tool.uv] prerelease = "allow"` remains unchanged because stable end-user resolution does not depend on it.
 
 **Session hook and skill (v1.md §12.2).**
-`setup` prints offline guidance; `setup hooks` installs all three session integrations with a PATH-verified sibling `falcon-axi-hook` name and an absolute installed path as fallback.
-The hook resolves local credential status only, makes no network calls, and always exits 0 with one line.
-[v1.md §12.2](v1.md#122-session-hook-and-skill) owns the independently shipped generated skill, its regeneration and drift checks, and the home-view install hint.
+[v1.md §12.2](v1.md#122-session-hook-and-skill) owns the shipped setup commands, session integrations, executable-path selection, and independently installed generated skill.
 
 ## 9. Commissioning plan
 
@@ -318,7 +316,8 @@ The v0.3.0 release covers those stages and the subsequent additions in the [READ
 The golden set adds the identity scenarios as regression pins, and `tests/golden/scenarios.json` records which existing documents changed and why.
 
 **P4. Setup and delivery surface.**
-`setup` with hook and skill, `--all`, `--max-rows`, `--fields` on detection and host lists, and the opt-in live smoke suite.
+Setup and the hook are implemented under [v1.md §12.2](v1.md#122-session-hook-and-skill); the skill is installed separately.
+Remaining delivery work includes `--all`, `--max-rows`, `--fields` on detection and host lists, and the opt-in live smoke suite.
 Profile configuration shipped separately under v1.md §5.2 and §12.1.
 Tag `v0.4.0`, and v1.md moves from "partially implemented" to "implemented".
 
