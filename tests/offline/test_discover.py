@@ -3,9 +3,54 @@
 import re
 
 import pytest
+from toon_format import decode
 
 from falcon_axi.cli import run
 from tests.support.recorded import CREDENTIAL_ENV, RecordedTransport, fixture, response, serve
+
+
+INVENTORY_ERROR_CASES = [
+    (["asset", "list"], "combined_hosts", "asset", "entity_type:'managed'"),
+    (["asset", "show", "synthetic-id"], "get_hosts", "asset", "entity_type:'managed'"),
+    (["application", "list"], "combined_applications", "application", "name:'Chrome'"),
+    (["login", "list"], "query_logins", "login", "login_status:'Failed'"),
+    (["login", "list"], "get_logins", "login", "login_status:'Failed'"),
+    (["host", "network", "synthetic-id"], "QueryGetNetworkAddressHistoryV1", "host", "hostname:'WIN-*'"),
+]
+
+
+@pytest.mark.parametrize(("argv", "operation", "noun", "example"), INVENTORY_ERROR_CASES)
+def test_inventory_filter_rejection_teaches_its_own_domain(argv: list[str], operation: str, noun: str, example: str) -> None:
+    recorded = RecordedTransport(
+        [
+            serve(operation, fixture("errors/400-fql.json")),
+            serve("query_logins", fixture("discover/logins-query.json")),
+        ]
+    )
+    stdout, code = run(argv, recorded, dict(CREDENTIAL_ENV))
+    document = decode(stdout)
+    assert code == 2
+    assert document["code"] == "FQL_INVALID"
+    assert document["help"] == [
+        "FQL uses + for AND, `,` for OR, and values must be quoted",
+        f'Example: `--filter "{example}"`',
+        f"Run `falcon-axi {noun} list --help` for the filterable fields",
+    ]
+
+
+@pytest.mark.parametrize(("argv", "operation", "noun", "example"), INVENTORY_ERROR_CASES)
+def test_inventory_not_found_points_to_its_own_identifiers(argv: list[str], operation: str, noun: str, example: str) -> None:
+    recorded = RecordedTransport(
+        [
+            serve(operation, response(404, {})),
+            serve("query_logins", fixture("discover/logins-query.json")),
+        ]
+    )
+    stdout, code = run(argv, recorded, dict(CREDENTIAL_ENV))
+    document = decode(stdout)
+    assert code == 1
+    assert document["code"] == "NOT_FOUND"
+    assert document["help"] == [f"Run `falcon-axi {noun} list` to see current identifiers"]
 
 
 @pytest.mark.parametrize(

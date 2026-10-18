@@ -10,6 +10,14 @@ from falcon_axi.transport.operations import OperationId, operation
 from falcon_axi.transport.types import FalconResponse
 
 _FILTER_WORDS = re.compile(r"\b(fql|filter|query)\b", re.IGNORECASE)
+_INVENTORY_REMEDIES: dict[OperationId, tuple[str, str]] = {
+    "combined_hosts": ("asset list", "entity_type:'managed'"),
+    "get_hosts": ("asset list", "entity_type:'managed'"),
+    "combined_applications": ("application list", "name:'Chrome'"),
+    "query_logins": ("login list", "login_status:'Failed'"),
+    "get_logins": ("login list", "login_status:'Failed'"),
+    "QueryGetNetworkAddressHistoryV1": ("host list", "hostname:'WIN-*'"),
+}
 
 #: License prerequisites for scope-denied remedies; provisioning guidance lives in README.md.
 #: Console picker visibility is inferred, not observed (docs/design/v1.md §17.17).
@@ -46,6 +54,7 @@ def translate_falcon_error(response: FalconResponse, id: OperationId, subject: s
     messages = falcon_messages(response)
     trace = trace_id(response)
     descriptor = operation(id)
+    remedy = _INVENTORY_REMEDIES.get(id)
     scopes = descriptor.scopes + (graphql_document(document).read_scopes if document else ())
     details = {"trace_id": trace} if trace else {}
     if response.status == 400 and descriptor.effect == "graphql-query":
@@ -62,7 +71,9 @@ def translate_falcon_error(response: FalconResponse, id: OperationId, subject: s
         )
     if response.status == 400:
         if any(_FILTER_WORDS.search(message) for message in messages):
-            if "Assets:read" in scopes:
+            if remedy:
+                command, example = remedy
+            elif "Assets:read" in scopes:
                 command, example = "account list", "username:'synthetic-user'"
             elif "Hosts:read" in scopes:
                 command, example = "host list", "hostname:'WIN-*'"
@@ -135,10 +146,11 @@ def translate_falcon_error(response: FalconResponse, id: OperationId, subject: s
             {"required_scopes": list(scopes)},
         )
     if response.status == 404:
+        command = remedy[0] if remedy else "detection list"
         return CliError(
             "NOT_FOUND",
             f"no {subject} matched that identifier",
-            ["Run `falcon-axi detection list` to see current identifiers"],
+            [f"Run `falcon-axi {command}` to see current identifiers"],
         )
     if response.status == 429:
         return CliError(
