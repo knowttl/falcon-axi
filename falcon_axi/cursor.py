@@ -4,8 +4,8 @@ It carries the operation, pagination model, and position, plus a non-reversible 
 invocation context. It never carries a credential value or the tenant CID, and a cursor whose
 context changed is rejected before any request is made.
 
-Two of Falcon's three pagination models reach the CLI: Alerts and Hosts advance an integer offset,
-Spotlight carries an opaque `after` token (§7.1). Both travel in this one token shape, so the
+Two of Falcon's three pagination models reach the CLI: offset-based reads advance an integer offset,
+and Spotlight carries an opaque `after` token (§7.1). Both travel in this one token shape, so the
 agent-facing vocabulary is `--cursor` either way.
 """
 
@@ -111,7 +111,7 @@ def decode_cursor(token: str, context: CursorContext, client_secret: str) -> Pos
 
 
 def decode_offset(token: str, context: CursorContext, client_secret: str) -> int:
-    """The offset-model position, for the Alerts and Hosts walks (§7.1)."""
+    """The offset-model position (§7.1)."""
     position = decode_cursor(token, context, client_secret)
     if not isinstance(position, int):
         raise _reject()

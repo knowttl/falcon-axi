@@ -454,8 +454,8 @@ Pass it back with `--cursor <token>`.
 
 The cursor is opaque and bound to the credential and the filter that produced it, so it cannot be
 edited, reused across a different query, or shared between tenants.
-It hides the fact that Falcon paginates detections, hosts, and accounts by offset, vulnerabilities by an
-`after` token, and identities by a GraphQL `endCursor`: the CLI vocabulary is `--cursor` for every paginated command.
+The CLI vocabulary is `--cursor` for every paginated command; see
+[`docs/design/v1.md` §7.1](docs/design/v1.md#71-falcon-has-three-pagination-models-not-one) for the underlying API models.
 `host logins` has no cursor: a full window warns that more logins may exist rather than claiming completeness.
 Detection, host, account, and vuln lists accept `--all` to walk pages and `--max-rows N` to cap query rows
 (default 1000; requires `--all`).
