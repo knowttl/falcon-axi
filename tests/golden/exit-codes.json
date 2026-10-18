@@ -145,5 +145,22 @@
   "report-show": 0,
   "report-show-not-found": 1,
   "report-list-scope-denied": 1,
-  "actor-show-mitre": 0
+  "actor-show-mitre": 0,
+  "version-short-lower": 0,
+  "version-short-upper": 0,
+  "version-long": 0,
+  "help-indicator-list": 0,
+  "help-indicator-show": 0,
+  "indicator-list-page": 0,
+  "indicator-show": 0,
+  "detection-list-fields": 0,
+  "host-list-fields": 0,
+  "home-view-skill-hint": 1,
+  "detection-walk-budget": 0,
+  "detection-walk-wall": 0,
+  "host-walk-budget-at-wall": 0,
+  "help-detection-summary": 0,
+  "detection-summary": 0,
+  "detection-summary-empty": 0,
+  "detection-summary-scope-denied": 1
 }

@@ -158,7 +158,6 @@ scripts/
 tests/
   fixtures/                    carried over byte-for-byte from stage 1, provenance headers intact
   offline/                     pytest, one file per seam and per domain
-  live/                        opt-in smoke suite (v1.md §15), unchanged boundary
   support/recorded.py          RecordedTransport and fixture loaders
 THIRD_PARTY_NOTICES.md         attribution for code ported from falcon-mcp (§6)
 ```
@@ -195,7 +194,7 @@ The port is a refactor across languages, and v1.md's contract is the test.
   Stage 2 widens it to the original three read domains plus `scopes`, and stage 3 adds the `search` noun captain exception N1 admits (v1.md §4.3); both are the design's own surface rather than port decisions.
 - Every flag name, error code, help line, and TOON schema stays identical.
 - **Parity gate.** Before any TypeScript is deleted, the ship task generates golden outputs from the TypeScript stage 1 for every offline test scenario (each fixture set plus argv), commits them under `tests/golden/`, and the Python port must reproduce them byte for byte.
-  The ongoing gate compares every recorded invocation's output and exit code, with one release-version exception: `help-top` substitutes `falcon_axi.version.VERSION` for the expected banner's version before comparing bytes.
+  The ongoing gate compares every recorded invocation's output and exit code, with release-version exceptions: `help-top` substitutes `falcon_axi.version.VERSION` for the expected banner's version, and the three `version-*` documents substitute it for the bare version before comparing bytes.
   All remaining banner text and every other document stay byte-for-byte comparisons, so releases need no banner-only fixture update.
   The golden files are derived from synthetic fixtures, so they contain no tenant data and may be committed.
   A later stage may change one of those documents only as a deliberate surface change argued in v1.md first, and `tests/golden/scenarios.json` records which documents changed and why.
@@ -231,13 +230,16 @@ It reaches the network, so it is opt-in and never part of `verify`.
 
 ## 7. Testing (amends v1.md §14 layout only)
 
-- **Runner.** pytest, invoked through `uv run scripts/verify.py`, which runs in order: `ruff check`, `mypy --strict falcon_axi`, `python scripts/architecture_check.py`, and `pytest tests/offline`.
+- **Runner.** pytest, invoked through `uv run scripts/verify.py`.
+  [`scripts/verify.py`](../../scripts/verify.py) defines the complete check sequence.
   It must stay offline and must fail if any test opens a socket; a pytest fixture that monkeypatches `socket.socket` to raise enforces that.
 - **Fixtures.** The existing JSON files move unchanged.
   The two hygiene tests (provenance header present; no credential, token, CID, or realistic tenant-data pattern) port as is.
 - **Coverage of the design.** Every test named in v1.md §14.5 is re-expressed; the 67 stage 1 tests are the floor, and the parity gate of §5 adds the golden comparisons.
-- **Fast `--version`.** A test measures `falcon-axi --version` against the `python -c pass` floor in the same process and fails on a relative regression, as AXI §10 asks; `cli.py` handles version flags before importing `falconpy` or `toon_format`.
-- **Live suite.** `tests/live/` keeps v1.md §15's boundary word for word: credentials provisioned per §5.7, shape assertions only, nothing persisted, any search job it starts also stopped, never in the required set.
+- **Fast version probes.** `__main__.py` and `cli.main()` check argv through the stdlib-only `version.py` before loading command domains.
+  `tests/offline/test_architecture.py::test_version_answers_before_loading_the_command_graph` checks all documented version flags through both entrypoints and asserts that the command registry, detection domain, `falconpy`, and `toon_format` remain unimported.
+  This guards the import boundary, not a latency budget.
+- **Live validation.** v1.md §15 owns the validation policy and boundaries for any separately authorized future live validation.
 
 ## 8. Packaging and distribution
 
@@ -274,7 +276,8 @@ The empty-array encoder expectation becomes `key: []`; falcon-axi still renders 
 `[tool.uv] prerelease = "allow"` remains unchanged because stable end-user resolution does not depend on it.
 
 **Session hook and skill (v1.md §12.2).**
-`falcon-axi setup` writes the Claude Code, Codex, and OpenCode integrations with a PATH-verified `falcon-axi` binary name and the absolute uv tool path as fallback, exactly as AXI §7 asks; the skill examples use the `uvx --from git+...` form.
+The session-hook installer remains planned, with a PATH-verified binary name and an absolute uv tool path as fallback.
+[v1.md §12.2](v1.md#122-session-hook-and-skill) owns the independently shipped generated skill, its regeneration and drift checks, and the home-view install hint.
 
 ## 9. Commissioning plan
 
@@ -314,7 +317,10 @@ The v0.3.0 release covers those stages and the subsequent additions in the [READ
 The golden set adds the identity scenarios as regression pins, and `tests/golden/scenarios.json` records which existing documents changed and why.
 
 **P4. Setup and delivery surface.**
-`setup` with hook and skill, `--all`, `--max-rows`, `--fields` on detection and host lists, and the opt-in live smoke suite.
+`setup` with hook and skill, and `--fields` on detection and host lists.
+For the field-selection contract, see [v1.md §10.2](v1.md#102-default-schemas).
+Validation policy is owned by v1.md §15.
+For the pagination contract, see [v1.md §7.2](v1.md#72-what-the-cli-exposes); the [README's status section](../../README.md#status-partial-implementation-of-the-v1-design) owns delivery status.
 Profile configuration shipped separately under v1.md §5.2 and §12.1.
 Tag `v0.4.0`, and v1.md moves from "partially implemented" to "implemented".
 

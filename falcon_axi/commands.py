@@ -1,6 +1,6 @@
 """Ordered command registry assembled from domain declarations."""
 
-from falcon_axi import account, cve, detection, diagnostics, host, identity, intel, scopes, search, vuln
+from falcon_axi import account, cve, detection, diagnostics, host, identity, indicator, intel, scopes, search, vuln
 
 # Keep historical discovery and scope ordering while identity spans two positions.
 COMMAND_SPECS = {
@@ -12,6 +12,7 @@ COMMAND_SPECS = {
         vuln.COMMAND_SPECS,
         cve.COMMAND_SPECS,
         intel.COMMAND_SPECS,
+        indicator.COMMAND_SPECS,
         identity.COMMAND_SPECS[:1],
         search.COMMAND_SPECS,
         identity.COMMAND_SPECS[1:],

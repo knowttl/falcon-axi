@@ -1,0 +1,16 @@
+{
+  "provenance": {
+    "operation": "PostAggregatesAlertsV2",
+    "reference": "https://developer.crowdstrike.com/api-reference/collections/alerts/",
+    "schema_read": "2026-10-18",
+    "provenance": "synthetic"
+  },
+  "response": {
+    "status": 200,
+    "headers": {},
+    "body": {
+      "errors": [],
+      "resources": [{"name": "severity", "buckets": [], "sum_other_doc_count": 0}]
+    }
+  }
+}

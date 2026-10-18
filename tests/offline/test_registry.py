@@ -18,6 +18,7 @@ from falcon_axi.transport.operations import (
 #: Operations whose §2.2 corroboration is falconpy's generated table plus PSFalcon, because falcon-mcp
 #: has no tool for them, mapped to the falconpy endpoint module that lists each one.
 NO_FALCON_MCP_TOOL = {
+    "GetIntelIndicatorEntities": "_intel",
     "GetVulnerabilities": "_intel",
     "GetIntelActorEntities": "_intel",
     "GetIntelReportEntities": "_intel",
@@ -61,6 +62,27 @@ EXPECTED = {
         "scopes": ("Actors (Falcon Intelligence):read",),
         "effect": "read",
         "doc_scope": "Actors (Falcon Intelligence): READ",
+    },
+    "QueryIntelIndicatorEntities": {
+        "method": "GET",
+        "path": "/intel/combined/indicators/v1",
+        "scopes": ("Indicators (Falcon Intelligence):read",),
+        "effect": "read",
+        "doc_scope": "Indicators (Falcon Intelligence): READ",
+    },
+    "GetIntelIndicatorEntities": {
+        "method": "POST",
+        "path": "/intel/entities/indicators/GET/v1",
+        "scopes": ("Indicators (Falcon Intelligence):read",),
+        "effect": "read",
+        "doc_scope": "Indicators (Falcon Intelligence): READ",
+    },
+    "PostAggregatesAlertsV2": {
+        "method": "POST",
+        "path": "/alerts/aggregates/alerts/v2",
+        "scopes": ("Alerts:read",),
+        "effect": "read",
+        "doc_scope": "Alerts: READ",
     },
     "GetQueriesAlertsV2": {
         "method": "GET",
