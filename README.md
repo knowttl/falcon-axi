@@ -40,10 +40,8 @@ What is shipped:
   results and emitting a continuation cursor only when the next position is reachable.
 - `--fields` on detection, host, and vuln lists to append selected columns to the default row.
 - container and serverless reads: `container list`, `image list`, `image vulnerabilities`, and `serverless list`.
-  These require `Falcon Container Image:read` and the corresponding license.
   They match first-party API sources and are tested offline, without tenant validation.
-  Container and image lists support filter, limit, and cursor paging within Falcon's 10000-record window.
-  Serverless reads preserve SARIF runs and report the vulnerability total as unknown.
+  See the [container and serverless contract](docs/design/v1.md#24-container-and-serverless-reads) for filters, paging boundaries, and SARIF output, and [API client permissions](#api-client-permissions) for provisioning.
 
 What is **not** shipped yet, so no output advertises it:
 
@@ -211,6 +209,7 @@ credential.
 `Assets:read` is needed only by the two `account` commands and is license-gated to Falcon Discover or
 Exposure Management; a client that cannot be granted it loses those two commands and nothing else.
 The indicator commands also require a Falcon Intelligence license; `falcon-axi scopes` names their scope.
+Container, image, and serverless reads require the corresponding product license; use `falcon-axi scopes` for their shared read scope.
 Grant only the scopes for the domains you intend to read: each is independent, and a command whose
 scope is missing fails with `SCOPE_DENIED` naming exactly what to grant.
 
