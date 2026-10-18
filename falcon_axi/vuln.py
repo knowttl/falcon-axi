@@ -9,6 +9,7 @@ from typing import Any
 
 from falcon_axi.auth import Session
 from falcon_axi.command import CommandSpec, Invocation, string
+from falcon_axi.core import CliError
 from falcon_axi.credentials import Credential
 from falcon_axi.cursor import CursorContext, Position, decode_after, encode_cursor
 from falcon_axi.domain import DEFAULT_LIMIT, CommandOutput, after_token, parse_fields, rate_limit_note, resources, text, total

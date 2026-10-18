@@ -48,11 +48,13 @@ def test_an_unknown_command_or_subcommand_fails_before_any_request() -> None:
     stdout, exit_code = run(["incident", "list"], recorded, dict(CREDENTIAL_ENV))
     assert exit_code == 2
     assert (
-        "valid commands: detection summary, detection list, detection show, host list, host show, host logins, host network, account list, "
-        "account show, asset list, asset show, application list, login list, vuln show, vuln list, cve list, cve show, actor list, actor show, report list, report show, "
+        "valid commands: detection summary, detection list, detection show, host list, host show, host logins, "
+        "host network, account list, account show, asset list, asset show, application list, login list, "
+        "vuln show, vuln list, cve list, cve show, actor list, actor show, report list, report show, "
         "indicator list, indicator show, identity activity, search start, search status, search stop, identity list, "
-        "identity show, identity timeline, identity assessment, identity sensor list, identity sensor show, ioc list, ioc show, ioc hosts, ioc processes, host-group list, host-group members, policy list, policy members, auth status, profile list, config path, scopes"
-        in stdout
+        "identity show, identity timeline, identity assessment, identity sensor list, identity sensor show, "
+        "ioc list, ioc show, ioc hosts, ioc processes, host-group list, host-group members, policy list, policy members, "
+        "auth status, profile list, config path, scopes" in stdout
     )
     subcommand, _ = run(["detection", "contain"], recorded, dict(CREDENTIAL_ENV))
     assert "valid detection subcommands: summary, list, show" in subcommand
