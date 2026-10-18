@@ -31,7 +31,11 @@ What is shipped:
 - identity-aware detections (`detection list --product idp`, with account and source-endpoint
   fields when present) and `identity activity <account>`, a fixed NG-SIEM search over one account's
   Identity Protection events that adds no operation and no scope beyond N1's;
-- `falcon-axi scopes`, the command-to-scope matrix, available without making a request.
+- `falcon-axi scopes`, the command-to-scope matrix, available without making a request;
+- the generated [agent skill](#agent-skill) and its bare-home install hint, specified in
+  [the integration contract](docs/design/v1.md#122-session-hook-and-skill);
+- bounded `--all` walks with `--max-rows` on detection, host, account, and vuln lists, retaining partial
+  results and emitting a continuation cursor only when the next position is reachable.
 
 What is **not** shipped yet, so no output advertises it:
 
@@ -41,9 +45,8 @@ What is **not** shipped yet, so no output advertises it:
   beyond the directory and timeline: no standalone incident or security-assessment queries, no policy rules,
   and no GraphQL mutation of any kind.
   `cve show` is the one intel read that ships; there is no `cve list`;
-- `falcon-axi setup`, including the session hook and the generated skill;
-- `--all` and `--max-rows`, and `--fields` on detection and host lists; list pagination takes
-  `--limit` and `--cursor` only;
+- `falcon-axi setup`, including the session hook;
+- `--fields` on detection and host lists;
 
 `docs/design/v1.md` remains the authority for the full v1 surface; see §17 for open questions and resolutions.
 [`docs/design/v1-python.md`](docs/design/v1-python.md) amends it for language, HTTP client, test
@@ -443,7 +446,7 @@ Ask the command rather than guessing its flags.
 
 ## Pagination
 
-One call reads one page.
+By default, one call reads one page.
 `--limit N` sets the rows for this call; `host logins` applies it to the selected host's login window.
 Use the command's `--help` for defaults and ceilings; the detailed limit contract lives in
 [`docs/design/v1.md` §7.3](docs/design/v1.md#73-default-limits).
@@ -456,11 +459,20 @@ edited, reused across a different query, or shared between tenants.
 It hides the fact that Falcon paginates detections, hosts, and accounts by offset, vulnerabilities by an
 `after` token, and identities by a GraphQL `endCursor`: the CLI vocabulary is `--cursor` for every paginated command.
 `host logins` has no cursor: a full window warns that more logins may exist rather than claiming completeness.
-`--all` and `--max-rows` do not exist yet: loop on `--cursor` when more than one
-page is genuinely needed.
-Reading past 10000 Alerts results fails with `PAGINATION_LIMIT` and asks for a narrower filter,
-because the documented route past that boundary is not registered in v1.
-`host list` stops at the documented Hosts `limit + offset` ceiling of 10000 the same way.
+Detection, host, account, and vuln lists accept `--all` to walk pages and `--max-rows N` to cap query rows
+(default 1000; requires `--all`).
+For budget accounting when records disappear before hydration, see
+[`docs/design/v1.md` §7.2](docs/design/v1.md#72-what-the-cli-exposes).
+During a walk, page size follows the endpoint maximum and remaining budget, independently of `--limit`.
+An incomplete walk retains its rows, exits 0, and prints `partial: true` with `stop_reason: max_rows` or
+`stop_reason: pagination_limit`.
+A cursor appears only when the next position is reachable.
+Alerts walks stop defensively at 10000 query rows, because the documented route past that boundary is not
+registered in v1.
+Hosts stop at 9999 query rows under the endpoint's `limit + offset < 10000` rule.
+At either boundary, narrow the filter to read the remaining data.
+`PAGINATION_LIMIT` is an error only when the boundary is reached with no retained rows.
+Discover accounts and Spotlight have no such wall.
 
 ## Verify
 
@@ -469,9 +481,8 @@ uv sync
 uv run scripts/verify.py
 ```
 
-`uv run scripts/verify.py` is the single local entry point and runs entirely offline: ruff,
-`mypy --strict`, the architecture boundary check, and the offline test suite against wholly
-synthetic fixtures.
+[`scripts/verify.py`](scripts/verify.py) defines the complete check sequence and is the single local
+entry point, running entirely offline against wholly synthetic fixtures.
 A pytest fixture refuses any socket, so no test can reach the network, and no fixture contains a
 captured Falcon response, credential, token, or tenant identifier.
 
