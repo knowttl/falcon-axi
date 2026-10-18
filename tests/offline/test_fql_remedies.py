@@ -77,6 +77,6 @@ def test_iot_entity_filter_rejection_teaches_iot_fields() -> None:
     assert exit_code == 2
     assert document["code"] == "FQL_INVALID"
     assert document["help"][1:] == [
-        'Example: `--filter "device_type:\'Printer\'"`',
+        "Example: `--filter \"device_type:'Printer'\"`",
         "Run `falcon-axi iot list --help` for the filterable fields",
     ]
