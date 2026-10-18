@@ -1,0 +1,16 @@
+{
+  "name": "search-start-scope-denied",
+  "argv": [
+    "search",
+    "start",
+    "--query",
+    "#event_simpleName=ProcessRollup2 | head(2)"
+  ],
+  "responders": [
+    {
+      "op": "StartSearchV1",
+      "fixture": "errors/403-scope.json"
+    }
+  ],
+  "exit_code": 1
+}

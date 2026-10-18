@@ -1,0 +1,9 @@
+{
+  "name": "help-ioc-hosts",
+  "argv": [
+    "ioc",
+    "hosts",
+    "--help"
+  ],
+  "exit_code": 0
+}

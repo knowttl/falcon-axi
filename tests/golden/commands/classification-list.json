@@ -1,0 +1,11 @@
+{
+  "name": "classification list",
+  "order": 1610,
+  "summary": "  classification list       list Data Protection classifications",
+  "scopes": [
+    {
+      "scope": "Data Protection:read",
+      "access": "read"
+    }
+  ]
+}

@@ -1,0 +1,8 @@
+{
+  "name": "auth-status",
+  "argv": [
+    "auth",
+    "status"
+  ],
+  "exit_code": 0
+}

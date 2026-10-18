@@ -1,0 +1,19 @@
+{
+  "name": "policy-members-device-control",
+  "argv": [
+    "policy",
+    "members",
+    "synthetic-policy-01",
+    "--type",
+    "device-control",
+    "--limit",
+    "2"
+  ],
+  "responders": [
+    {
+      "op": "queryCombinedDeviceControlPolicyMembers",
+      "fixture": "policies/queryCombinedDeviceControlPolicyMembers.json"
+    }
+  ],
+  "exit_code": 0
+}

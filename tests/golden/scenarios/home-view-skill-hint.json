@@ -1,0 +1,11 @@
+{
+  "name": "home-view-skill-hint",
+  "comment": "The bare home view in a supported agent host suggests installing the generated skill, including before credentials are configured (design section 12.2).",
+  "argv": [],
+  "env": "none",
+  "envExtra": {
+    "CODEX_THREAD_ID": "synthetic-session",
+    "HOME": "/nonexistent/skill-probe-home"
+  },
+  "exit_code": 1
+}

@@ -1,0 +1,9 @@
+{
+  "name": "help-identity-activity",
+  "argv": [
+    "identity",
+    "activity",
+    "--help"
+  ],
+  "exit_code": 0
+}

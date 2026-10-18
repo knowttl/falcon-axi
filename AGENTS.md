@@ -57,8 +57,11 @@ There is no Node runtime, no MCP process, and no `falcon-mcp` dependency anywher
 
 The implemented surface includes the package foundation, the sealed transport and its closed registry,
 AXI credential profiles with `auth status`, `profile list`, and `config path`, the read domains (`detection list`, `detection show`,
-`detection summary`, `host list`, `host show`, `host logins`, `account list`, `account show`, `vuln list`, `cve show`, `indicator list`, `indicator show`), the NG-SIEM search lifecycle (`search start`, `search status`,
-`search stop`), the Identity Protection GraphQL reads (`identity list`, `identity show`, `identity timeline`),
+`detection summary`, `host list`, `host show`, `host logins`, `host network`, `account list`, `account show`, `asset list`, `asset show`, `application list`, `login list`, `vuln list`, `vuln show`, `cve list`, `cve show`,
+`actor list`, `actor show`, `report list`, `report show`, `indicator list`, `indicator show`),
+the NG-SIEM search lifecycle (`search start`, `search status`,
+`search stop`), the Identity Protection GraphQL reads (`identity list`, `identity show`, `identity timeline`, `identity assessment`),
+the REST sensor inventory (`identity sensor list`, `identity sensor show`),
 the Data Protection configuration reads (`classification list`, `classification show`, `data-policy list`, `data-policy show`),
 plus the `scopes` matrix and the home view.
 The README's status section is the authoritative list of what is shipped and what is deliberately absent, and
@@ -71,7 +74,8 @@ Its stage 1 scenarios are also the cross-language parity gate, because the TypeS
 replaced generated their expected documents.
 Changing any output means regenerating nothing; it means the change is a deliberate behavior change that must
 be argued in the design first, as stage 2's four changed stage 1 documents and stage 3's eight were.
-`tests/golden/scenarios.json`'s `comment` records which documents changed and why.
+`tests/golden/history.json` preserves the historical document-change explanations; new explanations belong in
+the affected `tests/golden/scenarios/<name>.json`.
 
 Two seams are worth knowing before changing them:
 
@@ -135,7 +139,8 @@ Read the `axi` skill at `~/.pi/agent/skills/axi/SKILL.md` and the TOON spec it p
 reviewing any CLI behavior here.
 `azure-axi` and `awx-axi` are the sibling references for these patterns; `docs/design/v1.md` §18 lists where
 their assumptions do **not** transfer to Falcon.
-`skills/falcon-axi/SKILL.md` is this repo's generated agent-facing skill; regenerate it with `uv run scripts/skill.py`.
+`skills/falcon-axi/SKILL.md` and its per-command `references/` are this repo's generated agent-facing skill;
+regenerate them with `uv run scripts/skill.py`.
 Its drift check runs in `scripts/verify.py`, and it must never name a command the CLI does not ship (`docs/design/v1.md` §12.2).
 
 ## Maintaining this file

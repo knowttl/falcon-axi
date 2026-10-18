@@ -23,20 +23,26 @@ from falcon_axi.transport.types import PreparedOperation, RequestArgs
 
 GRAPHQL_URL = "https://api.crowdstrike.com/identity-protection/combined/graphql/v1"
 GRAPHQL = OPERATIONS["api_preempt_proxy_post_graphql"]
-#: The only root fields falcon-axi's documents may select; `incidents` and `securityAssessment` are not shipped.
-ALLOWED_ROOT_FIELDS = {"entities", "timeline"}
+#: The only root fields falcon-axi's documents may select; standalone `incidents` is absent.
+ALLOWED_ROOT_FIELDS = {"entities", "timeline", "securityAssessment"}
 JSON = {"Content-Type": "application/json"}
 
 
 def test_the_registry_holds_exactly_the_documents_the_identity_commands_send() -> None:
     assert sorted(GRAPHQL_DOCUMENTS) == [
+        "identity_assessment",
         "identity_list",
         "identity_list_endpoints",
         "identity_list_users",
         "identity_show",
         "identity_timeline",
     ]
-    assert {entry.command for entry in GRAPHQL_DOCUMENTS.values()} == {"identity list", "identity show", "identity timeline"}
+    assert {entry.command for entry in GRAPHQL_DOCUMENTS.values()} == {
+        "identity assessment",
+        "identity list",
+        "identity show",
+        "identity timeline",
+    }
 
 
 @pytest.mark.parametrize("name", sorted(GRAPHQL_DOCUMENTS))

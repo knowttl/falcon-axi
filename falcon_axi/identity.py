@@ -1,4 +1,4 @@
-"""Identity Protection directory and timeline reads over GraphQL, plus NG-SIEM account activity.
+"""Identity Protection reads and NG-SIEM account activity.
 
 The directory commands send fixed, registered GraphQL documents through captain exception N2
 (docs/design/v1.md §4.4), with variables and Relay pagination behind the same `--cursor` (§7.1).
@@ -19,15 +19,15 @@ from falcon_axi.auth import Session
 from falcon_axi.command import CommandSpec, Invocation, string
 from falcon_axi.core import CliError
 from falcon_axi.credentials import Credential
-from falcon_axi.cursor import CursorContext, decode_after, encode_cursor
-from falcon_axi.domain import DEFAULT_LIMIT, CommandOutput, body_of, rate_limit_note, text
+from falcon_axi.cursor import CursorContext, decode_after, decode_offset, encode_cursor
+from falcon_axi.domain import DEFAULT_LIMIT, CommandOutput, body_of, rate_limit_note, resources, text, total
 from falcon_axi.falcon_error import trace_id, translate_falcon_error
 from falcon_axi.fql import since_seconds
 from falcon_axi.render import raw
 from falcon_axi.search import DEFAULT_REPOSITORY, start_search
 from falcon_axi.search import DEFAULT_SINCE as SEARCH_DEFAULT_SINCE
 from falcon_axi.transport.operations import OperationId
-from falcon_axi.transport.types import RequestArgs, Transport
+from falcon_axi.transport.types import FalconResponse, RequestArgs, Transport
 
 GRAPHQL: OperationId = "api_preempt_proxy_post_graphql"
 
@@ -530,6 +530,118 @@ def _identity_query_of(flags: Mapping[str, str | bool]) -> IdentityQuery:
     )
 
 
+def identity_assessment(transport: Transport, session: Session, domain: str | None) -> CommandOutput:
+    """Read the fixed security assessment, optionally scoped to one domain."""
+    variables = {"domain": domain} if domain is not None else {}
+    data = _query(transport, session, "identity_assessment", variables, "identity security assessment")
+    assessment = _mapping(data.get("securityAssessment"))
+    if not assessment:
+        return CommandOutput(
+            value=_rate_limit(session, {"assessment": "0 security assessments"}),
+            help=("Run `falcon-axi identity assessment --domain <name>` for a configured domain",),
+        )
+    detail: dict[str, Any] = {
+        "score": assessment.get("overallScore"),
+        "level": _cell(assessment.get("overallScoreLevel")),
+        "factors": [
+            {
+                "type": _cell(factor.get("riskFactorType")),
+                "severity": _cell(factor.get("severity")),
+                "likelihood": _cell(factor.get("likelihood")),
+            }
+            for factor in _objects(assessment.get("assessmentFactors"))
+        ],
+    }
+    if domain is not None:
+        detail = {"domain": domain, **detail}
+    return CommandOutput(value=_rate_limit(session, {"assessment": detail}), help=())
+
+
+def _sensor_request(
+    transport: Transport,
+    session: Session,
+    operation: OperationId,
+    query: Mapping[str, str | int] | None = None,
+    ids: Sequence[str] | None = None,
+) -> FalconResponse:
+    response = transport.request(
+        operation,
+        RequestArgs(
+            base_url=session.base_url,
+            token=session.token,
+            allow_unknown_origin=session.allow_unknown_origin,
+            query=query,
+            body={"ids": list(ids)} if ids is not None else None,
+        ),
+    )
+    if response.status != 200:
+        raise translate_falcon_error(response, operation, "identity sensors", not_found_command="identity sensor list")
+    return response
+
+
+def _sensors(transport: Transport, session: Session, ids: Sequence[str]) -> list[Node]:
+    response = _sensor_request(transport, session, "GetSensorDetails", ids=ids)
+    by_id = {text(sensor.get("device_id")): sensor for sensor in resources(response) if isinstance(sensor, Mapping)}
+    return [by_id[id] for id in ids if id in by_id]
+
+
+def _sensor_row(sensor: Node) -> dict[str, str]:
+    return {name: _cell(sensor.get(name)) for name in ("device_id", "hostname", "status", "agent_version")}
+
+
+def list_identity_sensors(ctx: Invocation) -> CommandOutput:
+    """Query one page of IDs, preserve its total, and restore its order after hydration."""
+    filter = ctx.text("filter")
+    context = CursorContext(
+        operation="QuerySensorsByFilter",
+        client_id=ctx.credential.client_id,
+        query=filter,
+        origin=ctx.session.base_url,
+        member_cid=ctx.session.member_cid,
+        model="offset",
+    )
+    cursor = ctx.text("cursor")
+    offset = decode_offset(cursor, context, ctx.credential.client_secret) if cursor is not None else 0
+    query: dict[str, str | int] = {"limit": ctx.limit, "offset": offset}
+    if filter is not None:
+        query["filter"] = filter
+    response = _sensor_request(ctx.transport, ctx.session, "QuerySensorsByFilter", query=query)
+    ids = [id for id in resources(response) if isinstance(id, str)]
+    if not ids:
+        return CommandOutput(
+            value={"sensors": raw("no more identity sensors" if offset else "0 identity sensors matching this query")},
+            help=(),
+        )
+    count = total(response)
+    rows = [_sensor_row(sensor) for sensor in _sensors(ctx.transport, ctx.session, ids)]
+    value: dict[str, Any] = {"count": raw(f"{len(rows)} of {count if count is not None else 'unknown'} total")}
+    help = ["Run `falcon-axi identity sensor show <device_id>` for sensor details"]
+    position = offset + len(ids)
+    more = position < count if count is not None else len(ids) >= ctx.limit
+    if more:
+        continuation = encode_cursor(position, context, ctx.credential.client_secret)
+        value["continuation_cursor"] = continuation
+        help.append(f"Run `{ctx.suggestion} --cursor {continuation}` for the next page")
+    value["sensors"] = rows
+    return CommandOutput(value=_rate_limit(ctx.session, value), help=tuple(help))
+
+
+def show_identity_sensor(ctx: Invocation) -> CommandOutput:
+    sensors = _sensors(ctx.transport, ctx.session, [ctx.positionals[0]])
+    if not sensors:
+        raise CliError(
+            "NOT_FOUND",
+            "no identity sensor matched that identifier",
+            ["Run `falcon-axi identity sensor list` to see current sensor identifiers"],
+        )
+    sensor = sensors[0]
+    detail: dict[str, Any] = _sensor_row(sensor)
+    for name in ("heartbeat_time", "idp_policy_id", "idp_policy_name", "directory_auditing", "status_causes"):
+        if name in sensor:
+            detail[name] = sensor[name]
+    return CommandOutput(value=_rate_limit(ctx.session, {"sensor": detail}), help=())
+
+
 COMMAND_SPECS = (
     CommandSpec(
         name="identity activity",
@@ -647,5 +759,61 @@ COMMAND_SPECS = (
         value_flags=("since", "category", "limit", "cursor"),
         limit_ceiling=(QUERY_CEILING, "falcon-mcp Identity Protection page"),
         positional=("identity id", "Run `falcon-axi identity list` to see current identity ids"),
+    ),
+    CommandSpec(
+        name="identity assessment",
+        help="\n".join(
+            [
+                "falcon-axi identity assessment [--domain <name>]",
+                "",
+                "--domain     configured Active Directory domain; omit for the overall assessment",
+                "",
+                "Prints the security assessment score, level, and risk factors with severity and likelihood.",
+                "Sends only a fixed read-only query and requires Identity Protection Assessment:read and",
+                "Identity Protection GraphQL:write. It changes no identity or assessment.",
+            ]
+        ),
+        summary="  identity assessment       security assessment score and risk factors",
+        handler=lambda ctx: identity_assessment(ctx.transport, ctx.session, ctx.text("domain")),
+        operations=(GRAPHQL,),
+        flags=("domain",),
+        value_flags=("domain",),
+    ),
+    CommandSpec(
+        name="identity sensor list",
+        help="\n".join(
+            [
+                "falcon-axi identity sensor list [--filter <FQL>] [--limit N] [--cursor <token>]",
+                "",
+                "--filter     Falcon Query Language expression for identity sensors",
+                "--limit      rows in this call (default 20, ceiling 200)",
+                "--cursor     opaque continuation token from a previous call",
+                "",
+                "Lists Identity Protection sensors with device_id, hostname, status, and agent_version.",
+                "This command is read-only and requires Identity Protection Entities:read.",
+            ]
+        ),
+        summary="  identity sensor list      list Identity Protection sensors",
+        handler=list_identity_sensors,
+        operations=("QuerySensorsByFilter", "GetSensorDetails"),
+        flags=("filter", "limit", "cursor"),
+        value_flags=("filter", "limit", "cursor"),
+        limit_ceiling=(200, "Identity Protection sensor query"),
+    ),
+    CommandSpec(
+        name="identity sensor show",
+        help="\n".join(
+            [
+                "falcon-axi identity sensor show <device id>",
+                "",
+                "Prints one Identity Protection sensor's status, version, heartbeat, and policy details.",
+                "Use a device_id printed by `falcon-axi identity sensor list`.",
+                "This command is read-only and requires Identity Protection Entities:read.",
+            ]
+        ),
+        summary="  identity sensor show <id> one Identity Protection sensor's details",
+        handler=show_identity_sensor,
+        operations=("GetSensorDetails",),
+        positional=("device identifier", "Run `falcon-axi identity sensor list` to see current sensor identifiers"),
     ),
 )

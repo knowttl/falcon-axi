@@ -1,0 +1,18 @@
+{
+  "name": "vuln-list-page",
+  "argv": [
+    "vuln",
+    "list",
+    "--status",
+    "open",
+    "--limit",
+    "2"
+  ],
+  "responders": [
+    {
+      "op": "combinedQueryVulnerabilities",
+      "fixture": "spotlight/combined-page.json"
+    }
+  ],
+  "exit_code": 0
+}

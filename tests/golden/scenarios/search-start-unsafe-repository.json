@@ -1,0 +1,12 @@
+{
+  "name": "search-start-unsafe-repository",
+  "argv": [
+    "search",
+    "start",
+    "--query",
+    "#event_simpleName=ProcessRollup2 | head(2)",
+    "--repository",
+    "../devices"
+  ],
+  "exit_code": 2
+}

@@ -1,0 +1,15 @@
+{
+  "name": "search-status-done",
+  "argv": [
+    "search",
+    "status",
+    "synthetic-search-job-01"
+  ],
+  "responders": [
+    {
+      "op": "GetSearchStatusV1",
+      "fixture": "ngsiem/search-status-done.json"
+    }
+  ],
+  "exit_code": 0
+}

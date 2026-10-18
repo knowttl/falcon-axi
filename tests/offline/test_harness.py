@@ -53,6 +53,35 @@ def test_spotlight_facets_are_repeated_query_parameters() -> None:
     assert mock.request_history[0].qs["facet"] == ["cve", "host_info"]
 
 
+def test_identity_sensor_query_uses_falconpys_registered_route_and_parameters() -> None:
+    """falcon-mcp idp.py has no sensor tool; the official API and falconpy own this REST contract."""
+    url = "https://api.crowdstrike.com/identity-protection/queries/devices/v1"
+    with requests_mock.Mocker() as mock:
+        mock.get(url, json={"resources": ["synthetic-sensor-01"]}, headers=JSON)
+        result = HttpTransport().request(
+            "QuerySensorsByFilter",
+            RequestArgs(
+                base_url="https://api.crowdstrike.com",
+                token="synthetic-token",
+                query={"limit": 2, "offset": 4, "filter": "status:'healthy'"},
+            ),
+        )
+    assert mock.request_history[0].qs == {"limit": ["2"], "offset": ["4"], "filter": ["status:'healthy'"]}
+    assert result.body == {"resources": ["synthetic-sensor-01"]}
+
+
+def test_identity_sensor_details_posts_the_ids_body_to_falconpys_registered_route() -> None:
+    url = "https://api.crowdstrike.com/identity-protection/entities/devices/GET/v1"
+    with requests_mock.Mocker() as mock:
+        mock.post(url, json={"resources": []}, headers=JSON)
+        result = HttpTransport().request(
+            "GetSensorDetails",
+            RequestArgs(base_url="https://api.crowdstrike.com", token="synthetic-token", body={"ids": ["synthetic-sensor-01"]}),
+        )
+    assert mock.request_history[0].json() == {"ids": ["synthetic-sensor-01"]}
+    assert result.status == 200
+
+
 def test_the_hydrate_step_issues_the_registered_post_with_its_body() -> None:
     with requests_mock.Mocker() as mock:
         mock.post(HYDRATE_URL, json={"resources": []}, headers=JSON)

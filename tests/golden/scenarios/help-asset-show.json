@@ -1,0 +1,9 @@
+{
+  "name": "help-asset-show",
+  "argv": [
+    "asset",
+    "show",
+    "--help"
+  ],
+  "exit_code": 0
+}

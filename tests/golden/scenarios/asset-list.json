@@ -1,0 +1,16 @@
+{
+  "name": "asset-list",
+  "argv": [
+    "asset",
+    "list",
+    "--limit",
+    "2"
+  ],
+  "responders": [
+    {
+      "op": "combined_hosts",
+      "fixture": "discover/assets-page.json"
+    }
+  ],
+  "exit_code": 0
+}

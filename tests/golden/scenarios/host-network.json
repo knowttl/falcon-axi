@@ -1,0 +1,15 @@
+{
+  "name": "host-network",
+  "argv": [
+    "host",
+    "network",
+    "synthetic-device-01"
+  ],
+  "responders": [
+    {
+      "op": "QueryGetNetworkAddressHistoryV1",
+      "fixture": "discover/network-history.json"
+    }
+  ],
+  "exit_code": 0
+}

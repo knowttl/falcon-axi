@@ -1,0 +1,9 @@
+{
+  "name": "flag-without-value",
+  "argv": [
+    "detection",
+    "list",
+    "--filter"
+  ],
+  "exit_code": 2
+}

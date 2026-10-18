@@ -1,0 +1,15 @@
+{
+  "name": "ioc-show",
+  "argv": [
+    "ioc",
+    "show",
+    "synthetic-ioc-01"
+  ],
+  "responders": [
+    {
+      "op": "indicator_get_v1",
+      "fixture": "ioc/details-page.json"
+    }
+  ],
+  "exit_code": 0
+}

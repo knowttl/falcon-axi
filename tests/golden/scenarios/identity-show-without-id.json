@@ -1,0 +1,8 @@
+{
+  "name": "identity-show-without-id",
+  "argv": [
+    "identity",
+    "show"
+  ],
+  "exit_code": 2
+}

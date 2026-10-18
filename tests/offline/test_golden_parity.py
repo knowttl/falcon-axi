@@ -4,15 +4,25 @@ import re
 
 import pytest
 
+from falcon_axi.commands import COMMANDS
 from falcon_axi.version import VERSION
-from tests.support.golden import exit_codes, expected_stdout, replay, scenarios
+from tests.support.golden import GOLDEN, command_references, expected_stdout, replay, scenarios
 
 SCENARIOS = scenarios()
 
 
 def test_every_generated_scenario_has_an_expected_document() -> None:
     assert len(SCENARIOS) >= 50
-    assert sorted(entry["name"] for entry in SCENARIOS) == sorted(exit_codes())
+    names = [entry["name"] for entry in SCENARIOS]
+    assert len(names) == len(set(names))
+    assert sorted(names) == sorted(path.stem for path in GOLDEN.glob("*.txt") if path.name != "description.txt")
+    assert sorted(names) == sorted(path.stem for path in (GOLDEN / "scenarios").glob("*.json"))
+
+
+def test_command_references_cover_the_ordered_command_surface() -> None:
+    references = command_references()
+    assert [entry["name"] for entry in references] == list(COMMANDS)
+    assert len({entry["order"] for entry in references}) == len(references)
 
 
 @pytest.mark.parametrize("scenario", SCENARIOS, ids=lambda entry: entry["name"])
@@ -21,5 +31,7 @@ def test_python_reproduces_the_typescript_document(scenario: dict) -> None:
     expected = expected_stdout(scenario["name"])
     if scenario["name"] == "help-top":
         expected = re.sub(r"\Afalcon-axi \S+ - ", f"falcon-axi {VERSION} - ", expected, count=1)
+    if scenario["name"].startswith("version-"):
+        expected = re.sub(r"\A\S+(?=\n\Z)", VERSION, expected, count=1)
     assert stdout == expected
-    assert exit_code == exit_codes()[scenario["name"]]
+    assert exit_code == scenario["exit_code"]

@@ -1,0 +1,16 @@
+{
+  "name": "error-fql-invalid",
+  "argv": [
+    "detection",
+    "list",
+    "--filter",
+    "severity_name:High"
+  ],
+  "responders": [
+    {
+      "op": "GetQueriesAlertsV2",
+      "fixture": "errors/400-fql.json"
+    }
+  ],
+  "exit_code": 2
+}
