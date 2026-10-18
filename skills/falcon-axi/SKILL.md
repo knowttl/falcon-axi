@@ -40,6 +40,8 @@ uvx falcon-axi account list              list Discover accounts observed on endp
 uvx falcon-axi account show <id>         the full detail for one account
 uvx falcon-axi vuln list                 list Spotlight vulnerabilities; a filter is required
 uvx falcon-axi cve show <CVE-ID>         Falcon Intelligence detail for one CVE
+uvx falcon-axi indicator list            list Falcon Intelligence indicators
+uvx falcon-axi indicator show <id>       detail for one intelligence indicator
 uvx falcon-axi identity activity <acct>  start a search for one account's identity events
 uvx falcon-axi search start              start an NG-SIEM CQL search job
 uvx falcon-axi search status <id>        poll one search job and read its events

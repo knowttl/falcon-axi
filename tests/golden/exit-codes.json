@@ -1,4 +1,8 @@
 {
+  "help-indicator-list": 0,
+  "help-indicator-show": 0,
+  "indicator-list-page": 0,
+  "indicator-show": 0,
   "detection-list-fields": 0,
   "host-list-fields": 0,
   "home-view-skill-hint": 1,

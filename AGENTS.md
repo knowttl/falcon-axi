@@ -57,7 +57,7 @@ There is no Node runtime, no MCP process, and no `falcon-mcp` dependency anywher
 
 The implemented surface includes the package foundation, the sealed transport and its closed registry,
 AXI credential profiles with `auth status`, `profile list`, and `config path`, the read domains (`detection list`, `detection show`,
-`detection summary`, `host list`, `host show`, `host logins`, `account list`, `account show`, `vuln list`, `cve show`), the NG-SIEM search lifecycle (`search start`, `search status`,
+`detection summary`, `host list`, `host show`, `host logins`, `account list`, `account show`, `vuln list`, `cve show`, `indicator list`, `indicator show`), the NG-SIEM search lifecycle (`search start`, `search status`,
 `search stop`), the Identity Protection GraphQL reads (`identity list`, `identity show`, `identity timeline`),
 plus the `scopes` matrix and the home view.
 The README's status section is the authoritative list of what is shipped and what is deliberately absent, and
@@ -83,7 +83,7 @@ Two seams are worth knowing before changing them:
   them, losing both the sort order and the pagination metadata, so `detection.py` and `host.py` capture the
   total before hydrating and reapply the query order after (§2.3).
   `vuln.py` is the exception, a single combined request paginated by an opaque `after` token rather than an
-  offset; `cursor.py` carries both models behind one `--cursor` vocabulary.
+  offset; `cursor.py` carries the models in `docs/design/v1.md` §7.1 behind one `--cursor` vocabulary.
   `search.py` is a third shape again: an NG-SIEM query job carries no pagination metadata at all, so it has
   neither `--limit` nor `--cursor`, and the caller owns the polling loop rather than the CLI blocking on it.
   Its three routes are also the only ones with `{path}` variables, which `path_arguments()` validates against

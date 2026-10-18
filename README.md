@@ -8,7 +8,7 @@ suggestions point to commands worth running next.
 
 ## Status: partial implementation of the v1 design
 
-The package is real and installable, and it ships five read domains plus NG-SIEM search.
+The package is real and installable, and it ships six read domains plus NG-SIEM search.
 The shipped and deferred commands are listed below; [`docs/design/v1.md`](docs/design/v1.md) owns the full v1 design.
 
 What is shipped:
@@ -32,6 +32,8 @@ What is shipped:
   fields when present) and `identity activity <account>`, a fixed NG-SIEM search over one account's
   Identity Protection events that adds no operation and no scope beyond N1's;
 - `falcon-axi scopes`, the command-to-scope matrix, available without making a request;
+- Falcon Intelligence indicators: `indicator list` with opaque marker continuation and `indicator show`.
+  These reads match first-party API sources and are tested offline, without tenant validation.
 - the generated [agent skill](#agent-skill) and its bare-home install hint, specified in
   [the integration contract](docs/design/v1.md#122-session-hook-and-skill);
 - bounded `--all` walks with `--max-rows` on detection, host, account, and vuln lists, retaining partial
@@ -40,12 +42,12 @@ What is shipped:
 
 What is **not** shipped yet, so no output advertises it:
 
-- every domain `docs/design/v1.md` §1.3 defers, including intel actors, indicators, and reports,
+- every domain `docs/design/v1.md` §1.3 defers, including intel actors and reports,
   every NG-SIEM capability outside the three search lifecycle operations (no ingest, no lookup
   files, no parser or dashboard writes, and no Charlotte AI), and every Identity Protection capability
   beyond the directory and timeline: no standalone incident or security-assessment queries, no policy rules,
   and no GraphQL mutation of any kind.
-  `cve show` is the one intel read that ships; there is no `cve list`;
+  There is no `cve list`;
 - `falcon-axi setup`, including the session hook;
 
 `docs/design/v1.md` remains the authority for the full v1 surface; §17 records closed decisions and distinguishes approvals from shipped implementations.
@@ -203,6 +205,7 @@ credential.
 `Vulnerabilities:read`.
 `Assets:read` is needed only by the two `account` commands and is license-gated to Falcon Discover or
 Exposure Management; a client that cannot be granted it loses those two commands and nothing else.
+The indicator commands also require a Falcon Intelligence license; `falcon-axi scopes` names their scope.
 Grant only the scopes for the domains you intend to read: each is independent, and a command whose
 scope is missing fails with `SCOPE_DENIED` naming exactly what to grant.
 
@@ -288,6 +291,8 @@ falcon-axi account show abc123                      one Discover account
 falcon-axi vuln list --severity critical --status open
 falcon-axi vuln list --host abc123                  one host's vulnerabilities
 falcon-axi cve show CVE-2021-44228               Falcon Intelligence detail for one CVE
+falcon-axi indicator list --filter "type:'domain'"  Falcon Intelligence indicators, not custom IOCs
+falcon-axi indicator show <id>                     full record using an id from indicator list
 falcon-axi identity activity <account_id> --since 7d  an account's identity events
 falcon-axi search start --query '#event_simpleName=ProcessRollup2 | head(5)'
 falcon-axi search status 01JABCDEF                  one poll: running, cancelled, or done
