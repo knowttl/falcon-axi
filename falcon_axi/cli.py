@@ -6,188 +6,45 @@ import shlex
 import sys
 from collections.abc import Mapping, Sequence
 from dataclasses import dataclass
-from typing import Any, Literal
+from typing import Any
 
-from falcon_axi.account import QUERY_CEILING as DISCOVER_CEILING
-from falcon_axi.account import list_accounts, show_account
+from falcon_axi.command import Invocation, limit_of
+from falcon_axi.command import string as _str
+from falcon_axi.command import suggestion_for as _suggestion_for
+from falcon_axi.commands import COMMAND_SPECS, COMMANDS, SUBCOMMANDS
 from falcon_axi.core import CliError
 from falcon_axi.credentials import (
     Credential,
-    config_path,
-    load_profiles,
     read_only,
     resolve_credential,
-    write_log_path,
 )
-from falcon_axi.cve import show_cve, validate_cve_id
-from falcon_axi.detection import QUERY_CEILING as ALERTS_CEILING
-from falcon_axi.detection import list_detections, show_detection
-from falcon_axi.domain import DEFAULT_LIMIT, CommandOutput
+from falcon_axi.cve import validate_cve_id
+from falcon_axi.detection import list_detections
+from falcon_axi.diagnostics import tenant_line
 from falcon_axi.fql import (
-    HOST_STATUSES,
-    PLATFORMS,
-    PRODUCTS,
-    SEVERITIES,
-    STATUSES,
-    VULN_SEVERITIES,
-    VULN_STATUSES,
     DetectionQuery,
-    HostQuery,
-    VulnQuery,
     since_seconds,
     window,
 )
-from falcon_axi.host import LOGIN_CEILING, LOGIN_DEFAULT_SINCE, host_logins, list_hosts, show_host
-from falcon_axi.host import QUERY_CEILING as HOSTS_CEILING
 from falcon_axi.identity import DEFAULT_SINCE as IDENTITY_DEFAULT_SINCE
 from falcon_axi.identity import (
-    ENTITY_TYPES,
-    TIMELINE_CATEGORIES,
-    TIMELINE_ROWS,
-    IdentityQuery,
+    _identity_query_of,
     activity_query,
-    identity_timeline,
-    list_identities,
     parse_categories,
-    show_identity,
-    start_identity_activity,
     validate_entity_id,
     validate_identity_query,
 )
-from falcon_axi.identity import QUERY_CEILING as IDENTITY_CEILING
 from falcon_axi.origin import REGIONS, assert_trusted_origin, resolve_base_url
 from falcon_axi.redaction import redact_text, redaction_scope
-from falcon_axi.render import mask_cid, raw, render
-from falcon_axi.scopes import scope_matrix
-from falcon_axi.search import DEFAULT_REPOSITORY, DEFAULT_SINCE, search_status, start_search, stop_search
+from falcon_axi.render import raw, render
 from falcon_axi.version import VERSION
-from falcon_axi.vuln import EXTRA_FIELDS, list_vulnerabilities, parse_fields
-from falcon_axi.vuln import QUERY_CEILING as SPOTLIGHT_CEILING
+from falcon_axi.vuln import parse_fields
 
 DESCRIPTION = "Read CrowdStrike Falcon detections, hosts, vulnerabilities, and NG-SIEM searches from the shell"
 HOME_ROWS = 5
 
-Command = Literal[
-    "home",
-    "detection list",
-    "detection show",
-    "host list",
-    "host show",
-    "host logins",
-    "account list",
-    "account show",
-    "vuln list",
-    "cve show",
-    "identity activity",
-    "search start",
-    "search status",
-    "search stop",
-    "identity list",
-    "identity show",
-    "identity timeline",
-    "auth status",
-    "profile list",
-    "config path",
-    "scopes",
-]
-
-#: The subcommands each noun takes; the valid-command list and every suggestion derive from it (§11.2).
-SUBCOMMANDS: Mapping[str, tuple[str, ...]] = {
-    "detection": ("list", "show"),
-    "host": ("list", "show", "logins"),
-    "account": ("list", "show"),
-    "vuln": ("list",),
-    "cve": ("show",),
-    "identity": ("activity", "list", "show", "timeline"),
-    "search": ("start", "status", "stop"),
-    "auth": ("status",),
-    "profile": ("list",),
-    "config": ("path",),
-}
-
 GLOBAL_FLAGS = ("help", "region", "allow-unknown-origin", "member-cid", "no-member-cid", "config", "profile")
-
-COMMAND_FLAGS: Mapping[str, tuple[str, ...]] = {
-    "home": (),
-    "detection list": ("filter", "severity", "status", "product", "since", "limit", "cursor"),
-    "detection show": ("full",),
-    "host list": ("filter", "hostname", "platform", "status", "since", "limit", "cursor"),
-    "host show": (),
-    "host logins": ("since", "limit"),
-    "account list": ("filter", "limit", "cursor"),
-    "account show": (),
-    "vuln list": ("filter", "host", "severity", "status", "since", "limit", "cursor", "fields"),
-    "cve show": (),
-    "identity activity": ("since",),
-    "search start": ("query", "repository", "since"),
-    "search status": ("repository",),
-    "search stop": ("repository",),
-    "identity list": ("name", "email", "domain", "type", "limit", "cursor"),
-    "identity show": ("full",),
-    "identity timeline": ("since", "category", "limit", "cursor"),
-    "auth status": (),
-    "profile list": (),
-    "config path": (),
-    "scopes": (),
-}
-
-#: Each list command's row ceiling is the API's own documented maximum (§7.3).
-LIMIT_CEILINGS: Mapping[str, tuple[int, str]] = {
-    "detection list": (ALERTS_CEILING, "Alerts query"),
-    "host list": (HOSTS_CEILING, "Hosts query"),
-    "host logins": (LOGIN_CEILING, "Hosts login history"),
-    "account list": (DISCOVER_CEILING, "Discover accounts query"),
-    "vuln list": (SPOTLIGHT_CEILING, "Spotlight query"),
-    "identity list": (IDENTITY_CEILING, "falcon-mcp Identity Protection page"),
-    "identity timeline": (IDENTITY_CEILING, "falcon-mcp Identity Protection page"),
-}
-
-#: Each command that takes exactly one identifier, with the line that says where to find one.
-SHOW_COMMANDS: Mapping[str, tuple[str, str]] = {
-    "detection show": ("detection identifier", "Run `falcon-axi detection list` to see current detection identifiers"),
-    "host show": ("device identifier", "Run `falcon-axi host list` to see current device identifiers"),
-    "host logins": ("device identifier", "Run `falcon-axi host list` to see current device identifiers"),
-    "account show": ("account identifier", "Run `falcon-axi account list` to see current account identifiers"),
-    "cve show": ("CVE identifier", "A CVE identifier matches CVE-<year>-<number>, for example CVE-2021-44228"),
-    "identity activity": (
-        "account objectGUID or account name",
-        "Run `falcon-axi detection show <id>` for an identity detection's account_id",
-    ),
-    "search status": ("search identifier", "A search identifier comes from `falcon-axi search start --query '<cql>'`"),
-    "search stop": ("search identifier", "A search identifier comes from `falcon-axi search start --query '<cql>'`"),
-    "identity show": ("identity id", "Run `falcon-axi identity list` to see current identity ids"),
-    "identity timeline": ("identity id", "Run `falcon-axi identity list` to see current identity ids"),
-}
-
-#: The valid-command list every suggestion derives from, so none can name a command that does not exist.
-COMMANDS: tuple[str, ...] = tuple(name for name in COMMAND_FLAGS if name != "home")
-
-VALUE_FLAGS = frozenset(
-    {
-        "region",
-        "config",
-        "profile",
-        "member-cid",
-        "filter",
-        "severity",
-        "status",
-        "product",
-        "since",
-        "limit",
-        "cursor",
-        "hostname",
-        "platform",
-        "host",
-        "query",
-        "repository",
-        "fields",
-        "name",
-        "email",
-        "domain",
-        "type",
-        "category",
-    }
-)
+GLOBAL_VALUE_FLAGS = frozenset({"region", "config", "profile", "member-cid"})
 
 _SECRET_SHAPE = re.compile(r"(secret|password|token|key|passphrase)", re.IGNORECASE)
 
@@ -202,19 +59,20 @@ def flag_guard(name: str) -> None:
         raise ValueError(f"secret-shaped flag --{name} is forbidden")
 
 
-for _name in (*GLOBAL_FLAGS, *(flag for flags in COMMAND_FLAGS.values() for flag in flags)):
+for _name in (*GLOBAL_FLAGS, *(flag for spec in COMMAND_SPECS.values() for flag in spec.flags)):
     flag_guard(_name)
 
 
 @dataclass(frozen=True)
 class Parsed:
-    command: Command
+    command: str
     flags: Mapping[str, str | bool]
     positionals: tuple[str, ...]
 
 
 def _valid_flags(command: str) -> list[str]:
-    return [f"--{name}" for name in (*GLOBAL_FLAGS, *COMMAND_FLAGS[command])]
+    spec = COMMAND_SPECS.get(command)
+    return [f"--{name}" for name in (*GLOBAL_FLAGS, *(spec.flags if spec else ()))]
 
 
 def _unknown_flag(name: str, command: str) -> CliError:
@@ -234,14 +92,14 @@ def _unknown_flag(name: str, command: str) -> CliError:
 
 
 def parse(argv: Sequence[str]) -> Parsed:
-    command: Command = "home"
+    command: str = "home"
     index = 0
     first = argv[0] if argv else None
     if first in SUBCOMMANDS:
         noun = str(first)
         second = argv[1] if len(argv) > 1 else None
         if second in SUBCOMMANDS[noun]:
-            command = f"{noun} {second}"  # type: ignore[assignment]
+            command = f"{noun} {second}"
             index = 2
         else:
             raise CliError(
@@ -249,8 +107,8 @@ def parse(argv: Sequence[str]) -> Parsed:
                 f"unknown {noun} subcommand {second or ''}".strip(),
                 [f"valid {noun} subcommands: {', '.join(SUBCOMMANDS[noun])}"],
             )
-    elif first == "scopes":
-        command = "scopes"
+    elif first in COMMAND_SPECS:
+        command = str(first)
         index = 1
     elif first is not None and not first.startswith("-"):
         raise CliError(
@@ -271,9 +129,10 @@ def parse(argv: Sequence[str]) -> Parsed:
             index += 1
             continue
         name, separator, inline = token[2:].partition("=")
-        if name not in GLOBAL_FLAGS and name not in COMMAND_FLAGS[command]:
+        spec = COMMAND_SPECS.get(command)
+        if name not in GLOBAL_FLAGS and (spec is None or name not in spec.flags):
             raise _unknown_flag(name, command)
-        if name in VALUE_FLAGS:
+        if name in GLOBAL_VALUE_FLAGS or (spec is not None and name in spec.value_flags):
             if separator:
                 value: str | None = inline
             else:
@@ -294,8 +153,9 @@ def parse(argv: Sequence[str]) -> Parsed:
             "--member-cid and --no-member-cid cannot be combined",
             ["Use `--member-cid <cid>` to select a child tenant or `--no-member-cid` to clear an inherited selection"],
         )
-    if command in SHOW_COMMANDS and len(positionals) != 1:
-        subject, remedy = SHOW_COMMANDS[command]
+    spec = COMMAND_SPECS.get(command)
+    if spec and spec.positional and len(positionals) != 1:
+        subject, remedy = spec.positional
         raise CliError(
             "VALIDATION_ERROR",
             f"{command} requires exactly one {subject}",
@@ -303,14 +163,14 @@ def parse(argv: Sequence[str]) -> Parsed:
         )
     if command == "cve show":
         validate_cve_id(positionals[0])
-    if command not in SHOW_COMMANDS and positionals:
+    if (spec is None or spec.positional is None) and positionals:
         raise CliError(
             "VALIDATION_ERROR",
             f"`{command}` accepts no positional arguments",
             [f"valid flags for `{command}`: {', '.join(_valid_flags(command))}"],
         )
     if "limit" in flags:
-        _limit_of(flags, command)
+        limit_of(flags, COMMAND_SPECS[command])
     if "fields" in flags:
         parse_fields(str(flags["fields"]))
     if "filter" in flags and not str(flags["filter"]).strip():
@@ -330,457 +190,15 @@ def parse(argv: Sequence[str]) -> Parsed:
     return Parsed(command, flags, tuple(positionals))
 
 
-def _limit_of(flags: Mapping[str, str | bool], command: str) -> int:
-    ceiling, source = LIMIT_CEILINGS[command]
-    value = flags.get("limit")
-    if value is None:
-        return DEFAULT_LIMIT
-    try:
-        parsed = int(str(value), 10)
-    except ValueError:
-        parsed = -1
-    if parsed < 1 or parsed > ceiling:
-        raise CliError(
-            "VALIDATION_ERROR",
-            f"--limit must be an integer from 1 to {ceiling}",
-            [
-                f"{ceiling} is the documented {source} ceiling",
-                f"Run `falcon-axi {command} --limit {DEFAULT_LIMIT}` for the default page",
-            ],
-        )
-    return parsed
-
-
-def _str(value: str | bool | None) -> str | None:
-    return value if isinstance(value, str) else None
-
-
-def _detection_query_of(flags: Mapping[str, str | bool]) -> DetectionQuery:
-    return DetectionQuery(
-        filter=_str(flags.get("filter")),
-        severity=_str(flags.get("severity")),
-        status=_str(flags.get("status")),
-        since=_str(flags.get("since")),
-        product=_str(flags.get("product")),
-    )
-
-
-def _host_query_of(flags: Mapping[str, str | bool]) -> HostQuery:
-    return HostQuery(
-        filter=_str(flags.get("filter")),
-        hostname=_str(flags.get("hostname")),
-        platform=_str(flags.get("platform")),
-        status=_str(flags.get("status")),
-        since=_str(flags.get("since")),
-    )
-
-
-def _vuln_query_of(flags: Mapping[str, str | bool]) -> VulnQuery:
-    return VulnQuery(
-        filter=_str(flags.get("filter")),
-        host=_str(flags.get("host")),
-        severity=_str(flags.get("severity")),
-        status=_str(flags.get("status")),
-        since=_str(flags.get("since")),
-    )
-
-
-def _identity_query_of(flags: Mapping[str, str | bool]) -> IdentityQuery:
-    return IdentityQuery(
-        name=_str(flags.get("name")),
-        email=_str(flags.get("email")),
-        domain=_str(flags.get("domain")),
-        type=_str(flags.get("type")),
-    )
-
-
-def _suggestion_for(command: str, flags: Mapping[str, str | bool], positionals: Sequence[str] = ()) -> str:
-    """Replays query-shaping flags into a next-page suggestion (§7.2)."""
-    parts = ["falcon-axi", *command.split(), *positionals]
-    for name in (
-        "filter",
-        "hostname",
-        "platform",
-        "host",
-        "severity",
-        "status",
-        "product",
-        "since",
-        "limit",
-        "fields",
-        "name",
-        "email",
-        "domain",
-        "type",
-        "category",
-    ):
-        value = flags.get(name)
-        if isinstance(value, str):
-            parts.extend((f"--{name}", value))
-    return shlex.join(parts)
-
-
 def help_text(command: str) -> str:
-    if command == "config path":
-        return (
-            "falcon-axi config path [--config <path>]\nReports config and write-journal paths.\nExample: falcon-axi config path"
-        )
-    if command == "profile list":
-        return (
-            "falcon-axi profile list [--config <path>]\nLists profile names without resolving secrets.\n"
-            "Example: falcon-axi profile list"
-        )
-    if command == "detection list":
-        return "\n".join(
-            [
-                "falcon-axi detection list [--severity <name>] [--status <name>] [--product <name>] [--since <window>] "
-                "[--filter <FQL>] [--limit N] [--cursor <token>]",
-                "",
-                f"--severity   one of {', '.join(SEVERITIES)}",
-                f"--status     one of {', '.join(STATUSES)}",
-                f"--product    one of {', '.join(PRODUCTS)}; epp is endpoint alerts, idp is Identity Protection",
-                "--since      relative window such as 24h or 7d",
-                "--filter     raw FQL; + is AND, `,` is OR, values are single-quoted, relative dates are lowercase",
-                f"--limit      rows in this call (default {DEFAULT_LIMIT}, ceiling {ALERTS_CEILING})",
-                "--cursor     opaque continuation token from a previous call",
-                "",
-                "Filterable fields include severity_name, status, product, tactic, technique, created_timestamp,",
-                "and device.hostname.",
-                "Identity Protection alerts have no device: their rows show the endpoint they came from as hostname",
-                "(or `n/a`) and add account, account_id, device_id, and product columns when the page holds any.",
-                "Examples:",
-                "  falcon-axi detection list --severity high --since 24h",
-                "  falcon-axi detection list --product idp --since 7d",
-                "  falcon-axi detection list --filter \"severity_name:'Critical'+status:'new'\"",
-                "",
-                "This command is read-only and requires only Alerts:read.",
-            ]
-        )
-    if command == "detection show":
-        return "\n".join(
-            [
-                "falcon-axi detection show <composite id> [--full]",
-                "",
-                "--full       print long fields such as the command line without truncation",
-                "",
-                'Example: falcon-axi detection show "ldt:aid:1234"',
-                "",
-                "This command is read-only and requires only Alerts:read.",
-            ]
-        )
-    if command == "host list":
-        return "\n".join(
-            [
-                "falcon-axi host list [--hostname <name>] [--platform <name>] [--status <name>] "
-                "[--since <window>] [--filter <FQL>] [--limit N] [--cursor <token>]",
-                "",
-                "--hostname   hostname to match; Hosts filters accept wildcards, so WIN-* works",
-                f"--platform   one of {', '.join(PLATFORMS)}",
-                f"--status     one of {', '.join(HOST_STATUSES)}",
-                "--since      last_seen within a relative window such as 24h or 7d",
-                "--filter     raw FQL; + is AND, `,` is OR, values are single-quoted, relative dates are lowercase",
-                f"--limit      rows in this call (default {DEFAULT_LIMIT}, ceiling {HOSTS_CEILING})",
-                "--cursor     opaque continuation token from a previous call",
-                "",
-                "Filterable fields include hostname, platform_name, os_version, agent_version, status,",
-                "last_seen, first_seen, machine_domain, and local_ip.",
-                "Examples:",
-                "  falcon-axi host list --platform windows --since 24h",
-                "  falcon-axi host list --filter \"hostname:'WIN-*'+platform_name:'Windows'\"",
-                "",
-                "This command is read-only and requires only Hosts:read. It reports containment status as",
-                "data and cannot change it.",
-            ]
-        )
-    if command == "host show":
-        return "\n".join(
-            [
-                "falcon-axi host show <device id>",
-                "",
-                "The device id is the agent id Falcon calls the AID, as printed by `falcon-axi host list`.",
-                "",
-                "Example: falcon-axi host show abc123",
-                "",
-                "This command is read-only and requires only Hosts:read.",
-            ]
-        )
-    if command == "host logins":
-        return "\n".join(
-            [
-                "falcon-axi host logins <device id> [--since <window>] [--limit N]",
-                "",
-                "The device id is the agent id Falcon calls the AID, as printed by `falcon-axi host list`.",
-                f"--since      window to read, such as 24h or 7d (default {LOGIN_DEFAULT_SINCE}, Falcon's own default)",
-                f"--limit      logins per host in this call (default {DEFAULT_LIMIT}, ceiling {LOGIN_CEILING})",
-                "",
-                "Reports recent interactive logins from the Host Timeline as device_id, user_name, and",
-                "login_time. It is a window, not a full audit trail: a host that returns its limit may have more.",
-                "Example: falcon-axi host logins abc123 --since 24h",
-                "",
-                "This command is read-only and requires only Hosts:read.",
-            ]
-        )
-    if command == "account list":
-        return "\n".join(
-            [
-                "falcon-axi account list [--filter <FQL>] [--limit N] [--cursor <token>]",
-                "",
-                "--filter     raw FQL; + is AND, `,` is OR, values are single-quoted",
-                f"--limit      rows in this call (default {DEFAULT_LIMIT}, ceiling {DISCOVER_CEILING})",
-                "--cursor     opaque continuation token from a previous call",
-                "",
-                "Lists the accounts Falcon Discover has observed logging in on endpoints, which is an",
-                "endpoint-observed inventory and not an identity directory.",
-                "Filterable fields include username, account_name, account_type, login_domain, user_sid,",
-                "admin_privileges, local_admin_privileges, first_seen_timestamp, password_last_set_timestamp,",
-                "last_successful_login_timestamp, and last_failed_login_timestamp.",
-                "Examples:",
-                "  falcon-axi account list --filter \"admin_privileges:'Yes'\"",
-                "  falcon-axi account list --filter \"username:'svc-*'\"",
-                "",
-                "This command is read-only and requires only Assets:read, which is license-gated to Falcon",
-                "Discover or Exposure Management.",
-            ]
-        )
-    if command == "account show":
-        return "\n".join(
-            [
-                "falcon-axi account show <account id>",
-                "",
-                "The account id is the identifier printed by `falcon-axi account list`.",
-                "",
-                "Example: falcon-axi account show abc123",
-                "",
-                "This command is read-only and requires only Assets:read, which is license-gated to Falcon",
-                "Discover or Exposure Management.",
-            ]
-        )
-    if command == "vuln list":
-        return "\n".join(
-            [
-                "falcon-axi vuln list [--host <device id>] [--severity <name>] [--status <name>] "
-                "[--since <window>] [--filter <FQL>] [--limit N] [--cursor <token>] [--fields <names>]",
-                "",
-                "--host       device id (AID) whose vulnerabilities to read",
-                f"--severity   one of {', '.join(VULN_SEVERITIES)}",
-                f"--status     one of {', '.join(VULN_STATUSES)}",
-                "--since      created_timestamp within a relative window such as 24h or 7d",
-                "--filter     raw FQL; + is AND, `,` is OR, values are single-quoted",
-                f"--limit      rows in this call (default {DEFAULT_LIMIT}, ceiling {SPOTLIGHT_CEILING})",
-                "--cursor     opaque continuation token from a previous call",
-                f"--fields     extra columns, comma-separated: {', '.join(EXTRA_FIELDS)}",
-                "",
-                "Default columns are id, cve, severity, and hostname. --fields adds columns from that",
-                "allowlist; an unknown name is refused and the valid names are listed.",
-                "A filter is required, from a shorthand flag or --filter, because Spotlight requires one.",
-                "Wildcards are unsupported and a `*` is refused before the request is made.",
-                "Filterable fields include aid, cve.id, cve.severity, cve.exprt_rating, cve.exploit_status,",
-                "status, and created_timestamp.",
-                "Examples:",
-                "  falcon-axi vuln list --severity critical --status open",
-                "  falcon-axi vuln list --filter \"status:'open'+cve.exploit_status:'90'\"",
-                "",
-                "This command is read-only and requires only Vulnerabilities:read.",
-            ]
-        )
-    if command == "cve show":
-        return "\n".join(
-            [
-                "falcon-axi cve show <CVE-ID>",
-                "",
-                "Reads one CVE from Falcon Intelligence. It is not Spotlight host exposure:",
-                "an empty result means CrowdStrike Intelligence has no entry, not that no host is affected.",
-                "A CVE identifier matches CVE-<year>-<number>, for example CVE-2021-44228.",
-                "",
-                "Default fields are cve, severity, cvss_v3_score, exploit_status, publish_date, updated,",
-                "and description. Related actor, report, threat, and affected-product lists are counts.",
-                "This command does not expand those lists, and there is no cve list command.",
-                "",
-                "Example: falcon-axi cve show CVE-2021-44228",
-                "",
-                "This command is read-only and requires Vulnerabilities (Falcon Intelligence):read.",
-                "That scope is license-gated. Spotlight's Vulnerabilities:read does not satisfy it, and a",
-                "scope missing from the API client picker means the tenant has no Falcon Intelligence subscription.",
-                "Whether --member-cid carries this scope is unverified.",
-            ]
-        )
-    if command == "identity activity":
-        return "\n".join(
-            [
-                "falcon-axi identity activity <account objectGUID or name> [--since <window>]",
-                "",
-                f"--since      window to search, such as 24h or 7d (default {DEFAULT_SINCE})",
-                "",
-                "Starts one NG-SIEM search job for an account's Identity Protection events: Active Directory",
-                "authentication and service access, LDAP and RPC requests, account changes and audits, SSO",
-                f"logons, and risk-score changes. It returns the latest {TIMELINE_ROWS}, newest first.",
-                "The account is an objectGUID (account_id in `detection show`), a sAMAccountName, or a UPN.",
-                "A name may contain letters, digits, and `. _ @ $ -` only, and is matched in full, ignoring case.",
-                "Poll the job with `falcon-axi search status <id>` and cancel it with `falcon-axi search stop <id>`.",
-                "",
-                "Example: falcon-axi identity activity 00000000-0000-0000-0000-000000000000 --since 7d",
-                "",
-                "This command starts a job on the tenant and requires NGSIEM:write.",
-                "It changes no identity, account, or detection.",
-            ]
-        )
-    if command == "search start":
-        return "\n".join(
-            [
-                "falcon-axi search start --query <CQL> [--repository <name>] [--since <window>]",
-                "",
-                "--query      the CQL search to run; required",
-                f"--repository repository or view to search (default {DEFAULT_REPOSITORY})",
-                f"--since      window to search, such as 24h or 7d (default {DEFAULT_SINCE})",
-                "",
-                "CQL is pipe-based and is neither FQL nor SQL: a filter, then commands.",
-                "Start from a tag or field filter and pipe into commands, and bound the result set in the",
-                "query itself with `| head(N)` or an aggregate; there is no --limit and no --cursor.",
-                "Examples:",
-                "  falcon-axi search start --query '#event_simpleName=ProcessRollup2 | head(5)'",
-                "  falcon-axi search start --query '#event_simpleName=ProcessRollup2 "
-                "| groupBy([ComputerName], function=count())' --since 7d",
-                "",
-                "This command starts a job on the tenant and requires NGSIEM:write.",
-                "Poll it with `falcon-axi search status <id>`.",
-            ]
-        )
-    if command == "search status":
-        return "\n".join(
-            [
-                "falcon-axi search status <search id> [--repository <name>]",
-                "",
-                f"--repository the repository the job was started against (default {DEFAULT_REPOSITORY})",
-                "",
-                "One call is one poll: it reports running, cancelled, or done, and carries the events once",
-                "the job is done. Compare parsed_query with the query you sent, because NG-SIEM turns an",
-                "unrecognised word into a free-text stage rather than an error.",
-                "",
-                "Example: falcon-axi search status abc123",
-                "",
-                "This command is read-only and requires only NGSIEM:read.",
-            ]
-        )
-    if command == "search stop":
-        return "\n".join(
-            [
-                "falcon-axi search stop <search id> [--repository <name>]",
-                "",
-                f"--repository the repository the job was started against (default {DEFAULT_REPOSITORY})",
-                "",
-                "Cancels one search job falcon-axi started. It changes no tenant data, no host, and no",
-                "detection: the only thing it stops is the job.",
-                "",
-                "Example: falcon-axi search stop abc123",
-                "",
-                "This command requires NGSIEM:write.",
-            ]
-        )
-    if command == "identity list":
-        return "\n".join(
-            [
-                "falcon-axi identity list [--name <pattern>] [--email <pattern>] [--domain <name>] "
-                "[--type <kind>] [--limit N] [--cursor <token>]",
-                "",
-                "--name       display name pattern; `*` is a wildcard, so `Admin*` works",
-                "--email      UPN or email pattern, for example `*@example.com`",
-                "--domain     Active Directory domain to match",
-                f"--type       one of {', '.join(ENTITY_TYPES)}; omit for both",
-                f"--limit      rows in this call (default {DEFAULT_LIMIT}, ceiling {IDENTITY_CEILING})",
-                "--cursor     opaque continuation token from a previous call",
-                "",
-                "Lists the Falcon Identity Protection directory: users and endpoints with their risk. Filters",
-                "combine with AND. Archived identities are excluded, and a bare `*` is refused.",
-                "Examples:",
-                "  falcon-axi identity list --name 'Admin*' --type user",
-                "  falcon-axi identity list --email '*@example.com'",
-                "",
-                "This command sends only a fixed read-only Identity Protection query. It requires Identity Protection",
-                "Entities:read and Identity Protection GraphQL:write; the GraphQL scope is labelled write because",
-                "Falcon requires it even for reads (captain exception N2), and falcon-axi cannot change any identity.",
-            ]
-        )
-    if command == "identity show":
-        return "\n".join(
-            [
-                "falcon-axi identity show <identity id> [--full]",
-                "",
-                "--full       list every association; the default lists the first 25",
-                "",
-                "The identity id is an entity GUID, as printed by `falcon-axi identity list`. For an Active Directory",
-                "user it may be the account object GUID, which is unverified (docs/design/v1.md section 17.15). Prints",
-                "risk, risk factors, accounts, associations, and open incidents.",
-                "",
-                "Example: falcon-axi identity show 00000000-0000-0000-0000-000000000001",
-                "",
-                "This command sends only a fixed read-only Identity Protection query. It requires Identity Protection",
-                "Entities:read and Identity Protection GraphQL:write (captain exception N2).",
-            ]
-        )
-    if command == "identity timeline":
-        return "\n".join(
-            [
-                "falcon-axi identity timeline <identity id> [--since <window>] [--category <names>] "
-                "[--limit N] [--cursor <token>]",
-                "",
-                f"--since      relative window such as 24h or 7d (default {IDENTITY_DEFAULT_SINCE})",
-                f"--category   comma-separated, from {', '.join(TIMELINE_CATEGORIES)}",
-                f"--limit      rows in this call (default {DEFAULT_LIMIT}, ceiling {IDENTITY_CEILING})",
-                "--cursor     opaque continuation token from a previous call",
-                "",
-                "Prints the identity's recent activity, newest first: authentications, service access, LDAP and",
-                "RPC activity, and alerts, each with its user, endpoint, and address.",
-                "Examples:",
-                "  falcon-axi identity timeline 00000000-0000-0000-0000-000000000001 --since 24h",
-                "  falcon-axi identity timeline 00000000-0000-0000-0000-000000000001 --category threat,audit",
-                "",
-                "This command sends only a fixed read-only Identity Protection query. It requires Identity Protection",
-                "Timeline:read and Identity Protection GraphQL:write (captain exception N2).",
-            ]
-        )
-    if command == "scopes":
-        return "\n".join(
-            [
-                "falcon-axi scopes",
-                "",
-                "Prints the command-to-scope matrix for provisioning the API client.",
-                "It is local only: it makes no request and needs no credential.",
-            ]
-        )
-    if command == "auth status":
-        return "\n".join(
-            [
-                "falcon-axi auth status",
-                "",
-                "Reports whether a credential resolved, from which channel, and which region it resolved to.",
-                "No credential value, bearer token, or tenant CID is ever printed.",
-            ]
-        )
+    if command in COMMAND_SPECS:
+        return COMMAND_SPECS[command].help
     return "\n".join(
         [
             f"falcon-axi {VERSION} - {DESCRIPTION}",
             "",
             "Commands:",
-            "  detection list            list detections from the Falcon Alerts collection",
-            "  detection show <id>       the full detail for one detection",
-            "  host list                 list hosts from the Falcon Hosts collection",
-            "  host show <device id>     the full detail for one host",
-            "  host logins <device id>   recent interactive logins on one host",
-            "  account list              list Discover accounts observed on endpoints",
-            "  account show <id>         the full detail for one account",
-            "  vuln list                 list Spotlight vulnerabilities; a filter is required",
-            "  cve show <CVE-ID>         Falcon Intelligence detail for one CVE",
-            "  identity activity <acct>  start a search for one account's identity events",
-            "  search start              start an NG-SIEM CQL search job",
-            "  search status <id>        poll one search job and read its events",
-            "  search stop <id>          cancel one search job",
-            "  identity list             list Identity Protection users and endpoints with their risk",
-            "  identity show <id>        one identity's risk, accounts, associations, and open incidents",
-            "  identity timeline <id>    one identity's recent activity",
-            "  auth status               whether a credential resolved, and where to",
-            "  profile list              configured profile names, without reading secrets",
-            "  config path               config and write-journal paths",
-            "  scopes                    the command-to-scope matrix, with no request made",
+            *(spec.summary for spec in COMMAND_SPECS.values()),
             "",
             "Global flags:",
             "  --help, --region <name|url>, --allow-unknown-origin, --member-cid <cid>, --no-member-cid",
@@ -810,10 +228,14 @@ def _session(
     flags: Mapping[str, str | bool],
     env: Mapping[str, str],
     credential: Credential | None = None,
+    *,
+    diagnostic: bool = False,
 ) -> Resolved:
     from falcon_axi.auth import authenticate
 
-    credential = credential or resolve_credential(env, config=_str(flags.get("config")), profile=_str(flags.get("profile")))
+    credential = credential or resolve_credential(
+        env, config=_str(flags.get("config")), profile=_str(flags.get("profile")), diagnostic=diagnostic
+    )
     allow_unknown_origin = bool(flags.get("allow-unknown-origin"))
     base_url = resolve_base_url(region=_str(flags.get("region")) or credential.region)
     assert_trusted_origin(base_url, allow_unknown_origin)
@@ -826,158 +248,6 @@ def _session(
             allow_unknown_origin=allow_unknown_origin,
         ),
         credential=credential,
-    )
-
-
-def _tenant_line(active: Any) -> str:
-    region = active.region or "an unlisted Falcon cloud"
-    retarget = f" (re-targeted from {active.retargeted_from})" if active.retargeted_from else ""
-    if active.member_cid:
-        return f"{region}{retarget} member CID {mask_cid(active.member_cid)}"
-    return f"{region}{retarget} (own CID unavailable)"
-
-
-def _auth_status(
-    transport: Any, flags: Mapping[str, str | bool], env: Mapping[str, str]
-) -> tuple[dict[str, Any], tuple[str, ...]]:
-    credential = resolve_credential(
-        env,
-        config=_str(flags.get("config")),
-        profile=_str(flags.get("profile")),
-        diagnostic=True,
-    )
-    resolved = _session(transport, flags, env, credential)
-    limit = resolved.session.rate_limit.limit
-    remaining = resolved.session.rate_limit.remaining
-    value: dict[str, Any] = {"credential_resolved": True, "credential_channel": credential.channel}
-    value["profile"] = credential.profile
-    value["endpoint"] = resolved.session.base_url
-    value["client_secret_source"] = credential.secret_source
-    if credential.path:
-        value["credential_path"] = credential.path
-    value["tenant"] = raw(_tenant_line(resolved.session))
-    value["scopes"] = raw(
-        "read scopes, plus NGSIEM:write for `search start`, `search stop`, and `identity activity`, "
-        "and Identity Protection GraphQL:write for `identity list`, `identity show`, and `identity timeline`, alone"
-    )
-    if limit is not None and remaining is not None:
-        value["rate_limit"] = raw(f"{remaining} of {limit} requests remaining")
-    return value, _followup_help(
-        ["Run `falcon-axi detection list` to read detections with this credential"], flags, resolved.session.member_cid
-    )
-
-
-def _read(transport: Any, parsed: Parsed, resolved: Resolved) -> CommandOutput:
-    command = parsed.command
-    flags = parsed.flags
-    if command == "detection list":
-        return list_detections(
-            transport,
-            resolved.session,
-            query=_detection_query_of(flags),
-            limit=_limit_of(flags, command),
-            cursor=_str(flags.get("cursor")),
-            credential=resolved.credential,
-            suggestion=_suggestion_for(command, flags),
-        )
-    if command == "detection show":
-        return show_detection(transport, resolved.session, parsed.positionals[0], bool(flags.get("full")))
-    if command == "host list":
-        return list_hosts(
-            transport,
-            resolved.session,
-            query=_host_query_of(flags),
-            limit=_limit_of(flags, command),
-            cursor=_str(flags.get("cursor")),
-            credential=resolved.credential,
-            suggestion=_suggestion_for(command, flags),
-        )
-    if command == "host show":
-        return show_host(transport, resolved.session, parsed.positionals[0])
-    if command == "cve show":
-        return show_cve(transport, resolved.session, parsed.positionals[0])
-    if command == "host logins":
-        return host_logins(
-            transport,
-            resolved.session,
-            parsed.positionals[0],
-            limit=_limit_of(flags, command),
-            since=_str(flags.get("since")),
-        )
-    if command == "account list":
-        return list_accounts(
-            transport,
-            resolved.session,
-            filter=_str(flags.get("filter")),
-            limit=_limit_of(flags, command),
-            cursor=_str(flags.get("cursor")),
-            credential=resolved.credential,
-            suggestion=_suggestion_for(command, flags),
-        )
-    if command == "account show":
-        return show_account(transport, resolved.session, parsed.positionals[0])
-    if command == "identity activity":
-        return start_identity_activity(
-            transport,
-            resolved.session,
-            parsed.positionals[0],
-            since=_str(flags.get("since")) or DEFAULT_SINCE,
-        )
-    if command == "search start":
-        return start_search(
-            transport,
-            resolved.session,
-            query=_str(flags.get("query")) or "",
-            repository=_str(flags.get("repository")) or DEFAULT_REPOSITORY,
-            since=_str(flags.get("since")) or DEFAULT_SINCE,
-        )
-    if command == "search status":
-        return search_status(
-            transport,
-            resolved.session,
-            parsed.positionals[0],
-            repository=_str(flags.get("repository")) or DEFAULT_REPOSITORY,
-        )
-    if command == "search stop":
-        return stop_search(
-            transport,
-            resolved.session,
-            parsed.positionals[0],
-            repository=_str(flags.get("repository")) or DEFAULT_REPOSITORY,
-        )
-    if command == "identity list":
-        return list_identities(
-            transport,
-            resolved.session,
-            query=_identity_query_of(flags),
-            limit=_limit_of(flags, command),
-            cursor=_str(flags.get("cursor")),
-            credential=resolved.credential,
-            suggestion=_suggestion_for(command, flags),
-        )
-    if command == "identity show":
-        return show_identity(transport, resolved.session, parsed.positionals[0], bool(flags.get("full")))
-    if command == "identity timeline":
-        return identity_timeline(
-            transport,
-            resolved.session,
-            parsed.positionals[0],
-            since=_str(flags.get("since")) or IDENTITY_DEFAULT_SINCE,
-            categories=(_str(flags.get("category")) or "",) if flags.get("category") else (),
-            limit=_limit_of(flags, command),
-            cursor=_str(flags.get("cursor")),
-            credential=resolved.credential,
-            suggestion=_suggestion_for(command, flags, parsed.positionals),
-        )
-    return list_vulnerabilities(
-        transport,
-        resolved.session,
-        query=_vuln_query_of(flags),
-        limit=_limit_of(flags, command),
-        cursor=_str(flags.get("cursor")),
-        credential=resolved.credential,
-        suggestion=_suggestion_for(command, flags),
-        fields=parse_fields(_str(flags.get("fields")) or "") if flags.get("fields") else (),
     )
 
 
@@ -994,7 +264,7 @@ def _home_view(transport: Any, flags: Mapping[str, str | bool], env: Mapping[str
             ),
             known.exit_code,
         )
-    head["tenant"] = raw(_tenant_line(resolved.session))
+    head["tenant"] = raw(tenant_line(resolved.session))
     listed = list_detections(
         transport,
         resolved.session,
@@ -1063,22 +333,25 @@ def _run(
         forced_read_only = read_only(values)
         if forced_read_only and parsed.command in ("search start", "search stop", "identity activity"):
             raise CliError("READ_ONLY_VIOLATION", "FALCON_AXI_READ_ONLY forbids search lifecycle changes")
-        if parsed.command == "config path":
-            return render({"config": config_path(values, _str(flags.get("config"))), "write_log": write_log_path(values)}), 0
-        if parsed.command == "profile list":
-            document = load_profiles(values, _str(flags.get("config")))
-            return render({"profiles": list(document["profiles"]), "default_profile": document.get("defaultProfile")}), 0
         if parsed.command == "home":
             return _home_view(transport, parsed.flags, values, bin or "falcon-axi")
-        if parsed.command == "scopes":
-            matrix = scope_matrix()
-            return render(matrix.value, _followup_help(matrix.help, flags, _str(flags.get("member-cid")))), 0
-        if parsed.command == "auth status":
-            value, help = _auth_status(transport, parsed.flags, values)
-            return render(value, help), 0
-        resolved = _session(transport, parsed.flags, values)
-        output = _read(transport, parsed, resolved)
-        return render(output.value, _followup_help(output.help, parsed.flags, resolved.session.member_cid)), 0
+        spec = COMMAND_SPECS[parsed.command]
+        resolved = None
+        if spec.authentication != "none":
+            resolved = _session(transport, flags, values, diagnostic=spec.authentication == "diagnostic")
+        output = spec.handler(
+            Invocation(
+                spec,
+                transport,
+                flags,
+                parsed.positionals,
+                values,
+                resolved.session if resolved else None,
+                resolved.credential if resolved else None,
+            )
+        )
+        member_cid = resolved.session.member_cid if resolved else _str(flags.get("member-cid"))
+        return render(output.value, _followup_help(output.help, flags, member_cid)), 0
     except Exception as error:
         known = error if isinstance(error, CliError) else CliError("UNKNOWN", "an unexpected error occurred")
         return (

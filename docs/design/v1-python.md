@@ -114,6 +114,12 @@ falconpy's `session=` parameter is not used as a seam; the seam stays above falc
 
 ## 4. Package layout
 
+Command registration uses `CommandSpec` records beside the domain implementations.
+`falcon_axi/commands.py` assembles their historical order for CLI parsing, help, dispatch, and scope discovery.
+`falcon_axi/command.py` holds the declaration type and invocation context; `diagnostics.py` implements
+the supporting configuration and authentication views.
+Domain functions still accept a transport and session directly, and recorded outputs remain byte-identical.
+
 ```
 pyproject.toml                 name falcon-axi, console script falcon-axi = falcon_axi.cli:main
 falcon_axi/

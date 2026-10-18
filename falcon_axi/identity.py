@@ -16,14 +16,16 @@ from datetime import UTC, datetime
 from typing import Any
 
 from falcon_axi.auth import Session
+from falcon_axi.command import CommandSpec, Invocation, string
 from falcon_axi.core import CliError
 from falcon_axi.credentials import Credential
 from falcon_axi.cursor import CursorContext, decode_after, encode_cursor
-from falcon_axi.domain import CommandOutput, body_of, rate_limit_note, text
+from falcon_axi.domain import DEFAULT_LIMIT, CommandOutput, body_of, rate_limit_note, text
 from falcon_axi.falcon_error import trace_id, translate_falcon_error
 from falcon_axi.fql import since_seconds
 from falcon_axi.render import raw
 from falcon_axi.search import DEFAULT_REPOSITORY, start_search
+from falcon_axi.search import DEFAULT_SINCE as SEARCH_DEFAULT_SINCE
 from falcon_axi.transport.operations import OperationId
 from falcon_axi.transport.types import RequestArgs, Transport
 
@@ -478,3 +480,172 @@ def start_identity_activity(
 ) -> CommandOutput:
     """`identity activity <account>`: start one NG-SIEM job and hand its polling to `search status`."""
     return start_search(transport, session, activity_query(subject), DEFAULT_REPOSITORY, since)
+
+
+def _identity_activity(ctx: Invocation) -> CommandOutput:
+    return start_identity_activity(
+        ctx.transport,
+        ctx.session,
+        ctx.positionals[0],
+        since=ctx.text("since") or SEARCH_DEFAULT_SINCE,
+    )
+
+
+def _identity_list(ctx: Invocation) -> CommandOutput:
+    return list_identities(
+        ctx.transport,
+        ctx.session,
+        query=_identity_query_of(ctx.flags),
+        limit=ctx.limit,
+        cursor=ctx.text("cursor"),
+        credential=ctx.credential,
+        suggestion=ctx.suggestion,
+    )
+
+
+def _identity_show(ctx: Invocation) -> CommandOutput:
+    return show_identity(ctx.transport, ctx.session, ctx.positionals[0], bool(ctx.flags.get("full")))
+
+
+def _identity_timeline(ctx: Invocation) -> CommandOutput:
+    return identity_timeline(
+        ctx.transport,
+        ctx.session,
+        ctx.positionals[0],
+        since=ctx.text("since") or DEFAULT_SINCE,
+        categories=(ctx.text("category") or "",) if ctx.flags.get("category") else (),
+        limit=ctx.limit,
+        cursor=ctx.text("cursor"),
+        credential=ctx.credential,
+        suggestion=ctx.suggestion,
+    )
+
+
+def _identity_query_of(flags: Mapping[str, str | bool]) -> IdentityQuery:
+    return IdentityQuery(
+        name=string(flags.get("name")),
+        email=string(flags.get("email")),
+        domain=string(flags.get("domain")),
+        type=string(flags.get("type")),
+    )
+
+
+COMMAND_SPECS = (
+    CommandSpec(
+        name="identity activity",
+        help="\n".join(
+            [
+                "falcon-axi identity activity <account objectGUID or name> [--since <window>]",
+                "",
+                f"--since      window to search, such as 24h or 7d (default {SEARCH_DEFAULT_SINCE})",
+                "",
+                "Starts one NG-SIEM search job for an account's Identity Protection events: Active Directory",
+                "authentication and service access, LDAP and RPC requests, account changes and audits, SSO",
+                f"logons, and risk-score changes. It returns the latest {TIMELINE_ROWS}, newest first.",
+                "The account is an objectGUID (account_id in `detection show`), a sAMAccountName, or a UPN.",
+                "A name may contain letters, digits, and `. _ @ $ -` only, and is matched in full, ignoring case.",
+                "Poll the job with `falcon-axi search status <id>` and cancel it with `falcon-axi search stop <id>`.",
+                "",
+                "Example: falcon-axi identity activity 00000000-0000-0000-0000-000000000000 --since 7d",
+                "",
+                "This command starts a job on the tenant and requires NGSIEM:write.",
+                "It changes no identity, account, or detection.",
+            ]
+        ),
+        summary="  identity activity <acct>  start a search for one account's identity events",
+        handler=_identity_activity,
+        operations=("StartSearchV1",),
+        flags=("since",),
+        value_flags=("since",),
+        positional=(
+            "account objectGUID or account name",
+            "Run `falcon-axi detection show <id>` for an identity detection's account_id",
+        ),
+    ),
+    CommandSpec(
+        name="identity list",
+        help="\n".join(
+            [
+                "falcon-axi identity list [--name <pattern>] [--email <pattern>] [--domain <name>] "
+                "[--type <kind>] [--limit N] [--cursor <token>]",
+                "",
+                "--name       display name pattern; `*` is a wildcard, so `Admin*` works",
+                "--email      UPN or email pattern, for example `*@example.com`",
+                "--domain     Active Directory domain to match",
+                f"--type       one of {', '.join(ENTITY_TYPES)}; omit for both",
+                f"--limit      rows in this call (default {DEFAULT_LIMIT}, ceiling {QUERY_CEILING})",
+                "--cursor     opaque continuation token from a previous call",
+                "",
+                "Lists the Falcon Identity Protection directory: users and endpoints with their risk. Filters",
+                "combine with AND. Archived identities are excluded, and a bare `*` is refused.",
+                "Examples:",
+                "  falcon-axi identity list --name 'Admin*' --type user",
+                "  falcon-axi identity list --email '*@example.com'",
+                "",
+                "This command sends only a fixed read-only Identity Protection query. It requires Identity Protection",
+                "Entities:read and Identity Protection GraphQL:write; the GraphQL scope is labelled write because",
+                "Falcon requires it even for reads (captain exception N2), and falcon-axi cannot change any identity.",
+            ]
+        ),
+        summary="  identity list             list Identity Protection users and endpoints with their risk",
+        handler=_identity_list,
+        operations=("api_preempt_proxy_post_graphql",),
+        flags=("name", "email", "domain", "type", "limit", "cursor"),
+        value_flags=("name", "email", "domain", "type", "limit", "cursor"),
+        limit_ceiling=(QUERY_CEILING, "falcon-mcp Identity Protection page"),
+    ),
+    CommandSpec(
+        name="identity show",
+        help="\n".join(
+            [
+                "falcon-axi identity show <identity id> [--full]",
+                "",
+                "--full       list every association; the default lists the first 25",
+                "",
+                "The identity id is an entity GUID, as printed by `falcon-axi identity list`. For an Active Directory",
+                "user it may be the account object GUID, which is unverified (docs/design/v1.md section 17.15). Prints",
+                "risk, risk factors, accounts, associations, and open incidents.",
+                "",
+                "Example: falcon-axi identity show 00000000-0000-0000-0000-000000000001",
+                "",
+                "This command sends only a fixed read-only Identity Protection query. It requires Identity Protection",
+                "Entities:read and Identity Protection GraphQL:write (captain exception N2).",
+            ]
+        ),
+        summary="  identity show <id>        one identity's risk, accounts, associations, and open incidents",
+        handler=_identity_show,
+        operations=("api_preempt_proxy_post_graphql",),
+        flags=("full",),
+        positional=("identity id", "Run `falcon-axi identity list` to see current identity ids"),
+    ),
+    CommandSpec(
+        name="identity timeline",
+        help="\n".join(
+            [
+                "falcon-axi identity timeline <identity id> [--since <window>] [--category <names>] "
+                "[--limit N] [--cursor <token>]",
+                "",
+                f"--since      relative window such as 24h or 7d (default {DEFAULT_SINCE})",
+                f"--category   comma-separated, from {', '.join(TIMELINE_CATEGORIES)}",
+                f"--limit      rows in this call (default {DEFAULT_LIMIT}, ceiling {QUERY_CEILING})",
+                "--cursor     opaque continuation token from a previous call",
+                "",
+                "Prints the identity's recent activity, newest first: authentications, service access, LDAP and",
+                "RPC activity, and alerts, each with its user, endpoint, and address.",
+                "Examples:",
+                "  falcon-axi identity timeline 00000000-0000-0000-0000-000000000001 --since 24h",
+                "  falcon-axi identity timeline 00000000-0000-0000-0000-000000000001 --category threat,audit",
+                "",
+                "This command sends only a fixed read-only Identity Protection query. It requires Identity Protection",
+                "Timeline:read and Identity Protection GraphQL:write (captain exception N2).",
+            ]
+        ),
+        summary="  identity timeline <id>    one identity's recent activity",
+        handler=_identity_timeline,
+        operations=("api_preempt_proxy_post_graphql",),
+        flags=("since", "category", "limit", "cursor"),
+        value_flags=("since", "category", "limit", "cursor"),
+        limit_ceiling=(QUERY_CEILING, "falcon-mcp Identity Protection page"),
+        positional=("identity id", "Run `falcon-axi identity list` to see current identity ids"),
+    ),
+)

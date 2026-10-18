@@ -8,12 +8,13 @@ from collections.abc import Mapping, Sequence
 from typing import Any
 
 from falcon_axi.auth import Session
+from falcon_axi.command import CommandSpec, Invocation, string
 from falcon_axi.core import CliError
 from falcon_axi.credentials import Credential
 from falcon_axi.cursor import CursorContext, decode_after, encode_cursor
-from falcon_axi.domain import CommandOutput, after_token, rate_limit_note, resources, text, total
+from falcon_axi.domain import DEFAULT_LIMIT, CommandOutput, after_token, rate_limit_note, resources, text, total
 from falcon_axi.falcon_error import translate_falcon_error
-from falcon_axi.fql import VulnQuery, describe_vuln_query, vuln_filter
+from falcon_axi.fql import VULN_SEVERITIES, VULN_STATUSES, VulnQuery, describe_vuln_query, vuln_filter
 from falcon_axi.render import raw
 from falcon_axi.transport.types import FalconResponse, QueryValue, RequestArgs, Transport
 
@@ -253,3 +254,66 @@ def list_vulnerabilities(
     if note:
         value["rate_limit"] = raw(note)
     return CommandOutput(value=value, help=tuple(help))
+
+
+def _vuln_list(ctx: Invocation) -> CommandOutput:
+    return list_vulnerabilities(
+        ctx.transport,
+        ctx.session,
+        query=_vuln_query_of(ctx.flags),
+        limit=ctx.limit,
+        cursor=ctx.text("cursor"),
+        credential=ctx.credential,
+        suggestion=ctx.suggestion,
+        fields=parse_fields(ctx.text("fields") or "") if ctx.flags.get("fields") else (),
+    )
+
+
+def _vuln_query_of(flags: Mapping[str, str | bool]) -> VulnQuery:
+    return VulnQuery(
+        filter=string(flags.get("filter")),
+        host=string(flags.get("host")),
+        severity=string(flags.get("severity")),
+        status=string(flags.get("status")),
+        since=string(flags.get("since")),
+    )
+
+
+COMMAND_SPECS = (
+    CommandSpec(
+        name="vuln list",
+        help="\n".join(
+            [
+                "falcon-axi vuln list [--host <device id>] [--severity <name>] [--status <name>] "
+                "[--since <window>] [--filter <FQL>] [--limit N] [--cursor <token>] [--fields <names>]",
+                "",
+                "--host       device id (AID) whose vulnerabilities to read",
+                f"--severity   one of {', '.join(VULN_SEVERITIES)}",
+                f"--status     one of {', '.join(VULN_STATUSES)}",
+                "--since      created_timestamp within a relative window such as 24h or 7d",
+                "--filter     raw FQL; + is AND, `,` is OR, values are single-quoted",
+                f"--limit      rows in this call (default {DEFAULT_LIMIT}, ceiling {QUERY_CEILING})",
+                "--cursor     opaque continuation token from a previous call",
+                f"--fields     extra columns, comma-separated: {', '.join(EXTRA_FIELDS)}",
+                "",
+                "Default columns are id, cve, severity, and hostname. --fields adds columns from that",
+                "allowlist; an unknown name is refused and the valid names are listed.",
+                "A filter is required, from a shorthand flag or --filter, because Spotlight requires one.",
+                "Wildcards are unsupported and a `*` is refused before the request is made.",
+                "Filterable fields include aid, cve.id, cve.severity, cve.exprt_rating, cve.exploit_status,",
+                "status, and created_timestamp.",
+                "Examples:",
+                "  falcon-axi vuln list --severity critical --status open",
+                "  falcon-axi vuln list --filter \"status:'open'+cve.exploit_status:'90'\"",
+                "",
+                "This command is read-only and requires only Vulnerabilities:read.",
+            ]
+        ),
+        summary="  vuln list                 list Spotlight vulnerabilities; a filter is required",
+        handler=_vuln_list,
+        operations=("combinedQueryVulnerabilities",),
+        flags=("filter", "host", "severity", "status", "since", "limit", "cursor", "fields"),
+        value_flags=("filter", "host", "severity", "status", "since", "limit", "cursor", "fields"),
+        limit_ceiling=(QUERY_CEILING, "Spotlight query"),
+    ),
+)

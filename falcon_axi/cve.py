@@ -5,6 +5,7 @@ from collections.abc import Mapping, Sequence
 from typing import Any
 
 from falcon_axi.auth import Session
+from falcon_axi.command import CommandSpec, Invocation
 from falcon_axi.core import CliError
 from falcon_axi.domain import CommandOutput, resources, text
 from falcon_axi.falcon_error import translate_falcon_error
@@ -113,3 +114,38 @@ def show_cve(transport: Transport, session: Session, cve_id: str) -> CommandOutp
             f"Run `falcon-axi vuln list --filter \"cve.id:'{requested}'\"` for tenant exposure",
         ),
     )
+
+
+def _cve_show(ctx: Invocation) -> CommandOutput:
+    return show_cve(ctx.transport, ctx.session, ctx.positionals[0])
+
+
+COMMAND_SPECS = (
+    CommandSpec(
+        name="cve show",
+        help="\n".join(
+            [
+                "falcon-axi cve show <CVE-ID>",
+                "",
+                "Reads one CVE from Falcon Intelligence. It is not Spotlight host exposure:",
+                "an empty result means CrowdStrike Intelligence has no entry, not that no host is affected.",
+                "A CVE identifier matches CVE-<year>-<number>, for example CVE-2021-44228.",
+                "",
+                "Default fields are cve, severity, cvss_v3_score, exploit_status, publish_date, updated,",
+                "and description. Related actor, report, threat, and affected-product lists are counts.",
+                "This command does not expand those lists, and there is no cve list command.",
+                "",
+                "Example: falcon-axi cve show CVE-2021-44228",
+                "",
+                "This command is read-only and requires Vulnerabilities (Falcon Intelligence):read.",
+                "That scope is license-gated. Spotlight's Vulnerabilities:read does not satisfy it, and a",
+                "scope missing from the API client picker means the tenant has no Falcon Intelligence subscription.",
+                "Whether --member-cid carries this scope is unverified.",
+            ]
+        ),
+        summary="  cve show <CVE-ID>         Falcon Intelligence detail for one CVE",
+        handler=_cve_show,
+        operations=("GetVulnerabilities",),
+        positional=("CVE identifier", "A CVE identifier matches CVE-<year>-<number>, for example CVE-2021-44228"),
+    ),
+)

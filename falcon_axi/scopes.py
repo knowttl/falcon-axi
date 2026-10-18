@@ -7,30 +7,11 @@ admit: no other registered operation has one (§4.3, §4.4, §5.7).
 
 from typing import Any
 
+from falcon_axi.command import CommandSpec, Invocation
 from falcon_axi.domain import CommandOutput
 from falcon_axi.render import raw
 from falcon_axi.transport.graphql import GRAPHQL_DOCUMENTS
 from falcon_axi.transport.operations import OPERATIONS, OperationId
-
-#: Each command's operations; GraphQL documents also contribute domain read scopes (§8.1).
-COMMAND_OPERATIONS: tuple[tuple[str, tuple[OperationId, ...]], ...] = (
-    ("detection list", ("GetQueriesAlertsV2", "PostEntitiesAlertsV2")),
-    ("detection show", ("PostEntitiesAlertsV2",)),
-    ("host list", ("QueryDevicesByFilter", "PostDeviceDetailsV2")),
-    ("host show", ("PostDeviceDetailsV2",)),
-    ("host logins", ("QueryDeviceLoginHistoryV2",)),
-    ("account list", ("query_accounts", "get_accounts")),
-    ("account show", ("get_accounts",)),
-    ("vuln list", ("combinedQueryVulnerabilities",)),
-    ("cve show", ("GetVulnerabilities",)),
-    ("identity activity", ("StartSearchV1",)),
-    ("search start", ("StartSearchV1",)),
-    ("search status", ("GetSearchStatusV1",)),
-    ("search stop", ("StopSearchV1",)),
-    ("identity list", ("api_preempt_proxy_post_graphql",)),
-    ("identity show", ("api_preempt_proxy_post_graphql",)),
-    ("identity timeline", ("api_preempt_proxy_post_graphql",)),
-)
 
 
 def _command_scopes(command: str, ids: tuple[OperationId, ...]) -> list[str]:
@@ -43,7 +24,10 @@ def _command_scopes(command: str, ids: tuple[OperationId, ...]) -> list[str]:
 def scope_rows() -> list[dict[str, str]]:
     """One row per registered scope, naming the commands that need it, in registry order."""
     commands: dict[str, list[str]] = {}
-    for command, ids in COMMAND_OPERATIONS:
+    from falcon_axi.commands import COMMAND_SPECS
+
+    for spec in COMMAND_SPECS.values():
+        command, ids = spec.name, spec.operations
         for scope in _command_scopes(command, ids):
             listed = commands.setdefault(scope, [])
             if command not in listed:
@@ -84,3 +68,26 @@ def scope_matrix() -> CommandOutput:
             "omit it and only the `account` commands fail with SCOPE_DENIED",
         ),
     )
+
+
+def _scopes(ctx: Invocation) -> CommandOutput:
+    return scope_matrix()
+
+
+COMMAND_SPECS = (
+    CommandSpec(
+        name="scopes",
+        help="\n".join(
+            [
+                "falcon-axi scopes",
+                "",
+                "Prints the command-to-scope matrix for provisioning the API client.",
+                "It is local only: it makes no request and needs no credential.",
+            ]
+        ),
+        summary="  scopes                    the command-to-scope matrix, with no request made",
+        handler=_scopes,
+        operations=(),
+        authentication="none",
+    ),
+)

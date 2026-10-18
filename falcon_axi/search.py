@@ -13,6 +13,7 @@ from collections.abc import Mapping
 from typing import Any
 
 from falcon_axi.auth import Session
+from falcon_axi.command import CommandSpec, Invocation
 from falcon_axi.core import CliError
 from falcon_axi.domain import CommandOutput, body_of, rate_limit_note, text
 from falcon_axi.falcon_error import translate_falcon_error
@@ -232,3 +233,110 @@ def stop_search(
             "Run `falcon-axi search start --query '<cql>'` to run a narrower search",
         ),
     )
+
+
+def _search_start(ctx: Invocation) -> CommandOutput:
+    return start_search(
+        ctx.transport,
+        ctx.session,
+        query=ctx.text("query") or "",
+        repository=ctx.text("repository") or DEFAULT_REPOSITORY,
+        since=ctx.text("since") or DEFAULT_SINCE,
+    )
+
+
+def _search_status(ctx: Invocation) -> CommandOutput:
+    return search_status(
+        ctx.transport,
+        ctx.session,
+        ctx.positionals[0],
+        repository=ctx.text("repository") or DEFAULT_REPOSITORY,
+    )
+
+
+def _search_stop(ctx: Invocation) -> CommandOutput:
+    return stop_search(
+        ctx.transport,
+        ctx.session,
+        ctx.positionals[0],
+        repository=ctx.text("repository") or DEFAULT_REPOSITORY,
+    )
+
+
+COMMAND_SPECS = (
+    CommandSpec(
+        name="search start",
+        help="\n".join(
+            [
+                "falcon-axi search start --query <CQL> [--repository <name>] [--since <window>]",
+                "",
+                "--query      the CQL search to run; required",
+                f"--repository repository or view to search (default {DEFAULT_REPOSITORY})",
+                f"--since      window to search, such as 24h or 7d (default {DEFAULT_SINCE})",
+                "",
+                "CQL is pipe-based and is neither FQL nor SQL: a filter, then commands.",
+                "Start from a tag or field filter and pipe into commands, and bound the result set in the",
+                "query itself with `| head(N)` or an aggregate; there is no --limit and no --cursor.",
+                "Examples:",
+                "  falcon-axi search start --query '#event_simpleName=ProcessRollup2 | head(5)'",
+                "  falcon-axi search start --query '#event_simpleName=ProcessRollup2 "
+                "| groupBy([ComputerName], function=count())' --since 7d",
+                "",
+                "This command starts a job on the tenant and requires NGSIEM:write.",
+                "Poll it with `falcon-axi search status <id>`.",
+            ]
+        ),
+        summary="  search start              start an NG-SIEM CQL search job",
+        handler=_search_start,
+        operations=("StartSearchV1",),
+        flags=("query", "repository", "since"),
+        value_flags=("query", "repository", "since"),
+    ),
+    CommandSpec(
+        name="search status",
+        help="\n".join(
+            [
+                "falcon-axi search status <search id> [--repository <name>]",
+                "",
+                f"--repository the repository the job was started against (default {DEFAULT_REPOSITORY})",
+                "",
+                "One call is one poll: it reports running, cancelled, or done, and carries the events once",
+                "the job is done. Compare parsed_query with the query you sent, because NG-SIEM turns an",
+                "unrecognised word into a free-text stage rather than an error.",
+                "",
+                "Example: falcon-axi search status abc123",
+                "",
+                "This command is read-only and requires only NGSIEM:read.",
+            ]
+        ),
+        summary="  search status <id>        poll one search job and read its events",
+        handler=_search_status,
+        operations=("GetSearchStatusV1",),
+        flags=("repository",),
+        value_flags=("repository",),
+        positional=("search identifier", "A search identifier comes from `falcon-axi search start --query '<cql>'`"),
+    ),
+    CommandSpec(
+        name="search stop",
+        help="\n".join(
+            [
+                "falcon-axi search stop <search id> [--repository <name>]",
+                "",
+                f"--repository the repository the job was started against (default {DEFAULT_REPOSITORY})",
+                "",
+                "Cancels one search job falcon-axi started. It changes no tenant data, no host, and no",
+                "detection: the only thing it stops is the job.",
+                "",
+                "Example: falcon-axi search stop abc123",
+                "",
+                "This command requires NGSIEM:write.",
+            ]
+        ),
+        summary="  search stop <id>          cancel one search job",
+        handler=_search_stop,
+        operations=("StopSearchV1",),
+        flags=("repository",),
+        value_flags=("repository",),
+        positional=("search identifier", "A search identifier comes from `falcon-axi search start --query '<cql>'`"),
+    ),
+)
