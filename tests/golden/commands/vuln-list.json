@@ -1,0 +1,11 @@
+{
+  "name": "vuln list",
+  "order": 900,
+  "summary": "  vuln list                 list Spotlight vulnerabilities; a filter is required",
+  "scopes": [
+    {
+      "scope": "Vulnerabilities:read",
+      "access": "read"
+    }
+  ]
+}

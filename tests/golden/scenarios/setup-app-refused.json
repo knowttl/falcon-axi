@@ -1,0 +1,10 @@
+{
+  "name": "setup-app-refused",
+  "argv": [
+    "setup",
+    "--app",
+    "claude"
+  ],
+  "env": "none",
+  "exit_code": 2
+}

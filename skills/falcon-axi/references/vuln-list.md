@@ -1,0 +1,30 @@
+# vuln list
+
+vuln list                 list Spotlight vulnerabilities; a filter is required
+
+```text
+uvx falcon-axi vuln list [--host <device id>] [--severity <name>] [--status <name>] [--since <window>] [--filter <FQL>] [--limit N] [--cursor <token>] [--fields <names>] [--all] [--max-rows N]
+
+--host       device id (AID) whose vulnerabilities to read
+--severity   one of low, medium, high, critical
+--status     one of open, closed, reopen, expired
+--since      created_timestamp within a relative window such as 24h or 7d
+--filter     raw FQL; + is AND, `,` is OR, values are single-quoted
+--limit      rows in this call (default 20, ceiling 5000)
+--cursor     opaque continuation token from a previous call
+--all        walk pages; page size is independent of --limit
+--max-rows   row budget (default 1000; requires --all)
+--fields     extra columns, comma-separated: description, base_score, exprt_rating, status, created, updated, product, remediation, platform, os, local_ip
+
+Default columns are id, cve, severity, and hostname. --fields adds columns from that
+allowlist; an unknown name is refused and the valid names are listed.
+A filter is required, from a shorthand flag or --filter, because Spotlight requires one.
+Wildcards are unsupported and a `*` is refused before the request is made.
+Filterable fields include aid, cve.id, cve.severity, cve.exprt_rating, cve.exploit_status,
+status, and created_timestamp.
+Examples:
+  uvx falcon-axi vuln list --severity critical --status open
+  uvx falcon-axi vuln list --filter "status:'open'+cve.exploit_status:'90'"
+
+This command is read-only and requires only Vulnerabilities:read.
+```

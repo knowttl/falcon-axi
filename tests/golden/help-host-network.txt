@@ -1,0 +1,6 @@
+falcon-axi host network <device id>
+
+Retrieves the IP and MAC address history Falcon retains for one sensor host.
+The device id is the AID printed by `falcon-axi host list`.
+Example: falcon-axi host network abc123
+Read-only; requires Hosts:read. This endpoint has no pagination parameters.

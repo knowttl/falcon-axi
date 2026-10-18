@@ -1,0 +1,8 @@
+{
+  "name": "host-logins-without-id",
+  "argv": [
+    "host",
+    "logins"
+  ],
+  "exit_code": 2
+}

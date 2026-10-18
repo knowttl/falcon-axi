@@ -1,0 +1,22 @@
+{
+  "provenance": {
+    "operation": "api_preempt_proxy_post_graphql",
+    "reference": "https://github.com/CrowdStrike/psfalcon/blob/master/samples/identity-protection/security-assessment-for-domain.ps1",
+    "schema_read": "2026-10-18",
+    "provenance": "synthetic"
+  },
+  "response": {
+    "status": 200,
+    "body": {
+      "data": {
+        "securityAssessment": {
+          "overallScore": 0.75,
+          "overallScoreLevel": "HIGH",
+          "assessmentFactors": [
+            {"riskFactorType": "STALE_PASSWORD", "severity": "HIGH", "likelihood": "MEDIUM"}
+          ]
+        }
+      }
+    }
+  }
+}

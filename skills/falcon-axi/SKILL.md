@@ -7,7 +7,7 @@ description: >-
 
 # falcon-axi
 
-Read CrowdStrike Falcon detections, hosts, vulnerabilities, and NG-SIEM searches from the shell.
+Read CrowdStrike Falcon from the shell.
 Run `uvx falcon-axi ...` without a global install.
 
 ## Read-only boundary
@@ -29,30 +29,8 @@ Run `uvx falcon-axi` for recent detections, or invoke a known command directly.
 
 ## Commands
 
-```text
-uvx falcon-axi detection list            list detections from the Falcon Alerts collection
-uvx falcon-axi detection show <id>       the full detail for one detection
-uvx falcon-axi host list                 list hosts from the Falcon Hosts collection
-uvx falcon-axi host show <device id>     the full detail for one host
-uvx falcon-axi host logins <device id>   recent interactive logins on one host
-uvx falcon-axi account list              list Discover accounts observed on endpoints
-uvx falcon-axi account show <id>         the full detail for one account
-uvx falcon-axi vuln list                 list Spotlight vulnerabilities; a filter is required
-uvx falcon-axi cve show <CVE-ID>         Falcon Intelligence detail for one CVE
-uvx falcon-axi identity activity <acct>  start a search for one account's identity events
-uvx falcon-axi search start              start an NG-SIEM CQL search job
-uvx falcon-axi search status <id>        poll one search job and read its events
-uvx falcon-axi search stop <id>          cancel one search job
-uvx falcon-axi identity list             list Identity Protection users and endpoints with their risk
-uvx falcon-axi identity show <id>        one identity's risk, accounts, associations, and open incidents
-uvx falcon-axi identity timeline <id>    one identity's recent activity
-uvx falcon-axi auth status               whether a credential resolved, and where to
-uvx falcon-axi profile list              configured profile names, without reading secrets
-uvx falcon-axi config path               config and write-journal paths
-uvx falcon-axi scopes                    the command-to-scope matrix, with no request made
-uvx falcon-axi setup                     offline installation and credential guidance
-uvx falcon-axi setup hooks               install or repair all three session integrations
-```
+Run `uvx falcon-axi --help` for the complete command list.
+Read `references/<command>.md` for a command's reference, replacing spaces with hyphens.
 
 Run `uvx falcon-axi <command> --help` for accepted flags, defaults, arguments, and examples.
 

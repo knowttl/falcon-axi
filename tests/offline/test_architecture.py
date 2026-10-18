@@ -134,3 +134,27 @@ def test_the_help_path_never_imports_falconpy_or_the_encoder() -> None:
         [sys.executable, "-c", program], capture_output=True, text=True, cwd=REPO, check=True
     )
     assert result.stdout.strip() == "False False"
+
+
+@pytest.mark.parametrize("flag", ["-v", "-V", "--version"])
+@pytest.mark.parametrize("entrypoint", ["console", "module"])
+def test_version_answers_before_loading_the_command_graph(flag: str, entrypoint: str) -> None:
+    from falcon_axi.version import VERSION
+
+    invoke = (
+        "from falcon_axi.cli import main; assert main() == 0"
+        if entrypoint == "console"
+        else "import runpy; runpy.run_module('falcon_axi', run_name='__main__')"
+    )
+    program = (
+        f"import sys; sys.argv = ['falcon-axi', {flag!r}]; {invoke}; "
+        "assert 'falcon_axi.commands' not in sys.modules; "
+        "assert 'falcon_axi.detection' not in sys.modules; "
+        "assert 'falconpy' not in sys.modules; "
+        "assert 'toon_format' not in sys.modules"
+    )
+    result = subprocess.run(  # noqa: S603
+        [sys.executable, "-c", program], capture_output=True, text=True, cwd=REPO, check=True
+    )
+    assert result.stdout == f"{VERSION}\n"
+    assert result.stderr == ""

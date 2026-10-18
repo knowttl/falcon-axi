@@ -1,0 +1,7 @@
+actor:
+  id: 123456
+  name: Synthetic Fox
+  slug: synthetic-fox
+  description: A wholly synthetic adversary profile.
+  target_countries[1]{id,value}:
+    1,Synthetic Country

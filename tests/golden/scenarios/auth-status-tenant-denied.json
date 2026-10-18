@@ -1,0 +1,15 @@
+{
+  "name": "auth-status-tenant-denied",
+  "argv": [
+    "auth",
+    "status",
+    "--member-cid",
+    "synthetic-child-cid"
+  ],
+  "oauth": [
+    {
+      "fixture": "oauth2/token-403-member-cid.json"
+    }
+  ],
+  "exit_code": 1
+}

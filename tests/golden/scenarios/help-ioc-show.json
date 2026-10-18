@@ -1,0 +1,9 @@
+{
+  "name": "help-ioc-show",
+  "argv": [
+    "ioc",
+    "show",
+    "--help"
+  ],
+  "exit_code": 0
+}

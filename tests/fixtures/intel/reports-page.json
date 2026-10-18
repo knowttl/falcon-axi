@@ -1,0 +1,33 @@
+{
+  "provenance": {
+    "operation": "QueryIntelReportEntities",
+    "reference": "https://developer.crowdstrike.com/api-reference/collections/intel/",
+    "schema_read": "2026-10-18",
+    "provenance": "synthetic"
+  },
+  "response": {
+    "status": 200,
+    "headers": {},
+    "body": {
+      "meta": {
+        "pagination": {
+          "total": 3
+        }
+      },
+      "resources": [
+        {
+          "id": 123456,
+          "name": "Synthetic threat report",
+          "created_date": 4000000000,
+          "last_modified_date": 4000000001
+        },
+        {
+          "id": 123457,
+          "name": "Synthetic activity report",
+          "created_date": 4000000000,
+          "last_modified_date": 4000000002
+        }
+      ]
+    }
+  }
+}

@@ -1,0 +1,13 @@
+# identity assessment
+
+identity assessment       security assessment score and risk factors
+
+```text
+uvx falcon-axi identity assessment [--domain <name>]
+
+--domain     configured Active Directory domain; omit for the overall assessment
+
+Prints the security assessment score, level, and risk factors with severity and likelihood.
+Sends only a fixed read-only query and requires Identity Protection Assessment:read and
+Identity Protection GraphQL:write. It changes no identity or assessment.
+```

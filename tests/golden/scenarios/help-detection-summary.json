@@ -1,0 +1,9 @@
+{
+  "name": "help-detection-summary",
+  "argv": [
+    "detection",
+    "summary",
+    "--help"
+  ],
+  "exit_code": 0
+}

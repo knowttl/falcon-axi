@@ -201,7 +201,10 @@ def test_the_home_view_caps_at_five_rows_and_names_the_domains_it_reads() -> Non
     )
     stdout, exit_code = run([], recorded, dict(CREDENTIAL_ENV))
     assert exit_code == 0
-    assert "detections, hosts, vulnerabilities, and NG-SIEM searches from the shell" in stdout
+    assert (
+        "detections, hosts, accounts, vulnerabilities, CVE intelligence, indicators, identities, "
+        "and NG-SIEM searches from the shell" in stdout
+    )
     assert re.search(r"^tenant: us-1 \(own CID unavailable\)$", stdout, re.MULTILINE)
     assert re.search(r"^count: 5 of 384 total$", stdout, re.MULTILINE)
     assert len(_rows(stdout)) == 5

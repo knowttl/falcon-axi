@@ -1,0 +1,16 @@
+{
+  "name": "report-list-page",
+  "argv": [
+    "report",
+    "list",
+    "--limit",
+    "2"
+  ],
+  "responders": [
+    {
+      "op": "QueryIntelReportEntities",
+      "fixture": "intel/reports-page.json"
+    }
+  ],
+  "exit_code": 0
+}

@@ -1,0 +1,6 @@
+{
+  "name": "setup",
+  "order": 2800,
+  "summary": "  setup                     offline installation and credential guidance",
+  "scopes": []
+}

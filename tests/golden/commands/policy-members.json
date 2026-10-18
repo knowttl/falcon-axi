@@ -1,0 +1,37 @@
+{
+  "name": "policy members",
+  "order": 2311,
+  "summary": "  policy members <id>       list hosts assigned to a policy",
+  "scopes": [
+    {
+      "scope": "Prevention Policies:read",
+      "access": "read",
+      "required": "selected --type"
+    },
+    {
+      "scope": "Sensor Update Policies:read",
+      "access": "read",
+      "required": "selected --type"
+    },
+    {
+      "scope": "Firewall Management:read",
+      "access": "read",
+      "required": "selected --type"
+    },
+    {
+      "scope": "Device Control Policies:read",
+      "access": "read",
+      "required": "selected --type"
+    },
+    {
+      "scope": "Response Policies:read",
+      "access": "read",
+      "required": "selected --type"
+    },
+    {
+      "scope": "Content Update Policies:read",
+      "access": "read",
+      "required": "selected --type"
+    }
+  ]
+}

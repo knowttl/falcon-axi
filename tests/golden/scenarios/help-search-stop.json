@@ -1,0 +1,9 @@
+{
+  "name": "help-search-stop",
+  "argv": [
+    "search",
+    "stop",
+    "--help"
+  ],
+  "exit_code": 0
+}

@@ -1,0 +1,11 @@
+{
+  "name": "member-cid-conflict",
+  "argv": [
+    "auth",
+    "status",
+    "--member-cid",
+    "cid",
+    "--no-member-cid"
+  ],
+  "exit_code": 2
+}

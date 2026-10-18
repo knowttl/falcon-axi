@@ -1,0 +1,16 @@
+{
+  "name": "detection-show-full",
+  "argv": [
+    "detection",
+    "show",
+    "ldt:synthetic-agent-01:1001",
+    "--full"
+  ],
+  "responders": [
+    {
+      "op": "PostEntitiesAlertsV2",
+      "fixture": "alerts/hydrate-detail.json"
+    }
+  ],
+  "exit_code": 0
+}

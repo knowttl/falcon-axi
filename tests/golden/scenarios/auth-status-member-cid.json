@@ -1,0 +1,10 @@
+{
+  "name": "auth-status-member-cid",
+  "argv": [
+    "auth",
+    "status",
+    "--member-cid",
+    "synthetic-child-cid-a3b4"
+  ],
+  "exit_code": 0
+}

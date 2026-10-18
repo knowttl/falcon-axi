@@ -1,0 +1,11 @@
+{
+  "name": "asset show",
+  "order": 802,
+  "summary": "  asset show <id>           details for one Discover asset",
+  "scopes": [
+    {
+      "scope": "Assets:read",
+      "access": "read"
+    }
+  ]
+}

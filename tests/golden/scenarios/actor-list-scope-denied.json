@@ -1,0 +1,14 @@
+{
+  "name": "actor-list-scope-denied",
+  "argv": [
+    "actor",
+    "list"
+  ],
+  "responders": [
+    {
+      "op": "QueryIntelActorEntities",
+      "fixture": "errors/403-scope.json"
+    }
+  ],
+  "exit_code": 1
+}

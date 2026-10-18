@@ -1,0 +1,25 @@
+# account list
+
+account list              list Discover accounts observed on endpoints
+
+```text
+uvx falcon-axi account list [--filter <FQL>] [--limit N] [--cursor <token>] [--all] [--max-rows N]
+
+--filter     raw FQL; + is AND, `,` is OR, values are single-quoted
+--limit      rows in this call (default 20, ceiling 100)
+--cursor     opaque continuation token from a previous call
+--all        walk pages; page size is independent of --limit
+--max-rows   row budget (default 1000; requires --all)
+
+Lists the accounts Falcon Discover has observed logging in on endpoints, which is an
+endpoint-observed inventory and not an identity directory.
+Filterable fields include username, account_name, account_type, login_domain, user_sid,
+admin_privileges, local_admin_privileges, first_seen_timestamp, password_last_set_timestamp,
+last_successful_login_timestamp, and last_failed_login_timestamp.
+Examples:
+  uvx falcon-axi account list --filter "admin_privileges:'Yes'"
+  uvx falcon-axi account list --filter "username:'svc-*'"
+
+This command is read-only and requires only Assets:read, which is license-gated to Falcon
+Discover or Exposure Management.
+```

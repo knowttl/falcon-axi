@@ -1,0 +1,16 @@
+{
+  "name": "policy-list-scope-denied",
+  "argv": [
+    "policy",
+    "list",
+    "--type",
+    "prevention"
+  ],
+  "responders": [
+    {
+      "op": "queryCombinedPreventionPolicies",
+      "fixture": "errors/403-scope.json"
+    }
+  ],
+  "exit_code": 1
+}

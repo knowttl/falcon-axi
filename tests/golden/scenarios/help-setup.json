@@ -1,0 +1,9 @@
+{
+  "name": "help-setup",
+  "argv": [
+    "setup",
+    "--help"
+  ],
+  "env": "none",
+  "exit_code": 0
+}

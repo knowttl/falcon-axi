@@ -1,0 +1,11 @@
+{
+  "name": "search start",
+  "order": 1800,
+  "summary": "  search start              start an NG-SIEM CQL search job",
+  "scopes": [
+    {
+      "scope": "NGSIEM:write",
+      "access": "write"
+    }
+  ]
+}

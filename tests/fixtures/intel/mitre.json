@@ -1,0 +1,27 @@
+{
+  "provenance": {
+    "operation": "GetMitreReport",
+    "reference": "https://developer.crowdstrike.com/api-reference/collections/intel/",
+    "schema_read": "2026-10-18",
+    "provenance": "synthetic"
+  },
+  "response": {
+    "status": 200,
+    "headers": {},
+    "body": [
+      {
+        "id": "synthetic-fox_TA0002_T1059",
+        "tactic_id": "TA0002",
+        "tactic_name": "Execution",
+        "technique_id": "T1059",
+        "technique_name": "Command and Scripting Interpreter",
+        "reports": [
+          "SYNTHETIC001"
+        ],
+        "observables": [
+          "Wholly synthetic procedure."
+        ]
+      }
+    ]
+  }
+}

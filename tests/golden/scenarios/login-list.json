@@ -1,0 +1,20 @@
+{
+  "name": "login-list",
+  "argv": [
+    "login",
+    "list",
+    "--limit",
+    "2"
+  ],
+  "responders": [
+    {
+      "op": "query_logins",
+      "fixture": "discover/logins-query.json"
+    },
+    {
+      "op": "get_logins",
+      "fixture": "discover/logins-details.json"
+    }
+  ],
+  "exit_code": 0
+}

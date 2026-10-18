@@ -1,0 +1,9 @@
+{
+  "name": "help-vuln-list",
+  "argv": [
+    "vuln",
+    "list",
+    "--help"
+  ],
+  "exit_code": 0
+}

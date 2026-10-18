@@ -1,0 +1,9 @@
+{
+  "name": "identity-sensor-unknown-subcommand",
+  "argv": [
+    "identity",
+    "sensor",
+    "delete"
+  ],
+  "exit_code": 2
+}

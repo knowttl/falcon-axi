@@ -1,0 +1,10 @@
+{
+  "name": "detection-list-unknown-product",
+  "argv": [
+    "detection",
+    "list",
+    "--product",
+    "edr"
+  ],
+  "exit_code": 2
+}

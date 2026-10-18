@@ -11,9 +11,12 @@ scalar DateTimeInput
 enum TimelineEventCategory { ACTIVITY NOTIFICATION THREAT ENTITY AUDIT POLICY SYSTEM }
 
 type Query {
+  securityAssessment(domain: String): SecurityAssessment
   entities(entityIds: [UUID!], first: Int): EntityConnection
   timeline(sourceEntityQuery: EntityQuery, startTime: DateTimeInput, categories: [TimelineEventCategory!], sortOrder: SortOrder, first: Int, after: Cursor): TimelineConnection
 }
+type SecurityAssessment { overallScore: Float overallScoreLevel: String assessmentFactors: [AssessmentFactor!] }
+type AssessmentFactor { riskFactorType: String severity: String likelihood: String }
 input EntityQuery { entityIds: [UUID!] }
 enum SortOrder { DESCENDING }
 type EntityConnection { nodes: [Entity!] }
