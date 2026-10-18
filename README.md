@@ -15,7 +15,7 @@ What is shipped:
 
 - the package foundation: a Python package, the `falcon-axi` console script, and one offline
   `uv run scripts/verify.py` entry point;
-- `-v`, `-V`, and `--version`, printing the bare version without loading the command graph;
+- `-v`, `-V`, and `--version`, printing the bare version;
 - the sealed transport and its closed operation registry, with evidence carried per operation, a
   second and third enforcement tier confining the two write-labelled scopes to three named
   operations, and a single permitted network sink;

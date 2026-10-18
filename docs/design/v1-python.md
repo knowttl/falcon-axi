@@ -236,7 +236,9 @@ It reaches the network, so it is opt-in and never part of `verify`.
 - **Fixtures.** The existing JSON files move unchanged.
   The two hygiene tests (provenance header present; no credential, token, CID, or realistic tenant-data pattern) port as is.
 - **Coverage of the design.** Every test named in v1.md §14.5 is re-expressed; the 67 stage 1 tests are the floor, and the parity gate of §5 adds the golden comparisons.
-- **Fast `--version`.** A test measures `falcon-axi --version` against the `python -c pass` floor in the same process and fails on a relative regression, as AXI §10 asks; `cli.py` handles version flags before importing `falconpy` or `toon_format`.
+- **Fast version probes.** `__main__.py` and `cli.main()` check argv through the stdlib-only `version.py` before loading command domains.
+  `tests/offline/test_architecture.py::test_version_answers_before_loading_the_command_graph` checks all documented version flags through both entrypoints and asserts that the command registry, detection domain, `falconpy`, and `toon_format` remain unimported.
+  This guards the import boundary, not a latency budget.
 - **Live suite.** `tests/live/` keeps v1.md §15's boundary word for word: credentials provisioned per §5.7, shape assertions only, nothing persisted, any search job it starts also stopped, never in the required set.
 
 ## 8. Packaging and distribution
