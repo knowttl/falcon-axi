@@ -322,6 +322,8 @@ Run `falcon-axi host logins --help` for defaults and limits.
 Use `--filter "entity_type:'managed'"` or `--filter "entity_type:'unmanaged'"` to select either inventory.
 Discover asset IDs come from `asset list`; sensor device IDs come from `host list`.
 `asset list` and `application list` use `--filter`, `--limit` (ceiling 1000), and `--cursor` for token pagination.
+Without `--filter`, they send the API-required broad filters `id:'*'` and `name:'*'`, respectively.
+`asset show` lists MAC addresses from Discover's `network_interfaces` records.
 `login list` uses the same flags with offset pagination and a ceiling of 100.
 `host network <device_id>` returns the address history Falcon retains and has no pagination flags.
 These shapes match the official API reference and SDKs; they have not been validated against a tenant.

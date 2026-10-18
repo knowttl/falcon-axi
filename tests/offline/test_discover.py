@@ -9,6 +9,45 @@ from tests.support.recorded import CREDENTIAL_ENV, RecordedTransport, fixture, r
 
 
 @pytest.mark.parametrize(
+    ("noun", "operation", "filename", "default_filter"),
+    [
+        ("asset", "combined_hosts", "assets-page", "id:'*'"),
+        ("application", "combined_applications", "applications-page", "name:'*'"),
+    ],
+)
+def test_default_inventory_filter_is_sent_and_bound_to_continuation(
+    noun: str, operation: str, filename: str, default_filter: str
+) -> None:
+    recorded = RecordedTransport([serve(operation, fixture(f"discover/{filename}.json"))])
+    stdout, code = run([noun, "list"], recorded, dict(CREDENTIAL_ENV))
+    assert code == 0
+    assert recorded.operation_requests(operation)[0].query == {"limit": 20, "filter": default_filter}
+    cursor = re.search(r"^continuation_cursor: (\S+)$", stdout, re.MULTILINE)
+    assert cursor
+    followed = RecordedTransport([serve(operation, response(200, {"resources": []}))])
+    _, code = run([noun, "list", "--cursor", cursor[1]], followed, dict(CREDENTIAL_ENV))
+    assert code == 0
+    assert followed.operation_requests(operation)[0].query["filter"] == default_filter
+    explicit = RecordedTransport([serve(operation, response(200, {"resources": []}))])
+    _, code = run([noun, "list", "--filter", default_filter, "--cursor", cursor[1]], explicit, dict(CREDENTIAL_ENV))
+    assert code == 0
+    refused = RecordedTransport([])
+    output, code = run([noun, "list", "--filter", "name:'other'", "--cursor", cursor[1]], refused, dict(CREDENTIAL_ENV))
+    assert code == 2
+    assert "VALIDATION_ERROR" in output
+    assert not refused.operation_requests(operation)
+
+
+@pytest.mark.parametrize("entity_type", ["managed", "unmanaged"])
+def test_asset_filter_selects_either_inventory(entity_type: str) -> None:
+    recorded = RecordedTransport([serve("combined_hosts", response(200, {"resources": []}))])
+    filter = f"entity_type:'{entity_type}'"
+    _, code = run(["asset", "list", "--filter", filter], recorded, dict(CREDENTIAL_ENV))
+    assert code == 0
+    assert recorded.operation_requests("combined_hosts")[0].query == {"limit": 20, "filter": filter}
+
+
+@pytest.mark.parametrize(
     ("noun", "operation", "filename", "limit", "next_position"),
     [
         ("asset", "combined_hosts", "assets-page", "2", "synthetic-assets-next"),
@@ -87,6 +126,7 @@ def test_asset_show_uses_discover_id_and_renders_platform_and_sensor_association
     assert "aid: synthetic-device-01" in stdout
     assert "entity_type: managed" in stdout
     assert "192.0.2.10" in stdout
+    assert 'mac_addresses[1]: "02:00:00:00:00:01"' in stdout
     assert "synthetic-cid" not in stdout
     assert recorded.operation_requests("get_hosts")[0].query == {"ids": ("synthetic-asset-01",)}
 
@@ -97,6 +137,31 @@ def test_missing_asset_has_actionable_not_found_error() -> None:
     assert code == 1
     assert "NOT_FOUND" in stdout
     assert "falcon-axi asset list" in stdout
+
+
+@pytest.mark.parametrize(
+    ("network", "expected"),
+    [
+        ({}, "mac_addresses: []"),
+        ({"network_interfaces": None}, "mac_addresses: []"),
+        ({"network_interfaces": []}, "mac_addresses: []"),
+        (
+            {
+                "network_interfaces": [
+                    {"mac_address": "02:00:00:00:00:01"},
+                    {"local_ip": "192.0.2.10"},
+                    {"mac_address": "02:00:00:00:00:02"},
+                ]
+            },
+            'mac_addresses[2]: "02:00:00:00:00:01","02:00:00:00:00:02"',
+        ),
+    ],
+)
+def test_asset_show_preserves_available_interface_mac_addresses(network: dict[str, object], expected: str) -> None:
+    recorded = RecordedTransport([serve("get_hosts", response(200, {"resources": [{"id": "synthetic-asset", **network}]}))])
+    stdout, code = run(["asset", "show", "synthetic-asset"], recorded, dict(CREDENTIAL_ENV))
+    assert code == 0
+    assert expected in stdout
 
 
 @pytest.mark.parametrize(

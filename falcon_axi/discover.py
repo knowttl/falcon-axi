@@ -43,6 +43,8 @@ def _list(ctx: Invocation) -> CommandOutput:
     if filter is not None and not filter.strip():
         raise CliError("VALIDATION_ERROR", "--filter requires a value")
     token_model = noun != "login"
+    if filter is None and token_model:
+        filter = "id:'*'" if noun == "asset" else "name:'*'"
     context = CursorContext(
         operation=operation,
         client_id=ctx.credential.client_id,
@@ -119,11 +121,22 @@ def _show_asset(ctx: Invocation) -> CommandOutput:
         "criticality",
         "current_local_ip",
         "external_ip",
-        "current_mac_address",
         "first_seen_timestamp",
         "last_seen_timestamp",
     )
-    return CommandOutput(value={"asset": {key: text(asset.get(key)) or "unknown" for key in columns}}, help=())
+    value: dict[str, Any] = {key: text(asset.get(key)) or "unknown" for key in columns}
+    interfaces = asset.get("network_interfaces")
+    value["mac_addresses"] = (
+        [
+            address
+            for interface in interfaces
+            if isinstance(interface, Mapping)
+            if (address := text(interface.get("mac_address")))
+        ]
+        if isinstance(interfaces, list)
+        else []
+    )
+    return CommandOutput(value={"asset": value}, help=())
 
 
 COMMAND_SPECS = (
@@ -135,6 +148,7 @@ COMMAND_SPECS = (
                 "",
                 "Lists Discover managed and unmanaged assets, distinct from Falcon sensor hosts.",
                 "--filter     raw FQL, including entity_type, hostname, platform_name, and criticality",
+                "             default id:'*' (all Discover assets)",
                 f"--limit      rows in this call (default {DEFAULT_LIMIT}, ceiling 1000)",
                 "--cursor     opaque continuation token from a previous call",
                 "",
@@ -176,6 +190,7 @@ COMMAND_SPECS = (
                 "falcon-axi application list [--filter <FQL>] [--limit N] [--cursor <token>]",
                 "",
                 "--filter     raw FQL on Discover application fields such as name, vendor, and host.hostname",
+                "             default name:'*' (all named applications)",
                 f"--limit      rows in this call (default {DEFAULT_LIMIT}, ceiling 1000)",
                 "--cursor     opaque continuation token from a previous call",
                 "",
