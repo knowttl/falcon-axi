@@ -70,6 +70,9 @@ def translate_falcon_error(response: FalconResponse, id: OperationId, subject: s
                 command, example = "vuln list", "status:'open'"
             elif "Indicators (Falcon Intelligence):read" in scopes:
                 command, example = "indicator list", "type:'domain'"
+            elif "Data Protection:read" in scopes:
+                command = "classification list" if "classification" in id else "data-policy list"
+                example = "name:'Confidential*'"
             else:
                 command, example = "detection list", "severity_name:'High'+status:'new'"
             return CliError(
@@ -137,6 +140,11 @@ def translate_falcon_error(response: FalconResponse, id: OperationId, subject: s
             {"required_scopes": list(scopes)},
         )
     if response.status == 404:
+        if "Data Protection:read" in scopes:
+            command = "classification list" if "classification" in id else "data-policy list --platform win"
+            return CliError(
+                "NOT_FOUND", f"no {subject} matched that identifier", [f"Run `falcon-axi {command}` to see current identifiers"]
+            )
         return CliError(
             "NOT_FOUND",
             f"no {subject} matched that identifier",

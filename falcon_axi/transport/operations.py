@@ -30,6 +30,10 @@ OperationId = Literal[
     "QueryDeviceLoginHistoryV2",
     "query_accounts",
     "get_accounts",
+    "queries_classification_get_v2",
+    "entities_classification_get_v2",
+    "queries_policy_get_v2",
+    "entities_policy_get_v2",
     "StartSearchV1",
     "GetSearchStatusV1",
     "StopSearchV1",
@@ -89,6 +93,77 @@ NGSIEM_DOC = "https://developer.crowdstrike.com/api-reference/collections/ngsiem
 IDENTITY_PROTECTION_DOC = "https://developer.crowdstrike.com/api-reference/collections/identity-protection/"
 
 CANONICAL: tuple[FalconOperation, ...] = (
+    FalconOperation(
+        id="queries_classification_get_v2",
+        method="GET",
+        path="/data-protection/queries/classifications/v2",
+        scopes=("Data Protection:read",),
+        effect="read",
+        evidence=Evidence(
+            doc_url="https://developer.crowdstrike.com/api-reference/collections/data-protection-configuration/#queriesclassificationgetv2",
+            doc_scope="Data Protection: READ",
+            falcon_mcp=(
+                "falcon_mcp/common/api_scopes.py maps queries_classification_get_v2 to Data Protection:read; "
+                "falcon_mcp/modules/data_security.py _OPERATIONS and search_data_security_entities query then hydrate. "
+                "https://github.com/CrowdStrike/falcon-mcp/blob/ece8575/falcon_mcp/modules/data_security.py; "
+                "falconpy/_endpoint/_data_protection_configuration.py confirms GET, filter, sort, "
+                "limit <=500 and offset <=10000."
+            ),
+        ),
+    ),
+    FalconOperation(
+        id="entities_classification_get_v2",
+        method="GET",
+        path="/data-protection/entities/classifications/v2",
+        scopes=("Data Protection:read",),
+        effect="read",
+        evidence=Evidence(
+            doc_url="https://developer.crowdstrike.com/api-reference/collections/data-protection-configuration/#entitiesclassificationgetv2",
+            doc_scope="Data Protection: READ",
+            falcon_mcp=(
+                "falcon_mcp/common/api_scopes.py maps entities_classification_get_v2 to Data Protection:read; "
+                "falcon_mcp/modules/data_security.py get_data_security_entities sends ids as query parameters. "
+                "https://github.com/CrowdStrike/falcon-mcp/blob/ece8575/falcon_mcp/modules/data_security.py; "
+                "falconpy/_endpoint/_data_protection_configuration.py confirms GET and at most 100 ids."
+            ),
+        ),
+    ),
+    FalconOperation(
+        id="queries_policy_get_v2",
+        method="GET",
+        path="/data-protection/queries/policies/v2",
+        scopes=("Data Protection:read",),
+        effect="read",
+        evidence=Evidence(
+            doc_url="https://developer.crowdstrike.com/api-reference/collections/data-protection-configuration/#queriespolicygetv2",
+            doc_scope="Data Protection: READ",
+            falcon_mcp=(
+                "falcon_mcp/common/api_scopes.py maps queries_policy_get_v2 to Data Protection:read; "
+                "falcon_mcp/modules/data_security.py search_data_security_entities requires "
+                "platform_name win or mac for policy. "
+                "https://github.com/CrowdStrike/falcon-mcp/blob/ece8575/falcon_mcp/modules/data_security.py; "
+                "falconpy/_endpoint/_data_protection_configuration.py confirms GET, filter, sort, "
+                "limit <=500 and offset <=10000."
+            ),
+        ),
+    ),
+    FalconOperation(
+        id="entities_policy_get_v2",
+        method="GET",
+        path="/data-protection/entities/policies/v2",
+        scopes=("Data Protection:read",),
+        effect="read",
+        evidence=Evidence(
+            doc_url="https://developer.crowdstrike.com/api-reference/collections/data-protection-configuration/#entitiespolicygetv2",
+            doc_scope="Data Protection: READ",
+            falcon_mcp=(
+                "falcon_mcp/common/api_scopes.py maps entities_policy_get_v2 to Data Protection:read; "
+                "falcon_mcp/modules/data_security.py get_data_security_entities sends ids without platform_name. "
+                "https://github.com/CrowdStrike/falcon-mcp/blob/ece8575/falcon_mcp/modules/data_security.py; "
+                "falconpy/_endpoint/_data_protection_configuration.py confirms GET and at most 100 ids."
+            ),
+        ),
+    ),
     FalconOperation(
         id="QueryIntelIndicatorEntities",
         method="GET",

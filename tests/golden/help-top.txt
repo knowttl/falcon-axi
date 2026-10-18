@@ -13,6 +13,10 @@ Commands:
   cve show <CVE-ID>         Falcon Intelligence detail for one CVE
   indicator list            list Falcon Intelligence indicators
   indicator show <id>       detail for one intelligence indicator
+  classification list       list Data Protection classifications
+  classification show <id>  full Data Protection classification
+  data-policy list          list Data Protection policies
+  data-policy show <id>     full Data Protection policy
   identity activity <acct>  start a search for one account's identity events
   search start              start an NG-SIEM CQL search job
   search status <id>        poll one search job and read its events

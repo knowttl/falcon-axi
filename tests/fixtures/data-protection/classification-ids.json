@@ -1,0 +1,16 @@
+{
+  "provenance": {
+    "operation": "queries_classification_get_v2",
+    "reference": "https://developer.crowdstrike.com/api-reference/collections/data-protection-configuration/",
+    "schema_read": "2026-10-18",
+    "provenance": "synthetic"
+  },
+  "response": {
+    "status": 200,
+    "body": {
+      "meta": {"pagination": {"total": 2}},
+      "resources": ["synthetic-classification-01", "synthetic-classification-02"],
+      "errors": []
+    }
+  }
+}

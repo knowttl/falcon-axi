@@ -144,5 +144,20 @@
   "help-detection-summary": 0,
   "detection-summary": 0,
   "detection-summary-empty": 0,
-  "detection-summary-scope-denied": 1
+  "detection-summary-scope-denied": 1,
+  "help-classification-list": 0,
+  "help-classification-show": 0,
+  "classification-list": 0,
+  "classification-show": 0,
+  "classification-list-empty": 0,
+  "classification-show-not-found": 1,
+  "classification-scope-denied": 1,
+  "help-data-policy-list": 0,
+  "help-data-policy-show": 0,
+  "data-policy-list": 0,
+  "data-policy-show": 0,
+  "data-policy-list-empty": 0,
+  "data-policy-show-not-found": 1,
+  "data-policy-scope-denied": 1,
+  "data-policy-platform-required": 2
 }

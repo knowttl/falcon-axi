@@ -8,11 +8,17 @@ suggestions point to commands worth running next.
 
 ## Status: partial implementation of the v1 design
 
-The package is real and installable, and it ships six read domains plus NG-SIEM search.
+The package is real and installable, and it ships the read domains below plus NG-SIEM search.
 The shipped and deferred commands are listed below; [`docs/design/v1.md`](docs/design/v1.md) owns the full v1 design.
 
 What is shipped:
 
+- Data Protection configuration reads: `classification list`, `classification show`,
+  `data-policy list --platform win|mac`, and `data-policy show` under `Data Protection:read`.
+  These match official API and SDK sources and are tested offline, without tenant validation.
+  Data Protection detections use `detection list --product data-protection`.
+  Classified-file events use `search start --query '#event_simpleName=Event_DataProtectionClassifiedFileEvent'`
+  and `search status <id>`; there is no standalone Data Protection event endpoint in the supported SDK.
 - the package foundation: a Python package, the `falcon-axi` console script, and one offline
   `uv run scripts/verify.py` entry point;
 - the sealed transport and its closed operation registry, with evidence carried per operation, a
@@ -42,7 +48,7 @@ What is shipped:
 
 What is **not** shipped yet, so no output advertises it:
 
-- every domain `docs/design/v1.md` §1.3 defers, including intel actors and reports,
+- the remaining domains `docs/design/v1.md` §1.3 defers, including intel actors and reports,
   every NG-SIEM capability outside the three search lifecycle operations (no ingest, no lookup
   files, no parser or dashboard writes, and no Charlotte AI), and every Identity Protection capability
   beyond the directory and timeline: no standalone incident or security-assessment queries, no policy rules,

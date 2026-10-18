@@ -1920,9 +1920,217 @@
           "fixture": "errors/403-scope.json"
         }
       ]
+    },
+    {
+      "name": "help-classification-list",
+      "argv": [
+        "classification",
+        "list",
+        "--help"
+      ]
+    },
+    {
+      "name": "help-classification-show",
+      "argv": [
+        "classification",
+        "show",
+        "--help"
+      ]
+    },
+    {
+      "name": "classification-list",
+      "argv": [
+        "classification",
+        "list"
+      ],
+      "responders": [
+        {
+          "op": "queries_classification_get_v2",
+          "fixture": "data-protection/classification-ids.json"
+        },
+        {
+          "op": "entities_classification_get_v2",
+          "fixture": "data-protection/classifications.json"
+        }
+      ]
+    },
+    {
+      "name": "classification-show",
+      "argv": [
+        "classification",
+        "show",
+        "synthetic-classification-01"
+      ],
+      "responders": [
+        {
+          "op": "entities_classification_get_v2",
+          "fixture": "data-protection/classifications.json"
+        }
+      ]
+    },
+    {
+      "name": "classification-list-empty",
+      "argv": [
+        "classification",
+        "list"
+      ],
+      "responders": [
+        {
+          "op": "queries_classification_get_v2",
+          "response": {
+            "status": 200,
+            "body": {
+              "resources": []
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "classification-show-not-found",
+      "argv": [
+        "classification",
+        "show",
+        "synthetic-missing"
+      ],
+      "responders": [
+        {
+          "op": "entities_classification_get_v2",
+          "response": {
+            "status": 200,
+            "body": {
+              "resources": []
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "classification-scope-denied",
+      "argv": [
+        "classification",
+        "list"
+      ],
+      "responders": [
+        {
+          "op": "queries_classification_get_v2",
+          "fixture": "errors/403-scope.json"
+        }
+      ]
+    },
+    {
+      "name": "help-data-policy-list",
+      "argv": [
+        "data-policy",
+        "list",
+        "--help"
+      ]
+    },
+    {
+      "name": "help-data-policy-show",
+      "argv": [
+        "data-policy",
+        "show",
+        "--help"
+      ]
+    },
+    {
+      "name": "data-policy-list",
+      "argv": [
+        "data-policy",
+        "list",
+        "--platform",
+        "win"
+      ],
+      "responders": [
+        {
+          "op": "queries_policy_get_v2",
+          "fixture": "data-protection/policy-ids.json"
+        },
+        {
+          "op": "entities_policy_get_v2",
+          "fixture": "data-protection/policies.json"
+        }
+      ]
+    },
+    {
+      "name": "data-policy-show",
+      "argv": [
+        "data-policy",
+        "show",
+        "synthetic-policy-01"
+      ],
+      "responders": [
+        {
+          "op": "entities_policy_get_v2",
+          "fixture": "data-protection/policies.json"
+        }
+      ]
+    },
+    {
+      "name": "data-policy-list-empty",
+      "argv": [
+        "data-policy",
+        "list",
+        "--platform",
+        "win"
+      ],
+      "responders": [
+        {
+          "op": "queries_policy_get_v2",
+          "response": {
+            "status": 200,
+            "body": {
+              "resources": []
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "data-policy-show-not-found",
+      "argv": [
+        "data-policy",
+        "show",
+        "synthetic-missing"
+      ],
+      "responders": [
+        {
+          "op": "entities_policy_get_v2",
+          "response": {
+            "status": 200,
+            "body": {
+              "resources": []
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "data-policy-scope-denied",
+      "argv": [
+        "data-policy",
+        "list",
+        "--platform",
+        "win"
+      ],
+      "responders": [
+        {
+          "op": "queries_policy_get_v2",
+          "fixture": "errors/403-scope.json"
+        }
+      ]
+    },
+    {
+      "name": "data-policy-platform-required",
+      "argv": [
+        "data-policy",
+        "list"
+      ]
     }
   ],
   "pagination_comment": "The shipped bounded walker (docs/design/v1.md sections 7.2 and 10.2) adds three wholly synthetic partial-read examples. The four list help documents, unknown-flag, and list-with-positional deliberately change to advertise --all and --max-rows. Existing data documents and scopes remain unchanged because no operation or permission changed.",
   "fields_comment": "Detection and host field selection adds extended-row scenarios and updates help-detection-list, help-host-list, unknown-flag, and list-with-positional to advertise the shipped flag (design section 10.2).",
-  "detection_summary_comment": "Detection summary adds on-demand severity scenarios and updates help-top, unknown-command, unknown-detection-subcommand, and scopes (design section 10.3); the home view makes no aggregate request."
+  "detection_summary_comment": "Detection summary adds on-demand severity scenarios and updates help-top, unknown-command, unknown-detection-subcommand, and scopes (design section 10.3); the home view makes no aggregate request.",
+  "data_protection_comment": "Data Protection classification and policy reads add synthetic list/show/help/empty/not-found/scope scenarios. help-top, unknown-command, scopes and the generated skill deliberately gain the shipped commands (design section 10.6). Event reads retain the existing Alerts and NG-SIEM paths; no standalone event operation is registered."
 }

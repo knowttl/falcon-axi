@@ -59,6 +59,7 @@ The implemented surface includes the package foundation, the sealed transport an
 AXI credential profiles with `auth status`, `profile list`, and `config path`, the read domains (`detection list`, `detection show`,
 `detection summary`, `host list`, `host show`, `host logins`, `account list`, `account show`, `vuln list`, `cve show`, `indicator list`, `indicator show`), the NG-SIEM search lifecycle (`search start`, `search status`,
 `search stop`), the Identity Protection GraphQL reads (`identity list`, `identity show`, `identity timeline`),
+the Data Protection configuration reads (`classification list`, `classification show`, `data-policy list`, `data-policy show`),
 plus the `scopes` matrix and the home view.
 The README's status section is the authoritative list of what is shipped and what is deliberately absent, and
 no help text, suggestion, or skill may advertise an unshipped command.

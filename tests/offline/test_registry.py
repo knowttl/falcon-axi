@@ -26,6 +26,34 @@ NO_FALCON_MCP_TOOL = {
 }
 
 EXPECTED = {
+    "queries_classification_get_v2": {
+        "method": "GET",
+        "path": "/data-protection/queries/classifications/v2",
+        "scopes": ("Data Protection:read",),
+        "effect": "read",
+        "doc_scope": "Data Protection: READ",
+    },
+    "entities_classification_get_v2": {
+        "method": "GET",
+        "path": "/data-protection/entities/classifications/v2",
+        "scopes": ("Data Protection:read",),
+        "effect": "read",
+        "doc_scope": "Data Protection: READ",
+    },
+    "queries_policy_get_v2": {
+        "method": "GET",
+        "path": "/data-protection/queries/policies/v2",
+        "scopes": ("Data Protection:read",),
+        "effect": "read",
+        "doc_scope": "Data Protection: READ",
+    },
+    "entities_policy_get_v2": {
+        "method": "GET",
+        "path": "/data-protection/entities/policies/v2",
+        "scopes": ("Data Protection:read",),
+        "effect": "read",
+        "doc_scope": "Data Protection: READ",
+    },
     "QueryIntelIndicatorEntities": {
         "method": "GET",
         "path": "/intel/combined/indicators/v1",

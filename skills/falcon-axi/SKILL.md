@@ -42,6 +42,10 @@ uvx falcon-axi vuln list                 list Spotlight vulnerabilities; a filte
 uvx falcon-axi cve show <CVE-ID>         Falcon Intelligence detail for one CVE
 uvx falcon-axi indicator list            list Falcon Intelligence indicators
 uvx falcon-axi indicator show <id>       detail for one intelligence indicator
+uvx falcon-axi classification list       list Data Protection classifications
+uvx falcon-axi classification show <id>  full Data Protection classification
+uvx falcon-axi data-policy list          list Data Protection policies
+uvx falcon-axi data-policy show <id>     full Data Protection policy
 uvx falcon-axi identity activity <acct>  start a search for one account's identity events
 uvx falcon-axi search start              start an NG-SIEM CQL search job
 uvx falcon-axi search status <id>        poll one search job and read its events

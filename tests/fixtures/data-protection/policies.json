@@ -1,0 +1,24 @@
+{
+  "provenance": {
+    "operation": "entities_policy_get_v2",
+    "reference": "https://developer.crowdstrike.com/api-reference/collections/data-protection-configuration/",
+    "schema_read": "2026-10-18",
+    "provenance": "synthetic"
+  },
+  "response": {
+    "status": 200,
+    "body": {
+      "resources": [{
+        "id": "synthetic-policy-01",
+        "cid": "synthetic-sensitive-cid",
+        "name": "Synthetic workstation policy",
+        "description": "Wholly synthetic policy for offline tests",
+        "is_enabled": true,
+        "precedence": 1,
+        "host_groups": ["synthetic-group-01"],
+        "policy_properties": {"classifications": ["synthetic-classification-01"], "enable_content_inspection": true}
+      }],
+      "errors": []
+    }
+  }
+}
