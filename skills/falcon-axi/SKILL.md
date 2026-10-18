@@ -157,8 +157,7 @@ Follow the README's API client permissions section for provisioning, license-gat
 write-labelled exceptions.
 Never grant any other write, response, containment, or Real Time Response scope.
 
-Whether `--member-cid` additionally requires `Flight Control:read` is an open design question rather than a
-settled requirement.
+See `docs/design/v1.md` §17.7 for the member-CID source-parity decision and its scope-evidence limitation.
 
 ## Output and errors
 

@@ -158,7 +158,6 @@ scripts/
 tests/
   fixtures/                    carried over byte-for-byte from stage 1, provenance headers intact
   offline/                     pytest, one file per seam and per domain
-  live/                        opt-in smoke suite (v1.md §15), unchanged boundary
   support/recorded.py          RecordedTransport and fixture loaders
 THIRD_PARTY_NOTICES.md         attribution for code ported from falcon-mcp (§6)
 ```
@@ -237,7 +236,7 @@ It reaches the network, so it is opt-in and never part of `verify`.
   The two hygiene tests (provenance header present; no credential, token, CID, or realistic tenant-data pattern) port as is.
 - **Coverage of the design.** Every test named in v1.md §14.5 is re-expressed; the 67 stage 1 tests are the floor, and the parity gate of §5 adds the golden comparisons.
 - **Fast `--version`.** A test measures `falcon-axi --version` against the `python -c pass` floor in the same process and fails on a relative regression, as AXI §10 asks; `cli.py` handles version flags before importing `falconpy` or `toon_format`.
-- **Live suite.** `tests/live/` keeps v1.md §15's boundary word for word: credentials provisioned per §5.7, shape assertions only, nothing persisted, any search job it starts also stopped, never in the required set.
+- **Live validation.** v1.md §15 owns the validation policy and boundaries for any separately authorized future live validation.
 
 ## 8. Packaging and distribution
 
@@ -314,7 +313,8 @@ The v0.3.0 release covers those stages and the subsequent additions in the [READ
 The golden set adds the identity scenarios as regression pins, and `tests/golden/scenarios.json` records which existing documents changed and why.
 
 **P4. Setup and delivery surface.**
-`setup` with hook and skill, `--all`, `--max-rows`, `--fields` on detection and host lists, and the opt-in live smoke suite.
+`setup` with hook and skill, `--all`, `--max-rows`, and `--fields` on detection and host lists.
+Validation policy is owned by v1.md §15.
 Profile configuration shipped separately under v1.md §5.2 and §12.1.
 Tag `v0.4.0`, and v1.md moves from "partially implemented" to "implemented".
 

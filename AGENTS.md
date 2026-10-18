@@ -46,7 +46,7 @@ See `docs/design/v1.md` §0 (the invariant), §1.5 (excluded capability classes)
 Control tenancy, pagination and rate limits, error envelope, TOON output, fixtures, live-test boundaries, and
 the API-client evaluation.
 Read it before adding or changing any command surface, and update it in the same change when the surface moves.
-Its §17 records open questions; check there before re-deriving a decision that was already argued, and its §18
+Its §17 records closed decisions; check there before re-deriving a decision that was already argued, and its §18
 cites every source, so a claim can be re-verified rather than trusted.
 
 `docs/design/v1-python.md` is the committed amendment that made falcon-axi a pure Python CLI on
