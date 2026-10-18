@@ -25,7 +25,7 @@ Resulting decisions:
 | --- | --- |
 | Primary path | C1: falcon-axi becomes a pure Python CLI on `crowdstrike-falconpy`, porting falcon-mcp patterns as reference code |
 | Rejected | E (stay TypeScript), B (drive a local falcon-mcp over MCP), C2 (Node front end over a Python helper), D (generate commands from MCP schemas), archive |
-| Distribution | Signed git tags on the private repo, installed with uv from git; PyPI deferred until a license is chosen and the repo is public |
+| Distribution | Public repository; release-please release PRs and GitHub Actions Trusted Publishing to PyPI as `falcon-axi` (§8) |
 | falcon-mcp reference check | Yes, as an opt-in script pinned to an upstream commit |
 | MCP bridge | Not in v1 |
 | Next ship task | Port stage 1 to Python with a parity gate, then stage 2 |
@@ -43,7 +43,7 @@ uv provisions the interpreter on demand, so the operator never needs a system Py
 | Package | Pin | Why | License |
 | --- | --- | --- | --- |
 | `crowdstrike-falconpy` | `>=1.6.5,<2` | Operation-ID routing, request execution, proxy, User-Agent, timeout; only `requests` and `urllib3` underneath | Unlicense |
-| `toon-format` | Spike first (§9 P0), then pin | The TOON encoder for stdout; the community Python implementation under the `toon-format` org, with spec-fixture tests in `tests/test_spec_fixtures.py` | MIT |
+| `toon-format` | `>=1.2,<2` | Stable TOON 1.x encoder for stdout; golden documents pin the emitted format | MIT |
 
 **Explicit non-dependencies.**
 
@@ -233,21 +233,36 @@ It reaches the network, so it is opt-in and never part of `verify`.
 
 **Build.** `pyproject.toml` with the `hatchling` backend, static version, `[project.scripts] falcon-axi = "falcon_axi.cli:main"`.
 `uv build` produces the wheel and sdist; `uv lock` pins the two dependencies and their transitive closure for reproducible installs.
+The sdist includes only `falcon_axi/`, `README.md`, `LICENSE`, `pyproject.toml`, generated package metadata, and Hatchling's automatically included root `.gitignore`.
+The wheel includes the package and generated distribution metadata, including the README long description and MIT license.
+Tests, fixtures, local configuration, and development automation are excluded from both archives.
 
 **Install from git.**
 
 The [README's Quick start for agents](../../README.md#quick-start-for-agents) owns the current release pin and install instructions, including invocation without a global install.
 See its [Credentials](../../README.md#credentials) section before running `falcon-axi auth status`.
 
-**Publishing, in order.**
+**Publishing.**
 
-1. Now: signed git tags `vX.Y.Z`.
-2. Later, deferred until a public release (§10): PyPI as `falcon-axi` (unclaimed as of 2026-09-18).
-   Manual, from an operator machine: `uv build` then `uv publish --token <project-scoped PyPI token>`.
-   Trusted publishing needs a release workflow, which is not authorized under v1.md §15.4.
-   Install then becomes `uv tool install falcon-axi` or `uvx falcon-axi`.
-3. Optional after 2: the AXI community catalog, which requires independent source review at a pinned public release.
-4. Never npm, never a container image.
+`.github/workflows/release-please.yml` runs on pushes to `main`.
+The Python strategy reads and updates `pyproject.toml`; its generic extra-file updater keeps the annotated `VERSION` in `falcon_axi/version.py` in step.
+`.release-please-manifest.json` starts at the current version, `0.3.0`, and subsequent versions follow conventional commits.
+Merging a release PR creates a `vX.Y.Z` tag and release; the same workflow then checks out that tag, runs `uv build`, and publishes the sdist and wheel to PyPI.
+Publishing uses `pypa/gh-action-pypi-publish` with OIDC, `id-token: write`, and the `pypi` environment, without a PyPI API token or password.
+The pending PyPI Trusted Publisher must name owner `knowttl`, repository `falcon-axi`, workflow `release-please.yml`, and environment `pypi` before the first release PR merges.
+GitHub Actions must be allowed to create pull requests in repository settings.
+The default `GITHUB_TOKEN` does not trigger CI on bot-created release PRs; a maintainer must close and reopen a release PR to trigger its required checks before merging.
+This follows the [release-please action's documented token behavior](https://github.com/googleapis/release-please-action#other-actions-on-release-please-prs).
+Install a published release with `pip install falcon-axi` or `uv tool install falcon-axi`.
+The optional AXI community catalog still requires independent source review at a pinned public release.
+Never npm, never a container image.
+
+**Stable encoder adoption.**
+PyPI installation now requires `toon-format>=1.2,<2` and resolves without prerelease flags.
+Stable 1.x quotes strings beginning with `#`, so search `query` and `parsed_query` fields now quote CQL values such as `"#event_simpleName=ProcessRollup2 | head(2)"`.
+The three affected golden search documents deliberately change only that quoting.
+The empty-array encoder expectation becomes `key: []`; falcon-axi still renders empty domain results as explanatory raw lines.
+`[tool.uv] prerelease = "allow"` remains unchanged because stable end-user resolution does not depend on it.
 
 **Session hook and skill (v1.md §12.2).**
 `falcon-axi setup` writes the Claude Code, Codex, and OpenCode integrations with a PATH-verified `falcon-axi` binary name and the absolute uv tool path as fallback, exactly as AXI §7 asks; the skill examples use the `uvx --from git+...` form.
@@ -358,7 +373,7 @@ Decisions assumed (design §10); stop with needs-decision if any is contradicted
 All four were answered by the captain at commissioning and are recorded in the status line above.
 
 1. **License for falcon-axi.** MIT, in `LICENSE`.
-2. **Repository visibility.** Install is from git with uv, and PyPI stays deferred until a public release.
+2. **Repository visibility.** Public; PyPI publishing through GitHub Actions is authorized in §8.
 3. **Package name.** `falcon-axi`.
 4. **D2 acceptance.** Accepted: falcon-axi mints the token with redirects refused and hands it to falconpy (§3.3).
 

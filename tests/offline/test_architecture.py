@@ -57,8 +57,9 @@ def test_no_mcp_dependency_reaches_the_package_or_the_lock() -> None:
         assert not re.search(r"^\s*(import|from)\s+(falcon_)?mcp\b", path.read_text(encoding="utf-8"), re.MULTILINE)
 
 
-def test_architecture_allows_the_offline_ci_workflow(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
-    workflow = tmp_path / ".github/workflows/ci.yml"
+@pytest.mark.parametrize("filename", ["ci.yml", "release-please.yml"])
+def test_architecture_allows_authorized_workflows(filename: str, tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+    workflow = tmp_path / ".github/workflows" / filename
     workflow.parent.mkdir(parents=True)
     workflow.write_text("jobs: {verify: {steps: [{run: uv run scripts/verify.py}]}}", encoding="utf-8")
     monkeypatch.setattr(architecture_check, "REPO", tmp_path)
@@ -72,6 +73,7 @@ def test_architecture_allows_the_offline_ci_workflow(tmp_path: Path, monkeypatch
         ".github/workflows/ci.yaml",
         ".github/workflows/nested/release.yml",
         ".github/workflows/ci.yml/nested.yml",
+        ".github/workflows/release-please.yml/nested.yml",
         ".gitlab-ci.yml",
         ".circleci/config.yml",
         "azure-pipelines.yml",
@@ -90,8 +92,11 @@ def test_architecture_rejects_other_automation(relative: str, tmp_path: Path, mo
 @pytest.mark.parametrize(
     "name", ["FALCON_AXI_LIVE", "FALCON_CLIENT_ID", "FALCON_CLIENT_SECRET", "FALCON_AXI_CLIENT_ID", "FALCON_AXI_CLIENT_SECRET"]
 )
-def test_architecture_rejects_live_variables_in_ci(name: str, tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
-    workflow = tmp_path / ".github/workflows/ci.yml"
+@pytest.mark.parametrize("filename", ["ci.yml", "release-please.yml"])
+def test_architecture_rejects_live_variables_in_workflows(
+    name: str, filename: str, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    workflow = tmp_path / ".github/workflows" / filename
     workflow.parent.mkdir(parents=True)
     workflow.write_text(f"env: {{{name}: synthetic}}", encoding="utf-8")
     monkeypatch.setattr(architecture_check, "REPO", tmp_path)

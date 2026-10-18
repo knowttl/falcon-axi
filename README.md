@@ -89,8 +89,7 @@ A falcon-axi release that asks for any other write scope is wrong.
 
 ## Quick start for agents
 
-falcon-axi is not on PyPI while the repository is private, so every install path names the Git
-repository.
+Install from PyPI after the first published release: `pip install falcon-axi` or `uv tool install falcon-axi`.
 [uv](https://docs.astral.sh/uv/) provisions Python 3.11 or newer on demand, so no system Python is
 required.
 

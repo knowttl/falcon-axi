@@ -139,7 +139,7 @@ def check() -> bool:
         if (REPO / relative).exists():
             raise AssertionError(f"automation configuration is not authorized in this repository: {relative}")
     for workflow in sorted((REPO / WORKFLOW_DIRECTORY).glob("*")):
-        if workflow != REPO / WORKFLOW_DIRECTORY / "ci.yml" or not workflow.is_file():
+        if workflow.name not in {"ci.yml", "release-please.yml"} or not workflow.is_file():
             raise AssertionError(f"automation configuration is not authorized in this repository: {workflow}")
         named = [name for name in CREDENTIAL_NAMES if name in workflow.read_text(encoding="utf-8")]
         if named:

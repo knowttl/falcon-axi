@@ -49,7 +49,7 @@ def test_search_status_renders_the_events_and_the_query_the_api_actually_parsed(
     assert re.search(r"^state: done$", stdout, re.MULTILINE)
     assert re.search(r"^count: 2 of 2 matching events$", stdout, re.MULTILINE)
     assert re.search(r"^events_scanned: 148231$", stdout, re.MULTILINE)
-    assert f"parsed_query: {QUERY}" in stdout
+    assert f'parsed_query: "{QUERY}"' in stdout
     assert "events[2]{ComputerName,FileName,UserName,timestamp}:" in stdout
     assert recorded.operation_requests("GetSearchStatusV1")[0].path_params == {
         "repository": "search-all",

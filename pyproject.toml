@@ -7,15 +7,29 @@ name = "falcon-axi"
 version = "0.3.0"
 description = "Read CrowdStrike Falcon detections, hosts, vulnerabilities, and NG-SIEM searches from the shell"
 readme = "README.md"
-license = { text = "MIT" }
+license = "MIT"
+license-files = ["LICENSE"]
 requires-python = ">=3.11"
+classifiers = [
+  "Environment :: Console",
+  "Intended Audience :: System Administrators",
+  "Operating System :: OS Independent",
+  "Programming Language :: Python :: 3",
+  "Programming Language :: Python :: 3 :: Only",
+  "Programming Language :: Python :: 3.11",
+  "Topic :: Security",
+]
 dependencies = [
   "crowdstrike-falconpy>=1.6.5,<2",
-  "toon-format>=0.9.0b1",
+  "toon-format>=1.2,<2",
 ]
 
 [project.scripts]
 falcon-axi = "falcon_axi.cli:main"
+
+[project.urls]
+Repository = "https://github.com/knowttl/falcon-axi"
+Issues = "https://github.com/knowttl/falcon-axi/issues"
 
 [dependency-groups]
 dev = [
@@ -29,6 +43,9 @@ dev = [
 
 [tool.hatch.build.targets.wheel]
 packages = ["falcon_axi"]
+
+[tool.hatch.build.targets.sdist]
+include = ["/falcon_axi", "/README.md", "/LICENSE", "/pyproject.toml"]
 
 [tool.uv]
 prerelease = "allow"
