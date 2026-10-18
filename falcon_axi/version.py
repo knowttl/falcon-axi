@@ -4,7 +4,7 @@ import platform
 import sys
 
 #: Kept in step with pyproject.toml by an offline test.
-VERSION = "0.3.0"  # x-release-please-version
+VERSION = "0.4.0"  # x-release-please-version
 
 
 def user_agent() -> str:
