@@ -114,10 +114,9 @@ falconpy's `session=` parameter is not used as a seam; the seam stays above falc
 
 ## 4. Package layout
 
-Command registration uses `CommandSpec` records beside the domain implementations.
+Command registration uses `CommandSpec` records beside the domain implementations, declaring each command's
+flags, value flags, limit ceiling, positional argument, help, handler, operations, and authentication mode.
 `falcon_axi/commands.py` assembles their historical order for CLI parsing, help, dispatch, and scope discovery.
-`falcon_axi/command.py` holds the declaration type and invocation context; `diagnostics.py` implements
-the supporting configuration and authentication views.
 Domain functions still accept a transport and session directly, and recorded outputs remain byte-identical.
 
 ```
@@ -127,6 +126,9 @@ falcon_axi/
   __main__.py                  python -m falcon_axi
   version.py                   leaf module, no imports beyond the stdlib (AXI §10 fast path)
   cli.py                       argv parsing, flag guard, dispatch, exit codes
+  command.py                   CommandSpec declaration type and invocation context
+  commands.py                  ordered registry assembled from domain declarations
+  diagnostics.py               configuration views and authentication diagnostics
   core.py                      CliError and the error envelope
   credentials.py               AXI profiles and SecretRefs (v1.md §5.2); private reads in private_file.py
   redaction.py                 invocation-local exact-value redaction (v1.md §5.5)
