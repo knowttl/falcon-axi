@@ -1,0 +1,26 @@
+{
+  "provenance": {
+    "operation": "GetIntelIndicatorEntities",
+    "reference": "https://developer.crowdstrike.com/api-reference/collections/intel/",
+    "schema_read": "2026-10-18",
+    "provenance": "synthetic"
+  },
+  "response": {
+    "status": 200,
+    "body": {
+      "resources": [{
+        "id": "synthetic-indicator-1",
+        "indicator": "one.example",
+        "type": "domain",
+        "malicious_confidence": "high",
+        "_marker": "1700000000aaa",
+        "published_date": 1700000000,
+        "last_updated": 1700000000,
+        "deleted": false,
+        "actors": [],
+        "labels": [{"name": "synthetic-label", "created_on": 1700000000, "last_valid_on": 1700000000}],
+        "relations": []
+      }]
+    }
+  }
+}

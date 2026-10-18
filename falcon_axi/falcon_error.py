@@ -68,6 +68,8 @@ def translate_falcon_error(response: FalconResponse, id: OperationId, subject: s
                 command, example = "host list", "hostname:'WIN-*'"
             elif "Vulnerabilities:read" in scopes:
                 command, example = "vuln list", "status:'open'"
+            elif "Indicators (Falcon Intelligence):read" in scopes:
+                command, example = "indicator list", "type:'domain'"
             else:
                 command, example = "detection list", "severity_name:'High'+status:'new'"
             return CliError(

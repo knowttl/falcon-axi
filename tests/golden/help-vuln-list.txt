@@ -1,4 +1,4 @@
-falcon-axi vuln list [--host <device id>] [--severity <name>] [--status <name>] [--since <window>] [--filter <FQL>] [--limit N] [--cursor <token>] [--fields <names>]
+falcon-axi vuln list [--host <device id>] [--severity <name>] [--status <name>] [--since <window>] [--filter <FQL>] [--limit N] [--cursor <token>] [--fields <names>] [--all] [--max-rows N]
 
 --host       device id (AID) whose vulnerabilities to read
 --severity   one of low, medium, high, critical
@@ -7,6 +7,8 @@ falcon-axi vuln list [--host <device id>] [--severity <name>] [--status <name>] 
 --filter     raw FQL; + is AND, `,` is OR, values are single-quoted
 --limit      rows in this call (default 20, ceiling 5000)
 --cursor     opaque continuation token from a previous call
+--all        walk pages; page size is independent of --limit
+--max-rows   row budget (default 1000; requires --all)
 --fields     extra columns, comma-separated: description, base_score, exprt_rating, status, created, updated, product, remediation, platform, os, local_ip
 
 Default columns are id, cve, severity, and hostname. --fields adds columns from that

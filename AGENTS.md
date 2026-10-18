@@ -46,7 +46,7 @@ See `docs/design/v1.md` §0 (the invariant), §1.5 (excluded capability classes)
 Control tenancy, pagination and rate limits, error envelope, TOON output, fixtures, live-test boundaries, and
 the API-client evaluation.
 Read it before adding or changing any command surface, and update it in the same change when the surface moves.
-Its §17 records open questions; check there before re-deriving a decision that was already argued, and its §18
+Its §17 records closed decisions; check there before re-deriving a decision that was already argued, and its §18
 cites every source, so a claim can be re-verified rather than trusted.
 
 `docs/design/v1-python.md` is the committed amendment that made falcon-axi a pure Python CLI on
@@ -57,7 +57,7 @@ There is no Node runtime, no MCP process, and no `falcon-mcp` dependency anywher
 
 The implemented surface includes the package foundation, the sealed transport and its closed registry,
 AXI credential profiles with `auth status`, `profile list`, and `config path`, the read domains (`detection list`, `detection show`,
-`host list`, `host show`, `host logins`, `account list`, `account show`, `vuln list`, `cve show`), the NG-SIEM search lifecycle (`search start`, `search status`,
+`detection summary`, `host list`, `host show`, `host logins`, `account list`, `account show`, `vuln list`, `cve show`, `indicator list`, `indicator show`), the NG-SIEM search lifecycle (`search start`, `search status`,
 `search stop`), the Identity Protection GraphQL reads (`identity list`, `identity show`, `identity timeline`),
 plus the `scopes` matrix and the home view.
 The README's status section is the authoritative list of what is shipped and what is deliberately absent, and
@@ -83,7 +83,7 @@ Two seams are worth knowing before changing them:
   them, losing both the sort order and the pagination metadata, so `detection.py` and `host.py` capture the
   total before hydrating and reapply the query order after (§2.3).
   `vuln.py` is the exception, a single combined request paginated by an opaque `after` token rather than an
-  offset; `cursor.py` carries both models behind one `--cursor` vocabulary.
+  offset; `cursor.py` carries the models in `docs/design/v1.md` §7.1 behind one `--cursor` vocabulary.
   `search.py` is a third shape again: an NG-SIEM query job carries no pagination metadata at all, so it has
   neither `--limit` nor `--cursor`, and the caller owns the polling loop rather than the CLI blocking on it.
   Its three routes are also the only ones with `{path}` variables, which `path_arguments()` validates against
@@ -134,8 +134,8 @@ Read the `axi` skill at `~/.pi/agent/skills/axi/SKILL.md` and the TOON spec it p
 reviewing any CLI behavior here.
 `azure-axi` and `awx-axi` are the sibling references for these patterns; `docs/design/v1.md` §18 lists where
 their assumptions do **not** transfer to Falcon.
-`skills/falcon-axi/SKILL.md` is this repo's agent-facing skill; it is hand-written until `setup` generation
-lands and must never name a command the CLI does not ship (`docs/design/v1.md` §12.2).
+`skills/falcon-axi/SKILL.md` is this repo's generated agent-facing skill; regenerate it with `uv run scripts/skill.py`.
+Its drift check runs in `scripts/verify.py`, and it must never name a command the CLI does not ship (`docs/design/v1.md` §12.2).
 
 ## Maintaining this file
 

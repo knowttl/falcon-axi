@@ -25,11 +25,12 @@ from falcon_axi.fql import (
 from falcon_axi.origin import REGIONS, assert_trusted_origin, resolve_base_url
 from falcon_axi.redaction import redact_text, redaction_scope
 from falcon_axi.render import raw, render
+from falcon_axi.skill import HOME_GUIDANCE, skill_hint
 from falcon_axi.version import VERSION, version_output
 
 DESCRIPTION = (
     "Read CrowdStrike Falcon detections, hosts, accounts, vulnerabilities, CVE intelligence, "
-    "identities, and NG-SIEM searches from the shell"
+    "indicators, identities, and NG-SIEM searches from the shell"
 )
 HOME_ROWS = 5
 
@@ -82,6 +83,7 @@ def _unknown_flag(name: str, command: str) -> CliError:
 def parse(argv: Sequence[str]) -> Parsed:
     from falcon_axi.commands import COMMAND_SPECS, COMMANDS, SUBCOMMANDS
     from falcon_axi.cve import validate_cve_id
+    from falcon_axi.domain import parse_fields
     from falcon_axi.identity import DEFAULT_SINCE as IDENTITY_DEFAULT_SINCE
     from falcon_axi.identity import (
         _identity_query_of,
@@ -90,7 +92,7 @@ def parse(argv: Sequence[str]) -> Parsed:
         validate_entity_id,
         validate_identity_query,
     )
-    from falcon_axi.vuln import parse_fields
+    from falcon_axi.walk import max_rows_of
 
     for name in (*GLOBAL_FLAGS, *(flag for spec in COMMAND_SPECS.values() for flag in spec.flags)):
         flag_guard(name)
@@ -172,10 +174,12 @@ def parse(argv: Sequence[str]) -> Parsed:
             f"`{command}` accepts no positional arguments",
             [f"valid flags for `{command}`: {', '.join(_valid_flags(command))}"],
         )
+    max_rows_of(flags)
     if "limit" in flags:
         limit_of(flags, COMMAND_SPECS[command])
     if "fields" in flags:
-        parse_fields(str(flags["fields"]))
+        assert spec is not None
+        parse_fields(str(flags["fields"]), spec.extra_fields, spec.default_fields)
     if "filter" in flags and not str(flags["filter"]).strip():
         raise CliError("VALIDATION_ERROR", "--filter requires a value")
     if "since" in flags:
@@ -218,6 +222,7 @@ def help_text(command: str) -> str:
             "Identity Protection GraphQL:write for `identity list`, `identity show`, and `identity timeline`,",
             "which Falcon requires even for read-only queries.",
             "The `account` commands also need Assets:read, a license-gated scope that only some tenants can grant.",
+            "The `indicator` commands require the license-gated Indicators (Falcon Intelligence):read scope.",
         ]
     )
 
@@ -256,7 +261,9 @@ def _session(
     )
 
 
-def _home_view(transport: Any, flags: Mapping[str, str | bool], env: Mapping[str, str], bin: str) -> tuple[str, int]:
+def _home_view(
+    transport: Any, flags: Mapping[str, str | bool], env: Mapping[str, str], bin: str, hints: tuple[str, ...] = ()
+) -> tuple[str, int]:
     from falcon_axi.detection import list_detections
     from falcon_axi.diagnostics import tenant_line
 
@@ -268,7 +275,7 @@ def _home_view(transport: Any, flags: Mapping[str, str | bool], env: Mapping[str
         return (
             render(
                 {**head, "error": known.message, "code": known.code, **known.details},
-                _followup_help(known.help, flags, _str(flags.get("member-cid"))),
+                (*_followup_help(known.help, flags, _str(flags.get("member-cid"))), *hints),
             ),
             known.exit_code,
         )
@@ -284,17 +291,16 @@ def _home_view(transport: Any, flags: Mapping[str, str | bool], env: Mapping[str
     return (
         render(
             {**head, **listed.value},
-            _followup_help(
-                [
-                    *listed.help,
-                    "Run `falcon-axi detection list` to see more detections",
-                    "Run `falcon-axi detection list --product idp` for Identity Protection detections",
-                    "Run `falcon-axi host list --filter \"hostname:'WIN-*'\"` to search hosts",
-                    "Run `falcon-axi cve show <CVE-ID>` for Falcon Intelligence on one CVE",
-                    "Run `falcon-axi scopes` to see what this API client needs",
-                ],
-                flags,
-                resolved.session.member_cid,
+            (
+                *_followup_help(
+                    [
+                        *listed.help,
+                        *HOME_GUIDANCE,
+                    ],
+                    flags,
+                    resolved.session.member_cid,
+                ),
+                *hints,
             ),
         ),
         0,
@@ -344,7 +350,7 @@ def _run(
         if forced_read_only and parsed.command in ("search start", "search stop", "identity activity"):
             raise CliError("READ_ONLY_VIOLATION", "FALCON_AXI_READ_ONLY forbids search lifecycle changes")
         if parsed.command == "home":
-            return _home_view(transport, parsed.flags, values, bin or "falcon-axi")
+            return _home_view(transport, parsed.flags, values, bin or "falcon-axi", skill_hint(values) if not argv else ())
         spec = COMMAND_SPECS[parsed.command]
         resolved = None
         if spec.authentication != "none":

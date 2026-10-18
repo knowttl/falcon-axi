@@ -33,6 +33,28 @@ def expected_stdout(name: str) -> str:
 
 
 def _generated(spec: Mapping[str, Any], args: RequestArgs) -> FalconResponse:
+    if spec["kind"] == "host-ids":
+        offset = int(args.query["offset"])
+        end = min(spec["total"], offset + int(args.query["limit"]))
+        return FalconResponse(
+            status=200,
+            headers={},
+            body={
+                "resources": [f"synthetic-device-{index}" for index in range(offset, end)],
+                "meta": {"pagination": {"total": spec["total"]}},
+            },
+        )
+    if spec["kind"] == "host-hydrate":
+        return FalconResponse(
+            status=200,
+            headers={},
+            body={
+                "resources": [
+                    {"device_id": id, "hostname": "synthetic-host", "platform_name": "Windows", "last_seen": "unknown"}
+                    for id in reversed(args.body["ids"])
+                ],
+            },
+        )
     if spec["kind"] == "ids":
         resources = [f"ldt:synthetic-agent-{index}:{index}" for index in range(spec["count"])]
         total = spec.get("total")
@@ -93,7 +115,7 @@ class _GoldenTransport:
 
 
 def replay(scenario: Mapping[str, Any]) -> tuple[str, int]:
-    env = dict(NO_CREDENTIAL_ENV) if scenario.get("env") == "none" else {**CREDENTIAL_ENV, **scenario.get("envExtra", {})}
+    env = {**(NO_CREDENTIAL_ENV if scenario.get("env") == "none" else CREDENTIAL_ENV), **scenario.get("envExtra", {})}
     responders = [_responder_for(entry) for entry in scenario.get("responders", [])]
     oauth = (
         [fixture(entry["fixture"]) if entry.get("fixture") else as_response(entry["response"]) for entry in scenario["oauth"]]
