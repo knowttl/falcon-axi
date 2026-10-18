@@ -14,11 +14,7 @@ The shipped and deferred commands are listed below; [`docs/design/v1.md`](docs/d
 What is shipped:
 
 - Data Protection configuration reads: `classification list`, `classification show`,
-  `data-policy list --platform win|mac`, and `data-policy show` under `Data Protection:read`.
-  These match official API and SDK sources and are tested offline, without tenant validation.
-  Data Protection detections use `detection list --product data-protection`.
-  Classified-file events use `search start --query '#event_simpleName=Event_DataProtectionClassifiedFileEvent'`
-  and `search status <id>`; there is no standalone Data Protection event endpoint in the supported SDK.
+  `data-policy list`, and `data-policy show`; see [Data Protection](#data-protection) for usage.
 - the package foundation: a Python package, the `falcon-axi` console script, and one offline
   `uv run scripts/verify.py` entry point;
 - the sealed transport and its closed operation registry, with evidence carried per operation, a
@@ -398,6 +394,20 @@ falcon-mcp's own queries; `docs/design/v1.md` §17 records that they are not yet
 live tenant.
 A GraphQL error reported on an HTTP 200 is an `UPSTREAM_ERROR`, never an empty result.
 
+### Data Protection
+
+`classification list` reads classifications; `data-policy list --platform win|mac` reads policies for the selected platform.
+Use `classification show <id>` or `data-policy show <id>` for the full record; policy detail does not require a platform.
+Both lists accept `--filter`, `--sort`, `--limit`, and `--cursor`.
+Run the command with `--help` for filter and sort fields; [the design contract](docs/design/v1.md#106-data-protection-reads) owns pagination bounds and output schemas.
+These commands require `Data Protection:read` and a Data Protection license.
+They are tested offline, without tenant validation.
+
+Data Protection detections use `falcon-axi detection list --product data-protection`.
+For classified-file events, use `falcon-axi search start --query '#event_simpleName=Event_DataProtectionClassifiedFileEvent | head(200)'`,
+then `falcon-axi search status <id>` to read the results and `falcon-axi search stop <id>` if the job is left running.
+There is no standalone Data Protection event command; the [design rationale](docs/design/v1.md#106-data-protection-reads) records the supported API boundary.
+
 ## Output and errors
 
 Output is TOON on stdout.
@@ -464,7 +474,7 @@ Pass it back with `--cursor <token>`.
 
 The cursor is opaque and bound to the credential and the filter that produced it, so it cannot be
 edited, reused across a different query, or shared between tenants.
-It hides the fact that Falcon paginates detections, hosts, and accounts by offset, vulnerabilities by an
+It hides the fact that Falcon paginates detections, hosts, accounts, classifications, and policies by offset, vulnerabilities by an
 `after` token, and identities by a GraphQL `endCursor`: the CLI vocabulary is `--cursor` for every paginated command.
 `host logins` has no cursor: a full window warns that more logins may exist rather than claiming completeness.
 Detection, host, account, and vuln lists accept `--all` to walk pages and `--max-rows N` to cap query rows

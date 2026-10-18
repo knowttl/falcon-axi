@@ -95,9 +95,7 @@ def test_empty_list_skips_hydration(noun: str, plural: str, flags: list[str], qu
         ("data-policy", "policies", ["--platform", "win"], "queries_policy_get_v2", "entities_policy_get_v2"),
     ],
 )
-def test_empty_continuation_reports_exhaustion(
-    noun: str, plural: str, flags: list[str], query_op: str, get_op: str
-) -> None:
+def test_empty_continuation_reports_exhaustion(noun: str, plural: str, flags: list[str], query_op: str, get_op: str) -> None:
     ids = [f"synthetic-{noun}-{i}" for i in range(20)]
     recorded = RecordedTransport(
         [
