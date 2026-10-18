@@ -31,10 +31,18 @@ What is shipped:
   fields when present) and `identity activity <account>`, a fixed NG-SIEM search over one account's
   Identity Protection events that adds no operation and no scope beyond N1's;
 - `falcon-axi scopes`, the command-to-scope matrix, available without making a request.
+- weekly sensor usage reports: `sensor-usage list [--filter <FQL>]`;
+- Falcon Recon reads: `recon-rule list|show`, `recon-notification list|show`, and
+  `recon-record list|show` for monitoring rules, notifications, and exposed-data records.
+  Lists take `--filter`, `--limit` (default 20, maximum 500), and `--cursor`.
+  Detail views preview long strings; pass `--full` for untruncated content.
+  These commands require `Sensor Usage:read` or `Monitoring rules (Falcon Intelligence Recon):read`.
+  Their API shapes match the official API reference, Falcon MCP and FalconPy, with synthetic offline
+  checks; no tenant validation is claimed.
 
 What is **not** shipped yet, so no output advertises it:
 
-- every domain `docs/design/v1.md` §1.3 defers, including intel actors, indicators, and reports,
+- the remaining domains `docs/design/v1.md` §1.3 defers, including intel actors, indicators, and reports,
   every NG-SIEM capability outside the three search lifecycle operations (no ingest, no lookup
   files, no parser or dashboard writes, and no Charlotte AI), and every Identity Protection capability
   beyond the directory and timeline: no standalone incident or security-assessment queries, no policy rules,

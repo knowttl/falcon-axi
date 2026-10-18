@@ -1,4 +1,4 @@
-falcon-axi 0.4.0 - Read CrowdStrike Falcon detections, hosts, vulnerabilities, and NG-SIEM searches from the shell
+falcon-axi 0.4.1 - Read CrowdStrike Falcon detections, hosts, vulnerabilities, and NG-SIEM searches from the shell
 
 Commands:
   detection list            list detections from the Falcon Alerts collection
@@ -21,6 +21,13 @@ Commands:
   profile list              configured profile names, without reading secrets
   config path               config and write-journal paths
   scopes                    the command-to-scope matrix, with no request made
+  sensor-usage list         weekly sensor usage reports
+  recon-rule list               list Recon monitoring rules
+  recon-rule show <id>          full record detail
+  recon-notification list       list Recon notifications
+  recon-notification show <id>  full record detail
+  recon-record list             list Recon exposed-data records
+  recon-record show <id>        full record detail
 
 Global flags:
   --help, --region <name|url>, --allow-unknown-origin, --member-cid <cid>, --no-member-cid

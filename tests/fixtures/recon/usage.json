@@ -1,0 +1,28 @@
+{
+  "provenance": {
+    "operation": "GetSensorUsageWeekly",
+    "reference": "https://developer.crowdstrike.com/api-reference/collections/sensor-usage/",
+    "schema_read": "2026-10-18",
+    "provenance": "synthetic"
+  },
+  "response": {
+    "status": 200,
+    "headers": {},
+    "body": {
+      "resources": [
+        {
+          "date": "2026-10-11",
+          "chrome_os": 0,
+          "containers": 3,
+          "lumos": 0,
+          "mobile": 0,
+          "public_cloud_with_containers": 2,
+          "public_cloud_without_containers": 1,
+          "servers_with_containers": 4,
+          "servers_without_containers": 5,
+          "workstations": 42
+        }
+      ]
+    }
+  }
+}

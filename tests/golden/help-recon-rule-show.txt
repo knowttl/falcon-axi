@@ -1,0 +1,6 @@
+falcon-axi recon-rule show <id> [--full]
+
+Shows the complete record, with strings previewed at 800 characters.
+--full       print untruncated content
+Requires Monitoring rules (Falcon Intelligence Recon):read. Read-only.
+Example: falcon-axi recon-rule show <id> --full

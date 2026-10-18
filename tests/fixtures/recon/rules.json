@@ -1,0 +1,34 @@
+{
+  "provenance": {
+    "operation": "GetRulesV1",
+    "reference": "https://developer.crowdstrike.com/api-reference/collections/recon/",
+    "schema_read": "2026-10-18",
+    "provenance": "synthetic"
+  },
+  "response": {
+    "status": 200,
+    "headers": {},
+    "body": {
+      "resources": [
+        {
+          "id": "synthetic-rule-02",
+          "name": "Synthetic domains",
+          "status": "inactive",
+          "priority": "low",
+          "topic": "SA_TYPOSQUATTING",
+          "filter": "example.com",
+          "cid": "synthetic-cid"
+        },
+        {
+          "id": "synthetic-rule-01",
+          "name": "Synthetic breach monitor",
+          "status": "active",
+          "priority": "high",
+          "topic": "SA_BREACHED_DATA",
+          "filter": "example.com",
+          "cid": "synthetic-cid"
+        }
+      ]
+    }
+  }
+}

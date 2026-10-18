@@ -25,6 +25,55 @@ NO_FALCON_MCP_TOOL = {
 }
 
 EXPECTED = {
+    "GetSensorUsageWeekly": {
+        "method": "GET",
+        "path": "/billing-dashboards-usage/aggregates/weekly-average/v1",
+        "scopes": ("Sensor Usage:read",),
+        "effect": "read",
+        "doc_scope": "Sensor Usage: READ",
+    },
+    "QueryRulesV1": {
+        "method": "GET",
+        "path": "/recon/queries/rules/v1",
+        "scopes": ("Monitoring rules (Falcon Intelligence Recon):read",),
+        "effect": "read",
+        "doc_scope": "Monitoring rules (Falcon Intelligence Recon): READ",
+    },
+    "GetRulesV1": {
+        "method": "GET",
+        "path": "/recon/entities/rules/v1",
+        "scopes": ("Monitoring rules (Falcon Intelligence Recon):read",),
+        "effect": "read",
+        "doc_scope": "Monitoring rules (Falcon Intelligence Recon): READ",
+    },
+    "QueryNotificationsV1": {
+        "method": "GET",
+        "path": "/recon/queries/notifications/v1",
+        "scopes": ("Monitoring rules (Falcon Intelligence Recon):read",),
+        "effect": "read",
+        "doc_scope": "Monitoring rules (Falcon Intelligence Recon): READ",
+    },
+    "GetNotificationsDetailedV1": {
+        "method": "GET",
+        "path": "/recon/entities/notifications-detailed/v1",
+        "scopes": ("Monitoring rules (Falcon Intelligence Recon):read",),
+        "effect": "read",
+        "doc_scope": "Monitoring rules (Falcon Intelligence Recon): READ",
+    },
+    "QueryNotificationsExposedDataRecordsV1": {
+        "method": "GET",
+        "path": "/recon/queries/notifications-exposed-data-records/v1",
+        "scopes": ("Monitoring rules (Falcon Intelligence Recon):read",),
+        "effect": "read",
+        "doc_scope": "Monitoring rules (Falcon Intelligence Recon): READ",
+    },
+    "GetNotificationsExposedDataRecordsV1": {
+        "method": "GET",
+        "path": "/recon/entities/notifications-exposed-data-records/v1",
+        "scopes": ("Monitoring rules (Falcon Intelligence Recon):read",),
+        "effect": "read",
+        "doc_scope": "Monitoring rules (Falcon Intelligence Recon): READ",
+    },
     "GetQueriesAlertsV2": {
         "method": "GET",
         "path": "/alerts/queries/alerts/v2",
