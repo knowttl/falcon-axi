@@ -33,7 +33,8 @@ Regions: us-1, us-2, eu-1, us-gov-1
 
 falcon-axi lists no command that changes a host, a detection, a policy, or an identity. It
 requires Alerts:read, Hosts:read, Vulnerabilities:read, Vulnerabilities (Falcon Intelligence):read,
-NGSIEM:read, Identity Protection Entities:read, and Identity Protection Timeline:read, plus two
+NGSIEM:read, Identity Protection Entities:read, Identity Protection Timeline:read, and
+Identity Protection Assessment:read, plus two
 write-labelled scopes: NGSIEM:write for `search start`, `search stop`, and `identity activity`, and
 Identity Protection GraphQL:write for the fixed Identity Protection query commands,
 which Falcon requires even for read-only queries.
