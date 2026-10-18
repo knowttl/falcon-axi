@@ -113,6 +113,42 @@ def test_recon_detail_truncates_nested_content_and_full_restores_it():
     assert "help" not in decode(stdout)
 
 
+@pytest.mark.parametrize("noun,fixture_name,query_op,get_op,id", DOMAINS)
+@pytest.mark.parametrize("flags", [[], ["--full"]])
+def test_recon_detail_redacts_complete_private_keys_before_preview(noun, fixture_name, query_op, get_op, id, flags):
+    private_key = "-----BEGIN PRIVATE KEY-----\n" + "synthetic-key-material" * 60 + "\n-----END PRIVATE KEY-----"
+    recorded = RecordedTransport(
+        [
+            serve(
+                get_op,
+                response(
+                    200,
+                    {
+                        "resources": [
+                            {
+                                "id": id,
+                                "content": private_key,
+                                "details": {"content": private_key},
+                                "matches": [private_key, {"content": private_key}],
+                            }
+                        ]
+                    },
+                ),
+            )
+        ]
+    )
+    stdout, code = run([noun, "show", id, *flags], recorded, dict(CREDENTIAL_ENV))
+    assert code == 0
+    parsed = decode(stdout)
+    assert parsed["record"] == {
+        "id": id,
+        "content": "[redacted]",
+        "details": {"content": "[redacted]"},
+        "matches": ["[redacted]", {"content": "[redacted]"}],
+    }
+    assert "help" not in parsed
+
+
 @pytest.mark.parametrize("status", [200, 404])
 def test_missing_hydration_advances_cursor_by_queried_ids(status):
     recorded = RecordedTransport(

@@ -8,7 +8,7 @@ from falcon_axi.core import CliError
 from falcon_axi.cursor import CursorContext, decode_offset, encode_cursor
 from falcon_axi.domain import DEFAULT_LIMIT, CommandOutput, rate_limit_note, resources, total
 from falcon_axi.falcon_error import translate_falcon_error
-from falcon_axi.render import raw, truncate
+from falcon_axi.render import raw, redact, truncate
 from falcon_axi.transport.operations import OperationId
 from falcon_axi.transport.types import FalconResponse, QueryValue, RequestArgs
 
@@ -113,7 +113,8 @@ def show_record(ctx: Invocation) -> CommandOutput:
             return [preview(entry) for entry in value]
         return value
 
-    detail = entries[0] if ctx.flags.get("full") else preview(entries[0])
+    record = redact(entries[0])
+    detail = record if ctx.flags.get("full") else preview(record)
     help = (f"Run `{ctx.suggestion} --full` for untruncated content",) if shortened else ()
     return CommandOutput(value={"record": detail}, help=help)
 
