@@ -1,0 +1,6 @@
+count: 2 of 3 total
+images[2]{image_id,repository,tag,highest_vulnerability_severity}:
+  synthetic-image-1,example/service,v1,HIGH
+  synthetic-image-2,example/worker,v2,LOW
+continuation_cursor: eyJvcGVyYXRpb24iOiJHZXRDb21iaW5lZEltYWdlcyIsIm1vZGVsIjoib2Zmc2V0IiwicG9zaXRpb24iOjIsImZpbmdlcnByaW50IjoiZWQyN2NhNGQyN2ZlMWZkOTA3ZmRiMjRlOGJkYzkyYmYxZjFlMmJhNTgyN2JlNTBkNzA5YmZmODVjZWRhZTEyNSJ9
+help[1]: "Run `falcon-axi image list --limit 2 --cursor eyJvcGVyYXRpb24iOiJHZXRDb21iaW5lZEltYWdlcyIsIm1vZGVsIjoib2Zmc2V0IiwicG9zaXRpb24iOjIsImZpbmdlcnByaW50IjoiZWQyN2NhNGQyN2ZlMWZkOTA3ZmRiMjRlOGJkYzkyYmYxZjFlMmJhNTgyN2JlNTBkNzA5YmZmODVjZWRhZTEyNSJ9` for the next page"

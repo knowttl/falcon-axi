@@ -90,6 +90,15 @@ def translate_falcon_error(
                 command, example = filter_help
             elif remedy:
                 command, example = remedy
+            elif "Falcon Container Image:read" in scopes:
+                if id == "GetCombinedVulnerabilitiesSARIF":
+                    command, example = "serverless list", "cloud_provider:'aws'"
+                elif id == "ReadContainerCombined":
+                    command, example = "container list", "namespace:'production'"
+                elif id == "GetCombinedImages":
+                    command, example = "image list", "repository:'example/service'"
+                else:
+                    command, example = "image vulnerabilities", "cvss_score:>7"
             elif "Assets:read" in scopes:
                 command, example = "account list", "username:'synthetic-user'"
             elif "Hosts:read" in scopes:

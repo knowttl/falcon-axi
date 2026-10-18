@@ -4,6 +4,7 @@ from falcon_axi import (
     account,
     cloud_asset,
     cloud_risk,
+    container,
     cve,
     detection,
     diagnostics,
@@ -11,6 +12,7 @@ from falcon_axi import (
     host,
     host_group,
     identity,
+    image,
     indicator,
     intel,
     ioc,
@@ -24,6 +26,7 @@ from falcon_axi import (
     sensor_usage,
     setup,
     shield,
+    serverless,
     vuln,
 )
 
@@ -39,6 +42,9 @@ COMMAND_SPECS = {
         cve.COMMAND_SPECS,
         intel.COMMAND_SPECS,
         indicator.COMMAND_SPECS,
+        container.COMMAND_SPECS,
+        image.COMMAND_SPECS,
+        serverless.COMMAND_SPECS,
         identity.COMMAND_SPECS[:1],
         search.COMMAND_SPECS,
         identity.COMMAND_SPECS[1:],

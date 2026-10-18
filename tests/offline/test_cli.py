@@ -51,7 +51,8 @@ def test_an_unknown_command_or_subcommand_fails_before_any_request() -> None:
         "valid commands: detection summary, detection list, detection show, host list, host show, host logins, "
         "host network, account list, account show, asset list, asset show, application list, login list, "
         "vuln show, vuln list, cve list, cve show, actor list, actor show, report list, report show, "
-        "indicator list, indicator show, identity activity, search start, search status, search stop, identity list, "
+        "indicator list, indicator show, container list, image list, image vulnerabilities, serverless list, "
+        "identity activity, search start, search status, search stop, identity list, "
         "identity show, identity timeline, identity assessment, identity sensor list, identity sensor show, "
         "ioc list, ioc show, ioc hosts, ioc processes, host-group list, host-group members, policy list, policy members, "
         "cloud-asset list, cloud-asset show, iom list, iom show, cloud-risk list, "
@@ -113,7 +114,19 @@ def test_unknown_profile_is_refused_rather_than_silently_ignored() -> None:
 
 
 @pytest.mark.parametrize(
-    "command", ["detection list", "host list", "account list", "vuln list", "identity list", "identity timeline"]
+    "command",
+    [
+        "detection list",
+        "host list",
+        "account list",
+        "vuln list",
+        "identity list",
+        "identity timeline",
+        "container list",
+        "image list",
+        "image vulnerabilities",
+        "serverless list",
+    ],
 )
 def test_continuation_arguments_survive_shell_parsing_and_expansion(command: str) -> None:
     value = 'O\'Brien * $HOME "quoted" \\ $(printf expanded); &|<> []\n'

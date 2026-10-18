@@ -18,6 +18,7 @@ from falcon_axi.transport.operations import (
 #: Operations whose §2.2 corroboration is falconpy's generated table plus PSFalcon, because falcon-mcp
 #: has no tool for them, mapped to the falconpy endpoint module that lists each one.
 NO_FALCON_MCP_TOOL = {
+    "GetCombinedImages": "_container_images",
     "DevicesRanOn": "_iocs",
     "ProcessesRanOn": "_iocs",
     "get_hosts": "_discover",
@@ -93,6 +94,34 @@ EXPECTED = {
         "scopes": ("SaaS Security:read",),
         "effect": "read",
         "doc_scope": "SaaS Security (Falcon Shield): READ",
+    },
+    "GetCombinedVulnerabilitiesSARIF": {
+        "method": "GET",
+        "path": "/lambdas/combined/vulnerabilities/sarif/v1",
+        "scopes": ("Falcon Container Image:read",),
+        "effect": "read",
+        "doc_scope": "Falcon Container Image: READ",
+    },
+    "ReadContainerCombined": {
+        "method": "GET",
+        "path": "/container-security/combined/containers/v1",
+        "scopes": ("Falcon Container Image:read",),
+        "effect": "read",
+        "doc_scope": "Falcon Container Image: READ",
+    },
+    "ReadCombinedVulnerabilities": {
+        "method": "GET",
+        "path": "/container-security/combined/vulnerabilities/v1",
+        "scopes": ("Falcon Container Image:read",),
+        "effect": "read",
+        "doc_scope": "Falcon Container Image: READ",
+    },
+    "GetCombinedImages": {
+        "method": "GET",
+        "path": "/container-security/combined/image-assessment/images/v1",
+        "scopes": ("Falcon Container Image:read",),
+        "effect": "read",
+        "doc_scope": "Falcon Container Image: READ",
     },
     "queryCombinedPreventionPolicies": {
         "method": "GET",

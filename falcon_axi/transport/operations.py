@@ -31,6 +31,10 @@ OperationId = Literal[
     "QueryNotificationsExposedDataRecordsV1",
     "GetNotificationsExposedDataRecordsV1",
     "GetSecurityChecksV3",
+    "GetCombinedVulnerabilitiesSARIF",
+    "ReadContainerCombined",
+    "ReadCombinedVulnerabilities",
+    "GetCombinedImages",
     "queryCombinedPreventionPolicies",
     "queryCombinedPreventionPolicyMembers",
     "queryCombinedSensorUpdatePoliciesV2",
@@ -152,6 +156,23 @@ CANONICAL: tuple[FalconOperation, ...] = (
         ),
     ),
     FalconOperation(
+        id="GetCombinedVulnerabilitiesSARIF",
+        method="GET",
+        path="/lambdas/combined/vulnerabilities/sarif/v1",
+        scopes=("Falcon Container Image:read",),
+        effect="read",
+        evidence=Evidence(
+            doc_url="https://developer.crowdstrike.com/api-reference/collections/serverless-vulnerabilities/",
+            doc_scope="Falcon Container Image: READ",
+            falcon_mcp=(
+                "falcon_mcp/common/api_scopes.py maps GetCombinedVulnerabilitiesSARIF to Falcon Container Image:read; "
+                "falcon-mcp ece8575 falcon_mcp/modules/serverless.py search_serverless_vulnerabilities "
+                "uses filter, limit, offset, sort and body.runs SARIF. "
+                "falconpy/_endpoint/_serverless_vulnerabilities.py confirms GET /lambdas/combined/vulnerabilities/sarif/v1."
+            ),
+        ),
+    ),
+    FalconOperation(
         id="QueryRulesV1",
         method="GET",
         path="/recon/queries/rules/v1",
@@ -168,6 +189,23 @@ CANONICAL: tuple[FalconOperation, ...] = (
         ),
     ),
     FalconOperation(
+        id="ReadContainerCombined",
+        method="GET",
+        path="/container-security/combined/containers/v1",
+        scopes=("Falcon Container Image:read",),
+        effect="read",
+        evidence=Evidence(
+            doc_url="https://developer.crowdstrike.com/api-reference/collections/kubernetes-protection/",
+            doc_scope="Falcon Container Image: READ",
+            falcon_mcp=(
+                "falcon_mcp/common/api_scopes.py maps ReadContainerCombined to Falcon Container Image:read; "
+                "falcon-mcp ece8575 falcon_mcp/modules/cloud/cloud_containers.py search_kubernetes_containers "
+                "uses filter, limit, offset, sort and resources with meta.pagination. "
+                "falconpy/_endpoint/_kubernetes_protection.py confirms the 200 page cap and 10000 window."
+            ),
+        ),
+    ),
+    FalconOperation(
         id="GetRulesV1",
         method="GET",
         path="/recon/entities/rules/v1",
@@ -180,6 +218,23 @@ CANONICAL: tuple[FalconOperation, ...] = (
                 "falcon_mcp/common/api_scopes.py maps GetRulesV1 to Monitoring rules (Falcon Intelligence Recon):read; "
                 "falcon_mcp/modules/recon.py search_recon_rules hydrates query ids with query parameters. "
                 "falconpy/_endpoint/_recon.py corroborates the route and ids parameter."
+            ),
+        ),
+    ),
+    FalconOperation(
+        id="ReadCombinedVulnerabilities",
+        method="GET",
+        path="/container-security/combined/vulnerabilities/v1",
+        scopes=("Falcon Container Image:read",),
+        effect="read",
+        evidence=Evidence(
+            doc_url="https://developer.crowdstrike.com/api-reference/collections/container-vulnerabilities/",
+            doc_scope="Falcon Container Image: READ",
+            falcon_mcp=(
+                "falcon_mcp/common/api_scopes.py maps ReadCombinedVulnerabilities to Falcon Container Image:read; "
+                "falcon-mcp ece8575 falcon_mcp/modules/cloud/cloud_containers.py search_images_vulnerabilities "
+                "uses filter, limit, offset, sort and resources with meta.pagination. "
+                "falconpy/_endpoint/_container_vulnerabilities.py confirms the 100 page cap and 10000 window."
             ),
         ),
     ),
@@ -262,6 +317,24 @@ CANONICAL: tuple[FalconOperation, ...] = (
                 "search_shield_checks sends id, status, impact, limit and offset; "
                 "falconpy/_endpoint/_saas_security.py maps GetSecurityChecksV3 to "
                 "GET /saas-security/entities/checks/v3"
+            ),
+        ),
+    ),
+    FalconOperation(
+        id="GetCombinedImages",
+        method="GET",
+        path="/container-security/combined/image-assessment/images/v1",
+        scopes=("Falcon Container Image:read",),
+        effect="read",
+        evidence=Evidence(
+            doc_url="https://developer.crowdstrike.com/api-reference/collections/container-images/",
+            doc_scope="Falcon Container Image: READ",
+            falcon_mcp=(
+                "falcon-mcp has no tool for GetCombinedImages. "
+                "falconpy/_endpoint/_container_images.py maps GetCombinedImages to GET "
+                "/container-security/combined/image-assessment/images/v1. "
+                "PSFalcon b5f3774 public/container-security.ps1 Get-FalconContainerAssessment wraps "
+                "the same filter, sort, limit and offset read."
             ),
         ),
     ),

@@ -51,6 +51,9 @@ What is shipped:
 - bounded `--all` walks with `--max-rows` on detection, host, account, and vuln lists, retaining partial
   results and emitting a continuation cursor only when the next position is reachable.
 - `--fields` on detection, host, and vuln lists to append selected columns to the default row.
+- container and serverless reads: `container list`, `image list`, `image vulnerabilities`, and `serverless list`.
+  They match first-party API sources and are tested offline, without tenant validation.
+  See the [container and serverless contract](docs/design/v1.md#24-container-and-serverless-reads) for filters, paging boundaries, and SARIF output, and [API client permissions](#api-client-permissions) for provisioning.
 
 - custom IOC reads: `ioc list`, `ioc show`, `ioc hosts <type:value>`, and
   `ioc processes <type:value> --host <device_id>`;
@@ -234,6 +237,7 @@ credential.
 `Assets:read` is needed by the `account`, `asset`, `application`, and `login` commands and is license-gated to Falcon Discover or
 Exposure Management; a client that cannot be granted it loses those commands and nothing else.
 The actor, report, and indicator commands also require a Falcon Intelligence license; `falcon-axi scopes` names their scopes.
+Container, image, and serverless reads require the corresponding product license; use `falcon-axi scopes` for their shared read scope.
 Grant only the scopes for the domains you intend to read: each is independent, and a command whose
 scope is missing fails with `SCOPE_DENIED` naming exactly what to grant.
 
@@ -465,6 +469,9 @@ Output is TOON on stdout.
 A non-empty list view generally prints a `count:` line, a compact domain-specific schema, and a `help[]` array of
 the next commands.
 Sensor usage reports follow [their output contract](docs/design/v1.md#24-sensor-usage-and-falcon-recon-reads).
+Most non-empty list views print a `count:` line, a compact domain-specific schema, and a `help[]` array of
+the next commands.
+For the serverless SARIF representation, see [the container and serverless contract](docs/design/v1.md#24-container-and-serverless-reads).
 Empty results are stated explicitly rather than left as ambiguous silence.
 GraphQL identity pages report rows shown without a total; their schemas are defined in
 [the output contract](docs/design/v1.md#102-default-schemas).
@@ -520,9 +527,11 @@ By default, one call reads one page.
 See [the sensor usage contract](docs/design/v1.md#24-sensor-usage-and-falcon-recon-reads) for its unpaginated reports.
 `--limit N` sets the rows for this call; `host logins` applies it to the selected host's login window.
 Use the command's `--help` for defaults and ceilings; the detailed limit contract lives in
+`--limit N` sets the page budget; `host logins` applies it to the selected host's login window.
+Use the command's `--help` for units, defaults, and ceilings; the detailed limit contract lives in
 [`docs/design/v1.md` §7.3](docs/design/v1.md#73-default-limits).
-A truncated result prints a `continuation_cursor` plus a ready-to-run next-page suggestion that
-replays the same filters.
+A result with reachable continuation prints a `continuation_cursor` plus a next-page suggestion.
+Follow [the suggestion redaction contract](docs/design/v1.md#55-redaction) when the suggestion requires restoring the original filter.
 Pass it back with `--cursor <token>`.
 
 The cursor is opaque and bound to the credential and the filter that produced it, so it cannot be

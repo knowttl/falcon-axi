@@ -1,0 +1,18 @@
+{
+  "provenance": {
+    "operation": "ReadContainerCombined",
+    "reference": "https://developer.crowdstrike.com/api-reference/collections/kubernetes-protection/",
+    "schema_read": "2026-10-18",
+    "provenance": "synthetic"
+  },
+  "response": {
+    "status": 200,
+    "body": {
+      "meta": {"pagination": {"total": 3}},
+      "resources": [
+        {"container_id": "synthetic-container-1", "container_name": "synthetic-service", "namespace": "production", "running_status": true},
+        {"container_id": "synthetic-container-2", "container_name": "synthetic-worker", "namespace": "production", "running_status": false}
+      ]
+    }
+  }
+}

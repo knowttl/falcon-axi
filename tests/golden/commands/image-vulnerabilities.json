@@ -1,0 +1,11 @@
+{
+  "name": "image vulnerabilities",
+  "order": 1612,
+  "summary": "  image vulnerabilities     list container image vulnerabilities",
+  "scopes": [
+    {
+      "scope": "Falcon Container Image:read",
+      "access": "read"
+    }
+  ]
+}

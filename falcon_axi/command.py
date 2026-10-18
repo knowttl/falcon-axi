@@ -2,12 +2,15 @@
 
 from __future__ import annotations
 
+import re
 import shlex
 from collections.abc import Callable, Mapping, Sequence
 from dataclasses import dataclass
 from typing import TYPE_CHECKING, Literal
 
 from falcon_axi.core import CliError
+
+CID_FILTER = re.compile(r"\b(?:cid|member_cid)\s*:", re.IGNORECASE)
 
 if TYPE_CHECKING:
     from falcon_axi.auth import Session
@@ -48,6 +51,8 @@ def suggestion_for(command: str, flags: Mapping[str, str | bool], positionals: S
     ):
         value = flags.get(name)
         if isinstance(value, str):
+            if name == "filter" and CID_FILTER.search(value):
+                value = "<original-filter>"
             parts.extend((f"--{name}", value))
     return shlex.join(parts)
 
