@@ -1,4 +1,7 @@
 {
+  "detection-walk-budget": 0,
+  "detection-walk-wall": 0,
+  "host-walk-budget-at-wall": 0,
   "auth-status": 0,
   "auth-status-forbidden": 1,
   "auth-status-member-cid": 0,

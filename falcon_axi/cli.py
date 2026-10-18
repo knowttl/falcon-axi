@@ -39,6 +39,7 @@ from falcon_axi.redaction import redact_text, redaction_scope
 from falcon_axi.render import raw, render
 from falcon_axi.version import VERSION
 from falcon_axi.vuln import parse_fields
+from falcon_axi.walk import max_rows_of
 
 DESCRIPTION = "Read CrowdStrike Falcon detections, hosts, vulnerabilities, and NG-SIEM searches from the shell"
 HOME_ROWS = 5
@@ -169,6 +170,7 @@ def parse(argv: Sequence[str]) -> Parsed:
             f"`{command}` accepts no positional arguments",
             [f"valid flags for `{command}`: {', '.join(_valid_flags(command))}"],
         )
+    max_rows_of(flags)
     if "limit" in flags:
         limit_of(flags, COMMAND_SPECS[command])
     if "fields" in flags:
