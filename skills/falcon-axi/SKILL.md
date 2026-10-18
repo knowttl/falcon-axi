@@ -32,10 +32,9 @@ user or endpoint and its risk, accounts, and activity timeline, and to check whe
 resolves and into which region and tenant.
 
 `setup` does not exist, and neither do `--all`, `--max-rows`, or `--fields` on detection and host lists.
-Neither does any command for a Falcon domain outside detections, hosts, Discover accounts, Spotlight vulnerabilities, `cve show`,
-NG-SIEM search, and the Identity Protection directory and timeline; there is no `cve list`, no intel actor,
-indicator, or report command, and no ingest, lookup-file, parser, dashboard, Charlotte AI, identity incident,
-or identity security-assessment command.
+The [README's status section](../../README.md#status-partial-implementation-of-the-v1-design) owns the
+shipped and absent command inventory, including sensor usage and Falcon Recon reads.
+Use `falcon-axi --help` to discover commands and each command's `--help` for its flags.
 Do not invent them; an unknown flag or command fails loudly.
 
 ## Commands
@@ -163,7 +162,7 @@ settled requirement.
 ## Output and errors
 
 Output is TOON on stdout.
-Nonempty list views print a definitive `count:` line and compact rows, with contextual next commands.
+Nonempty list views print a definitive `count:` line and domain-specific rows, with contextual next commands when useful.
 Empty results state the answer rather than leaving a silence to re-query.
 Default schemas, including login and account rows, are specified in `docs/design/v1.md` §10.2.
 Identity pages report rows shown without a total.
@@ -184,7 +183,8 @@ flags, filterable fields, and examples instead of guessing.
 
 ## Pagination
 
-One list call reads one page.
+One paginated list call reads one page.
+For the unpaginated sensor usage reports, see [the sensor usage contract](../../docs/design/v1.md#24-sensor-usage-and-falcon-recon-reads).
 Use the command's `--help` for limit defaults and ceilings; `docs/design/v1.md` §7.3 owns the limit contract.
 `host logins` has no cursor: follow its saturation warning instead of treating a full window as complete.
 `search status` has neither `--limit` nor `--cursor`, because a query job carries no pagination metadata;

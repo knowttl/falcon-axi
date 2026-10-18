@@ -8,7 +8,7 @@ ends with the commands that are worth running next.
 
 ## Status: partial implementation of the v1 design
 
-The package is real and installable, and it ships five read domains plus NG-SIEM search.
+The package is real and installable, with read commands for the domains below plus NG-SIEM search.
 The shipped and deferred commands are listed below; [`docs/design/v1.md`](docs/design/v1.md) owns the full v1 design.
 
 What is shipped:
@@ -30,15 +30,14 @@ What is shipped:
 - identity-aware detections (`detection list --product idp`, with account and source-endpoint
   fields when present) and `identity activity <account>`, a fixed NG-SIEM search over one account's
   Identity Protection events that adds no operation and no scope beyond N1's;
-- `falcon-axi scopes`, the command-to-scope matrix, available without making a request.
+- `falcon-axi scopes`, the command-to-scope matrix, available without making a request;
 - weekly sensor usage reports: `sensor-usage list [--filter <FQL>]`;
 - Falcon Recon reads: `recon-rule list|show`, `recon-notification list|show`, and
   `recon-record list|show` for monitoring rules, notifications, and exposed-data records.
-  Lists take `--filter`, `--limit` (default 20, maximum 500), and `--cursor`.
+  Lists take `--filter`, `--limit`, and `--cursor`.
   Detail views preview long strings; pass `--full` for untruncated content.
-  These commands require `Sensor Usage:read` or `Monitoring rules (Falcon Intelligence Recon):read`.
-  Their API shapes match the official API reference, Falcon MCP and FalconPy, with synthetic offline
-  checks; no tenant validation is claimed.
+  See [the sensor usage and Recon contract](docs/design/v1.md#24-sensor-usage-and-falcon-recon-reads)
+  for API evidence and validation limits, and run `falcon-axi scopes` for permissions.
 
 What is **not** shipped yet, so no output advertises it:
 
@@ -398,8 +397,9 @@ A GraphQL error reported on an HTTP 200 is an `UPSTREAM_ERROR`, never an empty r
 ## Output and errors
 
 Output is TOON on stdout.
-A non-empty list view prints a `count:` line, a compact domain-specific schema, and a `help[]` array of
-the next commands.
+A non-empty list view prints a `count:` line and domain-specific rows, with a `help[]` array when
+there are useful next commands.
+Sensor usage reports retain the upstream metric categories rather than projecting a compact schema.
 Empty results are stated explicitly rather than left as ambiguous silence.
 GraphQL identity pages report rows shown without a total; their schemas are defined in
 [the output contract](docs/design/v1.md#102-default-schemas).
@@ -450,7 +450,8 @@ Ask the command rather than guessing its flags.
 
 ## Pagination
 
-One call reads one page.
+One paginated list call reads one page.
+`sensor-usage list` returns all reports supplied by the endpoint and has no limit, cursor, or detail command.
 `--limit N` sets the rows for this call; `host logins` applies it to the selected host's login window.
 Use the command's `--help` for defaults and ceilings; the detailed limit contract lives in
 [`docs/design/v1.md` §7.3](docs/design/v1.md#73-default-limits).
