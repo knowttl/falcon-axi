@@ -20,7 +20,7 @@ What is shipped:
   operations, and a single permitted network sink;
 - AXI credential profiles and SecretRefs, per-call XDG paths, region selection and
   `X-Cs-Region` autodiscovery, Flight Control member-CID selection, `auth status`, `profile list`, and `config path`;
-- the home view and five read domains: `falcon-axi`, `detection list`, `detection show`, `host list`,
+- the home view and core reads: `falcon-axi`, `detection list`, `detection show`, `host list`,
   `host show`, `host logins`, `account list`, `account show`, `vuln list`, and `cve show`;
 - Discover inventory: `asset list`, `asset show`, `application list`, and `login list`, plus
   `host network <device_id>` for Falcon sensor-host IP and MAC address history;
@@ -317,17 +317,17 @@ Run `falcon-axi detection list --help` for the complete product values.
 An unknown name is refused and the valid names are listed.
 `host logins <device_id>` accepts exactly one host and takes `--since` (a relative window) and `--limit`.
 Run `falcon-axi host logins --help` for defaults and limits.
+Its rows are recent interactive logins from the Host Timeline, not a full audit trail.
 
 `asset list` includes Discover managed and unmanaged assets, distinct from the sensor inventory in `host list`.
 Use `--filter "entity_type:'managed'"` or `--filter "entity_type:'unmanaged'"` to select either inventory.
 Discover asset IDs come from `asset list`; sensor device IDs come from `host list`.
 `asset list` and `application list` use `--filter`, `--limit` (ceiling 1000), and `--cursor` for token pagination.
 Without `--filter`, they send the API-required broad filters `id:'*'` and `name:'*'`, respectively.
-`asset show` lists MAC addresses from Discover's `network_interfaces` records.
+`asset show` includes the asset's available MAC addresses.
 `login list` uses the same flags with offset pagination and a ceiling of 100.
 `host network <device_id>` returns the address history Falcon retains and has no pagination flags.
 These shapes match the official API reference and SDKs; they have not been validated against a tenant.
-Its rows are recent interactive logins from the Host Timeline, not a full audit trail.
 `account list` takes `--filter` (raw FQL on Discover account fields), `--limit`, and
 `--cursor`; the accounts are the ones Discover has seen log in on endpoints, not an identity
 directory.

@@ -8,7 +8,6 @@ from toon_format import decode
 from falcon_axi.cli import run
 from tests.support.recorded import CREDENTIAL_ENV, RecordedTransport, fixture, response, serve
 
-
 INVENTORY_ERROR_CASES = [
     (["asset", "list"], "combined_hosts", "asset", "entity_type:'managed'"),
     (["asset", "show", "synthetic-id"], "get_hosts", "asset", "entity_type:'managed'"),

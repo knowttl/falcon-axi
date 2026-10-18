@@ -1,12 +1,12 @@
 ---
 name: falcon-axi
-description: "Read CrowdStrike Falcon detections, hosts, vulnerabilities, CVE intelligence, NG-SIEM searches, and Identity Protection users and timelines from the shell with falcon-axi. Use for Falcon alerts and detections, detection triage, host and sensor inventory, recent interactive host logins, Discover account inventory, Spotlight vulnerability exposure, Falcon Intelligence CVE detail, NG-SIEM CQL event search, Identity Protection user and endpoint risk, accounts, and activity timelines, severity and status filtering, tenant and region checks, and Falcon API credential diagnostics."
+description: "Read CrowdStrike Falcon detections, hosts, vulnerabilities, CVE intelligence, NG-SIEM searches, and Identity Protection users and timelines from the shell with falcon-axi. Use for Falcon alerts and detections, detection triage, host and sensor inventory, host login and network history, Discover inventory and logins, Spotlight vulnerability exposure, Falcon Intelligence CVE detail, NG-SIEM CQL event search, Identity Protection user and endpoint risk, accounts, and activity timelines, severity and status filtering, tenant and region checks, and Falcon API credential diagnostics."
 user-invocable: false
 ---
 
 # falcon-axi
 
-Read CrowdStrike Falcon detections, hosts, recent interactive logins, Discover accounts, vulnerabilities, CVE intelligence, NG-SIEM event data, and Identity Protection users from the shell.
+Read CrowdStrike Falcon detections, hosts, host history, Discover inventory and logins, vulnerabilities, CVE intelligence, NG-SIEM event data, and Identity Protection users from the shell.
 Prefer this CLI over the Falcon console or hand-rolled REST calls when a task needs to read any of them.
 
 The CLI changes nothing in the tenant except an NG-SIEM search job: it exposes no write, create, update,
@@ -25,17 +25,13 @@ If output suggests a `falcon-axi` command, run the equivalent command through th
 ## When to use
 
 Use falcon-axi to answer what is firing in Falcon right now, to filter detections by severity, status, or
-time window, to read one detection in full, to find hosts, read one host's detail, see recent interactive logins, and list Discover accounts, to read a host's or
+time window, to read one detection in full, to find hosts, read one host's detail and history, query Discover inventory and logins, to read a host's or
 the fleet's Spotlight vulnerabilities, to read what Falcon Intelligence knows about one CVE, to run a CQL
 search over NG-SIEM event data when the question is not one of those domains, to look up an Identity Protection
 user or endpoint and its risk, accounts, and activity timeline, and to check whether a Falcon credential
 resolves and into which region and tenant.
 
-`setup` does not exist, and neither do `--all`, `--max-rows`, or `--fields` on detection and host lists.
-Neither does any command for a Falcon domain outside detections, hosts, Discover accounts, Spotlight vulnerabilities, `cve show`,
-NG-SIEM search, and the Identity Protection directory and timeline; there is no `cve list`, no intel actor,
-indicator, or report command, and no ingest, lookup-file, parser, dashboard, Charlotte AI, identity incident,
-or identity security-assessment command.
+The [README status section](../../README.md#status-partial-implementation-of-the-v1-design) owns shipped and deferred capabilities.
 Do not invent them; an unknown flag or command fails loudly.
 
 ## Commands
@@ -45,6 +41,7 @@ Do not invent them; an unknown flag or command fails loudly.
 `show <composite id>` (flag `--full`).
 `host`: `list` (flags `--hostname`, `--platform`, `--status`, `--since`, `--filter`, `--limit`, `--cursor`),
 `show <device id>`, `logins <device id>` (exactly one host; flags `--since`, `--limit`).
+For Discover assets, applications, and logins, and sensor-host network history, see the [README command guidance](../../README.md#workflow).
 `account`: `list` (flags `--filter`, `--limit`, `--cursor`), `show <account id>`; Discover accounts, which need the
 license-gated `Assets:read`.
 `vuln`: `list` (flags `--host`, `--severity`, `--status`, `--since`, `--filter`, `--limit`, `--cursor`, `--fields`).
@@ -165,7 +162,7 @@ settled requirement.
 Output is TOON on stdout.
 Nonempty list views print a definitive `count:` line and compact rows, with contextual next commands.
 Empty results state the answer rather than leaving a silence to re-query.
-Default schemas, including login and account rows, are specified in `docs/design/v1.md` §10.2.
+Default schemas are specified in `docs/design/v1.md` §10.2, with Discover inventory and network history in §1.7.
 Identity pages report rows shown without a total.
 `vuln list --fields` appends the selected columns.
 `search status` has no fixed schema, because a CQL result set's columns are whatever the query projected.
@@ -185,7 +182,7 @@ flags, filterable fields, and examples instead of guessing.
 ## Pagination
 
 One list call reads one page.
-Use the command's `--help` for limit defaults and ceilings; `docs/design/v1.md` §7.3 owns the limit contract.
+Use the command's `--help` for limit defaults and ceilings; `docs/design/v1.md` §7.3 owns the core limit contract and §1.7 owns Discover inventory limits.
 `host logins` has no cursor: follow its saturation warning instead of treating a full window as complete.
 `search status` has neither `--limit` nor `--cursor`, because a query job carries no pagination metadata;
 bound the result set in the CQL itself with `| head(N)` or an aggregate.
