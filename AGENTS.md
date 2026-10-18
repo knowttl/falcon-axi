@@ -46,7 +46,7 @@ See `docs/design/v1.md` §0 (the invariant), §1.5 (excluded capability classes)
 Control tenancy, pagination and rate limits, error envelope, TOON output, fixtures, live-test boundaries, and
 the API-client evaluation.
 Read it before adding or changing any command surface, and update it in the same change when the surface moves.
-Its §17 records open questions; check there before re-deriving a decision that was already argued, and its §18
+Its §17 records closed decisions; check there before re-deriving a decision that was already argued, and its §18
 cites every source, so a claim can be re-verified rather than trusted.
 
 `docs/design/v1-python.md` is the committed amendment that made falcon-axi a pure Python CLI on
@@ -134,8 +134,8 @@ Read the `axi` skill at `~/.pi/agent/skills/axi/SKILL.md` and the TOON spec it p
 reviewing any CLI behavior here.
 `azure-axi` and `awx-axi` are the sibling references for these patterns; `docs/design/v1.md` §18 lists where
 their assumptions do **not** transfer to Falcon.
-`skills/falcon-axi/SKILL.md` is this repo's agent-facing skill; it is hand-written until `setup` generation
-lands and must never name a command the CLI does not ship (`docs/design/v1.md` §12.2).
+`skills/falcon-axi/SKILL.md` is this repo's generated agent-facing skill; regenerate it with `uv run scripts/skill.py`.
+Its drift check runs in `scripts/verify.py`, and it must never name a command the CLI does not ship (`docs/design/v1.md` §12.2).
 
 ## Maintaining this file
 

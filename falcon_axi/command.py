@@ -24,6 +24,8 @@ def string(value: str | bool | None) -> str | None:
 def suggestion_for(command: str, flags: Mapping[str, str | bool], positionals: Sequence[str] = ()) -> str:
     """Replay query-shaping flags into a next-page suggestion (§7.2)."""
     parts = ["falcon-axi", *command.split(), *positionals]
+    if flags.get("all"):
+        parts.append("--all")
     for name in (
         "filter",
         "hostname",
@@ -34,6 +36,7 @@ def suggestion_for(command: str, flags: Mapping[str, str | bool], positionals: S
         "product",
         "since",
         "limit",
+        "max-rows",
         "fields",
         "name",
         "email",

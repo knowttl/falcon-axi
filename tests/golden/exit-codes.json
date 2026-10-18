@@ -3,6 +3,7 @@
   "help-indicator-show": 0,
   "indicator-list-page": 0,
   "indicator-show": 0,
+  "home-view-skill-hint": 1,
   "auth-status": 0,
   "auth-status-forbidden": 1,
   "auth-status-member-cid": 0,
@@ -134,5 +135,8 @@
   "identity-activity-start": 0,
   "identity-activity-scope-denied": 1,
   "identity-activity-without-account": 2,
-  "identity-activity-unsafe-account": 2
+  "identity-activity-unsafe-account": 2,
+  "detection-walk-budget": 0,
+  "detection-walk-wall": 0,
+  "host-walk-budget-at-wall": 0
 }
