@@ -62,7 +62,16 @@ def translate_falcon_error(response: FalconResponse, id: OperationId, subject: s
         )
     if response.status == 400:
         if any(_FILTER_WORDS.search(message) for message in messages):
-            if "Assets:read" in scopes:
+            if "Falcon Container Image:read" in scopes:
+                if id == "GetCombinedVulnerabilitiesSARIF":
+                    command, example = "serverless list", "cloud_provider:'aws'"
+                elif id == "ReadContainerCombined":
+                    command, example = "container list", "namespace:'production'"
+                elif id == "GetCombinedImages":
+                    command, example = "image list", "repository:'example/service'"
+                else:
+                    command, example = "image vulnerabilities", "cvss_score:>7"
+            elif "Assets:read" in scopes:
                 command, example = "account list", "username:'synthetic-user'"
             elif "Hosts:read" in scopes:
                 command, example = "host list", "hostname:'WIN-*'"

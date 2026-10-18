@@ -179,6 +179,12 @@ def parse(argv: Sequence[str]) -> Parsed:
         parse_fields(str(flags["fields"]), spec.extra_fields, spec.default_fields)
     if "filter" in flags and not str(flags["filter"]).strip():
         raise CliError("VALIDATION_ERROR", "--filter requires a value")
+    if command == "serverless list" and "filter" not in flags:
+        raise CliError(
+            "VALIDATION_ERROR",
+            "serverless list requires --filter",
+            ["Run `falcon-axi serverless list --filter \"cloud_provider:'aws'\"`"],
+        )
     if "since" in flags:
         window(str(flags["since"]))
     if command == "identity list":

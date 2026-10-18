@@ -1,0 +1,11 @@
+count: 1 SARIF runs; vulnerability total unknown
+runs[1]:
+  - tool:
+      driver:
+        name: CrowdStrike
+        rules[1]{id,shortDescription{text},properties{severity,cvssBaseScore}}:
+          CVE-2099-1001,Synthetic package vulnerability,HIGH,8.1
+    results[1]{ruleId,level,message{text}}:
+      CVE-2099-1001,error,Synthetic serverless function uses a vulnerable package
+continuation_cursor: eyJvcGVyYXRpb24iOiJHZXRDb21iaW5lZFZ1bG5lcmFiaWxpdGllc1NBUklGIiwibW9kZWwiOiJvZmZzZXQiLCJwb3NpdGlvbiI6MiwiZmluZ2VycHJpbnQiOiI0MjllMTA5OGMxNDcxMDdlMWE1ZmI0NWU0MDMzYzI2NDU3OTA3ODJmMGMwZjlmODQ3YmFmYjAzMTRkMzg4NjgzIn0
+help[2]: "SARIF runs are not vulnerability rows; the next page may be empty","Run `falcon-axi serverless list --filter 'cloud_provider:'\"'\"'aws'\"'\"'' --limit 2 --cursor eyJvcGVyYXRpb24iOiJHZXRDb21iaW5lZFZ1bG5lcmFiaWxpdGllc1NBUklGIiwibW9kZWwiOiJvZmZzZXQiLCJwb3NpdGlvbiI6MiwiZmluZ2VycHJpbnQiOiI0MjllMTA5OGMxNDcxMDdlMWE1ZmI0NWU0MDMzYzI2NDU3OTA3ODJmMGMwZjlmODQ3YmFmYjAzMTRkMzg4NjgzIn0` for the next page"

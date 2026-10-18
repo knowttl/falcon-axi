@@ -1,0 +1,18 @@
+{
+  "provenance": {
+    "operation": "ReadCombinedVulnerabilities",
+    "reference": "https://developer.crowdstrike.com/api-reference/collections/container-vulnerabilities/",
+    "schema_read": "2026-10-18",
+    "provenance": "synthetic"
+  },
+  "response": {
+    "status": 200,
+    "body": {
+      "meta": {"pagination": {"total": 3}},
+      "resources": [
+        {"cve_id": "CVE-2099-1001", "severity": "HIGH", "cvss_score": 8.1, "images_impacted": 4},
+        {"cve_id": "CVE-2099-1002", "severity": "MEDIUM", "cvss_score": 5.3, "images_impacted": 1}
+      ]
+    }
+  }
+}

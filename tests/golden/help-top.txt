@@ -13,6 +13,10 @@ Commands:
   cve show <CVE-ID>         Falcon Intelligence detail for one CVE
   indicator list            list Falcon Intelligence indicators
   indicator show <id>       detail for one intelligence indicator
+  container list            list Kubernetes containers
+  image list                list container image assessments
+  image vulnerabilities     list container image vulnerabilities
+  serverless list           read serverless vulnerability SARIF
   identity activity <acct>  start a search for one account's identity events
   search start              start an NG-SIEM CQL search job
   search status <id>        poll one search job and read its events

@@ -4,6 +4,53 @@
   "indicator_comment": "Intel indicator list/show adds marker continuation scenarios and changes help-top, unknown-command, and scopes to advertise the shipped read-only surface (design sections 7.1 and 7.2).",
   "scenarios": [
     {
+      "name": "help-container-list",
+      "comment": "Container/serverless reads deliberately extend help-top, unknown-command, scopes and authenticated status scope documents (design section 2.4).",
+      "argv": ["container", "list", "--help"]
+    },
+    {
+      "name": "help-image-list",
+      "argv": ["image", "list", "--help"]
+    },
+    {
+      "name": "help-image-vulnerabilities",
+      "argv": ["image", "vulnerabilities", "--help"]
+    },
+    {
+      "name": "help-serverless-list",
+      "argv": ["serverless", "list", "--help"]
+    },
+    {
+      "name": "container-list-page",
+      "argv": ["container", "list", "--limit", "2"],
+      "responders": [{"op": "ReadContainerCombined", "fixture": "containers/containers-page.json"}]
+    },
+    {
+      "name": "image-list-page",
+      "argv": ["image", "list", "--limit", "2"],
+      "responders": [{"op": "GetCombinedImages", "fixture": "containers/images-page.json"}]
+    },
+    {
+      "name": "image-vulnerabilities-page",
+      "argv": ["image", "vulnerabilities", "--limit", "2"],
+      "responders": [{"op": "ReadCombinedVulnerabilities", "fixture": "containers/vulnerabilities-page.json"}]
+    },
+    {
+      "name": "serverless-list-page",
+      "argv": ["serverless", "list", "--filter", "cloud_provider:'aws'", "--limit", "2"],
+      "responders": [{"op": "GetCombinedVulnerabilitiesSARIF", "fixture": "serverless/vulnerabilities-page.json"}]
+    },
+    {
+      "name": "serverless-list-empty",
+      "argv": ["serverless", "list", "--filter", "cloud_provider:'aws'"],
+      "responders": [{"op": "GetCombinedVulnerabilitiesSARIF", "response": {"status": 200, "body": {"runs": []}}}]
+    },
+    {
+      "name": "container-scope-denied",
+      "argv": ["container", "list"],
+      "responders": [{"op": "ReadContainerCombined", "fixture": "errors/403-scope.json"}]
+    },
+    {
       "name": "help-indicator-list",
       "argv": [
         "indicator",

@@ -8,7 +8,7 @@ suggestions point to commands worth running next.
 
 ## Status: partial implementation of the v1 design
 
-The package is real and installable, and it ships six read domains plus NG-SIEM search.
+The package is real and installable, and it ships Falcon read domains plus NG-SIEM search.
 The shipped and deferred commands are listed below; [`docs/design/v1.md`](docs/design/v1.md) owns the full v1 design.
 
 What is shipped:
@@ -39,6 +39,11 @@ What is shipped:
 - bounded `--all` walks with `--max-rows` on detection, host, account, and vuln lists, retaining partial
   results and emitting a continuation cursor only when the next position is reachable.
 - `--fields` on detection, host, and vuln lists to append selected columns to the default row.
+- container and serverless reads: `container list`, `image list`, `image vulnerabilities`, and `serverless list`.
+  These require `Falcon Container Image:read` and the corresponding license.
+  They match first-party API sources and are tested offline, without tenant validation.
+  Container and image lists support filter, limit, and cursor paging within Falcon's 10000-record window.
+  Serverless reads preserve SARIF runs and report the vulnerability total as unknown.
 
 What is **not** shipped yet, so no output advertises it:
 
