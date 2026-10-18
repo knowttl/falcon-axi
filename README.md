@@ -15,6 +15,7 @@ What is shipped:
 
 - the package foundation: a Python package, the `falcon-axi` console script, and one offline
   `uv run scripts/verify.py` entry point;
+- `-v`, `-V`, and `--version`, printing the bare version;
 - the sealed transport and its closed operation registry, with evidence carried per operation, a
   second and third enforcement tier confining the two write-labelled scopes to three named
   operations, and a single permitted network sink;
@@ -151,8 +152,8 @@ Paths are resolved on every invocation.
 }
 ```
 
-**No secret is ever accepted as a command-line argument**, and a flag whose name looks like a secret
-is rejected at registration rather than at runtime.
+**No secret is ever accepted as a command-line argument**; the declaration guard is specified in
+[`docs/design/v1.md` §5.3](docs/design/v1.md#53-no-secret-is-ever-a-command-line-argument).
 `clientSecret` accepts `{"env":"NAME"}` or `{"file":"/absolute/local/path"}`.
 Omitting it defaults to `FALCON_AXI_CLIENT_SECRET`; inline secrets and stored references are rejected.
 File contents are UTF-8 with a leading BOM and trailing whitespace removed.

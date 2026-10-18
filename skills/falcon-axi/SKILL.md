@@ -7,7 +7,7 @@ description: >-
 
 # falcon-axi
 
-Read CrowdStrike Falcon detections, hosts, vulnerabilities, and NG-SIEM searches from the shell.
+Read CrowdStrike Falcon detections, hosts, accounts, vulnerabilities, CVE intelligence, indicators, identities, and NG-SIEM searches from the shell.
 Run `uvx falcon-axi ...` without a global install.
 
 ## Read-only boundary
