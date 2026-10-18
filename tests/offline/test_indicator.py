@@ -133,3 +133,24 @@ def test_list_scope_denial_names_the_intel_scope() -> None:
     assert code == 1
     assert "SCOPE_DENIED" in stdout
     assert "Indicators (Falcon Intelligence):read" in stdout
+
+
+@pytest.mark.parametrize(
+    "argv,operation",
+    [
+        (["indicator", "list", "--filter", "invalid"], LIST),
+        (["indicator", "list", "--filter", FILTER, "--cursor", encode_cursor("1700000000bbb", CONTEXT, SECRET)], LIST),
+        (["indicator", "show", "synthetic-indicator-1"], SHOW),
+    ],
+)
+def test_filter_rejection_teaches_indicator_fields(argv: list[str], operation: str) -> None:
+    recorded = RecordedTransport([serve(operation, response(400, {"errors": [{"message": "Invalid FQL filter"}]}))])
+    stdout, code = run(argv, recorded, dict(CREDENTIAL_ENV))
+    document = decode(stdout)
+    assert code == 2
+    assert document["code"] == "FQL_INVALID"
+    assert document["help"] == [
+        "FQL uses + for AND, `,` for OR, and values must be quoted",
+        'Example: `--filter "type:\'domain\'"`',
+        "Run `falcon-axi indicator list --help` for the filterable fields",
+    ]
