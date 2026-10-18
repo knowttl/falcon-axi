@@ -152,8 +152,8 @@ Paths are resolved on every invocation.
 }
 ```
 
-**No secret is ever accepted as a command-line argument**, and a flag whose name looks like a secret
-is rejected at registration rather than at runtime.
+**No secret is ever accepted as a command-line argument**; the declaration guard is specified in
+[`docs/design/v1.md` §5.3](docs/design/v1.md#53-no-secret-is-ever-a-command-line-argument).
 `clientSecret` accepts `{"env":"NAME"}` or `{"file":"/absolute/local/path"}`.
 Omitting it defaults to `FALCON_AXI_CLIENT_SECRET`; inline secrets and stored references are rejected.
 File contents are UTF-8 with a leading BOM and trailing whitespace removed.
