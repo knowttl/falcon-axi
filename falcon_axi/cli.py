@@ -21,6 +21,7 @@ from falcon_axi.credentials import (
 from falcon_axi.cve import validate_cve_id
 from falcon_axi.detection import list_detections
 from falcon_axi.diagnostics import tenant_line
+from falcon_axi.domain import parse_fields
 from falcon_axi.fql import (
     DetectionQuery,
     since_seconds,
@@ -39,7 +40,6 @@ from falcon_axi.redaction import redact_text, redaction_scope
 from falcon_axi.render import raw, render
 from falcon_axi.skill import HOME_GUIDANCE, skill_hint
 from falcon_axi.version import VERSION
-from falcon_axi.vuln import parse_fields
 from falcon_axi.walk import max_rows_of
 
 DESCRIPTION = "Read CrowdStrike Falcon detections, hosts, vulnerabilities, and NG-SIEM searches from the shell"
@@ -175,7 +175,8 @@ def parse(argv: Sequence[str]) -> Parsed:
     if "limit" in flags:
         limit_of(flags, COMMAND_SPECS[command])
     if "fields" in flags:
-        parse_fields(str(flags["fields"]))
+        assert spec is not None
+        parse_fields(str(flags["fields"]), spec.extra_fields, spec.default_fields)
     if "filter" in flags and not str(flags["filter"]).strip():
         raise CliError("VALIDATION_ERROR", "--filter requires a value")
     if "since" in flags:

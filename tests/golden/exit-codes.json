@@ -3,6 +3,8 @@
   "help-indicator-show": 0,
   "indicator-list-page": 0,
   "indicator-show": 0,
+  "detection-list-fields": 0,
+  "host-list-fields": 0,
   "home-view-skill-hint": 1,
   "auth-status": 0,
   "auth-status-forbidden": 1,
@@ -138,5 +140,9 @@
   "identity-activity-unsafe-account": 2,
   "detection-walk-budget": 0,
   "detection-walk-wall": 0,
-  "host-walk-budget-at-wall": 0
+  "host-walk-budget-at-wall": 0,
+  "help-detection-summary": 0,
+  "detection-summary": 0,
+  "detection-summary-empty": 0,
+  "detection-summary-scope-denied": 1
 }

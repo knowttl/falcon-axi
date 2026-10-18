@@ -40,6 +40,13 @@ EXPECTED = {
         "effect": "read",
         "doc_scope": "Indicators (Falcon Intelligence): READ",
     },
+    "PostAggregatesAlertsV2": {
+        "method": "POST",
+        "path": "/alerts/aggregates/alerts/v2",
+        "scopes": ("Alerts:read",),
+        "effect": "read",
+        "doc_scope": "Alerts: READ",
+    },
     "GetQueriesAlertsV2": {
         "method": "GET",
         "path": "/alerts/queries/alerts/v2",

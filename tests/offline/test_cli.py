@@ -48,13 +48,13 @@ def test_an_unknown_command_or_subcommand_fails_before_any_request() -> None:
     stdout, exit_code = run(["incident", "list"], recorded, dict(CREDENTIAL_ENV))
     assert exit_code == 2
     assert (
-        "valid commands: detection list, detection show, host list, host show, host logins, account list, "
+        "valid commands: detection summary, detection list, detection show, host list, host show, host logins, account list, "
         "account show, vuln list, cve show, indicator list, indicator show, identity activity, "
         "search start, search status, search stop, identity list, "
         "identity show, identity timeline, auth status, profile list, config path, scopes" in stdout
     )
     subcommand, _ = run(["detection", "contain"], recorded, dict(CREDENTIAL_ENV))
-    assert "valid detection subcommands: list, show" in subcommand
+    assert "valid detection subcommands: summary, list, show" in subcommand
     host, _ = run(["host", "contain"], recorded, dict(CREDENTIAL_ENV))
     assert "valid host subcommands: list, show" in host
     vuln, _ = run(["vuln", "show"], recorded, dict(CREDENTIAL_ENV))
@@ -158,7 +158,7 @@ def test_help_never_advertises_a_command_the_cli_does_not_have() -> None:
         assert exit_code == 0
         for absent in ("falcon-axi setup", "vuln show", "tenant list"):
             assert absent not in stdout, f"{' '.join(argv)} advertises {absent}"
-        if argv == ["vuln", "list", "--help"]:
+        if argv in (["detection", "list", "--help"], ["host", "list", "--help"], ["vuln", "list", "--help"]):
             assert "--fields" in stdout
         else:
             assert "--fields" not in stdout, f"{' '.join(argv)} advertises --fields"

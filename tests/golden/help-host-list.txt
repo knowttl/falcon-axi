@@ -1,4 +1,4 @@
-falcon-axi host list [--hostname <name>] [--platform <name>] [--status <name>] [--since <window>] [--filter <FQL>] [--limit N] [--cursor <token>] [--all] [--max-rows N]
+falcon-axi host list [--hostname <name>] [--platform <name>] [--status <name>] [--since <window>] [--filter <FQL>] [--limit N] [--cursor <token>] [--all] [--max-rows N] [--fields <names>]
 
 --hostname   hostname to match; Hosts filters accept wildcards, so WIN-* works
 --platform   one of windows, mac, linux
@@ -9,6 +9,7 @@ falcon-axi host list [--hostname <name>] [--platform <name>] [--status <name>] [
 --cursor     opaque continuation token from a previous call
 --all        walk pages; page size is independent of --limit
 --max-rows   row budget (default 1000; requires --all)
+--fields     extra columns, comma-separated: os_version, agent_version, status, first_seen, machine_domain
 
 Filterable fields include hostname, platform_name, os_version, agent_version, status,
 last_seen, first_seen, machine_domain, and local_ip.

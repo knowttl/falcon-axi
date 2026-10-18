@@ -1,6 +1,7 @@
 falcon-axi 0.4.1 - Read CrowdStrike Falcon detections, hosts, vulnerabilities, and NG-SIEM searches from the shell
 
 Commands:
+  detection summary         counts of detections by severity
   detection list            list detections from the Falcon Alerts collection
   detection show <id>       the full detail for one detection
   host list                 list hosts from the Falcon Hosts collection

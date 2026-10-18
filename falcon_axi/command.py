@@ -62,6 +62,8 @@ class CommandSpec:
     limit_ceiling: tuple[int, str] | None = None
     positional: tuple[str, str] | None = None
     authentication: Literal["none", "standard", "diagnostic"] = "standard"
+    extra_fields: tuple[str, ...] = ()
+    default_fields: tuple[str, ...] = ()
 
 
 def limit_of(flags: Mapping[str, str | bool], spec: CommandSpec) -> int:

@@ -3,8 +3,8 @@
 An agent-facing CLI for reading the CrowdStrike Falcon platform from the shell, built to the
 [AXI](https://agentskills.io) standard for CLI tools that autonomous agents drive through shell execution.
 
-Output is token-efficient TOON on stdout, errors are structured documents rather than prose, and every view
-ends with the commands that are worth running next.
+Output is token-efficient TOON on stdout, errors are structured documents rather than prose, and contextual
+suggestions point to commands worth running next.
 
 ## Status: partial implementation of the v1 design
 
@@ -22,6 +22,7 @@ What is shipped:
   `X-Cs-Region` autodiscovery, Flight Control member-CID selection, `auth status`, `profile list`, and `config path`;
 - the home view and five read domains: `falcon-axi`, `detection list`, `detection show`, `host list`,
   `host show`, `host logins`, `account list`, `account show`, `vuln list`, and `cve show`;
+- `detection summary`, an on-demand severity count with the same filters as `detection list`;
 - NG-SIEM search: `search start`, `search status`, and `search stop`, the three operations captain
   exception N1 admits;
 - the Identity Protection directory and timeline: `identity list`, `identity show`, and
@@ -37,6 +38,7 @@ What is shipped:
   [the integration contract](docs/design/v1.md#122-session-hook-and-skill);
 - bounded `--all` walks with `--max-rows` on detection, host, account, and vuln lists, retaining partial
   results and emitting a continuation cursor only when the next position is reachable.
+- `--fields` on detection, host, and vuln lists to append selected columns to the default row.
 
 What is **not** shipped yet, so no output advertises it:
 
@@ -47,7 +49,6 @@ What is **not** shipped yet, so no output advertises it:
   and no GraphQL mutation of any kind.
   There is no `cve list`;
 - `falcon-axi setup`, including the session hook;
-- `--fields` on detection and host lists;
 
 `docs/design/v1.md` remains the authority for the full v1 surface; §17 records closed decisions and distinguishes approvals from shipped implementations.
 [`docs/design/v1-python.md`](docs/design/v1-python.md) amends it for language, HTTP client, test
@@ -277,6 +278,7 @@ falcon-axi detection list --severity critical       one severity
 falcon-axi detection list --status new --since 24h  one status, one window
 falcon-axi detection list --product idp             Identity Protection detections
 falcon-axi detection list --filter "severity_name:'Critical'+status:'new'"
+falcon-axi detection summary --since 24h           counts by severity, including hidden alerts
 falcon-axi detection show "<composite id>"         one detection; copy the list's id column
 falcon-axi detection show "<composite id>" --full  without truncating long fields
 falcon-axi host list --platform windows             the Windows fleet
@@ -412,7 +414,8 @@ help[2]: "Run `falcon-axi detection show <id>` for the full detection","Run `fal
 `description`, and counts related actor, report, threat, and affected-product lists instead of expanding them.
 `host list` prints `hosts[N]{device_id,hostname,platform,last_seen}` and `vuln list` prints
 `vulnerabilities[N]{id,cve,severity,hostname}` by default, in the same shape.
-`vuln list --fields` appends the selected columns.
+`detection list --fields`, `host list --fields`, and `vuln list --fields` append selected columns.
+Run the command with `--help` for its valid field names.
 `search status` is the exception: a CQL result set has no fixed shape, so its columns are whatever
 the query projected.
 

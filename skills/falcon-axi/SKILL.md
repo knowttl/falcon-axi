@@ -30,6 +30,7 @@ Run `uvx falcon-axi` for recent detections, or invoke a known command directly.
 ## Commands
 
 ```text
+uvx falcon-axi detection summary         counts of detections by severity
 uvx falcon-axi detection list            list detections from the Falcon Alerts collection
 uvx falcon-axi detection show <id>       the full detail for one detection
 uvx falcon-axi host list                 list hosts from the Falcon Hosts collection
