@@ -2,7 +2,7 @@
 
 `toon_format.encode` must agree with `@toon-format/toon` on every shape falcon-axi prints
 (docs/design/v1-python.md §9 P0.1). The golden documents prove it end to end; these cases pin the
-shapes directly, including the one divergence found during the spike.
+shapes directly, including the stable 1.x empty-array rendering.
 """
 
 from toon_format import decode, encode
@@ -29,12 +29,12 @@ def test_a_single_element_string_array_stays_inline() -> None:
 
 
 def test_falcon_axi_never_emits_an_empty_array() -> None:
-    """The one shape where the two encoders disagree: TypeScript prints `key: []`, Python `key[0]:`.
+    """Stable TOON 1.x renders an empty array as `key: []`.
 
     `detection list` renders an empty result as a raw line and `required_scopes` is never empty, so
     no falcon-axi document reaches that shape.
     """
-    assert encode({"empty": []}).strip() == "empty[0]:"
+    assert encode({"empty": []}).strip() == "empty: []"
     empty_result = render({"detections": raw("0 detections in this tenant")})
     assert empty_result == "detections: 0 detections in this tenant\n"
 

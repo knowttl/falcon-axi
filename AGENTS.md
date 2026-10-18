@@ -124,8 +124,8 @@ Two seams are worth knowing before changing them:
   Every fixture under `tests/fixtures/` is wholly synthetic and carries a provenance header that an offline test
   asserts.
 
-The only automation is `.github/workflows/ci.yml`, which runs `uv run scripts/verify.py` with no secrets.
-The architecture check allows exactly `.github/workflows/ci.yml`, rejects other CI configurations, and rejects `FALCON_AXI_LIVE`, both credential environment names, and their deprecated aliases in that workflow.
+The automation is `.github/workflows/ci.yml`, which runs `uv run scripts/verify.py` with no secrets, and `.github/workflows/release-please.yml`, which publishes releases to PyPI using Trusted Publishing.
+The architecture check allows exactly those two workflows, rejects other CI configurations, and rejects `FALCON_AXI_LIVE`, both credential environment names, and their deprecated aliases in either workflow.
 
 ## Build to the AXI skill
 
