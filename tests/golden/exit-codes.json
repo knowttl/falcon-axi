@@ -1,4 +1,7 @@
 {
+  "version-short-lower": 0,
+  "version-short-upper": 0,
+  "version-long": 0,
   "auth-status": 0,
   "auth-status-forbidden": 1,
   "auth-status-member-cid": 0,

@@ -2,8 +2,8 @@
 
 from toon_format import decode
 
-from falcon_axi.cli import COMMANDS, run
-from falcon_axi.commands import COMMAND_SPECS
+from falcon_axi.cli import run
+from falcon_axi.commands import COMMAND_SPECS, COMMANDS
 from falcon_axi.scopes import scope_rows
 from falcon_axi.transport.graphql import GRAPHQL_DOCUMENTS
 from falcon_axi.transport.operations import OPERATIONS

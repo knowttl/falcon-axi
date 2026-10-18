@@ -21,5 +21,7 @@ def test_python_reproduces_the_typescript_document(scenario: dict) -> None:
     expected = expected_stdout(scenario["name"])
     if scenario["name"] == "help-top":
         expected = re.sub(r"\Afalcon-axi \S+ - ", f"falcon-axi {VERSION} - ", expected, count=1)
+    if scenario["name"].startswith("version-"):
+        expected = re.sub(r"\A\S+(?=\n\Z)", VERSION, expected, count=1)
     assert stdout == expected
     assert exit_code == exit_codes()[scenario["name"]]

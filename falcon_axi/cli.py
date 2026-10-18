@@ -11,36 +11,26 @@ from typing import Any
 from falcon_axi.command import Invocation, limit_of
 from falcon_axi.command import string as _str
 from falcon_axi.command import suggestion_for as _suggestion_for
-from falcon_axi.commands import COMMAND_SPECS, COMMANDS, SUBCOMMANDS
 from falcon_axi.core import CliError
 from falcon_axi.credentials import (
     Credential,
     read_only,
     resolve_credential,
 )
-from falcon_axi.cve import validate_cve_id
-from falcon_axi.detection import list_detections
-from falcon_axi.diagnostics import tenant_line
 from falcon_axi.fql import (
     DetectionQuery,
     since_seconds,
     window,
 )
-from falcon_axi.identity import DEFAULT_SINCE as IDENTITY_DEFAULT_SINCE
-from falcon_axi.identity import (
-    _identity_query_of,
-    activity_query,
-    parse_categories,
-    validate_entity_id,
-    validate_identity_query,
-)
 from falcon_axi.origin import REGIONS, assert_trusted_origin, resolve_base_url
 from falcon_axi.redaction import redact_text, redaction_scope
 from falcon_axi.render import raw, render
-from falcon_axi.version import VERSION
-from falcon_axi.vuln import parse_fields
+from falcon_axi.version import VERSION, version_output
 
-DESCRIPTION = "Read CrowdStrike Falcon detections, hosts, vulnerabilities, and NG-SIEM searches from the shell"
+DESCRIPTION = (
+    "Read CrowdStrike Falcon detections, hosts, accounts, vulnerabilities, CVE intelligence, "
+    "identities, and NG-SIEM searches from the shell"
+)
 HOME_ROWS = 5
 
 GLOBAL_FLAGS = ("help", "region", "allow-unknown-origin", "member-cid", "no-member-cid", "config", "profile")
@@ -59,10 +49,6 @@ def flag_guard(name: str) -> None:
         raise ValueError(f"secret-shaped flag --{name} is forbidden")
 
 
-for _name in (*GLOBAL_FLAGS, *(flag for spec in COMMAND_SPECS.values() for flag in spec.flags)):
-    flag_guard(_name)
-
-
 @dataclass(frozen=True)
 class Parsed:
     command: str
@@ -71,6 +57,8 @@ class Parsed:
 
 
 def _valid_flags(command: str) -> list[str]:
+    from falcon_axi.commands import COMMAND_SPECS
+
     spec = COMMAND_SPECS.get(command)
     return [f"--{name}" for name in (*GLOBAL_FLAGS, *(spec.flags if spec else ()))]
 
@@ -92,6 +80,21 @@ def _unknown_flag(name: str, command: str) -> CliError:
 
 
 def parse(argv: Sequence[str]) -> Parsed:
+    from falcon_axi.commands import COMMAND_SPECS, COMMANDS, SUBCOMMANDS
+    from falcon_axi.cve import validate_cve_id
+    from falcon_axi.identity import DEFAULT_SINCE as IDENTITY_DEFAULT_SINCE
+    from falcon_axi.identity import (
+        _identity_query_of,
+        activity_query,
+        parse_categories,
+        validate_entity_id,
+        validate_identity_query,
+    )
+    from falcon_axi.vuln import parse_fields
+
+    for name in (*GLOBAL_FLAGS, *(flag for spec in COMMAND_SPECS.values() for flag in spec.flags)):
+        flag_guard(name)
+
     command: str = "home"
     index = 0
     first = argv[0] if argv else None
@@ -191,6 +194,8 @@ def parse(argv: Sequence[str]) -> Parsed:
 
 
 def help_text(command: str) -> str:
+    from falcon_axi.commands import COMMAND_SPECS
+
     if command in COMMAND_SPECS:
         return COMMAND_SPECS[command].help
     return "\n".join(
@@ -252,6 +257,9 @@ def _session(
 
 
 def _home_view(transport: Any, flags: Mapping[str, str | bool], env: Mapping[str, str], bin: str) -> tuple[str, int]:
+    from falcon_axi.detection import list_detections
+    from falcon_axi.diagnostics import tenant_line
+
     head: dict[str, Any] = {"bin": bin, "description": DESCRIPTION}
     try:
         resolved = _session(transport, flags, env)
@@ -319,6 +327,8 @@ def _run(
     bin: str | None = None,
 ) -> tuple[str, int]:
     """Returns the stdout document and the exit code. The transport is the only substitution point (§14.2)."""
+    from falcon_axi.commands import COMMAND_SPECS
+
     values = os.environ if env is None else env
     if transport is None:
         from falcon_axi.transport import http_transport
@@ -369,13 +379,19 @@ def run(
     env: Mapping[str, str] | None = None,
     bin: str | None = None,
 ) -> tuple[str, int]:
+    version = version_output(argv)
+    if version is not None:
+        return version, 0
     with redaction_scope():
         stdout, exit_code = _run(argv, transport, env, bin)
         return redact_text(stdout), exit_code
 
 
 def main() -> int:
-    stdout, exit_code = run(sys.argv[1:], bin=sys.argv[0] or "falcon-axi")
+    stdout = version_output(sys.argv[1:])
+    exit_code = 0
+    if stdout is None:
+        stdout, exit_code = run(sys.argv[1:], bin=sys.argv[0] or "falcon-axi")
     sys.stdout.write(stdout)
     return exit_code
 

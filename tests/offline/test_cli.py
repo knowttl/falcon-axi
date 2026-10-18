@@ -7,9 +7,9 @@ from pathlib import Path
 import pytest
 from toon_format import decode
 
-from falcon_axi.cli import COMMANDS, _followup_help, _suggestion_for, flag_guard, parse, run
+from falcon_axi.cli import _followup_help, _suggestion_for, flag_guard, parse, run
 from falcon_axi.command import CommandSpec
-from falcon_axi.commands import COMMAND_SPECS
+from falcon_axi.commands import COMMAND_SPECS, COMMANDS
 from falcon_axi.core import CliError
 from falcon_axi.render import render, truncate
 from falcon_axi.transport.operations import OPERATIONS
