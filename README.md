@@ -22,7 +22,7 @@ What is shipped:
 - AXI credential profiles and SecretRefs, per-call XDG paths, region selection and
   `X-Cs-Region` autodiscovery, Flight Control member-CID selection, `auth status`, `profile list`, and `config path`;
 - the home view and five read domains: `falcon-axi`, `detection list`, `detection show`, `host list`,
-  `host show`, `host logins`, `account list`, `account show`, `vuln list`, and `cve show`;
+  `host show`, `host logins`, `account list`, `account show`, `vuln list`, `vuln show`, `cve list`, and `cve show`;
 - `detection summary`, an on-demand severity count with the same filters as `detection list`;
 - NG-SIEM search: `search start`, `search status`, and `search stop`, the three operations captain
   exception N1 admits;
@@ -50,7 +50,7 @@ What is **not** shipped yet, so no output advertises it:
   files, no parser or dashboard writes, and no Charlotte AI), and every Identity Protection capability
   beyond the directory and timeline: no standalone incident or security-assessment queries, no policy rules,
   and no GraphQL mutation of any kind.
-  There is no `cve list`, report PDF, or rule-file download;
+  There is no report PDF or rule-file download;
 - `falcon-axi setup`, including the session hook;
 
 `docs/design/v1.md` remains the authority for the full v1 surface; §17 records closed decisions and distinguishes approvals from shipped implementations.
@@ -204,7 +204,7 @@ Create the client in the Falcon console under Support and resources > API client
 Run `falcon-axi scopes` for the authoritative command-to-scope matrix.
 It is projected from the operation and GraphQL document registries the transport enforces and needs no
 credential.
-`cve show` requires the license-gated `Vulnerabilities (Falcon Intelligence):read`, not Spotlight's
+`cve list` and `cve show` require the license-gated `Vulnerabilities (Falcon Intelligence):read`, not Spotlight's
 `Vulnerabilities:read`.
 `Assets:read` is needed only by the two `account` commands and is license-gated to Falcon Discover or
 Exposure Management; a client that cannot be granted it loses those two commands and nothing else.
@@ -300,6 +300,8 @@ falcon-axi report list                              find intelligence reports
 falcon-axi report show <id> --full                   report detail without text truncation
 falcon-axi indicator list --filter "type:'domain'"  Falcon Intelligence indicators, not custom IOCs
 falcon-axi indicator show <id>                     full record using an id from indicator list
+falcon-axi cve list --severity critical --since 7d  recently published CVE intelligence
+falcon-axi vuln show <id>                         one Spotlight record from vuln list
 falcon-axi identity activity <account_id> --since 7d  an account's identity events
 falcon-axi search start --query '#event_simpleName=ProcessRollup2 | head(5)'
 falcon-axi search status 01JABCDEF                  one poll: running, cancelled, or done
@@ -323,6 +325,9 @@ Run `falcon-axi detection list --help` for the complete product values.
 `vuln list --fields description,base_score` adds those columns to the default
 `id,cve,severity,hostname` row; run `falcon-axi vuln list --help` for the allowed names.
 An unknown name is refused and the valid names are listed.
+`vuln show <id>` takes a Spotlight record identifier from `vuln list`, rather than a CVE identifier.
+`cve list` searches Falcon Intelligence with optional FQL `--filter`, `--severity`, and `--since` on publication time.
+Run `falcon-axi cve list --help` for filter values and examples.
 `host logins <device_id>` accepts exactly one host and takes `--since` (a relative window) and `--limit`.
 Run `falcon-axi host logins --help` for defaults and limits.
 Its rows are recent interactive logins from the Host Timeline, not a full audit trail.

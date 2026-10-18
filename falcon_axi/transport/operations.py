@@ -18,6 +18,9 @@ from typing import Literal, get_args
 from falcon_axi.core import CliError
 
 OperationId = Literal[
+    "QueryVulnerabilities",
+    "getVulnerabilities",
+
     "GetQueriesAlertsV2",
     "PostEntitiesAlertsV2",
     "PostAggregatesAlertsV2",
@@ -94,6 +97,40 @@ NGSIEM_DOC = "https://developer.crowdstrike.com/api-reference/collections/ngsiem
 IDENTITY_PROTECTION_DOC = "https://developer.crowdstrike.com/api-reference/collections/identity-protection/"
 
 CANONICAL: tuple[FalconOperation, ...] = (
+    FalconOperation(
+        id="QueryVulnerabilities",
+        method="GET",
+        path="/intel/queries/vulnerabilities/v1",
+        scopes=("Vulnerabilities (Falcon Intelligence):read",),
+        effect="read",
+        evidence=Evidence(
+            doc_url=INTEL_DOC,
+            doc_scope="Vulnerabilities (Falcon Intelligence): READ",
+            falcon_mcp=(
+                "falcon-mcp has no tool for QueryVulnerabilities (falcon_mcp/modules/intel.py). "
+                "falconpy/_endpoint/_intel.py maps QueryVulnerabilities to GET /intel/queries/vulnerabilities/v1; "
+                "PSFalcon public/intel.ps1 Get-FalconCve wraps the same route with filter, limit and offset."
+            ),
+        ),
+    ),,
+    FalconOperation(
+        id="getVulnerabilities",
+        method="GET",
+        path="/spotlight/entities/vulnerabilities/v2",
+        scopes=("Vulnerabilities:read",),
+        effect="read",
+        evidence=Evidence(
+            doc_url=SPOTLIGHT_DOC,
+            doc_scope="Vulnerabilities: READ",
+            falcon_mcp=(
+                "falcon-mcp has no tool for getVulnerabilities; falcon_mcp/modules/spotlight.py "
+                "exposes only combinedQueryVulnerabilities. "
+                "falconpy/_endpoint/_spotlight_vulnerabilities.py maps getVulnerabilities to GET "
+                "/spotlight/entities/vulnerabilities/v2 with ids; "
+                "PSFalcon public/spotlight.ps1 Get-FalconVulnerability wraps the same route."
+            ),
+        ),
+    ),,
     FalconOperation(
         id="QueryIntelActorEntities",
         method="GET",
