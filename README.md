@@ -22,6 +22,7 @@ What is shipped:
   `X-Cs-Region` autodiscovery, Flight Control member-CID selection, `auth status`, `profile list`, and `config path`;
 - the home view and five read domains: `falcon-axi`, `detection list`, `detection show`, `host list`,
   `host show`, `host logins`, `account list`, `account show`, `vuln list`, and `cve show`;
+- `detection summary`, an on-demand severity count with the same filters as `detection list`;
 - NG-SIEM search: `search start`, `search status`, and `search stop`, the three operations captain
   exception N1 admits;
 - the Identity Protection directory and timeline: `identity list`, `identity show`, and
@@ -276,6 +277,7 @@ falcon-axi detection list --severity critical       one severity
 falcon-axi detection list --status new --since 24h  one status, one window
 falcon-axi detection list --product idp             Identity Protection detections
 falcon-axi detection list --filter "severity_name:'Critical'+status:'new'"
+falcon-axi detection summary --since 24h           counts by severity, including hidden alerts
 falcon-axi detection show "<composite id>"         one detection; copy the list's id column
 falcon-axi detection show "<composite id>" --full  without truncating long fields
 falcon-axi host list --platform windows             the Windows fleet

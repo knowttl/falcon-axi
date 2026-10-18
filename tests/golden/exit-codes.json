@@ -130,5 +130,9 @@
   "identity-activity-start": 0,
   "identity-activity-scope-denied": 1,
   "identity-activity-without-account": 2,
-  "identity-activity-unsafe-account": 2
+  "identity-activity-unsafe-account": 2,
+  "help-detection-summary": 0,
+  "detection-summary": 0,
+  "detection-summary-empty": 0,
+  "detection-summary-scope-denied": 1
 }

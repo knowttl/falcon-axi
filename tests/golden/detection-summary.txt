@@ -1,0 +1,3 @@
+severities[2]{severity,count}:
+  High,24000
+  Critical,12

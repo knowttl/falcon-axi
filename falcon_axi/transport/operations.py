@@ -20,6 +20,7 @@ from falcon_axi.core import CliError
 OperationId = Literal[
     "GetQueriesAlertsV2",
     "PostEntitiesAlertsV2",
+    "PostAggregatesAlertsV2",
     "QueryDevicesByFilter",
     "PostDeviceDetailsV2",
     "combinedQueryVulnerabilities",
@@ -86,6 +87,23 @@ NGSIEM_DOC = "https://developer.crowdstrike.com/api-reference/collections/ngsiem
 IDENTITY_PROTECTION_DOC = "https://developer.crowdstrike.com/api-reference/collections/identity-protection/"
 
 CANONICAL: tuple[FalconOperation, ...] = (
+    FalconOperation(
+        id="PostAggregatesAlertsV2",
+        method="POST",
+        path="/alerts/aggregates/alerts/v2",
+        scopes=("Alerts:read",),
+        effect="read",
+        evidence=Evidence(
+            doc_url=ALERTS_DOC,
+            doc_scope="Alerts: READ",
+            falcon_mcp=(
+                "falcon_mcp/common/api_scopes.py maps PostAggregatesAlertsV2 to Alerts:read; "
+                "falcon_mcp/modules/detections.py aggregate_detections and modules/base.py "
+                "_base_aggregate use a list of terms specs and name/buckets/label/count results; "
+                "falconpy/_endpoint/_alerts.py confirms POST /alerts/aggregates/alerts/v2"
+            ),
+        ),
+    ),
     FalconOperation(
         id="GetQueriesAlertsV2",
         method="GET",
