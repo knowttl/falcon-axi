@@ -458,8 +458,10 @@ edited, reused across a different query, or shared between tenants.
 It hides the fact that Falcon paginates detections, hosts, and accounts by offset, vulnerabilities by an
 `after` token, and identities by a GraphQL `endCursor`: the CLI vocabulary is `--cursor` for every paginated command.
 `host logins` has no cursor: a full window warns that more logins may exist rather than claiming completeness.
-Detection, host, account, and vuln lists accept `--all` to walk pages and `--max-rows N` to cap the read
+Detection, host, account, and vuln lists accept `--all` to walk pages and `--max-rows N` to cap query rows
 (default 1000; requires `--all`).
+For budget accounting when records disappear before hydration, see
+[`docs/design/v1.md` §7.2](docs/design/v1.md#72-what-the-cli-exposes).
 During a walk, page size follows the endpoint maximum and remaining budget, independently of `--limit`.
 An incomplete walk retains its rows, exits 0, and prints `partial: true` with `stop_reason: max_rows` or
 `stop_reason: pagination_limit`.
