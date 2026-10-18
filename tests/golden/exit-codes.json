@@ -1,4 +1,6 @@
 {
+  "detection-list-fields": 0,
+  "host-list-fields": 0,
   "home-view-skill-hint": 1,
   "auth-status": 0,
   "auth-status-forbidden": 1,

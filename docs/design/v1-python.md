@@ -316,7 +316,8 @@ The v0.3.0 release covers those stages and the subsequent additions in the [READ
 The golden set adds the identity scenarios as regression pins, and `tests/golden/scenarios.json` records which existing documents changed and why.
 
 **P4. Setup and delivery surface.**
-`setup` with hook and skill, `--fields` on detection and host lists, and the opt-in live smoke suite.
+`--fields` on detection and host lists is implemented, sharing validation with the existing vuln field selection.
+`setup` with hook and skill and the opt-in live smoke suite remain separate work.
 For the pagination contract, see [v1.md §7.2](v1.md#72-what-the-cli-exposes); the [README's status section](../../README.md#status-partial-implementation-of-the-v1-design) owns delivery status.
 Profile configuration shipped separately under v1.md §5.2 and §12.1.
 Tag `v0.4.0`, and v1.md moves from "partially implemented" to "implemented".

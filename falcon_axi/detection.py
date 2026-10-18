@@ -9,7 +9,7 @@ from falcon_axi.command import CommandSpec, Invocation, string
 from falcon_axi.core import CliError
 from falcon_axi.credentials import Credential
 from falcon_axi.cursor import CursorContext, Position, decode_offset, encode_cursor
-from falcon_axi.domain import DEFAULT_LIMIT, CommandOutput, rate_limit_note, resources, text, total
+from falcon_axi.domain import DEFAULT_LIMIT, CommandOutput, parse_fields, rate_limit_note, resources, text, total
 from falcon_axi.falcon_error import translate_falcon_error
 from falcon_axi.fql import PRODUCTS, SEVERITIES, STATUSES, DetectionQuery, describe_detection_query, detection_filter
 from falcon_axi.identity import is_account_subject
@@ -22,6 +22,8 @@ QUERY_CEILING = 10_000
 HYDRATE_CHUNK = 1_000
 #: v1's defensive Alerts result stop; unverified and open in §17.12.
 ALERTS_WALL = 10_000
+
+EXTRA_FIELDS = ("status", "technique", "created_timestamp")
 
 Alert = Mapping[str, Any]
 
@@ -130,6 +132,7 @@ def list_detections(
     cursor: str | None = None,
     rows: int | None = None,
     max_rows: int | None = None,
+    fields: Sequence[str] = (),
 ) -> CommandOutput:
     """`detection list`: query ids and hydrate them under the schema contract in docs/design/v1.md §10.2."""
     filter = detection_filter(query)
@@ -183,6 +186,8 @@ def list_detections(
             row["account_id"] = _account_id_of(alert) or "n/a"
             row["device_id"] = _device_id_of(alert) or "n/a"
             row["product"] = text(alert.get("product")) or "n/a"
+        for name in fields:
+            row[name] = text(alert.get(name)) or "unknown"
         all_rows.append(row)
     shown = all_rows if rows is None else all_rows[:rows]
     reachable = result.next_position is not None
@@ -266,6 +271,9 @@ def _detection_list(ctx: Invocation) -> CommandOutput:
         credential=ctx.credential,
         suggestion=ctx.suggestion,
         max_rows=max_rows_of(ctx.flags),
+        fields=parse_fields(ctx.text("fields") or "", ctx.spec.extra_fields, ctx.spec.default_fields)
+        if "fields" in ctx.flags
+        else (),
     )
 
 
@@ -289,7 +297,7 @@ COMMAND_SPECS = (
         help="\n".join(
             [
                 "falcon-axi detection list [--severity <name>] [--status <name>] [--product <name>] [--since <window>] "
-                "[--filter <FQL>] [--limit N] [--cursor <token>] [--all] [--max-rows N]",
+                "[--filter <FQL>] [--limit N] [--cursor <token>] [--all] [--max-rows N] [--fields <names>]",
                 "",
                 f"--severity   one of {', '.join(SEVERITIES)}",
                 f"--status     one of {', '.join(STATUSES)}",
@@ -300,6 +308,7 @@ COMMAND_SPECS = (
                 "--cursor     opaque continuation token from a previous call",
                 "--all        walk pages; page size is independent of --limit",
                 "--max-rows   row budget (default 1000; requires --all)",
+                f"--fields     extra columns, comma-separated: {', '.join(EXTRA_FIELDS)}",
                 "",
                 "Filterable fields include severity_name, status, product, tactic, technique, created_timestamp,",
                 "and device.hostname.",
@@ -316,9 +325,11 @@ COMMAND_SPECS = (
         summary="  detection list            list detections from the Falcon Alerts collection",
         handler=_detection_list,
         operations=("GetQueriesAlertsV2", "PostEntitiesAlertsV2"),
-        flags=("filter", "severity", "status", "product", "since", "limit", "cursor", "all", "max-rows"),
-        value_flags=("filter", "severity", "status", "product", "since", "limit", "cursor", "max-rows"),
+        flags=("filter", "severity", "status", "product", "since", "limit", "cursor", "all", "max-rows", "fields"),
+        value_flags=("filter", "severity", "status", "product", "since", "limit", "cursor", "max-rows", "fields"),
         limit_ceiling=(QUERY_CEILING, "Alerts query"),
+        extra_fields=EXTRA_FIELDS,
+        default_fields=("id", "severity", "tactic", "hostname"),
     ),
     CommandSpec(
         name="detection show",

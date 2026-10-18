@@ -157,7 +157,7 @@ def test_help_never_advertises_a_command_the_cli_does_not_have() -> None:
         assert exit_code == 0
         for absent in ("falcon-axi setup", "vuln show", "tenant list"):
             assert absent not in stdout, f"{' '.join(argv)} advertises {absent}"
-        if argv == ["vuln", "list", "--help"]:
+        if argv in (["detection", "list", "--help"], ["host", "list", "--help"], ["vuln", "list", "--help"]):
             assert "--fields" in stdout
         else:
             assert "--fields" not in stdout, f"{' '.join(argv)} advertises --fields"

@@ -35,6 +35,7 @@ What is shipped:
   [the integration contract](docs/design/v1.md#122-session-hook-and-skill);
 - bounded `--all` walks with `--max-rows` on detection, host, account, and vuln lists, retaining partial
   results and emitting a continuation cursor only when the next position is reachable.
+- `--fields` on detection, host, and vuln lists to append selected columns to the default row.
 
 What is **not** shipped yet, so no output advertises it:
 
@@ -45,7 +46,6 @@ What is **not** shipped yet, so no output advertises it:
   and no GraphQL mutation of any kind.
   `cve show` is the one intel read that ships; there is no `cve list`;
 - `falcon-axi setup`, including the session hook;
-- `--fields` on detection and host lists;
 
 `docs/design/v1.md` remains the authority for the full v1 surface, and its §17 open questions are
 still open. Nothing here answers one of them.
@@ -412,7 +412,8 @@ help[2]: "Run `falcon-axi detection show <id>` for the full detection","Run `fal
 `description`, and counts related actor, report, threat, and affected-product lists instead of expanding them.
 `host list` prints `hosts[N]{device_id,hostname,platform,last_seen}` and `vuln list` prints
 `vulnerabilities[N]{id,cve,severity,hostname}` by default, in the same shape.
-`vuln list --fields` appends the selected columns.
+`detection list --fields`, `host list --fields`, and `vuln list --fields` append selected columns.
+Run the command with `--help` for its valid field names.
 `search status` is the exception: a CQL result set has no fixed shape, so its columns are whatever
 the query projected.
 
