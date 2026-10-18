@@ -205,7 +205,7 @@ credential.
 `Vulnerabilities:read`.
 `Assets:read` is needed only by the two `account` commands and is license-gated to Falcon Discover or
 Exposure Management; a client that cannot be granted it loses those two commands and nothing else.
-The indicator commands also require a Falcon Intelligence license; the matrix above names their scope.
+The indicator commands also require a Falcon Intelligence license; `falcon-axi scopes` names their scope.
 Grant only the scopes for the domains you intend to read: each is independent, and a command whose
 scope is missing fails with `SCOPE_DENIED` naming exactly what to grant.
 

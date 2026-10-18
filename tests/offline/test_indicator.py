@@ -151,6 +151,6 @@ def test_filter_rejection_teaches_indicator_fields(argv: list[str], operation: s
     assert document["code"] == "FQL_INVALID"
     assert document["help"] == [
         "FQL uses + for AND, `,` for OR, and values must be quoted",
-        'Example: `--filter "type:\'domain\'"`',
+        "Example: `--filter \"type:'domain'\"`",
         "Run `falcon-axi indicator list --help` for the filterable fields",
     ]
