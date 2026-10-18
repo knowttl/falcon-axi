@@ -1,6 +1,20 @@
 """Ordered command registry assembled from domain declarations."""
 
-from falcon_axi import account, cloud_asset, cloud_risk, cve, detection, diagnostics, host, identity, indicator, iom, scopes, search, vuln
+from falcon_axi import (
+    account,
+    cloud_asset,
+    cloud_risk,
+    cve,
+    detection,
+    diagnostics,
+    host,
+    identity,
+    indicator,
+    iom,
+    scopes,
+    search,
+    vuln,
+)
 
 # Keep historical discovery and scope ordering while identity spans two positions.
 COMMAND_SPECS = {

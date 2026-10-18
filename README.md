@@ -24,8 +24,8 @@ What is shipped:
   `host show`, `host logins`, `account list`, `account show`, `vuln list`, and `cve show`;
 - `detection summary`, an on-demand severity count with the same filters as `detection list`;
 - cloud inventory and findings: `cloud-asset list`, `cloud-asset show`, `iom list`, `iom show`,
-  and `cloud-risk list`, using only the Cloud Security API Assets, Detections, and Risks read scopes.
-  Risk detail is not offered because the official API has no risk-detail endpoint or risk-id filter;
+  and `cloud-risk list`.
+  See the [cloud contract](docs/design/v1.md#121-cloud-inventory-and-posture) for pagination, output, and the risk-detail limitation;
 - NG-SIEM search: `search start`, `search status`, and `search stop`, the three operations captain
   exception N1 admits;
 - the Identity Protection directory and timeline: `identity list`, `identity show`, and
@@ -296,6 +296,11 @@ falcon-axi vuln list --host abc123                  one host's vulnerabilities
 falcon-axi cve show CVE-2021-44228               Falcon Intelligence detail for one CVE
 falcon-axi indicator list --filter "type:'domain'"  Falcon Intelligence indicators, not custom IOCs
 falcon-axi indicator show <id>                     full record using an id from indicator list
+falcon-axi cloud-asset list --filter "cloud_provider:'aws'"
+falcon-axi cloud-asset show <id>                   one resource using an id from cloud-asset list
+falcon-axi iom list --filter "severity:'critical'+status:'non-compliant'"
+falcon-axi iom show <id>                           one finding using an id from iom list
+falcon-axi cloud-risk list --filter "severity:'Critical'+status:'Open'"
 falcon-axi identity activity <account_id> --since 7d  an account's identity events
 falcon-axi search start --query '#event_simpleName=ProcessRollup2 | head(5)'
 falcon-axi search status 01JABCDEF                  one poll: running, cancelled, or done
