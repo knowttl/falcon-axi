@@ -24,6 +24,8 @@ COMMAND_SPECS = {
 COMMANDS = tuple(COMMAND_SPECS)
 SUBCOMMANDS: dict[str, tuple[str, ...]] = {}
 for name in COMMANDS:
-    noun, separator, verb = name.partition(" ")
-    if separator:
-        SUBCOMMANDS[noun] = (*SUBCOMMANDS.get(noun, ()), verb)
+    parts = name.split()
+    for index in range(1, len(parts)):
+        parent, child = " ".join(parts[:index]), parts[index]
+        if child not in SUBCOMMANDS.get(parent, ()):
+            SUBCOMMANDS[parent] = (*SUBCOMMANDS.get(parent, ()), child)

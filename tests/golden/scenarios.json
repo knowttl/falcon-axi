@@ -2263,6 +2263,177 @@
           "fixture": "errors/403-scope.json"
         }
       ]
+    },
+    {
+      "name": "help-identity-assessment",
+      "argv": [
+        "identity",
+        "assessment",
+        "--help"
+      ],
+      "comment": "Identity assessment and sensor inventory deliberately extend help, discovery, auth-status scope guidance, and scopes under design section 4.4; enforcement is unchanged."
+    },
+    {
+      "name": "help-identity-sensor-list",
+      "argv": [
+        "identity",
+        "sensor",
+        "list",
+        "--help"
+      ]
+    },
+    {
+      "name": "help-identity-sensor-show",
+      "argv": [
+        "identity",
+        "sensor",
+        "show",
+        "--help"
+      ]
+    },
+    {
+      "name": "identity-assessment",
+      "argv": [
+        "identity",
+        "assessment",
+        "--domain",
+        "example.test"
+      ],
+      "responders": [
+        {
+          "op": "api_preempt_proxy_post_graphql",
+          "fixture": "identity/assessment.json"
+        }
+      ]
+    },
+    {
+      "name": "identity-assessment-empty",
+      "argv": [
+        "identity",
+        "assessment"
+      ],
+      "responders": [
+        {
+          "op": "api_preempt_proxy_post_graphql",
+          "response": {
+            "status": 200,
+            "body": {
+              "data": {
+                "securityAssessment": null
+              }
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "identity-assessment-scope-denied",
+      "argv": [
+        "identity",
+        "assessment"
+      ],
+      "responders": [
+        {
+          "op": "api_preempt_proxy_post_graphql",
+          "fixture": "identity/graphql-403-scope.json"
+        }
+      ]
+    },
+    {
+      "name": "identity-sensor-list",
+      "argv": [
+        "identity",
+        "sensor",
+        "list",
+        "--limit",
+        "2"
+      ],
+      "responders": [
+        {
+          "op": "QuerySensorsByFilter",
+          "fixture": "identity/sensors-query.json"
+        },
+        {
+          "op": "GetSensorDetails",
+          "fixture": "identity/sensors-details.json"
+        }
+      ]
+    },
+    {
+      "name": "identity-sensor-show",
+      "argv": [
+        "identity",
+        "sensor",
+        "show",
+        "synthetic-sensor-01"
+      ],
+      "responders": [
+        {
+          "op": "GetSensorDetails",
+          "fixture": "identity/sensors-details.json"
+        }
+      ]
+    },
+    {
+      "name": "identity-sensor-list-empty",
+      "argv": [
+        "identity",
+        "sensor",
+        "list"
+      ],
+      "responders": [
+        {
+          "op": "QuerySensorsByFilter",
+          "response": {
+            "status": 200,
+            "body": {
+              "resources": []
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "identity-sensor-show-not-found",
+      "argv": [
+        "identity",
+        "sensor",
+        "show",
+        "synthetic-sensor-09"
+      ],
+      "responders": [
+        {
+          "op": "GetSensorDetails",
+          "response": {
+            "status": 200,
+            "body": {
+              "resources": []
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "identity-sensor-list-scope-denied",
+      "argv": [
+        "identity",
+        "sensor",
+        "list"
+      ],
+      "responders": [
+        {
+          "op": "QuerySensorsByFilter",
+          "fixture": "errors/403-scope.json"
+        }
+      ]
+    },
+    {
+      "name": "identity-sensor-unknown-subcommand",
+      "argv": [
+        "identity",
+        "sensor",
+        "delete"
+      ]
     }
   ],
   "pagination_comment": "The shipped bounded walker (docs/design/v1.md sections 7.2 and 10.2) adds three wholly synthetic partial-read examples. The four list help documents, unknown-flag, and list-with-positional deliberately change to advertise --all and --max-rows. Existing data documents and scopes remain unchanged because no operation or permission changed.",

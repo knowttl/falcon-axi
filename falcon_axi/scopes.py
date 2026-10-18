@@ -62,7 +62,8 @@ def scope_matrix() -> CommandOutput:
             "Identity Protection GraphQL:write is labelled write because Falcon requires it even for read-only queries; "
             "falcon-axi sends only its own fixed read queries, never caller-supplied GraphQL (captain exception N2)",
             "Omit NGSIEM:write and `search start`, `search stop`, and `identity activity` fail with SCOPE_DENIED",
-            "Omit Identity Protection GraphQL:write and `identity list`, `identity show`, and `identity timeline` "
+            "Omit Identity Protection GraphQL:write and `identity list`, `identity show`, `identity timeline`, "
+            "and `identity assessment` "
             "fail with SCOPE_DENIED",
             "Assets:read is license-gated to Falcon Discover or Exposure Management; "
             "omit it and only the `account` commands fail with SCOPE_DENIED",

@@ -31,6 +31,8 @@ What is shipped:
 - the Identity Protection directory and timeline: `identity list`, `identity show`, and
   `identity timeline`, sending only fixed read-only GraphQL query documents under captain exception
   N2, the other place falcon-axi asks for a write-labelled scope;
+- `identity assessment [--domain <name>]`, a fixed read-only security-assessment query under N2,
+  and `identity sensor list` / `identity sensor show`, ordinary REST reads of sensor inventory;
 - identity-aware detections (`detection list --product idp`, with account and source-endpoint
   fields when present) and `identity activity <account>`, a fixed NG-SIEM search over one account's
   Identity Protection events that adds no operation and no scope beyond N1's;
@@ -48,7 +50,7 @@ What is **not** shipped yet, so no output advertises it:
 - every domain `docs/design/v1.md` §1.3 defers,
   every NG-SIEM capability outside the three search lifecycle operations (no ingest, no lookup
   files, no parser or dashboard writes, and no Charlotte AI), and every Identity Protection capability
-  beyond the directory and timeline: no standalone incident or security-assessment queries, no policy rules,
+  beyond the directory, timeline, security assessment, and sensor inventory: no standalone incident queries, no policy rules,
   and no GraphQL mutation of any kind.
   There is no report PDF or rule-file download;
 - `falcon-axi setup`, including the session hook;
@@ -78,7 +80,7 @@ See `docs/design/v1.md` §0, §1.5, §3, §4.3, and §4.4.
 **N2 is not general write authority.**
 Falcon scopes the one Identity Protection GraphQL endpoint `WRITE` even for read-only queries, and the
 same endpoint also accepts mutations.
-So falcon-axi never sends GraphQL a caller supplies: the GraphQL directory and timeline commands name one of a closed set
+So falcon-axi never sends GraphQL a caller supplies: the GraphQL commands name one of a closed set
 of registered `query` documents, every caller value travels as a JSON variable and never inside the
 document text, and the network sink refuses any other body.
 The GraphQL commands have no `--query` flag or passthrough, and there is no password reset, account disable,
@@ -389,6 +391,15 @@ erroring, so a malformed pipe returns the wrong rows silently rather than failin
 
 ### Identity Protection
 
+`identity assessment [--domain <name>]` prints the security assessment score, level, and risk factors.
+It requires `Identity Protection Assessment:read` and `Identity Protection GraphQL:write`.
+The fixed query matches CrowdStrike's PSFalcon sample; it has offline fixture coverage and has not been tenant-validated.
+
+`identity sensor list [--filter <FQL>] [--limit N] [--cursor <token>]` lists sensor IDs, hostnames, status, and agent version.
+`identity sensor show <device_id>` adds heartbeat and policy details.
+Both use REST reads requiring `Identity Protection Entities:read`, with no GraphQL permission required.
+See [the limit contract](docs/design/v1.md#73-default-limits) for page defaults and ceilings.
+
 `identity list` reads the Falcon Identity Protection directory, users and endpoints with their risk
 severity.
 It takes `--name` and `--email` patterns (`*` is a wildcard, a bare `*` is refused), `--domain`,
@@ -400,7 +411,7 @@ and narrowed with `--category` (`activity`, `notification`, `threat`, `entity`, 
 An identity id is an entity GUID, as printed by `identity list`.
 For detail bounds and truncation markers, see [the output contract](docs/design/v1.md#102-default-schemas).
 
-These commands are backed by Identity Protection's GraphQL endpoint, not NG-SIEM, and they send only
+The directory, timeline, and assessment commands are backed by Identity Protection's GraphQL endpoint, not NG-SIEM, and they send only
 fixed, read-only query documents (captain exception N2, above).
 The schema CrowdStrike publishes for it is not public, so the documents follow CrowdStrike's and
 falcon-mcp's own queries; `docs/design/v1.md` §17 records that they are not yet validated against a

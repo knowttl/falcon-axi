@@ -102,16 +102,18 @@ def parse(argv: Sequence[str]) -> Parsed:
     first = argv[0] if argv else None
     if first in SUBCOMMANDS:
         noun = str(first)
-        second = argv[1] if len(argv) > 1 else None
-        if second in SUBCOMMANDS[noun]:
-            command = f"{noun} {second}"
-            index = 2
-        else:
-            raise CliError(
-                "VALIDATION_ERROR",
-                f"unknown {noun} subcommand {second or ''}".strip(),
-                [f"valid {noun} subcommands: {', '.join(SUBCOMMANDS[noun])}"],
-            )
+        index = 1
+        while noun in SUBCOMMANDS:
+            child = argv[index] if len(argv) > index else None
+            if child not in SUBCOMMANDS[noun]:
+                raise CliError(
+                    "VALIDATION_ERROR",
+                    f"unknown {noun} subcommand {child or ''}".strip(),
+                    [f"valid {noun} subcommands: {', '.join(SUBCOMMANDS[noun])}"],
+                )
+            noun = f"{noun} {child}"
+            index += 1
+        command = noun
     elif first is not None and " " not in first and first in COMMAND_SPECS:
         command = str(first)
         index = 1
@@ -184,7 +186,7 @@ def parse(argv: Sequence[str]) -> Parsed:
         raise CliError("VALIDATION_ERROR", "--filter requires a value")
     if "since" in flags:
         window(str(flags["since"]))
-    if command == "identity list":
+    if command in ("identity list", "identity assessment"):
         validate_identity_query(_identity_query_of(flags))
     if command in ("identity show", "identity timeline"):
         validate_entity_id(positionals[0])
@@ -217,9 +219,10 @@ def help_text(command: str) -> str:
             "",
             "falcon-axi lists no command that changes a host, a detection, a policy, or an identity. It",
             "requires Alerts:read, Hosts:read, Vulnerabilities:read, Vulnerabilities (Falcon Intelligence):read,",
-            "NGSIEM:read, Identity Protection Entities:read, and Identity Protection Timeline:read, plus two",
+            "NGSIEM:read, Identity Protection Entities:read, Identity Protection Timeline:read, and",
+            "Identity Protection Assessment:read, plus two",
             "write-labelled scopes: NGSIEM:write for `search start`, `search stop`, and `identity activity`, and",
-            "Identity Protection GraphQL:write for `identity list`, `identity show`, and `identity timeline`,",
+            "Identity Protection GraphQL:write for the fixed Identity Protection query commands,",
             "which Falcon requires even for read-only queries.",
             "The `account` commands also need Assets:read, a license-gated scope that only some tenants can grant.",
             "The `indicator` commands require the license-gated Indicators (Falcon Intelligence):read scope.",

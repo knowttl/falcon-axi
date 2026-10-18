@@ -18,9 +18,10 @@ from typing import Literal, get_args
 from falcon_axi.core import CliError
 
 OperationId = Literal[
+    "QuerySensorsByFilter",
+    "GetSensorDetails",
     "QueryVulnerabilities",
     "getVulnerabilities",
-
     "GetQueriesAlertsV2",
     "PostEntitiesAlertsV2",
     "PostAggregatesAlertsV2",
@@ -98,6 +99,40 @@ IDENTITY_PROTECTION_DOC = "https://developer.crowdstrike.com/api-reference/colle
 
 CANONICAL: tuple[FalconOperation, ...] = (
     FalconOperation(
+        id="QuerySensorsByFilter",
+        method="GET",
+        path="/identity-protection/queries/devices/v1",
+        scopes=("Identity Protection Entities:read",),
+        effect="read",
+        evidence=Evidence(
+            doc_url=IDENTITY_PROTECTION_DOC + "#querysensorsbyfilter",
+            doc_scope="Identity Protection Entities: READ",
+            falcon_mcp=(
+                "falcon-mcp has no tool for QuerySensorsByFilter (falcon_mcp/modules/idp.py). "
+                "falconpy/_endpoint/_identity_protection.py maps QuerySensorsByFilter to GET "
+                "/identity-protection/queries/devices/v1. "
+                "PSFalcon Get-FalconIdentityHost in public/identity-protection.ps1 wraps the same operation."
+            ),
+        ),
+    ),
+    FalconOperation(
+        id="GetSensorDetails",
+        method="POST",
+        path="/identity-protection/entities/devices/GET/v1",
+        scopes=("Identity Protection Entities:read",),
+        effect="read",
+        evidence=Evidence(
+            doc_url=IDENTITY_PROTECTION_DOC + "#getsensordetails",
+            doc_scope="Identity Protection Entities: READ",
+            falcon_mcp=(
+                "falcon-mcp has no tool for GetSensorDetails (falcon_mcp/modules/idp.py). "
+                "falconpy/_endpoint/_identity_protection.py maps GetSensorDetails to POST "
+                "/identity-protection/entities/devices/GET/v1. "
+                "PSFalcon Get-FalconIdentityHost -Id in public/identity-protection.ps1 wraps the same operation."
+            ),
+        ),
+    ),
+    FalconOperation(
         id="QueryVulnerabilities",
         method="GET",
         path="/intel/queries/vulnerabilities/v1",
@@ -112,7 +147,7 @@ CANONICAL: tuple[FalconOperation, ...] = (
                 "PSFalcon public/intel.ps1 Get-FalconCve wraps the same route with filter, limit and offset."
             ),
         ),
-    ),,
+    ),
     FalconOperation(
         id="getVulnerabilities",
         method="GET",
@@ -130,7 +165,7 @@ CANONICAL: tuple[FalconOperation, ...] = (
                 "PSFalcon public/spotlight.ps1 Get-FalconVulnerability wraps the same route."
             ),
         ),
-    ),,
+    ),
     FalconOperation(
         id="QueryIntelActorEntities",
         method="GET",

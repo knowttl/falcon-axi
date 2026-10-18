@@ -17,6 +17,13 @@ from tests.support.recorded import CREDENTIAL_ENV, RecordedTransport, fixture, s
             "severity_name:'High'+status:'new'",
         ),
         ("host", "QueryDevicesByFilter", "PostDeviceDetailsV2", "hosts/query-page.json", "hostname:'WIN-*'"),
+        (
+            "identity sensor",
+            "QuerySensorsByFilter",
+            "GetSensorDetails",
+            "identity/sensors-query.json",
+            "hostname:'SYNTH-DC-01'+status:'healthy'",
+        ),
     ],
 )
 def test_query_and_entity_filter_rejections_teach_the_failed_domains_fields(
@@ -28,9 +35,9 @@ def test_query_and_entity_filter_rejections_teach_the_failed_domains_fields(
 ) -> None:
     rejected = fixture("errors/400-fql.json")
     for argv, responders in (
-        ([noun, "list"], [serve(query_operation, rejected)]),
-        ([noun, "list"], [serve(query_operation, fixture(query_fixture)), serve(detail_operation, rejected)]),
-        ([noun, "show", "synthetic-id"], [serve(detail_operation, rejected)]),
+        ([*noun.split(), "list"], [serve(query_operation, rejected)]),
+        ([*noun.split(), "list"], [serve(query_operation, fixture(query_fixture)), serve(detail_operation, rejected)]),
+        ([*noun.split(), "show", "synthetic-id"], [serve(detail_operation, rejected)]),
     ):
         stdout, exit_code = run(argv, RecordedTransport(responders), dict(CREDENTIAL_ENV))
         document = decode(stdout)
