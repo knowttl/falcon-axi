@@ -1,0 +1,4 @@
+count: 1 of 1 total
+rules[1]{id,name,enabled,simulation_mode}:
+  synthetic-rule,Synthetic access rule,true,false
+help[1]: "Run `falcon-axi identity rule show <id>` for the full policy rule"

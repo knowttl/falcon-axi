@@ -1,0 +1,5 @@
+falcon-axi quarantine show <id>
+
+Reads the full file metadata, including paths and associated alert/detection ids.
+Requires Quarantined Files:read. No release, delete, or other action is performed.
+Example: falcon-axi quarantine show synthetic-quarantine-01

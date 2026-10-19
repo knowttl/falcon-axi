@@ -49,16 +49,21 @@ def test_an_unknown_command_or_subcommand_fails_before_any_request() -> None:
     assert exit_code == 2
     assert (
         "valid commands: detection summary, detection list, detection show, host list, host show, host logins, "
-        "host network, account list, account show, asset list, asset show, application list, login list, "
+        "host network, account list, account show, asset list, asset show, application list, login list, iot list, "
         "vuln show, vuln list, cve list, cve show, actor list, actor show, report list, report show, "
+        "malware list, malware show, "
         "indicator list, indicator show, container list, image list, image vulnerabilities, serverless list, "
         "classification list, classification show, data-policy list, data-policy show, "
         "identity activity, search start, search status, search stop, identity list, "
         "identity show, identity timeline, identity assessment, identity sensor list, identity sensor show, "
+        "identity rule list, identity rule show, "
         "ioc list, ioc show, ioc hosts, ioc processes, host-group list, host-group members, policy list, policy members, "
         "cloud-asset list, cloud-asset show, iom list, iom show, cloud-risk list, "
         "shield list, shield show, "
-        "auth status, profile list, config path, scopes, sensor-usage list, recon-rule list, recon-rule show, "
+        "exclusion list, exclusion show, quarantine list, quarantine show, "
+        "firewall rule list, firewall rule show, firewall group list, ioa group list, correlation-rule list, "
+        "case list, case show, auth status, profile list, config path, scopes, "
+        "sensor-usage list, recon-rule list, recon-rule show, "
         "recon-notification list, recon-notification show, recon-record list, recon-record show" in stdout
     )
     subcommand, _ = run(["detection", "contain"], recorded, dict(CREDENTIAL_ENV))

@@ -1,0 +1,26 @@
+{
+  "provenance": {
+    "operation": "querySensorVisibilityExclusionsV1",
+    "reference": "https://developer.crowdstrike.com/api-reference/collections/sensor-visibility-exclusions/",
+    "schema_read": "2026-10-18",
+    "provenance": "synthetic"
+  },
+  "response": {
+    "status": 200,
+    "headers": {},
+    "body": {
+      "meta": {
+        "pagination": {
+          "offset": 0,
+          "limit": 2,
+          "total": 3
+        }
+      },
+      "errors": [],
+      "resources": [
+        "synthetic-sensor-visibility-01",
+        "synthetic-sensor-visibility-02"
+      ]
+    }
+  }
+}

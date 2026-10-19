@@ -1,0 +1,11 @@
+{
+  "name": "help-identity-rule-list",
+  "comment": "Rule list help",
+  "argv": [
+    "identity",
+    "rule",
+    "list",
+    "--help"
+  ],
+  "exit_code": 0
+}

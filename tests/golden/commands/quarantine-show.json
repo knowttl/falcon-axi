@@ -1,0 +1,12 @@
+{
+  "name": "quarantine show",
+  "order": 2360,
+  "summary": "  quarantine show <id>      the full quarantined file record",
+  "scopes": [
+    {
+      "scope": "Quarantined Files:read",
+      "access": "read",
+      "required": "yes"
+    }
+  ]
+}

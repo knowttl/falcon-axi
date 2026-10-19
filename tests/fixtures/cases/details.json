@@ -1,0 +1,7 @@
+{
+  "provenance": {"operation": "entities_cases_post_v2", "reference": "https://developer.crowdstrike.com/api-reference/collections/case-management/", "schema_read": "2026-10-18", "provenance": "synthetic"},
+  "response": {"status": 200, "body": {"resources": [
+    {"id": "synthetic-case-02", "reference_id": "SYN-2", "name": "Synthetic second case", "status": "closed", "severity": 25, "description": "Synthetic investigation"},
+    {"id": "synthetic-case-01", "reference_id": "SYN-1", "name": "Synthetic first case", "status": "new", "severity": 75, "description": "Synthetic investigation", "evidence": {"alerts": []}}
+  ]}}
+}

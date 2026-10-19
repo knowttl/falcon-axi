@@ -1,0 +1,12 @@
+{
+  "name": "quarantine list",
+  "order": 2350,
+  "summary": "  quarantine list           list quarantined file metadata",
+  "scopes": [
+    {
+      "scope": "Quarantined Files:read",
+      "access": "read",
+      "required": "yes"
+    }
+  ]
+}

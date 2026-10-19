@@ -1,0 +1,6 @@
+count: 2 of 3 total
+continuation_cursor: eyJvcGVyYXRpb24iOiJxdWVyeV9ydWxlcyIsIm1vZGVsIjoib2Zmc2V0LW9yLXRva2VuIiwicG9zaXRpb24iOiJzeW50aGV0aWMtbmV4dC1ydWxlIiwiZmluZ2VycHJpbnQiOiI2ZDgwOTU4OGI3ZTJiMDhlNDIzY2U1NWRiODhmM2I1MzczMTQ3YTNhOTMyY2M3MGU2MDEyNDg2Y2MzOWE2ZmI1In0
+firewall_rules[2]{id,name,enabled,action}:
+  "1001",Synthetic inbound rule,true,DENY
+  "1002",Synthetic outbound rule,false,ALLOW
+help[2]: "Run `falcon-axi firewall rule show <id>` for the full record","Run `falcon-axi firewall rule list --limit 2 --cursor eyJvcGVyYXRpb24iOiJxdWVyeV9ydWxlcyIsIm1vZGVsIjoib2Zmc2V0LW9yLXRva2VuIiwicG9zaXRpb24iOiJzeW50aGV0aWMtbmV4dC1ydWxlIiwiZmluZ2VycHJpbnQiOiI2ZDgwOTU4OGI3ZTJiMDhlNDIzY2U1NWRiODhmM2I1MzczMTQ3YTNhOTMyY2M3MGU2MDEyNDg2Y2MzOWE2ZmI1In0` for the next page"

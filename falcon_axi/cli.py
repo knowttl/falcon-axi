@@ -92,6 +92,7 @@ def parse(argv: Sequence[str]) -> Parsed:
         _identity_query_of,
         activity_query,
         parse_categories,
+        rule_query,
         validate_entity_id,
         validate_identity_query,
     )
@@ -171,6 +172,10 @@ def parse(argv: Sequence[str]) -> Parsed:
             f"{command} requires exactly one {subject}",
             [remedy],
         )
+    if command in ("exclusion list", "exclusion show"):
+        from falcon_axi.exclusion import validate_type
+
+        validate_type(_str(flags.get("type")), limit_of(flags, spec) if spec and spec.limit_ceiling else 20)
     if command == "cve show":
         validate_cve_id(positionals[0])
     if command == "shield list":
@@ -207,6 +212,8 @@ def parse(argv: Sequence[str]) -> Parsed:
         window(str(flags["since"]))
     if command in ("identity list", "identity assessment"):
         validate_identity_query(_identity_query_of(flags))
+    if command == "identity rule list":
+        rule_query(flags)
     if command in ("identity show", "identity timeline"):
         validate_entity_id(positionals[0])
     if command == "identity timeline":

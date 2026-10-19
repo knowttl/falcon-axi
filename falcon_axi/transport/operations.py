@@ -18,6 +18,16 @@ from typing import Literal, get_args
 from falcon_axi.core import CliError
 
 OperationId = Literal[
+    "exclusions_search_v2",
+    "exclusions_get_v2",
+    "ss_ioa_exclusions_search_v2",
+    "ss_ioa_exclusions_get_v2",
+    "querySensorVisibilityExclusionsV1",
+    "getSensorVisibilityExclusionsV1",
+    "cb_exclusions_query_v1",
+    "cb_exclusions_get_v1",
+    "QueryQuarantineFiles",
+    "GetQuarantineFiles",
     "cloud_security_assets_queries",
     "cloud_security_assets_entities_get",
     "cspm_evaluations_iom_queries",
@@ -84,10 +94,24 @@ OperationId = Literal[
     "QueryDeviceLoginHistoryV2",
     "query_accounts",
     "get_accounts",
+    "query_rules",
+    "get_rules",
+    "query_rule_groups",
+    "get_rule_groups",
+    "query_rule_groups_full",
+    "combined_rules_get_v2",
+    "queries_cases_get_v1",
+    "entities_cases_post_v2",
     "StartSearchV1",
     "GetSearchStatusV1",
     "StopSearchV1",
     "api_preempt_proxy_post_graphql",
+    "QueryMalwareEntities",
+    "GetMalwareEntities",
+    "get_policy_rules_query",
+    "get_policy_rules",
+    "query_iot_hostsV2",
+    "get_iot_hosts",
 ]
 
 OPERATION_IDS: tuple[str, ...] = get_args(OperationId)
@@ -143,6 +167,354 @@ NGSIEM_DOC = "https://developer.crowdstrike.com/api-reference/collections/ngsiem
 IDENTITY_PROTECTION_DOC = "https://developer.crowdstrike.com/api-reference/collections/identity-protection/"
 
 CANONICAL: tuple[FalconOperation, ...] = (
+    FalconOperation(
+        id="QueryMalwareEntities",
+        method="GET",
+        path="/intel/combined/malware/v1",
+        scopes=("Malware Families (Falcon Intelligence):read",),
+        effect="read",
+        evidence=Evidence(
+            INTEL_DOC,
+            "Malware Families (Falcon Intelligence): READ",
+            "falcon-mcp has no tool for QueryMalwareEntities. "
+            "falconpy/_endpoint/_intel.py maps QueryMalwareEntities to GET /intel/combined/malware/v1. "
+            "PSFalcon public/intel.ps1 Get-FalconMalwareFamily -Detailed wraps it.",
+        ),
+    ),
+    FalconOperation(
+        id="GetMalwareEntities",
+        method="GET",
+        path="/intel/entities/malware/v1",
+        scopes=("Malware Families (Falcon Intelligence):read",),
+        effect="read",
+        evidence=Evidence(
+            INTEL_DOC,
+            "Malware Families (Falcon Intelligence): READ",
+            "falcon-mcp has no tool for GetMalwareEntities. "
+            "falconpy/_endpoint/_intel.py maps GetMalwareEntities to GET /intel/entities/malware/v1. "
+            "PSFalcon public/intel.ps1 Get-FalconMalwareFamily -Id wraps it.",
+        ),
+    ),
+    FalconOperation(
+        id="get_policy_rules_query",
+        method="GET",
+        path="/identity-protection/queries/policy-rules/v1",
+        scopes=("Identity Protection Policy Rules:read",),
+        effect="read",
+        evidence=Evidence(
+            IDENTITY_PROTECTION_DOC,
+            "Identity Protection Policy Rules: READ",
+            "falcon-mcp has no tool for get_policy_rules_query. "
+            "falconpy/_endpoint/_identity_protection.py maps get_policy_rules_query to GET "
+            "/identity-protection/queries/policy-rules/v1. "
+            "PSFalcon public/identity-protection.ps1 Get-FalconIdentityRule wraps it.",
+        ),
+    ),
+    FalconOperation(
+        id="get_policy_rules",
+        method="GET",
+        path="/identity-protection/entities/policy-rules/v1",
+        scopes=("Identity Protection Policy Rules:read",),
+        effect="read",
+        evidence=Evidence(
+            IDENTITY_PROTECTION_DOC,
+            "Identity Protection Policy Rules: READ",
+            "falcon-mcp has no tool for get_policy_rules. "
+            "falconpy/_endpoint/_identity_protection.py maps get_policy_rules to GET "
+            "/identity-protection/entities/policy-rules/v1. "
+            "PSFalcon public/identity-protection.ps1 Get-FalconIdentityRule -Id wraps it.",
+        ),
+    ),
+    FalconOperation(
+        id="query_iot_hostsV2",
+        method="GET",
+        path="/discover/queries/iot-hosts/v2",
+        scopes=("Falcon Discover IoT:read",),
+        effect="read",
+        evidence=Evidence(
+            DISCOVER_DOC,
+            "Falcon Discover IoT: READ",
+            "falcon-mcp has no tool for query_iot_hostsV2. "
+            "falconpy/_endpoint/_discover.py maps query_iot_hostsV2 to GET /discover/queries/iot-hosts/v2. "
+            "PSFalcon public/discover.ps1 Get-FalconAsset -IoT wraps it.",
+        ),
+    ),
+    FalconOperation(
+        id="get_iot_hosts",
+        method="GET",
+        path="/discover/entities/iot-hosts/v1",
+        scopes=("Falcon Discover IoT:read",),
+        effect="read",
+        evidence=Evidence(
+            DISCOVER_DOC,
+            "Falcon Discover IoT: READ",
+            "falcon-mcp has no tool for get_iot_hosts. "
+            "falconpy/_endpoint/_discover.py maps get_iot_hosts to GET /discover/entities/iot-hosts/v1. "
+            "PSFalcon public/discover.ps1 Get-FalconAsset -IoT -Id wraps it.",
+        ),
+    ),
+    FalconOperation(
+        id="query_rules",
+        method="GET",
+        path="/fwmgr/queries/rules/v1",
+        scopes=("Firewall Management:read",),
+        effect="read",
+        evidence=Evidence(
+            doc_url="https://developer.crowdstrike.com/api-reference/collections/firewall-management/#query-rules",
+            doc_scope="Firewall management: READ",
+            falcon_mcp="falcon_mcp/common/api_scopes.py maps query_rules to Firewall Management:read; "
+            "falcon_mcp/modules/firewall.py search_firewall_rules uses query_rules then get_rules; "
+            "falconpy/_endpoint/_firewall_management.py confirms the route and parameters.",
+        ),
+    ),
+    FalconOperation(
+        id="get_rules",
+        method="GET",
+        path="/fwmgr/entities/rules/v1",
+        scopes=("Firewall Management:read",),
+        effect="read",
+        evidence=Evidence(
+            doc_url="https://developer.crowdstrike.com/api-reference/collections/firewall-management/#get-rules",
+            doc_scope="Firewall management: READ",
+            falcon_mcp="falcon_mcp/common/api_scopes.py maps get_rules to Firewall Management:read; "
+            "falcon_mcp/modules/firewall.py search_firewall_rules hydrates ids as query parameters; "
+            "falconpy/_endpoint/_firewall_management.py confirms the route and parameters.",
+        ),
+    ),
+    FalconOperation(
+        id="query_rule_groups",
+        method="GET",
+        path="/fwmgr/queries/rule-groups/v1",
+        scopes=("Firewall Management:read",),
+        effect="read",
+        evidence=Evidence(
+            doc_url="https://developer.crowdstrike.com/api-reference/collections/firewall-management/#query-rule-groups",
+            doc_scope="Firewall management: READ",
+            falcon_mcp="falcon_mcp/common/api_scopes.py maps query_rule_groups to Firewall Management:read; "
+            "falcon_mcp/modules/firewall.py search_firewall_rule_groups uses after pagination; "
+            "falconpy/_endpoint/_firewall_management.py confirms the route and parameters.",
+        ),
+    ),
+    FalconOperation(
+        id="get_rule_groups",
+        method="GET",
+        path="/fwmgr/entities/rule-groups/v1",
+        scopes=("Firewall Management:read",),
+        effect="read",
+        evidence=Evidence(
+            doc_url="https://developer.crowdstrike.com/api-reference/collections/firewall-management/#get-rule-groups",
+            doc_scope="Firewall management: READ",
+            falcon_mcp="falcon_mcp/common/api_scopes.py maps get_rule_groups to Firewall Management:read; "
+            "falcon_mcp/modules/firewall.py search_firewall_rule_groups hydrates ids as query parameters; "
+            "falconpy/_endpoint/_firewall_management.py confirms the route and parameters.",
+        ),
+    ),
+    FalconOperation(
+        id="query_rule_groups_full",
+        method="GET",
+        path="/ioarules/queries/rule-groups-full/v1",
+        scopes=("Custom IOA Rules:read",),
+        effect="read",
+        evidence=Evidence(
+            doc_url="https://developer.crowdstrike.com/api-reference/collections/custom-ioa/#query-rule-groups-full",
+            doc_scope="Custom IOA rules: READ",
+            falcon_mcp="falcon_mcp/common/api_scopes.py maps query_rule_groups_full to Custom IOA Rules:read; "
+            "falcon_mcp/modules/custom_ioa.py search_ioa_rule_groups reads full groups with offset pagination; "
+            "falconpy/_endpoint/_custom_ioa.py confirms the route and parameters.",
+        ),
+    ),
+    FalconOperation(
+        id="combined_rules_get_v2",
+        method="GET",
+        path="/correlation-rules/combined/rules/v2",
+        scopes=("Correlation Rules:read",),
+        effect="read",
+        evidence=Evidence(
+            doc_url="https://developer.crowdstrike.com/api-reference/collections/correlation-rules/#combinedrulesgetv2",
+            doc_scope="Correlation Rules: READ",
+            falcon_mcp="falcon_mcp/common/api_scopes.py maps combined_rules_get_v2 to Correlation Rules:read; "
+            "falcon_mcp/modules/correlation_rules.py search_correlation_rules reads full rules with offset pagination; "
+            "falconpy/_endpoint/_correlation_rules.py confirms the route and parameters.",
+        ),
+    ),
+    FalconOperation(
+        id="queries_cases_get_v1",
+        method="GET",
+        path="/cases/queries/cases/v1",
+        scopes=("Cases:read",),
+        effect="read",
+        evidence=Evidence(
+            doc_url="https://developer.crowdstrike.com/api-reference/collections/case-management/#queriescasesgetv1",
+            doc_scope="Cases: READ",
+            falcon_mcp="falcon_mcp/common/api_scopes.py maps queries_cases_get_v1 to Cases:read; "
+            "falcon_mcp/modules/cases.py search_cases queries ids then hydrates them, preserving query order; "
+            "falconpy/_endpoint/_case_management.py confirms the route and parameters.",
+        ),
+    ),
+    FalconOperation(
+        id="entities_cases_post_v2",
+        method="POST",
+        path="/cases/entities/cases/v2",
+        scopes=("Cases:read",),
+        effect="read",
+        evidence=Evidence(
+            doc_url="https://developer.crowdstrike.com/api-reference/collections/case-management/#entitiescasespostv2",
+            doc_scope="Cases: READ",
+            falcon_mcp="falcon_mcp/common/api_scopes.py maps entities_cases_post_v2 to Cases:read; "
+            "falcon_mcp/modules/cases.py get_cases reads ids in the request body; "
+            "falconpy/_endpoint/_case_management.py confirms the route and parameters.",
+        ),
+    ),
+    FalconOperation(
+        id="exclusions_search_v2",
+        method="GET",
+        path="/exclusions/queries/exclusions/v2",
+        scopes=("Machine Learning Exclusions:read",),
+        effect="read",
+        evidence=Evidence(
+            doc_url="https://developer.crowdstrike.com/api-reference/collections/ml-exclusions/",
+            doc_scope="Machine Learning Exclusions: READ",
+            falcon_mcp=(
+                "falcon_mcp/common/api_scopes.py maps exclusions_search_v2 to Machine Learning Exclusions:read; "
+                "falcon_mcp/modules/exclusions.py uses it for search_exclusions."
+            ),
+        ),
+    ),
+    FalconOperation(
+        id="exclusions_get_v2",
+        method="GET",
+        path="/exclusions/entities/exclusions/v2",
+        scopes=("Machine Learning Exclusions:read",),
+        effect="read",
+        evidence=Evidence(
+            doc_url="https://developer.crowdstrike.com/api-reference/collections/ml-exclusions/",
+            doc_scope="Machine Learning Exclusions: READ",
+            falcon_mcp=(
+                "falcon_mcp/common/api_scopes.py maps exclusions_get_v2 to Machine Learning Exclusions:read; "
+                "falcon_mcp/modules/exclusions.py uses it for search_exclusions."
+            ),
+        ),
+    ),
+    FalconOperation(
+        id="ss_ioa_exclusions_search_v2",
+        method="GET",
+        path="/exclusions/queries/ss-ioa-exclusions/v2",
+        scopes=("IOA Exclusions:read",),
+        effect="read",
+        evidence=Evidence(
+            doc_url="https://developer.crowdstrike.com/api-reference/collections/ioa-exclusions/",
+            doc_scope="IOA Exclusions: READ",
+            falcon_mcp=(
+                "falcon_mcp/common/api_scopes.py maps ss_ioa_exclusions_search_v2 to IOA Exclusions:read; "
+                "falcon_mcp/modules/exclusions.py uses it for search_exclusions."
+            ),
+        ),
+    ),
+    FalconOperation(
+        id="ss_ioa_exclusions_get_v2",
+        method="GET",
+        path="/exclusions/entities/ss-ioa-exclusions/v2",
+        scopes=("IOA Exclusions:read",),
+        effect="read",
+        evidence=Evidence(
+            doc_url="https://developer.crowdstrike.com/api-reference/collections/ioa-exclusions/",
+            doc_scope="IOA Exclusions: READ",
+            falcon_mcp=(
+                "falcon_mcp/common/api_scopes.py maps ss_ioa_exclusions_get_v2 to IOA Exclusions:read; "
+                "falcon_mcp/modules/exclusions.py uses it for search_exclusions."
+            ),
+        ),
+    ),
+    FalconOperation(
+        id="querySensorVisibilityExclusionsV1",
+        method="GET",
+        path="/policy/queries/sv-exclusions/v1",
+        scopes=("Sensor Visibility Exclusions:read",),
+        effect="read",
+        evidence=Evidence(
+            doc_url="https://developer.crowdstrike.com/api-reference/collections/sensor-visibility-exclusions/",
+            doc_scope="Sensor Visibility Exclusions: READ",
+            falcon_mcp=(
+                "falcon_mcp/common/api_scopes.py maps querySensorVisibilityExclusionsV1 to Sensor Visibility Exclusions:read; "
+                "falcon_mcp/modules/exclusions.py uses it for search_exclusions."
+            ),
+        ),
+    ),
+    FalconOperation(
+        id="getSensorVisibilityExclusionsV1",
+        method="GET",
+        path="/policy/entities/sv-exclusions/v1",
+        scopes=("Sensor Visibility Exclusions:read",),
+        effect="read",
+        evidence=Evidence(
+            doc_url="https://developer.crowdstrike.com/api-reference/collections/sensor-visibility-exclusions/",
+            doc_scope="Sensor Visibility Exclusions: READ",
+            falcon_mcp=(
+                "falcon_mcp/common/api_scopes.py maps getSensorVisibilityExclusionsV1 to Sensor Visibility Exclusions:read; "
+                "falcon_mcp/modules/exclusions.py uses it for search_exclusions."
+            ),
+        ),
+    ),
+    FalconOperation(
+        id="cb_exclusions_query_v1",
+        method="GET",
+        path="/exclusions/queries/cert-based-exclusions/v1",
+        scopes=("Machine Learning Exclusions:read",),
+        effect="read",
+        evidence=Evidence(
+            doc_url="https://developer.crowdstrike.com/api-reference/collections/certificate-based-exclusions/",
+            doc_scope="Machine Learning Exclusions: READ",
+            falcon_mcp=(
+                "falcon_mcp/common/api_scopes.py maps cb_exclusions_query_v1 to Machine Learning Exclusions:read; "
+                "falcon_mcp/modules/exclusions.py uses it for search_exclusions."
+            ),
+        ),
+    ),
+    FalconOperation(
+        id="cb_exclusions_get_v1",
+        method="GET",
+        path="/exclusions/entities/cert-based-exclusions/v1",
+        scopes=("Machine Learning Exclusions:read",),
+        effect="read",
+        evidence=Evidence(
+            doc_url="https://developer.crowdstrike.com/api-reference/collections/certificate-based-exclusions/",
+            doc_scope="Machine Learning Exclusions: READ",
+            falcon_mcp=(
+                "falcon_mcp/common/api_scopes.py maps cb_exclusions_get_v1 to Machine Learning Exclusions:read; "
+                "falcon_mcp/modules/exclusions.py uses it for search_exclusions."
+            ),
+        ),
+    ),
+    FalconOperation(
+        id="QueryQuarantineFiles",
+        method="GET",
+        path="/quarantine/queries/quarantined-files/v1",
+        scopes=("Quarantined Files:read",),
+        effect="read",
+        evidence=Evidence(
+            doc_url="https://developer.crowdstrike.com/api-reference/collections/quarantine/",
+            doc_scope="Quarantined Files: READ",
+            falcon_mcp=(
+                "falcon_mcp/common/api_scopes.py maps QueryQuarantineFiles to Quarantined Files:read; "
+                "falcon_mcp/modules/quarantine.py uses it for search_quarantined_files."
+            ),
+        ),
+    ),
+    FalconOperation(
+        id="GetQuarantineFiles",
+        method="POST",
+        path="/quarantine/entities/quarantined-files/GET/v1",
+        scopes=("Quarantined Files:read",),
+        effect="read",
+        evidence=Evidence(
+            doc_url="https://developer.crowdstrike.com/api-reference/collections/quarantine/",
+            doc_scope="Quarantined Files: READ",
+            falcon_mcp=(
+                "falcon_mcp/common/api_scopes.py maps GetQuarantineFiles to Quarantined Files:read; "
+                "falcon_mcp/modules/quarantine.py uses it for search_quarantined_files."
+            ),
+        ),
+    ),
     FalconOperation(
         id="GetSensorUsageWeekly",
         method="GET",

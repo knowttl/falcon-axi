@@ -1,0 +1,20 @@
+{
+  "name": "identity-rule-list",
+  "comment": "REST rule query and hydration, no GraphQL",
+  "argv": [
+    "identity",
+    "rule",
+    "list"
+  ],
+  "responders": [
+    {
+      "op": "get_policy_rules_query",
+      "fixture": "identity/rules-query.json"
+    },
+    {
+      "op": "get_policy_rules",
+      "fixture": "identity/rules.json"
+    }
+  ],
+  "exit_code": 0
+}

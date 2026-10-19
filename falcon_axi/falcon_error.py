@@ -99,6 +99,10 @@ def translate_falcon_error(
                     command, example = "image list", "repository:'example/service'"
                 else:
                     command, example = "image vulnerabilities", "cvss_score:>7"
+            elif "Quarantined Files:read" in scopes:
+                command, example = "quarantine list", "state:'quarantined'"
+            elif any("Exclusions:read" in scope for scope in scopes):
+                command, example = "exclusion list", "applied_globally:true"
             elif "Assets:read" in scopes:
                 command, example = "account list", "username:'synthetic-user'"
             elif "Hosts:read" in scopes:
@@ -114,6 +118,10 @@ def translate_falcon_error(
             elif "Data Protection:read" in scopes:
                 command = "classification list" if "classification" in id else "data-policy list"
                 example = "name:'Confidential*'"
+            elif "Malware Families (Falcon Intelligence):read" in scopes:
+                command, example = "malware list", "slug:'synthetic-family'"
+            elif "Falcon Discover IoT:read" in scopes:
+                command, example = "iot list", "device_type:'Printer'"
             elif "Identity Protection Entities:read" in scopes:
                 command, example = "identity sensor list", "hostname:'SYNTH-DC-01'+status:'healthy'"
             else:
@@ -123,7 +131,7 @@ def translate_falcon_error(
                 f"the filter for {subject} was rejected",
                 [
                     "FQL uses + for AND, `,` for OR, and values must be quoted",
-                    f'Example: `--filter "{example}"`',
+                    *([f'Example: `--filter "{example}"`'] if example else []),
                     f"Run `falcon-axi {command} --help` for the filterable fields",
                 ],
             )

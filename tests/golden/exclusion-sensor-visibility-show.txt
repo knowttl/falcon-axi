@@ -1,0 +1,6 @@
+exclusion:
+  id: synthetic-sensor-visibility-01
+  value: /opt/synthetic-1/*
+  applied_globally: true
+  comment: Synthetic exclusion
+  groups: []

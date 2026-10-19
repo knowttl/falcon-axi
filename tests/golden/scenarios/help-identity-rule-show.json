@@ -1,0 +1,11 @@
+{
+  "name": "help-identity-rule-show",
+  "comment": "Rule show help",
+  "argv": [
+    "identity",
+    "rule",
+    "show",
+    "--help"
+  ],
+  "exit_code": 0
+}

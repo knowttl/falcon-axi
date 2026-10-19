@@ -1,0 +1,12 @@
+{
+  "name": "firewall rule show",
+  "order": 2371,
+  "summary": "  firewall rule show <id>    read one record",
+  "scopes": [
+    {
+      "scope": "Firewall Management:read",
+      "access": "read",
+      "required": "yes"
+    }
+  ]
+}

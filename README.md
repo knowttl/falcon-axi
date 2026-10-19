@@ -46,8 +46,15 @@ What is shipped:
   Identity Protection events that adds no operation and no scope beyond N1's;
 - `falcon-axi scopes`, the command-to-scope matrix, available without making a request;
 - `falcon-axi setup` for offline guidance and `falcon-axi setup hooks` for Claude Code, Codex, and OpenCode session integrations;
+- firewall configuration reads: `firewall rule list`, `firewall rule show`, and `firewall group list`;
+- `ioa group list`, `correlation-rule list`, `case list`, and `case show`.
+  These reads match CrowdStrike's documented APIs and falcon-mcp; they have not been tenant-validated.
 - Falcon Intelligence indicators: `indicator list` with opaque marker continuation and `indicator show`.
   These reads match first-party API sources and are tested offline, without tenant validation.
+- malware families: `malware list` and `malware show`;
+- Identity Protection policy rules: `identity rule list` and `identity rule show`, using REST reads;
+- Discover IoT inventory: `iot list`, with token pagination and the license-gated Falcon Discover IoT:read scope.
+  These three areas follow the official API reference, falconpy, and PSFalcon; they have synthetic offline tests and are not tenant-validated.
 - the generated [agent skill](#agent-skill) and its bare-home install hint, specified in
   [the integration contract](docs/design/v1.md#122-session-hook-and-skill);
 - bounded `--all` walks with `--max-rows` on detection, host, account, and vuln lists, retaining partial
@@ -73,13 +80,16 @@ What is shipped:
   Detail views preview long strings; pass `--full` for untruncated content.
   See [the sensor usage and Recon contract](docs/design/v1.md#24-sensor-usage-and-falcon-recon-reads)
   for API evidence and validation limits, and run `falcon-axi scopes` for permissions.
+- Exclusion inventories: `exclusion list --type ml|ioa|sensor-visibility|certificate` and
+  `exclusion show <id> --type ...`; quarantined file metadata: `quarantine list` and `quarantine show <id>`.
+  These commands read configuration and file metadata only, with no release, delete, or exclusion changes.
 
 What is **not** shipped yet, so no output advertises it:
 
 - the remaining domains `docs/design/v1.md` §1.3 defers,
   every NG-SIEM capability outside the three search lifecycle operations (no ingest, no lookup
   files, no parser or dashboard writes, and no Charlotte AI), and every Identity Protection capability
-  beyond the directory, timeline, security assessment, and sensor inventory: no standalone incident queries, no policy rules,
+  beyond the directory, timeline, security assessment, sensor inventory, and policy-rule reads: no standalone incident queries,
   and no GraphQL mutation of any kind.
   There is no report PDF or rule-file download;
 
@@ -478,6 +488,13 @@ Data Protection detections use `falcon-axi detection list --product data-protect
 For classified-file events, use `falcon-axi search start --query '#event_simpleName=Event_DataProtectionClassifiedFileEvent | head(200)'`,
 then `falcon-axi search status <id>` to read the results and `falcon-axi search stop <id>` if the job is left running.
 There is no standalone Data Protection event command; the [design rationale](docs/design/v1.md#107-data-protection-reads) records the supported API boundary.
+
+### Configuration and cases
+
+Use `firewall rule list`, `firewall group list`, `ioa group list`, `correlation-rule list`, or `case list` to inspect configuration and investigations.
+Pass an id from list output to `firewall rule show <id>` or `case show <id>` for detail.
+Run the selected command with `--help` for its flags and limits.
+The [configuration and case reference](docs/design/v1.md#108-configuration-and-case-reads) owns pagination, row schemas, and detail output contracts.
 
 ## Output and errors
 
