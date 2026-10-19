@@ -1,0 +1,17 @@
+# iot list
+
+iot list                  list Discover IoT assets
+
+```text
+uvx falcon-axi iot list [--filter <FQL>] [--limit N] [--cursor <token>]
+
+--filter  raw FQL, including device_family, device_class, and device_type
+--limit   rows in this call (default 20, ceiling 100)
+--cursor  opaque continuation token from a previous call
+
+Examples:
+  uvx falcon-axi iot list
+  uvx falcon-axi iot list --limit 50
+
+Read-only. Requires Falcon Discover IoT:read (license-gated).
+```

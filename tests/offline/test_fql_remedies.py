@@ -70,6 +70,9 @@ def test_query_and_entity_filter_rejections_teach_the_failed_domains_fields(
         (["host", "logins", "synthetic-id"], "QueryDeviceLoginHistoryV2", "host", "hostname:'WIN-*'"),
         (["vuln", "list", "--status", "open"], "combinedQueryVulnerabilities", "vuln", "status:'open'"),
         (["cloud-risk", "list"], "combined_cloud_risks", "cloud-risk", "severity:'Critical'+status:'Open'"),
+        (["malware", "list"], "QueryMalwareEntities", "malware", "slug:'synthetic-family'"),
+        (["malware", "show", "synthetic-family"], "GetMalwareEntities", "malware", "slug:'synthetic-family'"),
+        (["iot", "list"], "query_iot_hostsV2", "iot", "device_type:'Printer'"),
         (["host-group", "list", "--filter", "bad"], "queryCombinedHostGroups", "host-group", "group_type:'dynamic'"),
     ],
 )
@@ -142,3 +145,20 @@ def test_sensor_not_found_errors_point_to_sensor_identifiers(argv: list[str], op
     assert exit_code == 1
     assert document["code"] == "NOT_FOUND"
     assert document["help"] == ["Run `falcon-axi identity sensor list` to see current identifiers"]
+
+
+def test_iot_entity_filter_rejection_teaches_iot_fields() -> None:
+    recorded = RecordedTransport(
+        [
+            serve("query_iot_hostsV2", fixture("discover/iot-query.json")),
+            serve("get_iot_hosts", fixture("errors/400-fql.json")),
+        ]
+    )
+    stdout, exit_code = run(["iot", "list"], recorded, dict(CREDENTIAL_ENV))
+    document = decode(stdout)
+    assert exit_code == 2
+    assert document["code"] == "FQL_INVALID"
+    assert document["help"][1:] == [
+        "Example: `--filter \"device_type:'Printer'\"`",
+        "Run `falcon-axi iot list --help` for the filterable fields",
+    ]

@@ -1,0 +1,11 @@
+{
+  "name": "identity rule show",
+  "order": 2303.6666666666665,
+  "summary": "  identity rule show <id>   the full Identity Protection policy rule",
+  "scopes": [
+    {
+      "scope": "Identity Protection Policy Rules:read",
+      "access": "read"
+    }
+  ]
+}

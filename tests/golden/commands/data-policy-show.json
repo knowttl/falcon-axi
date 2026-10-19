@@ -1,0 +1,11 @@
+{
+  "name": "data-policy show",
+  "order": 1640,
+  "summary": "  data-policy show <id>     full Data Protection policy",
+  "scopes": [
+    {
+      "scope": "Data Protection:read",
+      "access": "read"
+    }
+  ]
+}

@@ -17,6 +17,7 @@ from falcon_axi.credentials import (
     read_only,
     resolve_credential,
 )
+from falcon_axi.data_protection import validate_sort as validate_data_protection_sort
 from falcon_axi.fql import (
     DetectionQuery,
     since_seconds,
@@ -26,6 +27,7 @@ from falcon_axi.origin import REGIONS, assert_trusted_origin, resolve_base_url
 from falcon_axi.policy import validate_policy_type
 from falcon_axi.redaction import redact_text, redaction_scope
 from falcon_axi.render import raw, render
+from falcon_axi.shield import check_filters
 from falcon_axi.skill import HOME_GUIDANCE, skill_hint
 from falcon_axi.version import VERSION, version_output
 
@@ -90,6 +92,7 @@ def parse(argv: Sequence[str]) -> Parsed:
         _identity_query_of,
         activity_query,
         parse_categories,
+        rule_query,
         validate_entity_id,
         validate_identity_query,
     )
@@ -169,8 +172,14 @@ def parse(argv: Sequence[str]) -> Parsed:
             f"{command} requires exactly one {subject}",
             [remedy],
         )
+    if command in ("exclusion list", "exclusion show"):
+        from falcon_axi.exclusion import validate_type
+
+        validate_type(_str(flags.get("type")), limit_of(flags, spec) if spec and spec.limit_ceiling else 20)
     if command == "cve show":
         validate_cve_id(positionals[0])
+    if command == "shield list":
+        check_filters(flags)
     if (spec is None or spec.positional is None) and positionals:
         raise CliError(
             "VALIDATION_ERROR",
@@ -185,10 +194,26 @@ def parse(argv: Sequence[str]) -> Parsed:
         parse_fields(str(flags["fields"]), spec.extra_fields, spec.default_fields)
     if "filter" in flags and not str(flags["filter"]).strip():
         raise CliError("VALIDATION_ERROR", "--filter requires a value")
+    if command == "serverless list" and "filter" not in flags:
+        raise CliError(
+            "VALIDATION_ERROR",
+            "serverless list requires --filter",
+            ["Run `falcon-axi serverless list --filter \"cloud_provider:'aws'\"`"],
+        )
+    if command == "data-policy list" and flags.get("platform") not in ("win", "mac"):
+        raise CliError(
+            "VALIDATION_ERROR",
+            "--platform is required: win or mac",
+            ["Run `falcon-axi data-policy list --platform win` for Windows policies"],
+        )
+    if command in ("classification list", "data-policy list"):
+        validate_data_protection_sort(_str(flags.get("sort")), command == "data-policy list")
     if "since" in flags:
         window(str(flags["since"]))
     if command in ("identity list", "identity assessment"):
         validate_identity_query(_identity_query_of(flags))
+    if command == "identity rule list":
+        rule_query(flags)
     if command in ("identity show", "identity timeline"):
         validate_entity_id(positionals[0])
     if command == "identity timeline":
@@ -333,6 +358,10 @@ def _followup_help(help: Sequence[str], flags: Mapping[str, str | bool], member_
     contextual = tuple(command.sub(lambda match: f"`{match.group(1)}{suffix}`", item) for item in help)
     if member_cid and any(command.search(item) for item in help):
         contextual += ("Supply the same tenant selection used for this invocation when following these suggestions",)
+    if any(command.search(item) and "<original-filter>" in item for item in help):
+        contextual += (
+            "Replace <original-filter> with your original --filter value when continuing; CID filters are not echoed",
+        )
     return contextual
 
 

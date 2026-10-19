@@ -1,0 +1,55 @@
+{
+  "provenance": {
+    "operation": "GetQuarantineFiles",
+    "reference": "https://developer.crowdstrike.com/api-reference/collections/quarantine/",
+    "schema_read": "2026-10-18",
+    "provenance": "synthetic"
+  },
+  "response": {
+    "status": 200,
+    "headers": {},
+    "body": {
+      "errors": [],
+      "resources": [
+        {
+          "id": "synthetic-quarantine-02",
+          "hostname": "SYNTHETIC-HOST-02",
+          "sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+          "state": "quarantined",
+          "paths": [
+            {
+              "path": "C:\\Synthetic\\sample.exe",
+              "state": "quarantined"
+            }
+          ],
+          "alert_ids": [
+            "synthetic-alert"
+          ],
+          "detect_ids": [
+            "synthetic-detection"
+          ],
+          "cid": "synthetic-tenant-cid"
+        },
+        {
+          "id": "synthetic-quarantine-01",
+          "hostname": "SYNTHETIC-HOST-01",
+          "sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+          "state": "quarantined",
+          "paths": [
+            {
+              "path": "C:\\Synthetic\\sample.exe",
+              "state": "quarantined"
+            }
+          ],
+          "alert_ids": [
+            "synthetic-alert"
+          ],
+          "detect_ids": [
+            "synthetic-detection"
+          ],
+          "cid": "synthetic-tenant-cid"
+        }
+      ]
+    }
+  }
+}

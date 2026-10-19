@@ -55,6 +55,26 @@ def test_the_identity_commands_list_their_per_document_read_scopes() -> None:
     assert rows["Identity Protection Entities:read"]["access"] == "read"
 
 
+def test_only_policy_and_exclusion_scope_alternatives_depend_on_selected_type() -> None:
+    stdout, exit_code = run(["scopes"], RecordedTransport([]), dict(NO_CREDENTIAL_ENV))
+    assert exit_code == 0
+    rows = decode(stdout)["scopes"]
+    assert {row["scope"]: row["commands"] for row in rows if row["required"] == "selected --type"} == {
+        "Prevention Policies:read": "policy list, policy members",
+        "Sensor Update Policies:read": "policy list, policy members",
+        "Device Control Policies:read": "policy list, policy members",
+        "Response Policies:read": "policy list, policy members",
+        "Content Update Policies:read": "policy list, policy members",
+        "Machine Learning Exclusions:read": "exclusion list, exclusion show",
+        "IOA Exclusions:read": "exclusion list, exclusion show",
+        "Sensor Visibility Exclusions:read": "exclusion list, exclusion show",
+    }
+    firewall = next(row for row in rows if row["scope"] == "Firewall Management:read")
+    assert firewall["required"] == "yes"
+    assert firewall["commands"] == ("policy list, policy members, firewall rule list, firewall rule show, firewall group list")
+    assert all(row["required"] in ("yes", "selected --type") for row in rows)
+
+
 def test_the_matrix_names_only_commands_the_cli_ships() -> None:
     for spec in COMMAND_SPECS.values():
         assert spec.name in COMMANDS

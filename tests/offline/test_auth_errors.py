@@ -130,9 +130,11 @@ def test_redaction_covers_every_sensitive_key_that_reaches_the_renderer() -> Non
             "member_cid": "synthetic-child-cid",
             "token": "synthetic-token",
             "Authorization": "Bearer synthetic-access-token",
-            "nested": {"client_secret": SECRET},
+            "nested": {"client_secret": SECRET, "Customer_ID": "synthetic-customer-cid"},
+            "records": [{"customer_id": "synthetic-customer-cid"}],
         }
     )
     for secret in ("synthetic-access-token", "synthetic-client-id", SECRET, "synthetic-child-cid", "synthetic-token"):
         assert secret not in rendered, f"render leaked {secret}"
-    assert len(re.findall(r"\[redacted\]", rendered)) == 7
+    assert "synthetic-customer-cid" not in rendered
+    assert len(re.findall(r"\[redacted\]", rendered)) == 9

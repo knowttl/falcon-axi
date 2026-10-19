@@ -62,7 +62,14 @@ AXI credential profiles with `auth status`, `profile list`, and `config path`, t
 the NG-SIEM search lifecycle (`search start`, `search status`,
 `search stop`), the Identity Protection GraphQL reads (`identity list`, `identity show`, `identity timeline`, `identity assessment`),
 the REST sensor inventory (`identity sensor list`, `identity sensor show`),
+the container and serverless reads (`container list`, `image list`, `image vulnerabilities`, `serverless list`),
+the Data Protection configuration reads (`classification list`, `classification show`, `data-policy list`, `data-policy show`),
+the firewall rule list/show and group list, IOA group list, correlation-rule list, and case list/show,
 plus the `scopes` matrix and the home view.
+The exclusion inventories (`exclusion list|show` with `--type`) and quarantined file metadata
+(`quarantine list|show`) also ship as read-only commands.
+Malware family reads (`malware list`, `malware show`), Identity Protection policy-rule reads
+(`identity rule list`, `identity rule show`), and Discover IoT inventory (`iot list`) also ship.
 The README's status section is the authoritative list of what is shipped and what is deliberately absent, and
 no help text, suggestion, or skill may advertise an unshipped command.
 `uv run scripts/verify.py` is the single local entry point for the complete offline required-check set

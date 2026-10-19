@@ -1,0 +1,6 @@
+count: 2 of 3 total
+containers[2]{container_id,container_name,namespace,running_status}:
+  synthetic-container-1,synthetic-service,production,true
+  synthetic-container-2,synthetic-worker,production,false
+continuation_cursor: eyJvcGVyYXRpb24iOiJSZWFkQ29udGFpbmVyQ29tYmluZWQiLCJtb2RlbCI6Im9mZnNldCIsInBvc2l0aW9uIjoyLCJmaW5nZXJwcmludCI6ImNjOTRlOTlkNzg0MjhiYTlkNTliYWMyNDYzNjk0ODgxOTYzNTc4MTNjOGNhOTI4OGNhZDc2OGZmNzcwMDZjMjgifQ
+help[1]: "Run `falcon-axi container list --limit 2 --cursor eyJvcGVyYXRpb24iOiJSZWFkQ29udGFpbmVyQ29tYmluZWQiLCJtb2RlbCI6Im9mZnNldCIsInBvc2l0aW9uIjoyLCJmaW5nZXJwcmludCI6ImNjOTRlOTlkNzg0MjhiYTlkNTliYWMyNDYzNjk0ODgxOTYzNTc4MTNjOGNhOTI4OGNhZDc2OGZmNzcwMDZjMjgifQ` for the next page"

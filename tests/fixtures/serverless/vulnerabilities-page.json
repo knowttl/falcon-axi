@@ -1,0 +1,29 @@
+{
+  "provenance": {
+    "operation": "GetCombinedVulnerabilitiesSARIF",
+    "reference": "https://developer.crowdstrike.com/api-reference/collections/serverless-vulnerabilities/",
+    "schema_read": "2026-10-18",
+    "provenance": "synthetic"
+  },
+  "response": {
+    "status": 200,
+    "body": {
+      "version": "2.1.0",
+      "runs": [
+        {
+          "tool": {
+            "driver": {
+              "name": "CrowdStrike",
+              "rules": [
+                {"id": "CVE-2099-1001", "shortDescription": {"text": "Synthetic package vulnerability"}, "properties": {"severity": "HIGH", "cvssBaseScore": 8.1}}
+              ]
+            }
+          },
+          "results": [
+            {"ruleId": "CVE-2099-1001", "level": "error", "message": {"text": "Synthetic serverless function uses a vulnerable package"}}
+          ]
+        }
+      ]
+    }
+  }
+}

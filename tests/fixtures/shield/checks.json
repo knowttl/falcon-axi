@@ -1,0 +1,22 @@
+{
+  "provenance": {
+    "operation": "GetSecurityChecksV3",
+    "reference": "https://developer.crowdstrike.com/api-reference/collections/saas-security/#getsecuritychecksv3",
+    "schema_read": "2026-10-18",
+    "provenance": "synthetic"
+  },
+  "response": {
+    "status": 200,
+    "headers": {},
+    "body": [
+      {
+        "id": "synthetic-check-01",
+        "name": "Synthetic MFA posture check",
+        "status": "Failed",
+        "impact": "High",
+        "remediation_plan": "Enable MFA for the synthetic integration.",
+        "cid": "synthetic-shield-cid"
+      }
+    ]
+  }
+}

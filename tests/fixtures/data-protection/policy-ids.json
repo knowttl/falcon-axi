@@ -1,0 +1,12 @@
+{
+  "provenance": {
+    "operation": "queries_policy_get_v2",
+    "reference": "https://developer.crowdstrike.com/api-reference/collections/data-protection-configuration/",
+    "schema_read": "2026-10-18",
+    "provenance": "synthetic"
+  },
+  "response": {
+    "status": 200,
+    "body": {"meta": {"pagination": {"total": 1}}, "resources": ["synthetic-policy-01"], "errors": []}
+  }
+}

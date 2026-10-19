@@ -1,0 +1,26 @@
+{
+  "provenance": {
+    "operation": "ss_ioa_exclusions_search_v2",
+    "reference": "https://developer.crowdstrike.com/api-reference/collections/ioa-exclusions/",
+    "schema_read": "2026-10-18",
+    "provenance": "synthetic"
+  },
+  "response": {
+    "status": 200,
+    "headers": {},
+    "body": {
+      "meta": {
+        "pagination": {
+          "offset": 0,
+          "limit": 2,
+          "total": 3
+        }
+      },
+      "errors": [],
+      "resources": [
+        "synthetic-ioa-01",
+        "synthetic-ioa-02"
+      ]
+    }
+  }
+}

@@ -1,0 +1,23 @@
+{
+  "name": "exclusion-ml-list",
+  "argv": [
+    "exclusion",
+    "list",
+    "--limit",
+    "2",
+    "--type",
+    "ml"
+  ],
+  "responders": [
+    {
+      "op": "exclusions_search_v2",
+      "fixture": "exclusions/ml-query.json"
+    },
+    {
+      "op": "exclusions_get_v2",
+      "fixture": "exclusions/ml-details.json"
+    }
+  ],
+  "exit_code": 0,
+  "comment": "Exclusion and quarantine inventory reads add ten synthetic list/show scenarios plus four command help scenarios. help-top, unknown-command, and scopes deliberately change to advertise the shipped commands and read scopes (docs/design/v1.md section 1.2.1). No mutation operation is added."
+}

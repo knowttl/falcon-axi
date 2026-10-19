@@ -13,6 +13,8 @@ The shipped and deferred commands are listed below; [`docs/design/v1.md`](docs/d
 
 What is shipped:
 
+- Data Protection configuration reads: `classification list`, `classification show`,
+  `data-policy list`, and `data-policy show`; see [Data Protection](#data-protection) for usage.
 - the package foundation: a Python package, the `falcon-axi` console script, and one offline
   `uv run scripts/verify.py` entry point;
 - `-v`, `-V`, and `--version`, printing the bare version;
@@ -21,7 +23,7 @@ What is shipped:
   operations, and a single permitted network sink;
 - AXI credential profiles and SecretRefs, per-call XDG paths, region selection and
   `X-Cs-Region` autodiscovery, Flight Control member-CID selection, `auth status`, `profile list`, and `config path`;
-- the home view and five read domains: `falcon-axi`, `detection list`, `detection show`, `host list`,
+- the home view and core read domains: `falcon-axi`, `detection list`, `detection show`, `host list`,
   `host show`, `host logins`, `account list`, `account show`, `vuln list`, `vuln show`, `cve list`, and `cve show`;
 - `detection summary`, an on-demand severity count with the same filters as `detection list`;
 - cloud inventory and findings: `cloud-asset list`, `cloud-asset show`, `iom list`, `iom show`,
@@ -29,6 +31,7 @@ What is shipped:
   See the [cloud contract](docs/design/v1.md#121-cloud-inventory-and-posture) for pagination, output, and the risk-detail limitation;
 - Discover inventory: `asset list`, `asset show`, `application list`, and `login list`, plus
   `host network <device_id>` for Falcon sensor-host IP and MAC address history;
+- Falcon Shield SaaS posture checks: `shield list` and `shield show`, using `SaaS Security:read`;
 - NG-SIEM search: `search start`, `search status`, and `search stop`, the three operations captain
   exception N1 admits;
 - Falcon Intelligence: `actor list`, `actor show` (including `--mitre` for JSON ATT&CK mappings),
@@ -43,13 +46,23 @@ What is shipped:
   Identity Protection events that adds no operation and no scope beyond N1's;
 - `falcon-axi scopes`, the command-to-scope matrix, available without making a request;
 - `falcon-axi setup` for offline guidance and `falcon-axi setup hooks` for Claude Code, Codex, and OpenCode session integrations;
+- firewall configuration reads: `firewall rule list`, `firewall rule show`, and `firewall group list`;
+- `ioa group list`, `correlation-rule list`, `case list`, and `case show`.
+  These reads match CrowdStrike's documented APIs and falcon-mcp; they have not been tenant-validated.
 - Falcon Intelligence indicators: `indicator list` with opaque marker continuation and `indicator show`.
   These reads match first-party API sources and are tested offline, without tenant validation.
+- malware families: `malware list` and `malware show`;
+- Identity Protection policy rules: `identity rule list` and `identity rule show`, using REST reads;
+- Discover IoT inventory: `iot list`, with token pagination and the license-gated Falcon Discover IoT:read scope.
+  These three areas follow the official API reference, falconpy, and PSFalcon; they have synthetic offline tests and are not tenant-validated.
 - the generated [agent skill](#agent-skill) and its bare-home install hint, specified in
   [the integration contract](docs/design/v1.md#122-session-hook-and-skill);
 - bounded `--all` walks with `--max-rows` on detection, host, account, and vuln lists, retaining partial
   results and emitting a continuation cursor only when the next position is reachable.
 - `--fields` on detection, host, and vuln lists to append selected columns to the default row.
+- container and serverless reads: `container list`, `image list`, `image vulnerabilities`, and `serverless list`.
+  They match first-party API sources and are tested offline, without tenant validation.
+  See the [container and serverless contract](docs/design/v1.md#25-container-and-serverless-reads) for filters, paging boundaries, and SARIF output, and [API client permissions](#api-client-permissions) for provisioning.
 
 - custom IOC reads: `ioc list`, `ioc show`, `ioc hosts <type:value>`, and
   `ioc processes <type:value> --host <device_id>`;
@@ -60,12 +73,23 @@ What is shipped:
   Both accept `--filter`, `--limit`, and `--cursor` and require only the selected type's read scope.
   Policy precedence, enable/disable, and writes are not exposed.
 
+- weekly sensor usage reports: `sensor-usage list [--filter <FQL>]`;
+- Falcon Recon reads: `recon-rule list|show`, `recon-notification list|show`, and
+  `recon-record list|show` for monitoring rules, notifications, and exposed-data records.
+  Lists take `--filter`, `--limit`, and `--cursor`.
+  Detail views preview long strings; pass `--full` for untruncated content.
+  See [the sensor usage and Recon contract](docs/design/v1.md#24-sensor-usage-and-falcon-recon-reads)
+  for API evidence and validation limits, and run `falcon-axi scopes` for permissions.
+- Exclusion inventories: `exclusion list --type ml|ioa|sensor-visibility|certificate` and
+  `exclusion show <id> --type ...`; quarantined file metadata: `quarantine list` and `quarantine show <id>`.
+  These commands read configuration and file metadata only, with no release, delete, or exclusion changes.
+
 What is **not** shipped yet, so no output advertises it:
 
-- every domain `docs/design/v1.md` §1.3 defers,
+- the remaining domains `docs/design/v1.md` §1.3 defers,
   every NG-SIEM capability outside the three search lifecycle operations (no ingest, no lookup
   files, no parser or dashboard writes, and no Charlotte AI), and every Identity Protection capability
-  beyond the directory, timeline, security assessment, and sensor inventory: no standalone incident queries, no policy rules,
+  beyond the directory, timeline, security assessment, sensor inventory, and policy-rule reads: no standalone incident queries,
   and no GraphQL mutation of any kind.
   There is no report PDF or rule-file download;
 
@@ -225,6 +249,7 @@ credential.
 `Assets:read` is needed by the `account`, `asset`, `application`, and `login` commands and is license-gated to Falcon Discover or
 Exposure Management; a client that cannot be granted it loses those commands and nothing else.
 The actor, report, and indicator commands also require a Falcon Intelligence license; `falcon-axi scopes` names their scopes.
+Container, image, and serverless reads require the corresponding product license; use `falcon-axi scopes` for their shared read scope.
 Grant only the scopes for the domains you intend to read: each is independent, and a command whose
 scope is missing fails with `SCOPE_DENIED` naming exactly what to grant.
 
@@ -450,11 +475,34 @@ falcon-mcp's own queries; `docs/design/v1.md` §17 records that they are not yet
 live tenant.
 A GraphQL error reported on an HTTP 200 is an `UPSTREAM_ERROR`, never an empty result.
 
+### Data Protection
+
+`classification list` reads classifications; `data-policy list --platform win|mac` reads policies for the selected platform.
+Use `classification show <id>` or `data-policy show <id>` for the full record; policy detail does not require a platform.
+Both lists accept `--filter`, `--sort`, `--limit`, and `--cursor`.
+Run the command with `--help` for filter and sort fields; [the design contract](docs/design/v1.md#107-data-protection-reads) owns pagination bounds and output schemas.
+These commands require `Data Protection:read` and a Data Protection license.
+They are tested offline, without tenant validation.
+
+Data Protection detections use `falcon-axi detection list --product data-protection`.
+For classified-file events, use `falcon-axi search start --query '#event_simpleName=Event_DataProtectionClassifiedFileEvent | head(200)'`,
+then `falcon-axi search status <id>` to read the results and `falcon-axi search stop <id>` if the job is left running.
+There is no standalone Data Protection event command; the [design rationale](docs/design/v1.md#107-data-protection-reads) records the supported API boundary.
+
+### Configuration and cases
+
+Use `firewall rule list`, `firewall group list`, `ioa group list`, `correlation-rule list`, or `case list` to inspect configuration and investigations.
+Pass an id from list output to `firewall rule show <id>` or `case show <id>` for detail.
+Run the selected command with `--help` for its flags and limits.
+The [configuration and case reference](docs/design/v1.md#108-configuration-and-case-reads) owns pagination, row schemas, and detail output contracts.
+
 ## Output and errors
 
 Output is TOON on stdout.
-A non-empty list view prints a `count:` line, a compact domain-specific schema, and a `help[]` array of
+A non-empty list view generally prints a `count:` line, a compact domain-specific schema, and a `help[]` array of
 the next commands.
+Sensor usage reports follow [their output contract](docs/design/v1.md#24-sensor-usage-and-falcon-recon-reads).
+For the serverless SARIF representation, see [the container and serverless contract](docs/design/v1.md#25-container-and-serverless-reads).
 Empty results are stated explicitly rather than left as ambiguous silence.
 GraphQL identity pages report rows shown without a total; their schemas are defined in
 [the output contract](docs/design/v1.md#102-default-schemas).
@@ -507,11 +555,12 @@ Ask the command rather than guessing its flags.
 ## Pagination
 
 By default, one call reads one page.
-`--limit N` sets the rows for this call; `host logins` applies it to the selected host's login window.
-Use the command's `--help` for defaults and ceilings; the detailed limit contract lives in
+See [the sensor usage contract](docs/design/v1.md#24-sensor-usage-and-falcon-recon-reads) for its unpaginated reports.
+`--limit N` sets the page budget; `host logins` applies it to the selected host's login window.
+Use the command's `--help` for units, defaults, and ceilings; the detailed limit contract lives in
 [`docs/design/v1.md` §7.3](docs/design/v1.md#73-default-limits).
-A truncated result prints a `continuation_cursor` plus a ready-to-run next-page suggestion that
-replays the same filters.
+A result with reachable continuation prints a `continuation_cursor` plus a next-page suggestion.
+Follow [the suggestion redaction contract](docs/design/v1.md#55-redaction) when the suggestion requires restoring the original filter.
 Pass it back with `--cursor <token>`.
 
 The cursor is opaque and bound to the credential and the filter that produced it, so it cannot be

@@ -28,12 +28,16 @@ def command_references() -> list[dict[str, Any]]:
 
 
 def _scope_table(references: list[dict[str, Any]]) -> str:
-    commands: dict[tuple[str, str, str], list[str]] = {}
+    commands: dict[tuple[str, str], list[str]] = {}
+    requirements: dict[tuple[str, str], set[str]] = {}
     for entry in references:
         for scope in entry["scopes"]:
-            commands.setdefault((scope["scope"], scope["access"], scope.get("required", "yes")), []).append(entry["name"])
+            key = (scope["scope"], scope["access"])
+            commands.setdefault(key, []).append(entry["name"])
+            requirements.setdefault(key, set()).add(scope.get("required", "yes"))
     lines = [f"scopes[{len(commands)}]{{scope,access,commands,required}}:"]
-    for (scope, access, required), names in commands.items():
+    for (scope, access), names in commands.items():
+        required = "selected --type" if requirements[(scope, access)] == {"selected --type"} else "yes"
         named = json.dumps(", ".join(names)) if len(names) > 1 else names[0]
         lines.append(f"  {json.dumps(scope)},{access},{named},{required}")
     return "\n".join(lines)

@@ -1,0 +1,8 @@
+record:
+  id: synthetic-rule-01
+  name: Synthetic breach monitor
+  status: active
+  priority: high
+  topic: SA_BREACHED_DATA
+  filter: example.com
+  cid: "[redacted]"

@@ -1,0 +1,4 @@
+{
+  "provenance": {"operation": "queries_cases_get_v1", "reference": "https://developer.crowdstrike.com/api-reference/collections/case-management/", "schema_read": "2026-10-18", "provenance": "synthetic"},
+  "response": {"status": 200, "body": {"meta": {"pagination": {"total": 3}}, "resources": ["synthetic-case-01", "synthetic-case-02"]}}
+}

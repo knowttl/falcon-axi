@@ -1,0 +1,3 @@
+count: 1 of 1 total
+firewall_groups[1]{id,name,enabled,platform}:
+  synthetic-firewall-group,Synthetic firewall group,true,windows

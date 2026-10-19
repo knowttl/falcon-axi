@@ -1,0 +1,7 @@
+{
+  "provenance": {"operation": "get_rules", "reference": "https://developer.crowdstrike.com/api-reference/collections/firewall-management/", "schema_read": "2026-10-18", "provenance": "synthetic"},
+  "response": {"status": 200, "body": {"resources": [
+    {"id": "1002", "name": "Synthetic outbound rule", "enabled": false, "action": "ALLOW", "direction": "OUT", "description": "Synthetic rule for offline tests"},
+    {"id": "1001", "name": "Synthetic inbound rule", "enabled": true, "action": "DENY", "direction": "IN", "description": "Synthetic rule for offline tests", "customer_id": "synthetic-sensitive-customer"}
+  ]}}
+}

@@ -1,0 +1,12 @@
+{
+  "name": "recon-rule list",
+  "order": 2702,
+  "summary": "  recon-rule list               list Recon monitoring rules",
+  "scopes": [
+    {
+      "scope": "Monitoring rules (Falcon Intelligence Recon):read",
+      "access": "read",
+      "required": "yes"
+    }
+  ]
+}

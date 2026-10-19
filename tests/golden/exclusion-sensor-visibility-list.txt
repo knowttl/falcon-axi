@@ -1,0 +1,6 @@
+count: 2 of 3 total
+continuation_cursor: eyJvcGVyYXRpb24iOiJxdWVyeVNlbnNvclZpc2liaWxpdHlFeGNsdXNpb25zVjEiLCJtb2RlbCI6Im9mZnNldCIsInBvc2l0aW9uIjoyLCJmaW5nZXJwcmludCI6IjY4NzhjYTA4NDM2MTA2YTljZGRjZWNmYTdiZTE4ZDM1M2ZhYTJkNzNlNGFmYmMwMTgyM2VlY2JmY2YzNDRkMjIifQ
+exclusions[2]{id,value,applied_globally}:
+  synthetic-sensor-visibility-01,/opt/synthetic-1/*,true
+  synthetic-sensor-visibility-02,/opt/synthetic-2/*,true
+help[2]: "Run `falcon-axi exclusion show <id> --type sensor-visibility` for the full record","Run `falcon-axi exclusion list --limit 2 --type sensor-visibility --cursor eyJvcGVyYXRpb24iOiJxdWVyeVNlbnNvclZpc2liaWxpdHlFeGNsdXNpb25zVjEiLCJtb2RlbCI6Im9mZnNldCIsInBvc2l0aW9uIjoyLCJmaW5nZXJwcmludCI6IjY4NzhjYTA4NDM2MTA2YTljZGRjZWNmYTdiZTE4ZDM1M2ZhYTJkNzNlNGFmYmMwMTgyM2VlY2JmY2YzNDRkMjIifQ` for the next page"

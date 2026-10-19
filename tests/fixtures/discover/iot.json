@@ -1,0 +1,4 @@
+{
+  "provenance": {"operation": "get_iot_hosts", "reference": "https://developer.crowdstrike.com/api-reference/collections/discover/", "schema_read": "2026-10-18", "provenance": "synthetic"},
+  "response": {"status": 200, "body": {"resources": [{"id": "synthetic-iot", "hostname": "SYNTHETIC-PRINTER", "device_type": "Printer", "device_family": "Office"}]}}
+}

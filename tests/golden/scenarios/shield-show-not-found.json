@@ -1,0 +1,19 @@
+{
+  "name": "shield-show-not-found",
+  "argv": [
+    "shield",
+    "show",
+    "synthetic-check-99"
+  ],
+  "responders": [
+    {
+      "op": "GetSecurityChecksV3",
+      "response": {
+        "status": 200,
+        "body": []
+      }
+    }
+  ],
+  "exit_code": 1,
+  "comment": "Shield posture checks add list, show, empty, scope-denied and help scenarios. help-top, unknown-command, scopes and auth-status scope documents deliberately change to expose the shipped read commands and SaaS Security:read (design section 10.6)."
+}

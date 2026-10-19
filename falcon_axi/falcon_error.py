@@ -90,6 +90,19 @@ def translate_falcon_error(
                 command, example = filter_help
             elif remedy:
                 command, example = remedy
+            elif "Falcon Container Image:read" in scopes:
+                if id == "GetCombinedVulnerabilitiesSARIF":
+                    command, example = "serverless list", "cloud_provider:'aws'"
+                elif id == "ReadContainerCombined":
+                    command, example = "container list", "namespace:'production'"
+                elif id == "GetCombinedImages":
+                    command, example = "image list", "repository:'example/service'"
+                else:
+                    command, example = "image vulnerabilities", "cvss_score:>7"
+            elif "Quarantined Files:read" in scopes:
+                command, example = "quarantine list", "state:'quarantined'"
+            elif any("Exclusions:read" in scope for scope in scopes):
+                command, example = "exclusion list", "applied_globally:true"
             elif "Assets:read" in scopes:
                 command, example = "account list", "username:'synthetic-user'"
             elif "Hosts:read" in scopes:
@@ -102,6 +115,13 @@ def translate_falcon_error(
                 command, example = "vuln list", "status:'open'"
             elif "Indicators (Falcon Intelligence):read" in scopes:
                 command, example = "indicator list", "type:'domain'"
+            elif "Data Protection:read" in scopes:
+                command = "classification list" if "classification" in id else "data-policy list"
+                example = "name:'Confidential*'"
+            elif "Malware Families (Falcon Intelligence):read" in scopes:
+                command, example = "malware list", "slug:'synthetic-family'"
+            elif "Falcon Discover IoT:read" in scopes:
+                command, example = "iot list", "device_type:'Printer'"
             elif "Identity Protection Entities:read" in scopes:
                 command, example = "identity sensor list", "hostname:'SYNTH-DC-01'+status:'healthy'"
             else:
@@ -111,7 +131,7 @@ def translate_falcon_error(
                 f"the filter for {subject} was rejected",
                 [
                     "FQL uses + for AND, `,` for OR, and values must be quoted",
-                    f'Example: `--filter "{example}"`',
+                    *([f'Example: `--filter "{example}"`'] if example else []),
                     f"Run `falcon-axi {command} --help` for the filterable fields",
                 ],
             )
@@ -171,6 +191,11 @@ def translate_falcon_error(
             {"required_scopes": list(scopes)},
         )
     if response.status == 404:
+        if "Data Protection:read" in scopes:
+            command = "classification list" if "classification" in id else "data-policy list --platform win"
+            return CliError(
+                "NOT_FOUND", f"no {subject} matched that identifier", [f"Run `falcon-axi {command}` to see current identifiers"]
+            )
         command = remedy[0] if remedy else not_found_command
         return CliError(
             "NOT_FOUND",

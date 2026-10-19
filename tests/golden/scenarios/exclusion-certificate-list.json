@@ -1,0 +1,23 @@
+{
+  "name": "exclusion-certificate-list",
+  "argv": [
+    "exclusion",
+    "list",
+    "--limit",
+    "2",
+    "--type",
+    "certificate"
+  ],
+  "responders": [
+    {
+      "op": "cb_exclusions_query_v1",
+      "fixture": "exclusions/certificate-query.json"
+    },
+    {
+      "op": "cb_exclusions_get_v1",
+      "fixture": "exclusions/certificate-details.json"
+    }
+  ],
+  "exit_code": 0,
+  "comment": "Exclusion and quarantine inventory reads add ten synthetic list/show scenarios plus four command help scenarios. help-top, unknown-command, and scopes deliberately change to advertise the shipped commands and read scopes (docs/design/v1.md section 1.2.1). No mutation operation is added."
+}

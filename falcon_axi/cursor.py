@@ -30,7 +30,7 @@ class CursorContext:
     query: str | None = None
     sort: str | None = None
     member_cid: str | None = None
-    model: Literal["offset", "token", "marker"] = "offset"
+    model: Literal["offset", "token", "marker", "offset-or-token"] = "offset"
 
 
 def _fingerprint(position: Position, context: CursorContext, client_secret: str) -> str:
@@ -80,7 +80,7 @@ def _position_of(payload: object, model: str) -> Position:
     if not isinstance(payload, dict) or payload.get("model") != model:
         raise _reject()
     position = payload.get("position")
-    if model == "offset":
+    if model == "offset" or (model == "offset-or-token" and isinstance(position, int)):
         if not isinstance(position, int) or isinstance(position, bool) or position < 0:
             raise _reject()
         return position
@@ -110,7 +110,7 @@ def decode_cursor(token: str, context: CursorContext, client_secret: str) -> Pos
 
 
 def decode_offset(token: str, context: CursorContext, client_secret: str) -> int:
-    """The offset-model position, for the Alerts and Hosts walks (§7.1)."""
+    """The offset-model position (§7.1)."""
     position = decode_cursor(token, context, client_secret)
     if not isinstance(position, int):
         raise _reject()

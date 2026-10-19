@@ -1,0 +1,10 @@
+{
+  "name": "help-exclusion-show",
+  "argv": [
+    "exclusion",
+    "show",
+    "--help"
+  ],
+  "exit_code": 0,
+  "comment": "Exclusion and quarantine inventory reads add ten synthetic list/show scenarios plus four command help scenarios. help-top, unknown-command, and scopes deliberately change to advertise the shipped commands and read scopes (docs/design/v1.md section 1.2.1). No mutation operation is added."
+}

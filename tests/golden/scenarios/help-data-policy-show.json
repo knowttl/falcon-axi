@@ -1,0 +1,10 @@
+{
+  "name": "help-data-policy-show",
+  "argv": [
+    "data-policy",
+    "show",
+    "--help"
+  ],
+  "exit_code": 0,
+  "comment": "Data Protection classification and policy reads add synthetic list/show/help/empty/not-found/scope scenarios. help-top, unknown-command, scopes and the generated skill deliberately gain the shipped commands (design section 10.6). Event reads retain the existing Alerts and NG-SIEM paths; no standalone event operation is registered."
+}

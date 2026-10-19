@@ -1,0 +1,11 @@
+{
+  "name": "container list",
+  "order": 1610,
+  "summary": "  container list            list Kubernetes containers",
+  "scopes": [
+    {
+      "scope": "Falcon Container Image:read",
+      "access": "read"
+    }
+  ]
+}

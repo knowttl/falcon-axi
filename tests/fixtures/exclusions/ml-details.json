@@ -1,0 +1,31 @@
+{
+  "provenance": {
+    "operation": "exclusions_get_v2",
+    "reference": "https://developer.crowdstrike.com/api-reference/collections/ml-exclusions/",
+    "schema_read": "2026-10-18",
+    "provenance": "synthetic"
+  },
+  "response": {
+    "status": 200,
+    "headers": {},
+    "body": {
+      "errors": [],
+      "resources": [
+        {
+          "id": "synthetic-ml-02",
+          "value": "/opt/synthetic-2/*",
+          "applied_globally": true,
+          "comment": "Synthetic exclusion",
+          "groups": []
+        },
+        {
+          "id": "synthetic-ml-01",
+          "value": "/opt/synthetic-1/*",
+          "applied_globally": true,
+          "comment": "Synthetic exclusion",
+          "groups": []
+        }
+      ]
+    }
+  }
+}

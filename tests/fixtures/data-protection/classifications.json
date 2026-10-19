@@ -1,0 +1,32 @@
+{
+  "provenance": {
+    "operation": "entities_classification_get_v2",
+    "reference": "https://developer.crowdstrike.com/api-reference/collections/data-protection-configuration/",
+    "schema_read": "2026-10-18",
+    "provenance": "synthetic"
+  },
+  "response": {
+    "status": 200,
+    "body": {
+      "resources": [
+        {
+          "id": "synthetic-classification-02",
+          "name": "Synthetic public documents",
+          "classification_properties": {"protection_mode": "monitor", "rules": []}
+        },
+        {
+          "id": "synthetic-classification-01",
+          "cid": "synthetic-sensitive-cid",
+          "name": "Synthetic confidential documents",
+          "classification_properties": {
+            "protection_mode": "enforce",
+            "content_patterns": ["synthetic-pattern-01"],
+            "content_patterns_operator": "OR",
+            "rules": [{"response_action": "block", "trigger_detection": true}]
+          }
+        }
+      ],
+      "errors": []
+    }
+  }
+}

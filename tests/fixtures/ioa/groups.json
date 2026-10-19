@@ -1,0 +1,4 @@
+{
+  "provenance": {"operation": "query_rule_groups_full", "reference": "https://developer.crowdstrike.com/api-reference/collections/custom-ioa/", "schema_read": "2026-10-18", "provenance": "synthetic"},
+  "response": {"status": 200, "body": {"meta": {"pagination": {"total": 2}}, "resources": [{"id": "synthetic-ioa-group", "name": "Synthetic IOA group", "platform": "windows", "enabled": true, "rules": []}]}}
+}

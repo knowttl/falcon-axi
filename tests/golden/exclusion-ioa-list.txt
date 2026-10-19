@@ -1,0 +1,6 @@
+count: 2 of 3 total
+continuation_cursor: eyJvcGVyYXRpb24iOiJzc19pb2FfZXhjbHVzaW9uc19zZWFyY2hfdjIiLCJtb2RlbCI6Im9mZnNldCIsInBvc2l0aW9uIjoyLCJmaW5nZXJwcmludCI6Ijc5NjJhYzdlNzViZmI5NTRkOTU4MzBiZjEwZGFlZGQ4ZTM4NWIyYmMwNzU2MzkwYjJiMTgxNWQ5ZmY5MGI0ODIifQ
+exclusions[2]{id,name,pattern_id}:
+  synthetic-ioa-01,Synthetic rule 1,"569"
+  synthetic-ioa-02,Synthetic rule 2,"569"
+help[2]: "Run `falcon-axi exclusion show <id> --type ioa` for the full record","Run `falcon-axi exclusion list --limit 2 --type ioa --cursor eyJvcGVyYXRpb24iOiJzc19pb2FfZXhjbHVzaW9uc19zZWFyY2hfdjIiLCJtb2RlbCI6Im9mZnNldCIsInBvc2l0aW9uIjoyLCJmaW5nZXJwcmludCI6Ijc5NjJhYzdlNzViZmI5NTRkOTU4MzBiZjEwZGFlZGQ4ZTM4NWIyYmMwNzU2MzkwYjJiMTgxNWQ5ZmY5MGI0ODIifQ` for the next page"

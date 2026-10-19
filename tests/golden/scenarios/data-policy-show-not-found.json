@@ -1,0 +1,21 @@
+{
+  "name": "data-policy-show-not-found",
+  "argv": [
+    "data-policy",
+    "show",
+    "synthetic-missing"
+  ],
+  "responders": [
+    {
+      "op": "entities_policy_get_v2",
+      "response": {
+        "status": 200,
+        "body": {
+          "resources": []
+        }
+      }
+    }
+  ],
+  "exit_code": 1,
+  "comment": "Data Protection classification and policy reads add synthetic list/show/help/empty/not-found/scope scenarios. help-top, unknown-command, scopes and the generated skill deliberately gain the shipped commands (design section 10.6). Event reads retain the existing Alerts and NG-SIEM paths; no standalone event operation is registered."
+}

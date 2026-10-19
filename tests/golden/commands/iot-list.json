@@ -1,0 +1,11 @@
+{
+  "name": "iot list",
+  "order": 804.5,
+  "summary": "  iot list                  list Discover IoT assets",
+  "scopes": [
+    {
+      "scope": "Falcon Discover IoT:read",
+      "access": "read"
+    }
+  ]
+}

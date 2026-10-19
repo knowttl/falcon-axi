@@ -1,0 +1,18 @@
+{
+  "name": "serverless-list-page",
+  "argv": [
+    "serverless",
+    "list",
+    "--filter",
+    "cloud_provider:'aws'",
+    "--limit",
+    "2"
+  ],
+  "responders": [
+    {
+      "op": "GetCombinedVulnerabilitiesSARIF",
+      "fixture": "serverless/vulnerabilities-page.json"
+    }
+  ],
+  "exit_code": 0
+}
