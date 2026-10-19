@@ -48,6 +48,22 @@ def test_detail_requests_full_field_collection(noun: str, operation: str) -> Non
     assert recorded.operation_requests(operation)[0].query == {"ids": ("123456",), "fields": ("__full__",)}
 
 
+@pytest.mark.parametrize(
+    "noun,operation",
+    [("actor", "GetIntelActorEntities"), ("report", "GetIntelReportEntities"), ("malware", "GetMalwareEntities")],
+)
+@pytest.mark.parametrize("full", (False, True))
+def test_detail_redacts_complete_private_keys_before_preview(noun: str, operation: str, full: bool) -> None:
+    pem = "-----BEGIN PRIVATE KEY-----\n" + "SYNTHETIC" * 150 + "\n-----END PRIVATE KEY-----"
+    record = {"id": "synthetic-record", "slug": "synthetic-record", "description": pem}
+    recorded = RecordedTransport([serve(operation, response(200, {"resources": [record]}))])
+    stdout, code = run([noun, "show", "synthetic-record", *(["--full"] if full else [])], recorded, CREDENTIAL_ENV)
+    assert code == 0, stdout
+    assert decode(stdout) == {
+        noun: {"id": "synthetic-record", "slug": "synthetic-record", "description": "[redacted]"}
+    }
+
+
 @pytest.mark.parametrize("noun,operation", [("actor", "GetIntelActorEntities"), ("report", "GetIntelReportEntities")])
 def test_detail_truncation_has_a_full_escape_hatch(noun: str, operation: str) -> None:
     answer = response(200, {"resources": [{"id": "123456", "description": "x" * 801}]})

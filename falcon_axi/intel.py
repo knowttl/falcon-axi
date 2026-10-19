@@ -8,7 +8,7 @@ from falcon_axi.core import CliError
 from falcon_axi.cursor import CursorContext, decode_offset, encode_cursor
 from falcon_axi.domain import DEFAULT_LIMIT, CommandOutput, rate_limit_note, resources, total
 from falcon_axi.falcon_error import translate_falcon_error
-from falcon_axi.render import raw, truncate
+from falcon_axi.render import raw, redact, truncate
 from falcon_axi.transport.operations import OperationId
 from falcon_axi.transport.types import FalconResponse, RequestArgs
 
@@ -90,7 +90,7 @@ def _show(ctx: Invocation) -> CommandOutput:
     matched = [entry for entry in entries if isinstance(entry, Mapping) and str(entry.get("id")) == requested]
     if not matched:
         raise CliError("UPSTREAM_ERROR", f"Falcon returned a {noun} resource without the requested identifier")
-    detail = dict(matched[0])
+    detail = redact(matched[0])
     help: list[str] = []
     if not ctx.flags.get("full"):
         for field, content in detail.items():
@@ -236,7 +236,7 @@ def _malware_show(ctx: Invocation) -> CommandOutput:
             "no malware family matched that identifier",
             ["Run `falcon-axi malware list` to see family identifiers"],
         )
-    detail = dict(entries[0])
+    detail = redact(entries[0])
     help: tuple[str, ...] = ()
     description = detail.get("description")
     if isinstance(description, str) and not ctx.flags.get("full"):

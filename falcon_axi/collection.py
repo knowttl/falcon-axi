@@ -9,7 +9,7 @@ from falcon_axi.core import CliError
 from falcon_axi.cursor import CursorContext, decode_cursor, encode_cursor
 from falcon_axi.domain import DEFAULT_LIMIT, CommandOutput, body_of, rate_limit_note, resources, text, total
 from falcon_axi.falcon_error import translate_falcon_error
-from falcon_axi.render import raw, truncate
+from falcon_axi.render import raw, redact, truncate
 from falcon_axi.transport.operations import OperationId, operation
 from falcon_axi.transport.types import FalconResponse, RequestArgs
 
@@ -135,7 +135,7 @@ class Collection:
                 return [detail(item) for item in value]
             return value
 
-        value = {self.noun.replace(" ", "_"): detail(records[0])}
+        value = {self.noun.replace(" ", "_"): detail(redact(records[0]))}
         help = (f"Run `{ctx.suggestion} --full` for untruncated detail",) if truncated else ()
         return CommandOutput(value, help)
 

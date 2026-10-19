@@ -121,6 +121,24 @@ def test_show_selects_the_requested_record_and_truncates_long_fields(noun: str, 
 
 
 @pytest.mark.parametrize("full", (False, True))
+@pytest.mark.parametrize("noun,hydrate", (("firewall rule", "get_rules"), ("case", "entities_cases_post_v2")))
+def test_detail_redacts_complete_private_keys_before_preview(noun: str, hydrate: str, full: bool) -> None:
+    pem = "-----BEGIN PRIVATE KEY-----\n" + "SYNTHETIC" * 150 + "\n-----END PRIVATE KEY-----"
+    record = {"id": "synthetic-record", "description": pem, "nested": {"text": pem}, "items": [pem]}
+    recorded = RecordedTransport([serve(hydrate, response(200, {"resources": [record]}))])
+    stdout, code = run([*noun.split(), "show", "synthetic-record", *(["--full"] if full else [])], recorded, CREDENTIAL_ENV)
+    assert code == 0, stdout
+    assert decode(stdout) == {
+        noun.replace(" ", "_"): {
+            "id": "synthetic-record",
+            "description": "[redacted]",
+            "nested": {"text": "[redacted]"},
+            "items": ["[redacted]"],
+        }
+    }
+
+
+@pytest.mark.parametrize("full", (False, True))
 def test_firewall_customer_id_is_redacted_in_default_tenant_detail(full: bool) -> None:
     recorded = RecordedTransport([serve("get_rules", fixture("firewall/rules.json"))])
     argv = ["firewall", "rule", "show", "1001", *(["--full"] if full else [])]
