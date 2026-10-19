@@ -21,6 +21,8 @@ def test_readme_reference_covers_exactly_the_shipped_commands() -> None:
     names = re.findall(r"^\| `([^`]+)` \|", table, re.MULTILINE)
     assert names == list(COMMANDS)
     assert table == docs.command_table()
+    permissions = readme.split(docs.SCOPE_START)[1].split(docs.SCOPE_END)[0].strip()
+    assert permissions == docs.permission_table()
     assert (REPO / "docs/commands.md").read_text(encoding="utf-8") == docs.reference()
 
 
@@ -28,7 +30,7 @@ def test_readme_reference_covers_exactly_the_shipped_commands() -> None:
 def test_check_rejects_documentation_drift_without_writing(drift: str, tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     (tmp_path / "docs").mkdir()
     readme = tmp_path / "README.md"
-    readme.write_text(f"{docs.START}\n{docs.END}\n", encoding="utf-8")
+    readme.write_text(f"{docs.START}\n{docs.END}\n{docs.SCOPE_START}\n{docs.SCOPE_END}\n", encoding="utf-8")
     monkeypatch.setattr(docs, "REPO", tmp_path)
     assert docs.main([]) == 0
     content = readme.read_text(encoding="utf-8")

@@ -8,7 +8,8 @@ uv run scripts/verify.py
 ```
 
 The gate runs Ruff, strict mypy, architecture checks, generated skill and documentation drift checks, and the offline pytest suite.
-The checked-in [CI workflow](.github/workflows/ci.yml) runs the same offline gate on pull requests and pushes to `main`, without Falcon credentials.
+GitHub test CI is disabled; tests run locally before publication.
+The checked-in workflow describes the offline gate but is not an active publication check.
 The release workflow builds and publishes packages using PyPI Trusted Publishing.
 
 ## Tests and fixtures

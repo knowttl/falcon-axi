@@ -271,9 +271,8 @@ Merging a release PR creates a `vX.Y.Z` tag and release; the same workflow then 
 Publishing uses `pypa/gh-action-pypi-publish` with OIDC, `id-token: write`, and the `pypi` environment, without a PyPI API token or password.
 The PyPI Trusted Publisher names owner `knowttl`, repository `falcon-axi`, workflow `release-please.yml`, and environment `pypi`.
 GitHub Actions must be allowed to create pull requests in repository settings.
-The [contributor guide](../../CONTRIBUTING.md) owns the offline verification gate and its CI triggers.
-The default `GITHUB_TOKEN` does not trigger CI on bot-created release PRs; a maintainer must close and reopen a release PR to trigger its required checks before merging.
-This follows the [release-please action's documented token behavior](https://github.com/googleapis/release-please-action#other-actions-on-release-please-prs).
+GitHub test CI is disabled; the [contributor guide](../../CONTRIBUTING.md) owns the offline local verification gate.
+The checked-in CI workflow does not imply that GitHub test CI is enabled.
 
 The [README Quickstart](../../README.md#quickstart) owns published-release installation instructions.
 The optional AXI community catalog still requires independent source review at a pinned public release.

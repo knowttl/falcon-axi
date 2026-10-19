@@ -10,6 +10,8 @@ from falcon_axi.scopes import scope_rows
 REPO = Path(__file__).resolve().parent.parent
 START = "<!-- commands:start -->"
 END = "<!-- commands:end -->"
+SCOPE_START = "<!-- permissions:start -->"
+SCOPE_END = "<!-- permissions:end -->"
 
 
 def command_table() -> str:
@@ -17,6 +19,13 @@ def command_table() -> str:
     for spec in COMMAND_SPECS.values():
         description = spec.summary.strip().removeprefix(spec.name).strip().replace("|", "\\|")
         rows.append(f"| `{spec.name}` | {description} |")
+    return "\n".join(rows)
+
+
+def permission_table() -> str:
+    rows = ["| Scope | Commands | Requirement |", "| --- | --- | --- |"]
+    for row in scope_rows():
+        rows.append(f"| `{row['scope']}` | {row['commands']} | {row['required']} |")
     return "\n".join(rows)
 
 
@@ -33,11 +42,8 @@ def reference() -> str:
         "Grant only the scopes needed for the commands you use and the policy or exclusion type you select.",
         "Product licensing also controls availability.",
         "",
-        "| Scope | Commands | Requirement |",
-        "| --- | --- | --- |",
+        permission_table(),
     ]
-    for row in scope_rows():
-        lines.append(f"| `{row['scope']}` | {row['commands']} | {row['required']} |")
     for spec in COMMAND_SPECS.values():
         lines.extend(["", f"## {spec.name}", "", "```text", spec.help, "```"])
     return "\n".join(lines) + "\n"
@@ -50,8 +56,11 @@ def main(argv: list[str] | None = None) -> int:
     readme = REPO / "README.md"
     before, rest = readme.read_text(encoding="utf-8").split(START)
     _, after = rest.split(END)
+    content = f"{before}{START}\n{command_table()}\n{END}{after}"
+    before, rest = content.split(SCOPE_START)
+    _, after = rest.split(SCOPE_END)
     expected = {
-        readme: f"{before}{START}\n{command_table()}\n{END}{after}",
+        readme: f"{before}{SCOPE_START}\n{permission_table()}\n{SCOPE_END}{after}",
         REPO / "docs/commands.md": reference(),
     }
     stale = [path for path, content in expected.items() if not path.exists() or path.read_text(encoding="utf-8") != content]

@@ -122,6 +122,57 @@ See [read-only enforcement and validation](docs/read-only.md) for the mechanics 
 Create an API client under **Support and resources > API clients and keys** in Falcon.
 Grant only the domains you use; available scopes depend on product licensing.
 
+<details>
+<summary>Required scopes by command</summary>
+
+<!-- permissions:start -->
+| Scope | Commands | Requirement |
+| --- | --- | --- |
+| `Alerts:read` | detection summary, detection list, detection show | yes |
+| `Hosts:read` | host list, host show, host logins, host network | yes |
+| `Assets:read` | account list, account show, asset list, asset show, application list, login list | yes |
+| `Falcon Discover IoT:read` | iot list | yes |
+| `Vulnerabilities:read` | vuln show, vuln list | yes |
+| `Vulnerabilities (Falcon Intelligence):read` | cve list, cve show | yes |
+| `Actors (Falcon Intelligence):read` | actor list, actor show | yes |
+| `Reports (Falcon Intelligence):read` | report list, report show | yes |
+| `Malware Families (Falcon Intelligence):read` | malware list, malware show | yes |
+| `Indicators (Falcon Intelligence):read` | indicator list, indicator show | yes |
+| `Falcon Container Image:read` | container list, image list, image vulnerabilities, serverless list | yes |
+| `Data Protection:read` | classification list, classification show, data-policy list, data-policy show | yes |
+| `NGSIEM:write` | identity activity, search start, search stop | yes |
+| `NGSIEM:read` | search status | yes |
+| `Identity Protection GraphQL:write` | identity list, identity show, identity timeline, identity assessment | yes |
+| `Identity Protection Entities:read` | identity list, identity show, identity sensor list, identity sensor show | yes |
+| `Identity Protection Timeline:read` | identity timeline | yes |
+| `Identity Protection Assessment:read` | identity assessment | yes |
+| `Identity Protection Policy Rules:read` | identity rule list, identity rule show | yes |
+| `IOC Management:read` | ioc list, ioc show | yes |
+| `IOCs (Indicators of Compromise):read` | ioc hosts, ioc processes | yes |
+| `Host Groups:read` | host-group list, host-group members | yes |
+| `Prevention Policies:read` | policy list, policy members | selected --type |
+| `Sensor Update Policies:read` | policy list, policy members | selected --type |
+| `Firewall Management:read` | policy list, policy members, firewall rule list, firewall rule show, firewall group list | yes |
+| `Device Control Policies:read` | policy list, policy members | selected --type |
+| `Response Policies:read` | policy list, policy members | selected --type |
+| `Content Update Policies:read` | policy list, policy members | selected --type |
+| `Cloud Security API Assets:read` | cloud-asset list, cloud-asset show | yes |
+| `Cloud Security API Detections:read` | iom list, iom show | yes |
+| `Cloud Security API Risks:read` | cloud-risk list | yes |
+| `SaaS Security:read` | shield list, shield show | yes |
+| `Machine Learning Exclusions:read` | exclusion list, exclusion show | selected --type |
+| `IOA Exclusions:read` | exclusion list, exclusion show | selected --type |
+| `Sensor Visibility Exclusions:read` | exclusion list, exclusion show | selected --type |
+| `Quarantined Files:read` | quarantine list, quarantine show | yes |
+| `Custom IOA Rules:read` | ioa group list | yes |
+| `Correlation Rules:read` | correlation-rule list | yes |
+| `Cases:read` | case list, case show | yes |
+| `Sensor Usage:read` | sensor-usage list | yes |
+| `Monitoring rules (Falcon Intelligence Recon):read` | recon-rule list, recon-rule show, recon-notification list, recon-notification show, recon-record list, recon-record show | yes |
+<!-- permissions:end -->
+
+</details>
+
 `falcon-axi scopes` prints the complete per-command matrix offline, including all product and policy scopes.
 The [full permissions table](docs/commands.md#api-client-permissions) is generated from the same registry.
 No other write scope is needed.
@@ -327,6 +378,7 @@ Check `parsed_query` in status output: NG-SIEM can interpret unknown words as fr
 ## Contributing
 
 See [CONTRIBUTING.md](CONTRIBUTING.md) for the offline verification commands, synthetic fixtures, and documentation generation.
+Tests run locally; GitHub test CI is disabled.
 API shapes follow official CrowdStrike sources and offline fixtures; no live-tenant validation is claimed.
 
 ## License
