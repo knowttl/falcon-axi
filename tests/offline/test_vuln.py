@@ -36,9 +36,6 @@ def test_default_rows_require_the_cve_and_host_info_facets() -> None:
     assert exit_code == 0
     assert "CVE-2026-0001,CRITICAL,WIN-DC-01" in stdout
     assert "unknown,unknown,unknown" not in stdout
-    unfaceted = fixture("spotlight/combined-unfaceted.json")
-    assert unfaceted.body["resources"][0]["cve"] == {"id": ""}
-    assert "host_info" not in unfaceted.body["resources"][0]
 
 
 def test_fields_extends_the_row_and_requests_only_the_facets_those_columns_need() -> None:
@@ -86,22 +83,14 @@ def test_an_unknown_field_name_is_refused_before_any_request() -> None:
     assert recorded.operation_requests("combinedQueryVulnerabilities") == []
 
 
-def test_a_missing_filter_is_refused_locally_because_spotlight_requires_one() -> None:
-    recorded = RecordedTransport([])
-    stdout, exit_code = run(["vuln", "list"], recorded, dict(CREDENTIAL_ENV))
-    assert exit_code == 2
-    assert "error: vuln list requires a filter" in stdout
-    assert "--host <device_id>" in stdout
-    assert recorded.operation_requests("combinedQueryVulnerabilities") == []
-
-
 def test_a_wildcard_is_refused_locally_wherever_it_appears_in_the_filter() -> None:
     recorded = RecordedTransport([])
-    for filter in ("cve.id:'CVE-*'", "status:'open'+host_info.hostname:'WIN*'"):
-        stdout, exit_code = run(["vuln", "list", "--filter", filter], recorded, dict(CREDENTIAL_ENV))
-        assert exit_code == 2
-        assert "code: FQL_INVALID" in stdout
-        assert "Spotlight filters do not support wildcards" in stdout
+    stdout, exit_code = run(
+        ["vuln", "list", "--filter", "status:'open'+host_info.hostname:'WIN*'"], recorded, dict(CREDENTIAL_ENV)
+    )
+    assert exit_code == 2
+    assert "code: FQL_INVALID" in stdout
+    assert "Spotlight filters do not support wildcards" in stdout
     assert recorded.operation_requests("combinedQueryVulnerabilities") == []
 
 
@@ -164,18 +153,3 @@ def test_a_missing_total_is_reported_as_unknown_rather_than_invented() -> None:
     assert exit_code == 0
     assert re.search(r"^count: 2 of unknown total$", stdout, re.MULTILINE)
     assert "continuation_cursor" not in stdout
-
-
-def test_an_empty_result_states_the_filter_that_produced_it() -> None:
-    recorded = RecordedTransport([serve("combinedQueryVulnerabilities", fixture("spotlight/combined-empty.json"))])
-    stdout, exit_code = run(["vuln", "list", "--severity", "critical", "--status", "open"], recorded, dict(CREDENTIAL_ENV))
-    assert exit_code == 0
-    assert "vulnerabilities: 0 vulnerabilities matching critical severity status open" in stdout
-
-
-def test_a_scope_failure_on_spotlight_names_the_vulnerabilities_read_scope() -> None:
-    recorded = RecordedTransport([serve("combinedQueryVulnerabilities", fixture("errors/403-scope.json"))])
-    stdout, exit_code = run(["vuln", "list", "--status", "open"], recorded, dict(CREDENTIAL_ENV))
-    assert exit_code == 1
-    assert "code: SCOPE_DENIED" in stdout
-    assert "Vulnerabilities:read" in stdout

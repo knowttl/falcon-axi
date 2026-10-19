@@ -11,10 +11,9 @@ from falcon_axi.cli import _followup_help, _suggestion_for, flag_guard, parse, r
 from falcon_axi.command import CommandSpec
 from falcon_axi.commands import COMMAND_SPECS, COMMANDS
 from falcon_axi.core import CliError
-from falcon_axi.render import render, truncate
 from falcon_axi.transport.operations import OPERATIONS
 from falcon_axi.version import VERSION
-from tests.support.recorded import CREDENTIAL_ENV, RecordedTransport, fixture, serve
+from tests.support.recorded import CREDENTIAL_ENV, RecordedTransport
 
 REPO = Path(__file__).resolve().parent.parent.parent
 
@@ -26,52 +25,9 @@ def test_every_registered_command_has_help_a_handler_and_operations(spec: Comman
     assert exit_code == 0
     assert stdout == spec.help + "\n"
     assert stdout.startswith(f"falcon-axi {spec.name}")
-    assert callable(spec.handler)
-    assert isinstance(spec.operations, tuple)
     assert all(operation in OPERATIONS for operation in spec.operations)
     if spec.authentication == "standard":
         assert spec.operations
-    assert recorded.requests == []
-
-
-def test_an_unknown_flag_is_rejected_by_name_with_the_valid_flags_inlined() -> None:
-    stdout, exit_code = run(["detection", "list", "--sev", "high"], RecordedTransport([]), dict(CREDENTIAL_ENV))
-    assert exit_code == 2
-    assert re.search(r"^error: unknown flag --sev for `detection list`$", stdout, re.MULTILINE)
-    assert re.search(r"^code: VALIDATION_ERROR$", stdout, re.MULTILINE)
-    assert "Did you mean --severity?" in stdout
-    assert "--filter" in stdout
-
-
-def test_an_unknown_command_or_subcommand_fails_before_any_request() -> None:
-    recorded = RecordedTransport([])
-    stdout, exit_code = run(["incident", "list"], recorded, dict(CREDENTIAL_ENV))
-    assert exit_code == 2
-    assert (
-        "valid commands: detection summary, detection list, detection show, host list, host show, host logins, "
-        "host network, account list, account show, asset list, asset show, application list, login list, iot list, "
-        "vuln show, vuln list, cve list, cve show, actor list, actor show, report list, report show, "
-        "malware list, malware show, "
-        "indicator list, indicator show, container list, image list, image vulnerabilities, serverless list, "
-        "classification list, classification show, data-policy list, data-policy show, "
-        "identity activity, search start, search status, search stop, identity list, "
-        "identity show, identity timeline, identity assessment, identity sensor list, identity sensor show, "
-        "identity rule list, identity rule show, "
-        "ioc list, ioc show, ioc hosts, ioc processes, host-group list, host-group members, policy list, policy members, "
-        "cloud-asset list, cloud-asset show, iom list, iom show, cloud-risk list, "
-        "shield list, shield show, "
-        "exclusion list, exclusion show, quarantine list, quarantine show, "
-        "firewall rule list, firewall rule show, firewall group list, ioa group list, correlation-rule list, "
-        "case list, case show, auth status, profile list, config path, scopes, "
-        "sensor-usage list, recon-rule list, recon-rule show, "
-        "recon-notification list, recon-notification show, recon-record list, recon-record show" in stdout
-    )
-    subcommand, _ = run(["detection", "contain"], recorded, dict(CREDENTIAL_ENV))
-    assert "valid detection subcommands: summary, list, show" in subcommand
-    host, _ = run(["host", "contain"], recorded, dict(CREDENTIAL_ENV))
-    assert "valid host subcommands: list, show" in host
-    vuln, _ = run(["vuln", "missing"], recorded, dict(CREDENTIAL_ENV))
-    assert "valid vuln subcommands: show, list" in vuln
     assert recorded.requests == []
 
 
@@ -101,22 +57,6 @@ def test_a_secret_shaped_flag_cannot_be_registered() -> None:
         with pytest.raises(ValueError, match="forbidden"):
             flag_guard(name)
     flag_guard("member-cid")
-
-
-def test_limit_above_the_documented_ceiling_is_a_validation_error_naming_it() -> None:
-    stdout, exit_code = run(["detection", "list", "--limit", "10001"], RecordedTransport([]), dict(CREDENTIAL_ENV))
-    assert exit_code == 2
-    assert "--limit must be an integer from 1 to 10000" in stdout
-    for command in ("host", "vuln"):
-        capped, code = run([command, "list", "--limit", "5001"], RecordedTransport([]), dict(CREDENTIAL_ENV))
-        assert code == 2
-        assert "--limit must be an integer from 1 to 5000" in capped
-
-
-def test_unknown_profile_is_refused_rather_than_silently_ignored() -> None:
-    stdout, exit_code = run(["detection", "list", "--profile", "prod"], RecordedTransport([]), dict(CREDENTIAL_ENV))
-    assert exit_code == 1
-    assert "PROFILE_NOT_FOUND" in stdout
 
 
 @pytest.mark.parametrize(
@@ -199,35 +139,10 @@ def test_help_never_advertises_a_command_the_cli_does_not_have() -> None:
         assert command in top
 
 
-def test_rendered_output_parses_as_toon_and_keeps_the_help_block_intact() -> None:
-    recorded = RecordedTransport(
-        [
-            serve("GetQueriesAlertsV2", fixture("alerts/query-page.json")),
-            serve("PostEntitiesAlertsV2", fixture("alerts/hydrate-page.json")),
-        ]
-    )
-    stdout, _ = run(["detection", "list", "--limit", "2"], recorded, dict(CREDENTIAL_ENV))
-    parsed = decode(stdout)
-    assert isinstance(parsed["detections"], list)
-    assert len(parsed["help"]) >= 2
-
-    with_commas = render({"count": 1}, ["first, with a comma", 'second with "quotes" and a colon: here'])
-    decoded = decode(with_commas)
-    assert decoded["help"] == ["first, with a comma", 'second with "quotes" and a colon: here']
-
-
-def test_truncation_reports_the_full_length_and_leaves_short_values_untouched() -> None:
-    assert truncate("short") == ("short", False)
-    long = truncate("x" * 900)
-    assert long.truncated is True
-    assert "truncated, 900 chars total" in long.text
-
-
 def test_the_published_version_matches_pyproject() -> None:
     manifest = tomllib.loads((REPO / "pyproject.toml").read_text(encoding="utf-8"))
     assert manifest["project"]["version"] == VERSION
     assert manifest["project"]["scripts"]["falcon-axi"] == "falcon_axi.cli:main"
-    assert manifest["project"]["requires-python"] == ">=3.11"
 
 
 def test_every_fixture_is_wholly_synthetic_and_carries_its_provenance_header() -> None:

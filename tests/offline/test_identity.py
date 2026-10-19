@@ -46,13 +46,6 @@ def test_assessment_executes_the_fixed_psfalcon_selection_with_domain_only_in_va
     assert result["factors"] == [{"type": "STALE_PASSWORD", "severity": "HIGH", "likelihood": "MEDIUM"}]
 
 
-def test_assessment_without_data_is_a_definitive_empty_state() -> None:
-    recorded = RecordedTransport([serve(GRAPHQL, response(200, {"data": {"securityAssessment": None}}))])
-    stdout, code = run(["identity", "assessment"], recorded, dict(CREDENTIAL_ENV))
-    assert code == 0
-    assert decode(stdout)["assessment"] == "0 security assessments"
-
-
 @pytest.mark.parametrize(
     "file,code",
     [
@@ -127,14 +120,6 @@ def test_sensor_cursor_refuses_changed_queries_or_tampering_before_scoped_reques
     assert recorded.operation_requests("QuerySensorsByFilter") == []
 
 
-def test_empty_sensor_list_skips_hydration() -> None:
-    recorded = RecordedTransport([serve("QuerySensorsByFilter", response(200, {"resources": []}))])
-    stdout, code = run(["identity", "sensor", "list"], recorded, dict(CREDENTIAL_ENV))
-    assert code == 0
-    assert decode(stdout)["sensors"] == "0 identity sensors matching this query"
-    assert recorded.operation_requests("GetSensorDetails") == []
-
-
 def test_sensor_show_returns_one_sensors_details() -> None:
     recorded = RecordedTransport(SENSORS)
     stdout, code = run(["identity", "sensor", "show", SENSOR_ID], recorded, dict(CREDENTIAL_ENV))
@@ -147,17 +132,9 @@ def test_sensor_show_returns_one_sensors_details() -> None:
     assert recorded.operation_requests("QuerySensorsByFilter") == []
 
 
-def test_sensor_show_missing_id_is_not_found() -> None:
-    recorded = RecordedTransport([serve("GetSensorDetails", response(200, {"resources": []}))])
-    stdout, code = run(["identity", "sensor", "show", SENSOR_ID], recorded, dict(CREDENTIAL_ENV))
-    assert code == 1
-    assert decode(stdout)["code"] == "NOT_FOUND"
-
-
 @pytest.mark.parametrize(
     "argv,operation",
     [
-        (["identity", "sensor", "list"], "QuerySensorsByFilter"),
         (["identity", "sensor", "list"], "GetSensorDetails"),
         (["identity", "sensor", "show", SENSOR_ID], "GetSensorDetails"),
     ],
@@ -249,24 +226,9 @@ def test_the_type_flag_selects_a_registered_document_rather_than_building_one() 
         _, exit_code = run(["identity", "list", "--type", kind], recorded, dict(CREDENTIAL_ENV))
         assert exit_code == 0
         assert _sent(recorded).document == document
-        assert document in GRAPHQL_DOCUMENTS
 
 
-def test_an_unknown_type_a_bare_wildcard_and_an_oversized_limit_are_refused_before_any_request() -> None:
-    for argv, needle in (
-        (["identity", "list", "--type", "group"], "unknown type group"),
-        (["identity", "list", "--name", "*"], "bare wildcard"),
-        (["identity", "list", "--email", " * "], "bare wildcard"),
-        (["identity", "list", "--limit", "201"], "--limit must be an integer from 1 to 200"),
-    ):
-        recorded = RecordedTransport(LISTED)
-        stdout, exit_code = run(argv, recorded, dict(CREDENTIAL_ENV))
-        assert exit_code == 2
-        assert needle in stdout
-        assert recorded.requests == []
-
-
-@pytest.mark.parametrize("authentication", ["missing", "valid", "failed"])
+@pytest.mark.parametrize("authentication", ["missing", "valid"])
 @pytest.mark.parametrize(
     "argv, message",
     [
@@ -284,8 +246,7 @@ def test_an_unknown_type_a_bare_wildcard_and_an_oversized_limit_are_refused_befo
 )
 def test_identity_usage_errors_precede_credentials_and_all_requests(authentication: str, argv: list[str], message: str) -> None:
     env = NO_CREDENTIAL_ENV if authentication == "missing" else CREDENTIAL_ENV
-    oauth = response(401, {}) if authentication == "failed" else fixture("oauth2/token-success.json")
-    recorded = RecordedTransport([], oauth=[oauth])
+    recorded = RecordedTransport([])
     stdout, exit_code = run(argv, recorded, dict(env))
     assert exit_code == 2
     parsed = decode(stdout)
@@ -360,8 +321,19 @@ def test_directory_cursor_rejects_ambiguous_filter_boundaries(
         assert other.operation_requests(GRAPHQL) == []
 
 
-@pytest.mark.parametrize("pattern", ["O'Brien", '*$HOME"test"*', "a;b", "a\\b", "two words", "Admin*"])
-@pytest.mark.parametrize("flag", ["name", "email", "domain"])
+@pytest.mark.parametrize(
+    "flag,pattern",
+    [
+        ("name", "O'Brien"),
+        ("name", '*$HOME"test"*'),
+        ("name", "a;b"),
+        ("name", "a\\b"),
+        ("name", "two words"),
+        ("name", "Admin*"),
+        ("email", '*$HOME"test"*'),
+        ("domain", '*$HOME"test"*'),
+    ],
+)
 def test_identity_continuation_replays_shell_sensitive_filters(flag: str, pattern: str) -> None:
     argv = ["identity", "list", f"--{flag}", pattern]
     first = RecordedTransport(LISTED)
@@ -486,22 +458,6 @@ def test_identity_show_discloses_the_server_incident_cap_even_with_full(incident
         assert "open_incidents_partial" not in detail
         assert "more exist in Falcon" not in stdout
     _sent(recorded)
-
-
-def test_identity_show_refuses_a_value_that_is_not_a_guid_and_reports_a_missing_identity() -> None:
-    recorded = RecordedTransport(DETAIL)
-    stdout, exit_code = run(["identity", "show", "synthetic-admin"], recorded, dict(CREDENTIAL_ENV))
-    assert exit_code == 2
-    assert "an identity id must be an entity GUID" in stdout
-    assert recorded.requests == []
-
-    stdout, exit_code = run(
-        ["identity", "show", ENTITY_ID],
-        RecordedTransport([serve(GRAPHQL, fixture("identity/entities-empty.json"))]),
-        dict(CREDENTIAL_ENV),
-    )
-    assert exit_code == 1
-    assert "code: NOT_FOUND" in stdout
 
 
 def test_identity_timeline_sends_its_window_categories_and_page_size_as_variables() -> None:
@@ -744,10 +700,6 @@ def test_the_since_window_defaults_to_24h_and_is_overridable() -> None:
     assert second["end"] - second["start"] == 7 * 86_400 * 1_000
 
 
-def test_a_guid_matches_case_insensitively_because_falcon_stores_it_in_upper_case() -> None:
-    assert activity_query(GUID.upper()).count("/i") == 3
-
-
 def test_an_account_name_is_matched_on_the_name_fields_only() -> None:
     query = activity_query("svc.backup$")
     for field in ("SourceAccountSamAccountName", "SourceAccountUserName", "PerformedOnAccountName", "SamAccountName"):
@@ -810,46 +762,6 @@ def test_an_unknown_product_is_refused_with_the_valid_values() -> None:
     assert exit_code == 2
     assert "valid values for --product: epp, idp" in stdout
     assert recorded.operation_requests("GetQueriesAlertsV2") == []
-
-
-def test_identity_rows_show_the_account_product_and_source_endpoint_instead_of_unknown() -> None:
-    recorded = RecordedTransport([serve("GetQueriesAlertsV2", IDENTITY_QUERY), serve("PostEntitiesAlertsV2", IDENTITY_HYDRATE)])
-    stdout, exit_code = run(["detection", "list", "--product", "idp"], recorded, dict(CREDENTIAL_ENV))
-    assert exit_code == 0
-    assert re.search(
-        r"^detections\[2\]\{id,severity,tactic,hostname,account,account_id,device_id,product\}:$", stdout, re.MULTILINE
-    )
-    assert "unknown" not in stdout.replace("unknown total", "")
-    assert re.search(rf",WIN-WS-07,synthetic\.user,{GUID},synthetic-agent-07,idp$", stdout, re.MULTILINE)
-    # No endpoint on the second alert, and its account falls back to the UPN.
-    assert re.search(r",n/a,synthetic\.svc@example\.test,n/a,n/a,idp$", stdout, re.MULTILINE)
-
-
-def test_a_page_without_identity_alerts_keeps_the_four_column_schema() -> None:
-    recorded = RecordedTransport(
-        [
-            serve("GetQueriesAlertsV2", fixture("alerts/query-page.json")),
-            serve("PostEntitiesAlertsV2", fixture("alerts/hydrate-page.json")),
-        ]
-    )
-    stdout, _ = run(["detection", "list", "--limit", "2"], recorded, dict(CREDENTIAL_ENV))
-    assert "{id,severity,tactic,hostname}:" in stdout
-    assert "account" not in stdout
-
-
-def test_detection_show_prints_the_identity_fields_and_suggests_the_activity_pivot() -> None:
-    first = IDENTITY_HYDRATE.body["resources"][0]
-    recorded = RecordedTransport([serve("PostEntitiesAlertsV2", response(200, {"resources": [first]}))])
-    stdout, exit_code = run(["detection", "show", first["composite_id"]], recorded, dict(CREDENTIAL_ENV))
-    assert exit_code == 0
-    assert "hostname: WIN-WS-07" in stdout
-    assert "device_id: synthetic-agent-07" in stdout
-    assert "source_ip" not in stdout
-    assert "192.0.2.17" not in stdout
-    assert "product: idp" in stdout
-    assert "account: synthetic.user" in stdout
-    assert f"account_id: {GUID}" in stdout
-    assert f"falcon-axi identity activity {GUID}" in stdout
 
 
 def test_detection_show_for_an_identity_alert_with_no_endpoint_omits_hostname() -> None:

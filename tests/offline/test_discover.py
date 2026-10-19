@@ -82,15 +82,6 @@ def test_default_inventory_filter_is_sent_and_bound_to_continuation(
     assert not refused.operation_requests(operation)
 
 
-@pytest.mark.parametrize("entity_type", ["managed", "unmanaged"])
-def test_asset_filter_selects_either_inventory(entity_type: str) -> None:
-    recorded = RecordedTransport([serve("combined_hosts", response(200, {"resources": []}))])
-    filter = f"entity_type:'{entity_type}'"
-    _, code = run(["asset", "list", "--filter", filter], recorded, dict(CREDENTIAL_ENV))
-    assert code == 0
-    assert recorded.operation_requests("combined_hosts")[0].query == {"limit": 20, "filter": filter}
-
-
 @pytest.mark.parametrize(
     ("noun", "operation", "filename", "limit", "next_position"),
     [

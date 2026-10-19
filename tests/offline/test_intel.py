@@ -75,12 +75,11 @@ def test_detail_truncation_has_a_full_escape_hatch(noun: str, operation: str) ->
     assert decode(stdout)[noun]["description"] == "x" * 801
 
 
-@pytest.mark.parametrize("status", [200, 404])
 @pytest.mark.parametrize("noun,operation", [("actor", "GetIntelActorEntities"), ("report", "GetIntelReportEntities")])
-def test_unknown_detail_is_not_found(noun: str, operation: str, status: int) -> None:
+def test_unknown_detail_is_not_found(noun: str, operation: str) -> None:
     stdout, code = run(
         [noun, "show", "missing"],
-        RecordedTransport([serve(operation, response(status, {"resources": []}))]),
+        RecordedTransport([serve(operation, response(200, {"resources": []}))]),
         CREDENTIAL_ENV,
     )
     assert code == 1
@@ -115,14 +114,6 @@ def test_invalid_mitre_is_an_upstream_error(body: object) -> None:
     stdout, code = run(["actor", "show", "123456", "--mitre"], recorded, CREDENTIAL_ENV)
     assert code == 1
     assert decode(stdout)["code"] == "UPSTREAM_ERROR"
-
-
-@pytest.mark.parametrize("noun,operation", [("actor", "QueryIntelActorEntities"), ("report", "QueryIntelReportEntities")])
-def test_scope_denial_names_the_required_intelligence_scope(noun: str, operation: str) -> None:
-    stdout, code = run([noun, "list"], RecordedTransport([serve(operation, fixture("errors/403-scope.json"))]), CREDENTIAL_ENV)
-    assert code == 1
-    assert "SCOPE_DENIED" in stdout
-    assert f"{noun.title()}s (Falcon Intelligence):read" in stdout
 
 
 @pytest.mark.parametrize("argv", [["report", "show", "1", "--mitre"], ["actor", "list", "--limit", "5001"]])

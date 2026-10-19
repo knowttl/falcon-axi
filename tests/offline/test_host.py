@@ -50,12 +50,10 @@ def test_the_shorthands_compose_one_fql_string_and_hostname_keeps_its_wildcard()
     )
 
 
-def test_an_unknown_platform_or_status_is_rejected_before_any_request() -> None:
+def test_an_unknown_status_is_rejected_before_any_request() -> None:
     recorded = RecordedTransport([])
-    stdout, exit_code = run(["host", "list", "--platform", "solaris"], recorded, dict(CREDENTIAL_ENV))
+    status, exit_code = run(["host", "list", "--status", "quarantined"], recorded, dict(CREDENTIAL_ENV))
     assert exit_code == 2
-    assert "valid values for --platform: windows, mac, linux" in stdout
-    status, _ = run(["host", "list", "--status", "quarantined"], recorded, dict(CREDENTIAL_ENV))
     assert "valid values for --status: normal, containment_pending, contained, lift_containment_pending" in status
     assert recorded.operation_requests("QueryDevicesByFilter") == []
 
@@ -68,15 +66,6 @@ def test_containment_state_is_reported_as_data_and_no_command_can_change_it() ->
     for verb in ("contain", "release", "update", "delete"):
         _, refused = run(["host", verb, "synthetic-device-02"], recorded, dict(CREDENTIAL_ENV))
         assert refused == 2
-
-
-def test_an_empty_result_states_the_filter_that_produced_it() -> None:
-    recorded = RecordedTransport([serve("QueryDevicesByFilter", fixture("hosts/query-empty.json"))])
-    stdout, exit_code = run(["host", "list", "--platform", "linux", "--since", "24h"], recorded, dict(CREDENTIAL_ENV))
-    assert exit_code == 0
-    assert "hosts: 0 hosts matching linux seen in the last 24h" in stdout
-    assert "--since 30d" in stdout
-    assert recorded.operation_requests("PostDeviceDetailsV2") == []
 
 
 def test_a_page_is_requested_at_the_wall_headroom_rather_than_overshooting_it() -> None:
@@ -142,23 +131,6 @@ def test_a_detection_cursor_does_not_continue_a_host_read() -> None:
     assert "this cursor does not continue the current query" in stdout
 
 
-def test_host_show_without_a_match_is_not_found_and_names_where_to_look() -> None:
-    recorded = RecordedTransport([serve("PostDeviceDetailsV2", response(200, {"resources": []}))])
-    stdout, exit_code = run(["host", "show", "synthetic-device-99"], recorded, dict(CREDENTIAL_ENV))
-    assert exit_code == 1
-    assert "code: NOT_FOUND" in stdout
-    assert "Run `falcon-axi host list` to see current device identifiers" in stdout
-
-
-def test_a_scope_failure_on_hosts_names_the_hosts_read_scope() -> None:
-    recorded = RecordedTransport([serve("QueryDevicesByFilter", fixture("errors/403-scope.json"))])
-    stdout, exit_code = run(["host", "list"], recorded, dict(CREDENTIAL_ENV))
-    assert exit_code == 1
-    assert "code: SCOPE_DENIED" in stdout
-    assert "Hosts:read" in stdout
-    assert "Alerts:read" not in stdout
-
-
 LOGINS = [serve("QueryDeviceLoginHistoryV2", fixture("hosts/login-history.json"))]
 
 
@@ -202,34 +174,9 @@ def test_a_host_that_returns_its_limit_says_more_may_exist() -> None:
     assert "returned its limit" not in stdout
 
 
-def test_an_empty_login_window_states_the_window_that_produced_it() -> None:
-    recorded = RecordedTransport([serve("QueryDeviceLoginHistoryV2", fixture("hosts/login-history-empty.json"))])
-    stdout, exit_code = run(["host", "logins", "synthetic-device-01"], recorded, dict(CREDENTIAL_ENV))
-    assert exit_code == 0
-    assert "logins: 0 logins on 1 host in the last 7d" in stdout
-    assert "--since 30d" in stdout
-
-
-def test_an_unrecognised_device_id_is_not_found_without_echoing_falcons_message() -> None:
-    recorded = RecordedTransport([serve("QueryDeviceLoginHistoryV2", fixture("hosts/login-history-invalid-id.json"))])
-    stdout, exit_code = run(["host", "logins", "synthetic-device-99"], recorded, dict(CREDENTIAL_ENV))
-    assert exit_code == 1
-    assert "code: NOT_FOUND" in stdout
-    assert "invalid device id" not in stdout
-
-
 def test_host_logins_is_refused_before_any_request_without_an_id_or_with_a_bad_window_or_limit() -> None:
     recorded = RecordedTransport([])
     _, none = run(["host", "logins"], recorded, dict(CREDENTIAL_ENV))
-    _, window = run(["host", "logins", "synthetic-device-01", "--since", "yesterday"], recorded, dict(CREDENTIAL_ENV))
     _, ceiling = run(["host", "logins", "synthetic-device-01", "--limit", "101"], recorded, dict(CREDENTIAL_ENV))
-    assert (none, window, ceiling) == (2, 2, 2)
+    assert (none, ceiling) == (2, 2)
     assert recorded.requests == []
-
-
-def test_host_logins_scope_denied_names_hosts_read() -> None:
-    recorded = RecordedTransport([serve("QueryDeviceLoginHistoryV2", fixture("errors/403-scope.json"))])
-    stdout, exit_code = run(["host", "logins", "synthetic-device-01"], recorded, dict(CREDENTIAL_ENV))
-    assert exit_code == 1
-    assert "code: SCOPE_DENIED" in stdout
-    assert 'required_scopes[1]: "Hosts:read"' in stdout

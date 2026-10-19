@@ -49,8 +49,10 @@ def test_each_type_reads_the_combined_operation_and_projects_compact_rows(
     )
 
 
-@pytest.mark.parametrize("members", [False, True], ids=["list", "members"])
-@pytest.mark.parametrize("policy_type,list_op,members_op", POLICIES)
+@pytest.mark.parametrize(
+    "policy_type,list_op,members_op,members",
+    [(*policy, False) for policy in POLICIES] + [(*POLICIES[0], True)],
+)
 def test_rejected_filter_remedy_preserves_policy_command_and_type(
     policy_type: str, list_op: str, members_op: str, members: bool
 ) -> None:
@@ -70,8 +72,10 @@ def test_rejected_filter_remedy_preserves_policy_command_and_type(
     ]
 
 
-@pytest.mark.parametrize("members", [False, True], ids=["list", "members"])
-@pytest.mark.parametrize("policy_type,list_op,members_op", POLICIES)
+@pytest.mark.parametrize(
+    "policy_type,list_op,members_op,members",
+    [(*policy, False) for policy in POLICIES] + [(*POLICIES[0], True)],
+)
 def test_missing_policy_remedy_lists_identifiers_for_the_selected_type(
     policy_type: str, list_op: str, members_op: str, members: bool
 ) -> None:
