@@ -62,6 +62,8 @@ AXI credential profiles with `auth status`, `profile list`, and `config path`, t
 the NG-SIEM search lifecycle (`search start`, `search status`,
 `search stop`), the Identity Protection GraphQL reads (`identity list`, `identity show`, `identity timeline`, `identity assessment`),
 the REST sensor inventory (`identity sensor list`, `identity sensor show`),
+the container and serverless reads (`container list`, `image list`, `image vulnerabilities`, `serverless list`),
+the Data Protection configuration reads (`classification list`, `classification show`, `data-policy list`, `data-policy show`),
 plus the `scopes` matrix and the home view.
 The README's status section is the authoritative list of what is shipped and what is deliberately absent, and
 no help text, suggestion, or skill may advertise an unshipped command.

@@ -1,0 +1,11 @@
+{
+  "name": "image list",
+  "order": 1611,
+  "summary": "  image list                list container image assessments",
+  "scopes": [
+    {
+      "scope": "Falcon Container Image:read",
+      "access": "read"
+    }
+  ]
+}

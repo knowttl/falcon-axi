@@ -23,6 +23,22 @@ OperationId = Literal[
     "cspm_evaluations_iom_queries",
     "cspm_evaluations_iom_entities",
     "combined_cloud_risks",
+    "GetSensorUsageWeekly",
+    "QueryRulesV1",
+    "GetRulesV1",
+    "QueryNotificationsV1",
+    "GetNotificationsDetailedV1",
+    "QueryNotificationsExposedDataRecordsV1",
+    "GetNotificationsExposedDataRecordsV1",
+    "GetSecurityChecksV3",
+    "GetCombinedVulnerabilitiesSARIF",
+    "ReadContainerCombined",
+    "ReadCombinedVulnerabilities",
+    "GetCombinedImages",
+    "queries_classification_get_v2",
+    "entities_classification_get_v2",
+    "queries_policy_get_v2",
+    "entities_policy_get_v2",
     "queryCombinedPreventionPolicies",
     "queryCombinedPreventionPolicyMembers",
     "queryCombinedSensorUpdatePoliciesV2",
@@ -127,6 +143,276 @@ NGSIEM_DOC = "https://developer.crowdstrike.com/api-reference/collections/ngsiem
 IDENTITY_PROTECTION_DOC = "https://developer.crowdstrike.com/api-reference/collections/identity-protection/"
 
 CANONICAL: tuple[FalconOperation, ...] = (
+    FalconOperation(
+        id="GetSensorUsageWeekly",
+        method="GET",
+        path="/billing-dashboards-usage/aggregates/weekly-average/v1",
+        scopes=("Sensor Usage:read",),
+        effect="read",
+        evidence=Evidence(
+            doc_url="https://developer.crowdstrike.com/api-reference/collections/sensor-usage/",
+            doc_scope="Sensor Usage: READ",
+            falcon_mcp=(
+                "falcon_mcp/common/api_scopes.py maps GetSensorUsageWeekly to Sensor Usage:read; "
+                "falcon_mcp/modules/sensor_usage.py search_sensor_usage passes filter only. "
+                "falconpy/_endpoint/_sensor_usage.py corroborates the route and parameter."
+            ),
+        ),
+    ),
+    FalconOperation(
+        id="queries_classification_get_v2",
+        method="GET",
+        path="/data-protection/queries/classifications/v2",
+        scopes=("Data Protection:read",),
+        effect="read",
+        evidence=Evidence(
+            doc_url="https://developer.crowdstrike.com/api-reference/collections/data-protection-configuration/#queriesclassificationgetv2",
+            doc_scope="Data Protection: READ",
+            falcon_mcp=(
+                "falcon_mcp/common/api_scopes.py maps queries_classification_get_v2 to Data Protection:read; "
+                "falcon_mcp/modules/data_security.py _OPERATIONS and search_data_security_entities query then hydrate. "
+                "https://github.com/CrowdStrike/falcon-mcp/blob/ece8575/falcon_mcp/modules/data_security.py; "
+                "falconpy/_endpoint/_data_protection_configuration.py confirms GET, filter, sort, "
+                "limit <=500 and offset <=10000."
+            ),
+        ),
+    ),
+    FalconOperation(
+        id="GetCombinedVulnerabilitiesSARIF",
+        method="GET",
+        path="/lambdas/combined/vulnerabilities/sarif/v1",
+        scopes=("Falcon Container Image:read",),
+        effect="read",
+        evidence=Evidence(
+            doc_url="https://developer.crowdstrike.com/api-reference/collections/serverless-vulnerabilities/",
+            doc_scope="Falcon Container Image: READ",
+            falcon_mcp=(
+                "falcon_mcp/common/api_scopes.py maps GetCombinedVulnerabilitiesSARIF to Falcon Container Image:read; "
+                "falcon-mcp ece8575 falcon_mcp/modules/serverless.py search_serverless_vulnerabilities "
+                "uses filter, limit, offset, sort and body.runs SARIF. "
+                "falconpy/_endpoint/_serverless_vulnerabilities.py confirms GET /lambdas/combined/vulnerabilities/sarif/v1."
+            ),
+        ),
+    ),
+    FalconOperation(
+        id="entities_classification_get_v2",
+        method="GET",
+        path="/data-protection/entities/classifications/v2",
+        scopes=("Data Protection:read",),
+        effect="read",
+        evidence=Evidence(
+            doc_url="https://developer.crowdstrike.com/api-reference/collections/data-protection-configuration/#entitiesclassificationgetv2",
+            doc_scope="Data Protection: READ",
+            falcon_mcp=(
+                "falcon_mcp/common/api_scopes.py maps entities_classification_get_v2 to Data Protection:read; "
+                "falcon_mcp/modules/data_security.py get_data_security_entities sends ids as query parameters. "
+                "https://github.com/CrowdStrike/falcon-mcp/blob/ece8575/falcon_mcp/modules/data_security.py; "
+                "falconpy/_endpoint/_data_protection_configuration.py confirms GET and at most 100 ids."
+            ),
+        ),
+    ),
+    FalconOperation(
+        id="QueryRulesV1",
+        method="GET",
+        path="/recon/queries/rules/v1",
+        scopes=("Monitoring rules (Falcon Intelligence Recon):read",),
+        effect="read",
+        evidence=Evidence(
+            doc_url="https://developer.crowdstrike.com/api-reference/collections/recon/",
+            doc_scope="Monitoring rules (Falcon Intelligence Recon): READ",
+            falcon_mcp=(
+                "falcon_mcp/common/api_scopes.py maps QueryRulesV1 to Monitoring rules (Falcon Intelligence Recon):read; "
+                "falcon_mcp/modules/recon.py search_recon_rules queries ids with filter, limit and offset. "
+                "falconpy/_endpoint/_recon.py corroborates the route and parameters."
+            ),
+        ),
+    ),
+    FalconOperation(
+        id="queries_policy_get_v2",
+        method="GET",
+        path="/data-protection/queries/policies/v2",
+        scopes=("Data Protection:read",),
+        effect="read",
+        evidence=Evidence(
+            doc_url="https://developer.crowdstrike.com/api-reference/collections/data-protection-configuration/#queriespolicygetv2",
+            doc_scope="Data Protection: READ",
+            falcon_mcp=(
+                "falcon_mcp/common/api_scopes.py maps queries_policy_get_v2 to Data Protection:read; "
+                "falcon_mcp/modules/data_security.py search_data_security_entities requires "
+                "platform_name win or mac for policy. "
+                "https://github.com/CrowdStrike/falcon-mcp/blob/ece8575/falcon_mcp/modules/data_security.py; "
+                "falconpy/_endpoint/_data_protection_configuration.py confirms GET, filter, sort, "
+                "limit <=500 and offset <=10000."
+            ),
+        ),
+    ),
+    FalconOperation(
+        id="ReadContainerCombined",
+        method="GET",
+        path="/container-security/combined/containers/v1",
+        scopes=("Falcon Container Image:read",),
+        effect="read",
+        evidence=Evidence(
+            doc_url="https://developer.crowdstrike.com/api-reference/collections/kubernetes-protection/",
+            doc_scope="Falcon Container Image: READ",
+            falcon_mcp=(
+                "falcon_mcp/common/api_scopes.py maps ReadContainerCombined to Falcon Container Image:read; "
+                "falcon-mcp ece8575 falcon_mcp/modules/cloud/cloud_containers.py search_kubernetes_containers "
+                "uses filter, limit, offset, sort and resources with meta.pagination. "
+                "falconpy/_endpoint/_kubernetes_protection.py confirms the 200 page cap and 10000 window."
+            ),
+        ),
+    ),
+    FalconOperation(
+        id="GetRulesV1",
+        method="GET",
+        path="/recon/entities/rules/v1",
+        scopes=("Monitoring rules (Falcon Intelligence Recon):read",),
+        effect="read",
+        evidence=Evidence(
+            doc_url="https://developer.crowdstrike.com/api-reference/collections/recon/",
+            doc_scope="Monitoring rules (Falcon Intelligence Recon): READ",
+            falcon_mcp=(
+                "falcon_mcp/common/api_scopes.py maps GetRulesV1 to Monitoring rules (Falcon Intelligence Recon):read; "
+                "falcon_mcp/modules/recon.py search_recon_rules hydrates query ids with query parameters. "
+                "falconpy/_endpoint/_recon.py corroborates the route and ids parameter."
+            ),
+        ),
+    ),
+    FalconOperation(
+        id="ReadCombinedVulnerabilities",
+        method="GET",
+        path="/container-security/combined/vulnerabilities/v1",
+        scopes=("Falcon Container Image:read",),
+        effect="read",
+        evidence=Evidence(
+            doc_url="https://developer.crowdstrike.com/api-reference/collections/container-vulnerabilities/",
+            doc_scope="Falcon Container Image: READ",
+            falcon_mcp=(
+                "falcon_mcp/common/api_scopes.py maps ReadCombinedVulnerabilities to Falcon Container Image:read; "
+                "falcon-mcp ece8575 falcon_mcp/modules/cloud/cloud_containers.py search_images_vulnerabilities "
+                "uses filter, limit, offset, sort and resources with meta.pagination. "
+                "falconpy/_endpoint/_container_vulnerabilities.py confirms the 100 page cap and 10000 window."
+            ),
+        ),
+    ),
+    FalconOperation(
+        id="QueryNotificationsV1",
+        method="GET",
+        path="/recon/queries/notifications/v1",
+        scopes=("Monitoring rules (Falcon Intelligence Recon):read",),
+        effect="read",
+        evidence=Evidence(
+            doc_url="https://developer.crowdstrike.com/api-reference/collections/recon/",
+            doc_scope="Monitoring rules (Falcon Intelligence Recon): READ",
+            falcon_mcp=(
+                "falcon_mcp/common/api_scopes.py maps QueryNotificationsV1 to Monitoring rules "
+                "(Falcon Intelligence Recon):read; falcon_mcp/modules/recon.py search_recon_notifications "
+                "queries ids with filter, limit and offset. falconpy/_endpoint/_recon.py corroborates the parameters."
+            ),
+        ),
+    ),
+    FalconOperation(
+        id="GetNotificationsDetailedV1",
+        method="GET",
+        path="/recon/entities/notifications-detailed/v1",
+        scopes=("Monitoring rules (Falcon Intelligence Recon):read",),
+        effect="read",
+        evidence=Evidence(
+            doc_url="https://developer.crowdstrike.com/api-reference/collections/recon/",
+            doc_scope="Monitoring rules (Falcon Intelligence Recon): READ",
+            falcon_mcp=(
+                "falcon_mcp/common/api_scopes.py maps GetNotificationsDetailedV1 to Monitoring rules "
+                "(Falcon Intelligence Recon):read; falcon_mcp/modules/recon.py search_recon_notifications "
+                "hydrates ids and reads fields from nested notification. falconpy/_endpoint/_recon.py corroborates ids."
+            ),
+        ),
+    ),
+    FalconOperation(
+        id="QueryNotificationsExposedDataRecordsV1",
+        method="GET",
+        path="/recon/queries/notifications-exposed-data-records/v1",
+        scopes=("Monitoring rules (Falcon Intelligence Recon):read",),
+        effect="read",
+        evidence=Evidence(
+            doc_url="https://developer.crowdstrike.com/api-reference/collections/recon/",
+            doc_scope="Monitoring rules (Falcon Intelligence Recon): READ",
+            falcon_mcp=(
+                "falcon_mcp/common/api_scopes.py maps QueryNotificationsExposedDataRecordsV1 to Monitoring rules "
+                "(Falcon Intelligence Recon):read; falcon_mcp/modules/recon.py search_recon_exposed_data_records "
+                "queries ids with filter, limit and offset. falconpy/_endpoint/_recon.py corroborates the parameters."
+            ),
+        ),
+    ),
+    FalconOperation(
+        id="GetNotificationsExposedDataRecordsV1",
+        method="GET",
+        path="/recon/entities/notifications-exposed-data-records/v1",
+        scopes=("Monitoring rules (Falcon Intelligence Recon):read",),
+        effect="read",
+        evidence=Evidence(
+            doc_url="https://developer.crowdstrike.com/api-reference/collections/recon/",
+            doc_scope="Monitoring rules (Falcon Intelligence Recon): READ",
+            falcon_mcp=(
+                "falcon_mcp/common/api_scopes.py maps GetNotificationsExposedDataRecordsV1 to Monitoring rules "
+                "(Falcon Intelligence Recon):read; falcon_mcp/modules/recon.py search_recon_exposed_data_records "
+                "hydrates ids with query parameters. falconpy/_endpoint/_recon.py corroborates the route and ids."
+            ),
+        ),
+    ),
+    FalconOperation(
+        id="GetSecurityChecksV3",
+        method="GET",
+        path="/saas-security/entities/checks/v3",
+        scopes=("SaaS Security:read",),
+        effect="read",
+        evidence=Evidence(
+            doc_url="https://developer.crowdstrike.com/api-reference/collections/saas-security/#getsecuritychecksv3",
+            doc_scope="SaaS Security (Falcon Shield): READ",
+            falcon_mcp=(
+                "falcon_mcp/common/api_scopes.py maps GetSecurityChecksV3 to SaaS Security:read; "
+                "https://github.com/CrowdStrike/falcon-mcp/blob/main/falcon_mcp/modules/shield.py "
+                "search_shield_checks sends id, status, impact, limit and offset; "
+                "falconpy/_endpoint/_saas_security.py maps GetSecurityChecksV3 to "
+                "GET /saas-security/entities/checks/v3"
+            ),
+        ),
+    ),
+    FalconOperation(
+        id="GetCombinedImages",
+        method="GET",
+        path="/container-security/combined/image-assessment/images/v1",
+        scopes=("Falcon Container Image:read",),
+        effect="read",
+        evidence=Evidence(
+            doc_url="https://developer.crowdstrike.com/api-reference/collections/container-images/",
+            doc_scope="Falcon Container Image: READ",
+            falcon_mcp=(
+                "falcon-mcp has no tool for GetCombinedImages. "
+                "falconpy/_endpoint/_container_images.py maps GetCombinedImages to GET "
+                "/container-security/combined/image-assessment/images/v1. "
+                "PSFalcon b5f3774 public/container-security.ps1 Get-FalconContainerAssessment wraps "
+                "the same filter, sort, limit and offset read."
+            ),
+        ),
+    ),
+    FalconOperation(
+        id="entities_policy_get_v2",
+        method="GET",
+        path="/data-protection/entities/policies/v2",
+        scopes=("Data Protection:read",),
+        effect="read",
+        evidence=Evidence(
+            doc_url="https://developer.crowdstrike.com/api-reference/collections/data-protection-configuration/#entitiespolicygetv2",
+            doc_scope="Data Protection: READ",
+            falcon_mcp=(
+                "falcon_mcp/common/api_scopes.py maps entities_policy_get_v2 to Data Protection:read; "
+                "falcon_mcp/modules/data_security.py get_data_security_entities sends ids without platform_name. "
+                "https://github.com/CrowdStrike/falcon-mcp/blob/ece8575/falcon_mcp/modules/data_security.py; "
+                "falconpy/_endpoint/_data_protection_configuration.py confirms GET and at most 100 ids."
+            ),
+        ),
+    ),
     FalconOperation(
         id="queryCombinedPreventionPolicies",
         method="GET",

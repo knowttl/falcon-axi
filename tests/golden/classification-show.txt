@@ -1,0 +1,10 @@
+classification:
+  id: synthetic-classification-01
+  cid: "[redacted]"
+  name: Synthetic confidential documents
+  classification_properties:
+    protection_mode: enforce
+    content_patterns[1]: synthetic-pattern-01
+    content_patterns_operator: OR
+    rules[1]{response_action,trigger_detection}:
+      block,true

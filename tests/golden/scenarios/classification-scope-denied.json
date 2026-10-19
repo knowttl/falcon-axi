@@ -1,0 +1,15 @@
+{
+  "name": "classification-scope-denied",
+  "argv": [
+    "classification",
+    "list"
+  ],
+  "responders": [
+    {
+      "op": "queries_classification_get_v2",
+      "fixture": "errors/403-scope.json"
+    }
+  ],
+  "exit_code": 1,
+  "comment": "Data Protection classification and policy reads add synthetic list/show/help/empty/not-found/scope scenarios. help-top, unknown-command, scopes and the generated skill deliberately gain the shipped commands (design section 10.6). Event reads retain the existing Alerts and NG-SIEM paths; no standalone event operation is registered."
+}

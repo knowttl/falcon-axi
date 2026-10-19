@@ -1,0 +1,14 @@
+{
+  "name": "container-scope-denied",
+  "argv": [
+    "container",
+    "list"
+  ],
+  "responders": [
+    {
+      "op": "ReadContainerCombined",
+      "fixture": "errors/403-scope.json"
+    }
+  ],
+  "exit_code": 1
+}

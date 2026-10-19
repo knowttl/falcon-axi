@@ -1,0 +1,36 @@
+{
+  "provenance": {
+    "operation": "GetNotificationsDetailedV1",
+    "reference": "https://developer.crowdstrike.com/api-reference/collections/recon/",
+    "schema_read": "2026-10-18",
+    "provenance": "synthetic"
+  },
+  "response": {
+    "status": 200,
+    "headers": {},
+    "body": {
+      "resources": [
+        {
+          "id": "synthetic-notification-02",
+          "notification": {
+            "status": "in-progress",
+            "rule_name": "Synthetic domains",
+            "created_date": "2026-10-10T00:00:00Z"
+          }
+        },
+        {
+          "id": "synthetic-notification-01",
+          "notification": {
+            "status": "new",
+            "rule_name": "Synthetic breach monitor",
+            "created_date": "2026-10-11T00:00:00Z",
+            "cid": "synthetic-cid"
+          },
+          "details": {
+            "content": "Synthetic intelligence content"
+          }
+        }
+      ]
+    }
+  }
+}

@@ -18,6 +18,7 @@ from falcon_axi.transport.operations import (
 #: Operations whose §2.2 corroboration is falconpy's generated table plus PSFalcon, because falcon-mcp
 #: has no tool for them, mapped to the falconpy endpoint module that lists each one.
 NO_FALCON_MCP_TOOL = {
+    "GetCombinedImages": "_container_images",
     "DevicesRanOn": "_iocs",
     "ProcessesRanOn": "_iocs",
     "get_hosts": "_discover",
@@ -38,6 +39,118 @@ NO_FALCON_MCP_TOOL = {
 }
 
 EXPECTED = {
+    "GetSensorUsageWeekly": {
+        "method": "GET",
+        "path": "/billing-dashboards-usage/aggregates/weekly-average/v1",
+        "scopes": ("Sensor Usage:read",),
+        "effect": "read",
+        "doc_scope": "Sensor Usage: READ",
+    },
+    "QueryRulesV1": {
+        "method": "GET",
+        "path": "/recon/queries/rules/v1",
+        "scopes": ("Monitoring rules (Falcon Intelligence Recon):read",),
+        "effect": "read",
+        "doc_scope": "Monitoring rules (Falcon Intelligence Recon): READ",
+    },
+    "GetRulesV1": {
+        "method": "GET",
+        "path": "/recon/entities/rules/v1",
+        "scopes": ("Monitoring rules (Falcon Intelligence Recon):read",),
+        "effect": "read",
+        "doc_scope": "Monitoring rules (Falcon Intelligence Recon): READ",
+    },
+    "QueryNotificationsV1": {
+        "method": "GET",
+        "path": "/recon/queries/notifications/v1",
+        "scopes": ("Monitoring rules (Falcon Intelligence Recon):read",),
+        "effect": "read",
+        "doc_scope": "Monitoring rules (Falcon Intelligence Recon): READ",
+    },
+    "GetNotificationsDetailedV1": {
+        "method": "GET",
+        "path": "/recon/entities/notifications-detailed/v1",
+        "scopes": ("Monitoring rules (Falcon Intelligence Recon):read",),
+        "effect": "read",
+        "doc_scope": "Monitoring rules (Falcon Intelligence Recon): READ",
+    },
+    "QueryNotificationsExposedDataRecordsV1": {
+        "method": "GET",
+        "path": "/recon/queries/notifications-exposed-data-records/v1",
+        "scopes": ("Monitoring rules (Falcon Intelligence Recon):read",),
+        "effect": "read",
+        "doc_scope": "Monitoring rules (Falcon Intelligence Recon): READ",
+    },
+    "GetNotificationsExposedDataRecordsV1": {
+        "method": "GET",
+        "path": "/recon/entities/notifications-exposed-data-records/v1",
+        "scopes": ("Monitoring rules (Falcon Intelligence Recon):read",),
+        "effect": "read",
+        "doc_scope": "Monitoring rules (Falcon Intelligence Recon): READ",
+    },
+    "GetSecurityChecksV3": {
+        "method": "GET",
+        "path": "/saas-security/entities/checks/v3",
+        "scopes": ("SaaS Security:read",),
+        "effect": "read",
+        "doc_scope": "SaaS Security (Falcon Shield): READ",
+    },
+    "GetCombinedVulnerabilitiesSARIF": {
+        "method": "GET",
+        "path": "/lambdas/combined/vulnerabilities/sarif/v1",
+        "scopes": ("Falcon Container Image:read",),
+        "effect": "read",
+        "doc_scope": "Falcon Container Image: READ",
+    },
+    "ReadContainerCombined": {
+        "method": "GET",
+        "path": "/container-security/combined/containers/v1",
+        "scopes": ("Falcon Container Image:read",),
+        "effect": "read",
+        "doc_scope": "Falcon Container Image: READ",
+    },
+    "ReadCombinedVulnerabilities": {
+        "method": "GET",
+        "path": "/container-security/combined/vulnerabilities/v1",
+        "scopes": ("Falcon Container Image:read",),
+        "effect": "read",
+        "doc_scope": "Falcon Container Image: READ",
+    },
+    "GetCombinedImages": {
+        "method": "GET",
+        "path": "/container-security/combined/image-assessment/images/v1",
+        "scopes": ("Falcon Container Image:read",),
+        "effect": "read",
+        "doc_scope": "Falcon Container Image: READ",
+    },
+    "queries_classification_get_v2": {
+        "method": "GET",
+        "path": "/data-protection/queries/classifications/v2",
+        "scopes": ("Data Protection:read",),
+        "effect": "read",
+        "doc_scope": "Data Protection: READ",
+    },
+    "entities_classification_get_v2": {
+        "method": "GET",
+        "path": "/data-protection/entities/classifications/v2",
+        "scopes": ("Data Protection:read",),
+        "effect": "read",
+        "doc_scope": "Data Protection: READ",
+    },
+    "queries_policy_get_v2": {
+        "method": "GET",
+        "path": "/data-protection/queries/policies/v2",
+        "scopes": ("Data Protection:read",),
+        "effect": "read",
+        "doc_scope": "Data Protection: READ",
+    },
+    "entities_policy_get_v2": {
+        "method": "GET",
+        "path": "/data-protection/entities/policies/v2",
+        "scopes": ("Data Protection:read",),
+        "effect": "read",
+        "doc_scope": "Data Protection: READ",
+    },
     "queryCombinedPreventionPolicies": {
         "method": "GET",
         "path": "/policy/combined/prevention/v1",

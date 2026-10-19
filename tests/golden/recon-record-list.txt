@@ -1,0 +1,6 @@
+count: 2 of 4 total
+continuation_cursor: eyJvcGVyYXRpb24iOiJRdWVyeU5vdGlmaWNhdGlvbnNFeHBvc2VkRGF0YVJlY29yZHNWMSIsIm1vZGVsIjoib2Zmc2V0IiwicG9zaXRpb24iOjIsImZpbmdlcnByaW50IjoiYmUwODlmODQwMWM5YzdjZDRlZGNiOTE0YTMwMTQxNTE3ZjZhZThiN2RhZWI5NjZiYTlmM2I4OWJkM2RjY2ZlMiJ9
+records[2]{id,domain,credential_status,notification_id}:
+  synthetic-record-01,example.com,confirmed_active,synthetic-notification-01
+  synthetic-record-02,example.net,unknown,synthetic-notification-02
+help[2]: "Run `falcon-axi recon-record show <id>` for the full record","Run `falcon-axi recon-record list --limit 2 --cursor eyJvcGVyYXRpb24iOiJRdWVyeU5vdGlmaWNhdGlvbnNFeHBvc2VkRGF0YVJlY29yZHNWMSIsIm1vZGVsIjoib2Zmc2V0IiwicG9zaXRpb24iOjIsImZpbmdlcnByaW50IjoiYmUwODlmODQwMWM5YzdjZDRlZGNiOTE0YTMwMTQxNTE3ZjZhZThiN2RhZWI5NjZiYTlmM2I4OWJkM2RjY2ZlMiJ9` for the next page"

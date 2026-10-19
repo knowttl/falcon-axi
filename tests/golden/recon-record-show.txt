@@ -1,0 +1,9 @@
+record:
+  id: synthetic-record-01
+  domain: example.com
+  credential_status: confirmed_active
+  notification_id: synthetic-notification-01
+  email: synthetic-user@example.com
+  rule:
+    id: synthetic-rule-01
+  cid: "[redacted]"

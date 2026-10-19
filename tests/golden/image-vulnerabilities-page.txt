@@ -1,0 +1,6 @@
+count: 2 of 3 total
+vulnerabilities[2]{cve_id,severity,cvss_score,images_impacted}:
+  CVE-2099-1001,HIGH,8.1,4
+  CVE-2099-1002,MEDIUM,5.3,1
+continuation_cursor: eyJvcGVyYXRpb24iOiJSZWFkQ29tYmluZWRWdWxuZXJhYmlsaXRpZXMiLCJtb2RlbCI6Im9mZnNldCIsInBvc2l0aW9uIjoyLCJmaW5nZXJwcmludCI6IjY4M2VhODdlMDUzM2FlYTI3YzI1MTkwYWM1NWVkNTM2Mzc1MDliN2RlYTQ1NWZiYzg2ODY4NjZmOGQzMTBkZDQifQ
+help[1]: "Run `falcon-axi image vulnerabilities --limit 2 --cursor eyJvcGVyYXRpb24iOiJSZWFkQ29tYmluZWRWdWxuZXJhYmlsaXRpZXMiLCJtb2RlbCI6Im9mZnNldCIsInBvc2l0aW9uIjoyLCJmaW5nZXJwcmludCI6IjY4M2VhODdlMDUzM2FlYTI3YzI1MTkwYWM1NWVkNTM2Mzc1MDliN2RlYTQ1NWZiYzg2ODY4NjZmOGQzMTBkZDQifQ` for the next page"
