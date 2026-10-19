@@ -378,7 +378,6 @@ Check `parsed_query` in status output: NG-SIEM can interpret unknown words as fr
 ## Contributing
 
 See [CONTRIBUTING.md](CONTRIBUTING.md) for the offline verification commands, synthetic fixtures, and documentation generation.
-Tests run locally; GitHub test CI is disabled.
 API shapes follow official CrowdStrike sources and offline fixtures; no live-tenant validation is claimed.
 
 ## License
