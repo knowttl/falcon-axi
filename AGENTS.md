@@ -70,7 +70,7 @@ The exclusion inventories (`exclusion list|show` with `--type`) and quarantined 
 (`quarantine list|show`) also ship as read-only commands.
 Malware family reads (`malware list`, `malware show`), Identity Protection policy-rule reads
 (`identity rule list`, `identity rule show`), and Discover IoT inventory (`iot list`) also ship.
-The README's status section is the authoritative list of what is shipped and what is deliberately absent, and
+The README's generated command reference is the authoritative list of shipped commands, and
 no help text, suggestion, or skill may advertise an unshipped command.
 `uv run scripts/verify.py` is the single local entry point for the complete offline required-check set
 (§14.5, §15.4); it runs ruff, `mypy --strict`, `scripts/architecture_check.py`, and the `tests/offline/` suite,
@@ -141,7 +141,7 @@ The architecture check allows exactly those two workflows, rejects other CI conf
 
 Every agent-facing surface in this repo follows the AXI standard (TOON on stdout, minimal schemas, structured
 errors on stdout, content-first home view, fail-loud on unknown flags).
-Read the `axi` skill at `~/.pi/agent/skills/axi/SKILL.md` and the TOON spec it points to before building or
+Read the `axi` skill at `~/.agents/skills/axi/SKILL.md` and the TOON spec it points to before building or
 reviewing any CLI behavior here.
 `azure-axi` and `awx-axi` are the sibling references for these patterns; `docs/design/v1.md` §18 lists where
 their assumptions do **not** transfer to Falcon.
