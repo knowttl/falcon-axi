@@ -70,7 +70,6 @@ def test_only_policy_and_exclusion_scope_alternatives_depend_on_selected_type() 
     assert {row["scope"]: row["commands"] for row in rows if row["required"] == "selected --type"} == {
         "Prevention Policies:read": "policy list, policy members",
         "Sensor Update Policies:read": "policy list, policy members",
-        "Firewall Management:read": "policy list, policy members",
         "Device Control Policies:read": "policy list, policy members",
         "Response Policies:read": "policy list, policy members",
         "Content Update Policies:read": "policy list, policy members",
@@ -78,6 +77,9 @@ def test_only_policy_and_exclusion_scope_alternatives_depend_on_selected_type() 
         "IOA Exclusions:read": "exclusion list, exclusion show",
         "Sensor Visibility Exclusions:read": "exclusion list, exclusion show",
     }
+    firewall = next(row for row in rows if row["scope"] == "Firewall Management:read")
+    assert firewall["required"] == "yes"
+    assert firewall["commands"] == ("policy list, policy members, firewall rule list, firewall rule show, firewall group list")
     assert all(row["required"] in ("yes", "selected --type") for row in rows)
 
 
