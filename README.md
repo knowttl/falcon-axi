@@ -488,12 +488,13 @@ Data Protection detections use `falcon-axi detection list --product data-protect
 For classified-file events, use `falcon-axi search start --query '#event_simpleName=Event_DataProtectionClassifiedFileEvent | head(200)'`,
 then `falcon-axi search status <id>` to read the results and `falcon-axi search stop <id>` if the job is left running.
 There is no standalone Data Protection event command; the [design rationale](docs/design/v1.md#107-data-protection-reads) records the supported API boundary.
+
 ### Configuration and cases
 
 Use `firewall rule list`, `firewall group list`, `ioa group list`, `correlation-rule list`, or `case list` to inspect configuration and investigations.
 Pass an id from list output to `firewall rule show <id>` or `case show <id>` for detail.
 Run the selected command with `--help` for its flags and limits.
-The [configuration and case reference](docs/design/v1.md#106-configuration-and-case-reads) owns pagination, row schemas, and detail output contracts.
+The [configuration and case reference](docs/design/v1.md#108-configuration-and-case-reads) owns pagination, row schemas, and detail output contracts.
 
 ## Output and errors
 
