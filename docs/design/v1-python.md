@@ -103,7 +103,7 @@ If falconpy later exposes a redirect switch on the token path, D2 can be revisit
 - **429 and retry.** No retry or rate-limit handling exists in falconpy's request path (grep over `src/falconpy` for `429`, `retry`, `ratelimit` finds only an unrelated report-execution endpoint), so `transport/retry.py` ports as is, honoring `X-RateLimit-RetryAfter` (v1.md §7.4).
 - **Error translation.** falconpy returns the raw envelope dict (`status_code`, `headers`, `body`); `falcon_error.py` translates it into the v1.md §9 envelope, never passing it through.
 - **User-Agent.** `APIHarnessV2(user_agent="falcon-axi/<version>")`, matching §3.4.
-- **Proxy.** `APIHarnessV2(proxy={"https": url})` uses the proxy environment variable and deprecated alias documented in the README's [Credentials section](../../README.md#credentials).
+- **Proxy.** `APIHarnessV2(proxy={"https": url})` uses the proxy environment variable documented in the README's [Configuration section](../../README.md#configuration).
 - **Timeout.** `APIHarnessV2(timeout=30)`, matching the 30-second `AbortSignal` in stage 1.
 
 ### 3.5 The test seam
@@ -257,23 +257,23 @@ The sdist includes only `falcon_axi/`, `README.md`, `LICENSE`, `pyproject.toml`,
 The wheel includes the package and generated distribution metadata, including the README long description and MIT license.
 Tests, fixtures, local configuration, and development automation are excluded from both archives.
 
-**Install from git.**
+**Install from PyPI.**
 
-The [README's Quick start for agents](../../README.md#quick-start-for-agents) owns the current release pin and install instructions, including invocation without a global install.
-See its [Credentials](../../README.md#credentials) section before running `falcon-axi auth status`.
+The [README Quickstart](../../README.md#quickstart) owns PyPI installation through pip, uv tool install, and uvx.
+See its [Configuration](../../README.md#configuration) section before running `falcon-axi auth status`.
 
 **Publishing.**
 
 `.github/workflows/release-please.yml` runs on pushes to `main`.
 The Python strategy reads and updates `pyproject.toml`; its generic extra-file updater keeps the annotated `VERSION` in `falcon_axi/version.py` in step.
-`.release-please-manifest.json` starts at the current version, `0.3.0`, and subsequent versions follow conventional commits.
+`.release-please-manifest.json` tracks the released version, and subsequent versions follow conventional commits.
 Merging a release PR creates a `vX.Y.Z` tag and release; the same workflow then checks out that tag, runs `uv build`, and publishes the sdist and wheel to PyPI.
 Publishing uses `pypa/gh-action-pypi-publish` with OIDC, `id-token: write`, and the `pypi` environment, without a PyPI API token or password.
-The pending PyPI Trusted Publisher must name owner `knowttl`, repository `falcon-axi`, workflow `release-please.yml`, and environment `pypi` before the first release PR merges.
+The PyPI Trusted Publisher names owner `knowttl`, repository `falcon-axi`, workflow `release-please.yml`, and environment `pypi`.
 GitHub Actions must be allowed to create pull requests in repository settings.
-The default `GITHUB_TOKEN` does not trigger CI on bot-created release PRs; a maintainer must close and reopen a release PR to trigger its required checks before merging.
-This follows the [release-please action's documented token behavior](https://github.com/googleapis/release-please-action#other-actions-on-release-please-prs).
-The [README's Quick start for agents](../../README.md#quick-start-for-agents) owns published-release installation instructions.
+GitHub test CI is disabled; the [contributor guide](../../CONTRIBUTING.md) owns the offline local verification gate.
+
+The [README Quickstart](../../README.md#quickstart) owns published-release installation instructions.
 The optional AXI community catalog still requires independent source review at a pinned public release.
 Never npm, never a container image.
 
@@ -286,9 +286,10 @@ The empty-array encoder expectation becomes `key: []`; falcon-axi still renders 
 **Session hook and skill (v1.md §12.2).**
 [v1.md §12.2](v1.md#122-session-hook-and-skill) owns the shipped setup commands, session integrations, executable-path selection, and independently installed generated skill.
 
-## 9. Commissioning plan
+## 9. Commissioning history
 
-Each stage is one change with its own pull request.
+The delivery surface is implemented.
+The stages below record the port and feature rollout; current command availability is owned by the [generated README reference](../../README.md#commands).
 
 **P0. Spike, one day, no product code.**
 Answer four questions with evidence and stop:
@@ -315,7 +316,7 @@ The current command-to-scope matrix is projected by `falcon-axi scopes` (v1.md �
 The golden set adds stage 3 scenarios as regression pins, including the forbidden-write registry gate.
 Identity slice A then added `identity activity` (a fixed `StartSearchV1` search, so `NGSIEM:write` is also required there) and identity-aware detection rendering with `detection list --product`, all in `falcon_axi/identity.py`, `detection.py`, and `fql.py`, with no new operation, scope, or falconpy surface.
 Stage 2 and stage 3 both shipped without cutting a tag.
-The v0.3.0 release covers those stages and the subsequent additions in the [README's shipped command list](../../README.md#status-partial-implementation-of-the-v1-design).
+The v0.3.0 release covers those stages; later additions are recorded in the [domain rollout history](README.md#implemented-domain-rollout).
 
 **P3b. Identity Protection GraphQL under captain exception N2. Implemented.**
 `identity list`, `identity show`, `identity timeline` over `api_preempt_proxy_post_graphql` (v1.md §0, §4.4), with `Identity Protection GraphQL:write` and a per-document `:read` scope.
@@ -323,13 +324,14 @@ The v0.3.0 release covers those stages and the subsequent additions in the [READ
 `graphql-core` is a dev-only dependency used by the offline suite to parse every registered document.
 The golden set adds the identity scenarios as regression pins, and `tests/golden/history.json` records which existing documents changed and why.
 
-**P4. Setup and delivery surface.**
+**P4. Setup and delivery surface. Implemented.**
 Setup and the hook are implemented under [v1.md §12.2](v1.md#122-session-hook-and-skill); the skill is installed separately.
 For the field-selection contract, see [v1.md §10.2](v1.md#102-default-schemas).
 Validation policy is owned by v1.md §15.
-For the pagination contract, see [v1.md §7.2](v1.md#72-what-the-cli-exposes); the [README's status section](../../README.md#status-partial-implementation-of-the-v1-design) owns delivery status.
+For the pagination contract, see [v1.md §7.2](v1.md#72-what-the-cli-exposes); the [README's generated command reference](../../README.md#commands) owns delivery status.
 Profile configuration shipped separately under v1.md §5.2 and §12.1.
-Tag `v0.4.0`, and v1.md moves from "partially implemented" to "implemented".
+Setup, field selection, bounded pagination, and the generated skill are implemented.
+The v1 design status is now "implemented"; release timing is independent of these historical stage names.
 
 ### 9.1 First ship brief, copy-ready
 

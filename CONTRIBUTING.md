@@ -1,0 +1,45 @@
+# Contributing
+
+Install [uv](https://docs.astral.sh/uv/), then run the complete local verification gate:
+
+```sh
+uv sync
+uv run scripts/verify.py
+```
+
+The gate runs Ruff, strict mypy, architecture checks, generated skill and documentation drift checks, and the offline pytest suite.
+GitHub test CI is disabled; tests run locally before publication.
+The release workflow builds and publishes packages using PyPI Trusted Publishing.
+
+## Tests and fixtures
+
+All automated fixtures are wholly synthetic and carry provenance headers.
+A pytest fixture refuses sockets, so the suite cannot contact Falcon.
+Never commit credentials, tenant identifiers, captured responses, or personal data.
+Commands accept a recorded transport only through the code-level test interface.
+
+Run a focused check with `uv run pytest tests/offline/<test_file>.py -q`.
+The recorded-invocation gate in `tests/golden/` preserves the output contract described in [the Python design](docs/design/v1-python.md#5-behavior-that-must-not-change-during-the-port).
+Do not regenerate expected output to make a failure disappear.
+Intentional behavior changes need a design explanation and a comment in the affected scenario.
+Offline fixtures prove deterministic behavior; they do not establish tenant validation.
+
+## Generated documentation
+
+```sh
+uv run scripts/skill.py
+uv run scripts/docs.py
+uv run scripts/verify.py
+```
+
+Command declarations own the README table, full command reference, and generated skill references.
+Edit their sources rather than generated content.
+Every shipped command must appear in the README reference, and every advertised command must exist.
+
+## Architecture and review
+
+Read the [design index](docs/design/README.md) before changing command behavior or implementation structure.
+Preserve the [read-only boundary](docs/read-only.md), closed operation registry, and single network sink.
+Each new endpoint needs the documented scope and first-party corroborating evidence in its registry entry.
+Use conventional commit titles and keep pull requests focused on a reviewable behavior change.
+Do not hand-edit the generated changelog.

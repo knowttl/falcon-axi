@@ -27,6 +27,7 @@ def skill_markdown() -> str:
             "# falcon-axi",
             "",
             "Read CrowdStrike Falcon from the shell.",
+            "See [installation and agent setup](https://github.com/knowttl/falcon-axi#use-with-your-agent).",
             "Run `uvx falcon-axi ...` without a global install.",
             "",
             "## Read-only boundary",
