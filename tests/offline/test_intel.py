@@ -59,9 +59,7 @@ def test_detail_redacts_complete_private_keys_before_preview(noun: str, operatio
     recorded = RecordedTransport([serve(operation, response(200, {"resources": [record]}))])
     stdout, code = run([noun, "show", "synthetic-record", *(["--full"] if full else [])], recorded, CREDENTIAL_ENV)
     assert code == 0, stdout
-    assert decode(stdout) == {
-        noun: {"id": "synthetic-record", "slug": "synthetic-record", "description": "[redacted]"}
-    }
+    assert decode(stdout) == {noun: {"id": "synthetic-record", "slug": "synthetic-record", "description": "[redacted]"}}
 
 
 @pytest.mark.parametrize("noun,operation", [("actor", "GetIntelActorEntities"), ("report", "GetIntelReportEntities")])
