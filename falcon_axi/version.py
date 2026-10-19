@@ -5,7 +5,7 @@ import sys
 from collections.abc import Sequence
 
 #: Kept in step with pyproject.toml by an offline test.
-VERSION = "0.4.1"  # x-release-please-version
+VERSION = "0.5.0"  # x-release-please-version
 
 
 def version_output(argv: Sequence[str]) -> str | None:
