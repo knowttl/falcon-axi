@@ -191,7 +191,7 @@ The module names mirror stage 1's `src/` one for one, so a reviewer can diff the
 
 The port is a refactor across languages, and v1.md's contract is the test.
 
-- The command surface stays exactly what stage 1 ships **for the duration of the port**: home view, `detection list`, `detection show`, `auth status`; `--profile` still refused by name; nothing unshipped advertised (README status section rule).
+- The command surface stays exactly what stage 1 ships **for the duration of the port**: home view, `detection list`, `detection show`, `auth status`; `--profile` still refused by name; nothing unshipped advertised (the [README command reference](../../README.md#commands) now owns delivery status).
   Stage 2 widens it to the original three read domains plus `scopes`, and stage 3 adds the `search` noun captain exception N1 admits (v1.md §4.3); both are the design's own surface rather than port decisions.
 - Every flag name, error code, help line, and TOON schema stays identical.
 - **Parity gate.** Before any TypeScript is deleted, the ship task generates golden outputs from the TypeScript stage 1 for every offline test scenario (each fixture set plus argv), commits them under `tests/golden/`, and the Python port must reproduce them byte for byte.
@@ -271,7 +271,9 @@ Merging a release PR creates a `vX.Y.Z` tag and release; the same workflow then 
 Publishing uses `pypa/gh-action-pypi-publish` with OIDC, `id-token: write`, and the `pypi` environment, without a PyPI API token or password.
 The PyPI Trusted Publisher names owner `knowttl`, repository `falcon-axi`, workflow `release-please.yml`, and environment `pypi`.
 GitHub Actions must be allowed to create pull requests in repository settings.
-GitHub test CI is disabled; the [contributor guide](../../CONTRIBUTING.md) owns the offline local verification gate.
+The [contributor guide](../../CONTRIBUTING.md) owns the offline verification gate and its CI triggers.
+The default `GITHUB_TOKEN` does not trigger CI on bot-created release PRs; a maintainer must close and reopen a release PR to trigger its required checks before merging.
+This follows the [release-please action's documented token behavior](https://github.com/googleapis/release-please-action#other-actions-on-release-please-prs).
 
 The [README Quickstart](../../README.md#quickstart) owns published-release installation instructions.
 The optional AXI community catalog still requires independent source review at a pinned public release.

@@ -122,17 +122,6 @@ See [read-only enforcement and validation](docs/read-only.md) for the mechanics 
 Create an API client under **Support and resources > API clients and keys** in Falcon.
 Grant only the domains you use; available scopes depend on product licensing.
 
-| Task | Required permission |
-| --- | --- |
-| Detection reads and counts | `Alerts:read` |
-| Sensor hosts and history | `Hosts:read` |
-| Discover inventory | `Assets:read` |
-| Spotlight vulnerabilities | `Vulnerabilities:read` |
-| Start/stop search jobs and account activity | `NGSIEM:write` |
-| Read search status/results | `NGSIEM:read` |
-| Identity directory | `Identity Protection GraphQL:write` and `Identity Protection Entities:read` |
-| Identity timeline or assessment | GraphQL scope above plus `Identity Protection Timeline:read` or `Identity Protection Assessment:read` |
-
 `falcon-axi scopes` prints the complete per-command matrix offline, including all product and policy scopes.
 The [full permissions table](docs/commands.md#api-client-permissions) is generated from the same registry.
 No other write scope is needed.
@@ -301,7 +290,7 @@ List results use compact columns, explicit empty states, and next-step hints.
 Detection, host, and vulnerability lists accept `--fields` to append selected columns; invalid field names are refused.
 Detail commands that support `--full` use it to expand truncated content.
 
-Exit status is `0` for success, `2` for usage/configuration validation errors, and `1` for other failures.
+Exit status is `0` for success, `2` for `VALIDATION_ERROR`, `CONFIG_INVALID`, or `FQL_INVALID`, and `1` for other failures.
 Errors carry a stable `code` and actionable `help`.
 Unknown flags and commands fail loudly.
 
@@ -338,7 +327,6 @@ Check `parsed_query` in status output: NG-SIEM can interpret unknown words as fr
 ## Contributing
 
 See [CONTRIBUTING.md](CONTRIBUTING.md) for the offline verification commands, synthetic fixtures, and documentation generation.
-Tests run locally; GitHub test CI is disabled.
 API shapes follow official CrowdStrike sources and offline fixtures; no live-tenant validation is claimed.
 
 ## License
