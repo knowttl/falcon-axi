@@ -24,7 +24,7 @@ Product licensing also controls availability.
 | `Falcon Container Image:read` | container list, image list, image vulnerabilities, serverless list | yes |
 | `Data Protection:read` | classification list, classification show, data-policy list, data-policy show | yes |
 | `NGSIEM:write` | identity activity, search start, search stop | yes |
-| `NGSIEM:read` | search status | yes |
+| `NGSIEM:read` | search start, search status | yes |
 | `Identity Protection GraphQL:write` | identity list, identity show, identity timeline, identity assessment | yes |
 | `Identity Protection Entities:read` | identity list, identity show, identity sensor list, identity sensor show | yes |
 | `Identity Protection Timeline:read` | identity timeline | yes |
@@ -658,35 +658,43 @@ It changes no identity, account, or detection.
 ## search start
 
 ```text
-falcon-axi search start --query <CQL> [--repository <name>] [--since <window>]
+falcon-axi search start --query <CQL> [--repository <name>] [--since <window>] [--wait <seconds>]
 
 --query      the CQL search to run; required
 --repository repository or view to search (default search-all)
 --since      window to search, such as 24h or 7d (default 24h)
+--wait       poll for completion for 1-50 seconds (default: return the job id immediately)
 
 CQL is pipe-based and is neither FQL nor SQL: a filter, then commands.
 Start from a tag or field filter and pipe into commands, and bound the result set in the
 query itself with `| head(N)` or an aggregate; there is no --limit and no --cursor.
 Examples:
-  falcon-axi search start --query '#event_simpleName=ProcessRollup2 | head(5)'
+  falcon-axi search start --query '#event_simpleName=ProcessRollup2 | head(5)' --wait 30
   falcon-axi search start --query '#event_simpleName=ProcessRollup2 | groupBy([ComputerName], function=count())' --since 7d
 
 This command starts a job on the tenant and requires NGSIEM:write.
-Poll it with `falcon-axi search status <id>`.
+Using --wait also requires NGSIEM:read to poll status.
+Poll it with `falcon-axi search status <id> --wait 30`; a timeout leaves the job running.
+For readable epoch-millisecond @timestamp values, append this CQL stage:
+| formatTime("%Y-%m-%dT%H:%M:%SZ", field=@timestamp, as=time, timezone="UTC")
 ```
 
 ## search status
 
 ```text
-falcon-axi search status <search id> [--repository <name>]
+falcon-axi search status <search id> [--repository <name>] [--wait <seconds>]
 
 --repository the repository the job was started against (default search-all)
+--wait       poll for completion for 1-50 seconds (default: one poll)
 
-One call is one poll: it reports running, cancelled, or done, and carries the events once
+Start a job with search start, then use status; --wait bounds polling without cancelling it.
+It reports running, cancelled, or done, and carries the events once
 the job is done. Compare parsed_query with the query you sent, because NG-SIEM turns an
 unrecognised word into a free-text stage rather than an error.
 
-Example: falcon-axi search status abc123
+Example: falcon-axi search status abc123 --wait 30
+Bound results with | head(N) in the original query; format epoch-millisecond @timestamp with:
+| formatTime("%Y-%m-%dT%H:%M:%SZ", field=@timestamp, as=time, timezone="UTC")
 
 This command is read-only and requires only NGSIEM:read.
 ```

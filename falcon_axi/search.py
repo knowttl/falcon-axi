@@ -2,7 +2,7 @@
 
 NG-SIEM search is a job, not a query: `StartSearchV1` creates one, `GetSearchStatusV1` polls it and
 carries the events once it is done, and `StopSearchV1` cancels it (docs/design/v1.md §4.3).
-Each command is one request, so the caller owns the polling loop rather than the CLI blocking on it.
+By default each command is one request; start and status can poll with a bounded `--wait` of 1-50 seconds.
 
 The job has no `meta.pagination`, so there is no cursor and no `--limit`: the CQL query itself
 bounds the result set, with `| head(N)` or an aggregate (§7.1).
@@ -105,6 +105,7 @@ def start_search(
     query: str,
     repository: str,
     since: str,
+    wait: int = 0,
 ) -> CommandOutput:
     """`search start`: create one CQL search job and return its identifier (§4.3).
 
@@ -136,6 +137,8 @@ def start_search(
             "the NG-SIEM search started but returned no job identifier",
             ["Retry shortly", "Run `falcon-axi auth status` to re-check the credential"],
         )
+    if wait:
+        return search_status(transport, session, id, repository, wait)
     value: dict[str, Any] = {"search_id": id, "repository": repository, "query": query, "window": f"the last {since}"}
     return CommandOutput(
         value=_rate_limit(session, value),
@@ -152,17 +155,24 @@ def search_status(
     session: Session,
     id: str,
     repository: str,
+    wait: int = 0,
 ) -> CommandOutput:
     """`search status <search id>`: poll one job and render its events once it is done (§10.2)."""
-    response = _request(
-        transport,
-        session,
-        "GetSearchStatusV1",
-        "NG-SIEM search status",
-        {"repository": repository, "id": id},
-        overrides={404: _unknown_job()},
-    )
-    body = body_of(response)
+    deadline = time.monotonic() + wait
+    while True:
+        response = _request(
+            transport,
+            session,
+            "GetSearchStatusV1",
+            "NG-SIEM search status",
+            {"repository": repository, "id": id},
+            overrides={404: _unknown_job()},
+        )
+        body = body_of(response)
+        remaining = deadline - time.monotonic()
+        if body.get("done") or body.get("cancelled") or remaining <= 0:
+            break
+        time.sleep(min(1, remaining))
     if body.get("cancelled"):
         return CommandOutput(
             value=_rate_limit(session, {"state": "cancelled", "search_id": id}),
@@ -177,7 +187,8 @@ def search_status(
         return CommandOutput(
             value=_rate_limit(session, running),
             help=(
-                f"Run `{_job_command('status', id, repository)}` again in a few seconds; the job is still running",
+                f"Run `{_job_command('status', id, repository)}{' --wait 30' if wait else ''}` "
+                "again in a few seconds; the job is still running",
                 f"Run `{_job_command('stop', id, repository)}` to cancel it",
             ),
         )
@@ -242,6 +253,7 @@ def _search_start(ctx: Invocation) -> CommandOutput:
         query=ctx.text("query") or "",
         repository=ctx.text("repository") or DEFAULT_REPOSITORY,
         since=ctx.text("since") or DEFAULT_SINCE,
+        wait=int(ctx.text("wait") or "0"),
     )
 
 
@@ -251,6 +263,7 @@ def _search_status(ctx: Invocation) -> CommandOutput:
         ctx.session,
         ctx.positionals[0],
         repository=ctx.text("repository") or DEFAULT_REPOSITORY,
+        wait=int(ctx.text("wait") or "0"),
     )
 
 
@@ -268,43 +281,51 @@ COMMAND_SPECS = (
         name="search start",
         help="\n".join(
             [
-                "falcon-axi search start --query <CQL> [--repository <name>] [--since <window>]",
+                "falcon-axi search start --query <CQL> [--repository <name>] [--since <window>] [--wait <seconds>]",
                 "",
                 "--query      the CQL search to run; required",
                 f"--repository repository or view to search (default {DEFAULT_REPOSITORY})",
                 f"--since      window to search, such as 24h or 7d (default {DEFAULT_SINCE})",
+                "--wait       poll for completion for 1-50 seconds (default: return the job id immediately)",
                 "",
                 "CQL is pipe-based and is neither FQL nor SQL: a filter, then commands.",
                 "Start from a tag or field filter and pipe into commands, and bound the result set in the",
                 "query itself with `| head(N)` or an aggregate; there is no --limit and no --cursor.",
                 "Examples:",
-                "  falcon-axi search start --query '#event_simpleName=ProcessRollup2 | head(5)'",
+                "  falcon-axi search start --query '#event_simpleName=ProcessRollup2 | head(5)' --wait 30",
                 "  falcon-axi search start --query '#event_simpleName=ProcessRollup2 "
                 "| groupBy([ComputerName], function=count())' --since 7d",
                 "",
                 "This command starts a job on the tenant and requires NGSIEM:write.",
-                "Poll it with `falcon-axi search status <id>`.",
+                "Using --wait also requires NGSIEM:read to poll status.",
+                "Poll it with `falcon-axi search status <id> --wait 30`; a timeout leaves the job running.",
+                "For readable epoch-millisecond @timestamp values, append this CQL stage:",
+                '| formatTime("%Y-%m-%dT%H:%M:%SZ", field=@timestamp, as=time, timezone="UTC")',
             ]
         ),
         summary="  search start              start an NG-SIEM CQL search job",
         handler=_search_start,
-        operations=("StartSearchV1",),
-        flags=("query", "repository", "since"),
-        value_flags=("query", "repository", "since"),
+        operations=("StartSearchV1", "GetSearchStatusV1"),
+        flags=("query", "repository", "since", "wait"),
+        value_flags=("query", "repository", "since", "wait"),
     ),
     CommandSpec(
         name="search status",
         help="\n".join(
             [
-                "falcon-axi search status <search id> [--repository <name>]",
+                "falcon-axi search status <search id> [--repository <name>] [--wait <seconds>]",
                 "",
                 f"--repository the repository the job was started against (default {DEFAULT_REPOSITORY})",
+                "--wait       poll for completion for 1-50 seconds (default: one poll)",
                 "",
-                "One call is one poll: it reports running, cancelled, or done, and carries the events once",
+                "Start a job with search start, then use status; --wait bounds polling without cancelling it.",
+                "It reports running, cancelled, or done, and carries the events once",
                 "the job is done. Compare parsed_query with the query you sent, because NG-SIEM turns an",
                 "unrecognised word into a free-text stage rather than an error.",
                 "",
-                "Example: falcon-axi search status abc123",
+                "Example: falcon-axi search status abc123 --wait 30",
+                "Bound results with | head(N) in the original query; format epoch-millisecond @timestamp with:",
+                '| formatTime("%Y-%m-%dT%H:%M:%SZ", field=@timestamp, as=time, timezone="UTC")',
                 "",
                 "This command is read-only and requires only NGSIEM:read.",
             ]
@@ -312,8 +333,8 @@ COMMAND_SPECS = (
         summary="  search status <id>        poll one search job and read its events",
         handler=_search_status,
         operations=("GetSearchStatusV1",),
-        flags=("repository",),
-        value_flags=("repository",),
+        flags=("repository", "wait"),
+        value_flags=("repository", "wait"),
         positional=("search identifier", "A search identifier comes from `falcon-axi search start --query '<cql>'`"),
     ),
     CommandSpec(

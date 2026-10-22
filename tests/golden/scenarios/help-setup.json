@@ -1,5 +1,6 @@
 {
   "name": "help-setup",
+  "comment": "Design section 1.4 makes help for every group list its subcommands, including the dual command/group setup.",
   "argv": [
     "setup",
     "--help"

@@ -4,6 +4,7 @@ import re
 
 import pytest
 
+from falcon_axi import search
 from falcon_axi.cli import run
 from falcon_axi.core import CliError
 from falcon_axi.transport.operations import OPERATIONS, path_arguments
@@ -12,6 +13,65 @@ from tests.support.recorded import CREDENTIAL_ENV, RecordedTransport, fixture, r
 QUERY = "#event_simpleName=ProcessRollup2 | head(2)"
 STARTED = [serve("StartSearchV1", fixture("ngsiem/start-search.json"))]
 DONE = [serve("GetSearchStatusV1", fixture("ngsiem/search-status-done.json"))]
+
+
+@pytest.fixture
+def clock(monkeypatch: pytest.MonkeyPatch) -> list[float]:
+    now = [0.0]
+    monkeypatch.setattr(search.time, "monotonic", lambda: now[0])
+    monkeypatch.setattr(search.time, "sleep", lambda seconds: now.__setitem__(0, now[0] + seconds))
+    return now
+
+
+@pytest.mark.parametrize("verb", ["start", "status"])
+def test_wait_returns_events_when_the_job_finishes(verb: str, clock: list[float]) -> None:
+    answers = iter(
+        [
+            fixture("ngsiem/search-status-running.json"),
+            fixture("ngsiem/search-status-running.json"),
+            fixture("ngsiem/search-status-done.json"),
+        ]
+    )
+    recorded = RecordedTransport([*STARTED, serve("GetSearchStatusV1", lambda _: next(answers))])
+    args = ["--query", "#event_simpleName=ProcessRollup2 | head(5)"] if verb == "start" else ["synthetic-job"]
+    stdout, exit_code = run(["search", verb, *args, "--wait", "10"], recorded, dict(CREDENTIAL_ENV))
+    assert exit_code == 0
+    assert "state: done" in stdout
+    assert "events[2]" in stdout
+    assert clock == [2.0]
+
+
+@pytest.mark.parametrize("verb", ["start", "status"])
+@pytest.mark.parametrize("wait", ["1", "50"])
+def test_wait_expiry_preserves_the_job_and_repository(verb: str, wait: str, clock: list[float]) -> None:
+    recorded = RecordedTransport([*STARTED, serve("GetSearchStatusV1", fixture("ngsiem/search-status-running.json"))])
+    args = ["--query", QUERY] if verb == "start" else ["synthetic-search-job-01"]
+    stdout, exit_code = run(
+        ["search", verb, *args, "--repository", "synthetic-view", "--wait", wait], recorded, dict(CREDENTIAL_ENV)
+    )
+    assert exit_code == 0
+    assert "state: running" in stdout
+    assert "search_id: synthetic-search-job-01" in stdout
+    assert "search status synthetic-search-job-01 --repository synthetic-view --wait 30" in stdout
+    assert clock == [float(wait)]
+    assert recorded.operation_requests("StopSearchV1") == []
+
+
+@pytest.mark.parametrize("wait", ["0", "51", "-1", "1.5", "invalid"])
+def test_invalid_wait_is_refused_before_authentication(wait: str) -> None:
+    recorded = RecordedTransport([])
+    stdout, exit_code = run(["search", "start", "--query", QUERY, "--wait", wait], recorded, {})
+    assert exit_code == 2
+    assert "--wait must be an integer from 1 to 50" in stdout
+    assert recorded.requests == []
+
+
+def test_wait_stops_when_the_job_is_cancelled(clock: list[float]) -> None:
+    recorded = RecordedTransport([serve("GetSearchStatusV1", response(200, {"cancelled": True}))])
+    stdout, exit_code = run(["search", "status", "synthetic-job", "--wait", "10"], recorded, dict(CREDENTIAL_ENV))
+    assert exit_code == 0
+    assert "state: cancelled" in stdout
+    assert clock == [0.0]
 
 
 def test_search_start_is_one_request_that_returns_the_job_identifier() -> None:

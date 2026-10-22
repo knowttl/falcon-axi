@@ -9,7 +9,7 @@ from toon_format import decode
 
 from falcon_axi.cli import _followup_help, _suggestion_for, flag_guard, parse, run
 from falcon_axi.command import CommandSpec
-from falcon_axi.commands import COMMAND_SPECS, COMMANDS
+from falcon_axi.commands import COMMAND_SPECS, COMMANDS, SUBCOMMANDS
 from falcon_axi.core import CliError
 from falcon_axi.transport.operations import OPERATIONS
 from falcon_axi.version import VERSION
@@ -18,13 +18,24 @@ from tests.support.recorded import CREDENTIAL_ENV, RecordedTransport
 REPO = Path(__file__).resolve().parent.parent.parent
 
 
+@pytest.mark.parametrize("group", SUBCOMMANDS)
+@pytest.mark.parametrize("flag", ["--help", "-h"])
+def test_group_help_lists_subcommands_without_authentication(group: str, flag: str) -> None:
+    recorded = RecordedTransport([])
+    stdout, exit_code = run([*group.split(), flag], recorded, {})
+    assert exit_code == 0
+    assert stdout.splitlines() == [spec.summary for spec in COMMAND_SPECS.values() if spec.name.startswith(f"{group} ")]
+    assert recorded.requests == []
+
+
 @pytest.mark.parametrize("spec", COMMAND_SPECS.values(), ids=lambda spec: spec.name)
 def test_every_registered_command_has_help_a_handler_and_operations(spec: CommandSpec) -> None:
     recorded = RecordedTransport([])
     stdout, exit_code = run([*spec.name.split(), "--help"], recorded, {})
     assert exit_code == 0
-    assert stdout == spec.help + "\n"
-    assert stdout.startswith(f"falcon-axi {spec.name}")
+    if spec.name not in SUBCOMMANDS:
+        assert stdout == spec.help + "\n"
+        assert stdout.startswith(f"falcon-axi {spec.name}")
     assert all(operation in OPERATIONS for operation in spec.operations)
     if spec.authentication == "standard":
         assert spec.operations

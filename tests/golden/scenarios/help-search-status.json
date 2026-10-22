@@ -1,5 +1,6 @@
 {
   "name": "help-search-status",
+  "comment": "Design section 4.3 adds optional bounded waiting and readable CQL timestamp guidance while retaining one poll by default.",
   "argv": [
     "search",
     "status",

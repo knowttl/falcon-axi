@@ -104,11 +104,15 @@ def parse(argv: Sequence[str]) -> Parsed:
     command: str = "home"
     index = 0
     first = argv[0] if argv else None
-    if first in SUBCOMMANDS and not (first in COMMAND_SPECS and (len(argv) == 1 or argv[1].startswith("-"))):
+    if first in SUBCOMMANDS and not (
+        first in COMMAND_SPECS and (len(argv) == 1 or (argv[1].startswith("-") and argv[1] not in ("--help", "-h")))
+    ):
         noun = str(first)
         index = 1
         while noun in SUBCOMMANDS:
             child = argv[index] if len(argv) > index else None
+            if child in ("--help", "-h") and index == len(argv) - 1:
+                return Parsed(noun, {"help": True}, ())
             if child not in SUBCOMMANDS[noun]:
                 raise CliError(
                     "VALIDATION_ERROR",
@@ -189,6 +193,13 @@ def parse(argv: Sequence[str]) -> Parsed:
     max_rows_of(flags)
     if "limit" in flags:
         limit_of(flags, COMMAND_SPECS[command])
+    if "wait" in flags:
+        try:
+            wait = int(str(flags["wait"]), 10)
+        except ValueError:
+            wait = 0
+        if not 1 <= wait <= 50:
+            raise CliError("VALIDATION_ERROR", "--wait must be an integer from 1 to 50 seconds")
     if "fields" in flags:
         assert spec is not None
         parse_fields(str(flags["fields"]), spec.extra_fields, spec.default_fields)
@@ -232,8 +243,10 @@ def parse(argv: Sequence[str]) -> Parsed:
 
 
 def help_text(command: str) -> str:
-    from falcon_axi.commands import COMMAND_SPECS
+    from falcon_axi.commands import COMMAND_SPECS, SUBCOMMANDS
 
+    if command in SUBCOMMANDS:
+        return "\n".join(spec.summary for spec in COMMAND_SPECS.values() if spec.name.startswith(f"{command} "))
     if command in COMMAND_SPECS:
         return COMMAND_SPECS[command].help
     return "\n".join(

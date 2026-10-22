@@ -6,6 +6,10 @@
     {
       "scope": "NGSIEM:write",
       "access": "write"
+    },
+    {
+      "scope": "NGSIEM:read",
+      "access": "read"
     }
   ]
 }
