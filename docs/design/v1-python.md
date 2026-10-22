@@ -79,7 +79,8 @@ falconpy's `APIHarnessV2.command(operation_id, ...)` accepts any of Falcon's ope
 That is why the registry check must happen before falconpy is ever called, and why falconpy must be reachable from exactly one module.
 
 `falcon_axi/transport/harness.py` is that module.
-It is the only file that imports `falconpy`, it exposes one function, `send_permitted_request(prepared, permit)`, and it refuses any call that does not carry the module-private permit sentinel, which only the sealed `request()` and `request_oauth_token()` entry points mint after their checks pass.
+It is the only file that imports `falconpy`; `send_permitted_request(prepared, permit)` refuses any call that does not carry the module-private permit sentinel.
+The sealed `request()` and `request_oauth_token()` paths mint it after their checks pass; the fixed deadline worker (§3.4) remints it for the prepared request received from its parent.
 `scripts/architecture_check.py` asserts all of this by scanning the tree: `falconpy` appears in no other import, `.command(` appears in no other file, and no `from falconpy import` names anything but `APIHarnessV2`.
 
 ### 3.3 Redirects and the token endpoint
