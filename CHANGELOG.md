@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.5.1](https://github.com/knowttl/falcon-axi/compare/v0.5.0...v0.5.1) (2026-10-22)
+
+
+### Bug Fixes
+
+* support group help and bounded search polling ([#43](https://github.com/knowttl/falcon-axi/issues/43)) ([84fde6b](https://github.com/knowttl/falcon-axi/commit/84fde6b2df1ae4b3b603db9fe56ab266c1ee653c))
+
 ## [0.5.0](https://github.com/knowttl/falcon-axi/compare/v0.4.1...v0.5.0) (2026-10-19)
 
 
