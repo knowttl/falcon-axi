@@ -76,9 +76,7 @@ def test_wait_expiry_preserves_the_job_and_repository(verb: str, wait: str, cloc
     [("scope", "SCOPE_DENIED"), ("upstream", "UPSTREAM_ERROR"), ("network", "NETWORK_UNREACHABLE")],
 )
 @pytest.mark.parametrize("verb", ["start", "status"])
-def test_polling_errors_preserve_job_recovery(
-    verb: str, failure: str, code: str, prior_polls: int, clock: list[float]
-) -> None:
+def test_polling_errors_preserve_job_recovery(verb: str, failure: str, code: str, prior_polls: int, clock: list[float]) -> None:
     answers = iter([fixture("ngsiem/search-status-running.json")] * prior_polls)
 
     def poll(_: RequestArgs) -> FalconResponse:
@@ -122,9 +120,7 @@ def test_wait_includes_authentication_creation_and_inflight_polls(clock: list[fl
         mock.post("https://api.crowdstrike.com/oauth2/token", json=token)
         mock.post("https://api.crowdstrike.com/humio/api/v1/repositories/search-all/queryjobs", json=start)
         mock.get("https://api.crowdstrike.com/humio/api/v1/repositories/search-all/queryjobs/synthetic-job", json=poll)
-        stdout, exit_code = run(
-            ["search", "start", "--query", QUERY, "--wait", "10"], HttpTransport(), dict(CREDENTIAL_ENV)
-        )
+        stdout, exit_code = run(["search", "start", "--query", QUERY, "--wait", "10"], HttpTransport(), dict(CREDENTIAL_ENV))
     assert exit_code == 0
     assert "state: running" in stdout
     assert "search_id: synthetic-job" in stdout
@@ -148,9 +144,7 @@ def test_retry_after_cannot_extend_wait_budget(phase: str, clock: list[float]) -
             headers={"X-RateLimit-RetryAfter": str(search.time.time() + 3600)},
             json={},
         )
-        stdout, exit_code = run(
-            ["search", "start", "--query", QUERY, "--wait", "5"], HttpTransport(), dict(CREDENTIAL_ENV)
-        )
+        stdout, exit_code = run(["search", "start", "--query", QUERY, "--wait", "5"], HttpTransport(), dict(CREDENTIAL_ENV))
     assert clock == [5.0]
     assert len([request for request in mock.request_history if request.url == url]) == 1
     assert exit_code == (0 if phase == "poll" else 1)
@@ -172,13 +166,9 @@ def test_worker_deadline_returns_recoverable_running_job(
 
     with requests_mock.Mocker() as mock:
         mock.post("https://api.crowdstrike.com/oauth2/token", json={"access_token": "synthetic-token"})
-        mock.post(
-            "https://api.crowdstrike.com/humio/api/v1/repositories/search-all/queryjobs", json={"id": "synthetic-job"}
-        )
+        mock.post("https://api.crowdstrike.com/humio/api/v1/repositories/search-all/queryjobs", json={"id": "synthetic-job"})
         args = ["--query", QUERY] if verb == "start" else ["synthetic-job"]
-        stdout, exit_code = run(
-            ["search", verb, *args, "--wait", "5"], HttpTransport(), dict(CREDENTIAL_ENV)
-        )
+        stdout, exit_code = run(["search", verb, *args, "--wait", "5"], HttpTransport(), dict(CREDENTIAL_ENV))
     assert exit_code == 0
     assert "state: running" in stdout
     assert "search_id: synthetic-job" in stdout
