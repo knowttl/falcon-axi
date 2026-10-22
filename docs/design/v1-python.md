@@ -104,7 +104,9 @@ If falconpy later exposes a redirect switch on the token path, D2 can be revisit
 - **Error translation.** falconpy returns the raw envelope dict (`status_code`, `headers`, `body`); `falcon_error.py` translates it into the v1.md §9 envelope, never passing it through.
 - **User-Agent.** `APIHarnessV2(user_agent="falcon-axi/<version>")`, matching §3.4.
 - **Proxy.** `APIHarnessV2(proxy={"https": url})` uses the proxy environment variable documented in the README's [Configuration section](../../README.md#configuration).
-- **Timeout.** `APIHarnessV2(timeout=30)`, matching the 30-second `AbortSignal` in stage 1.
+- **Timeout.** The default request timeout is 30 seconds.
+  With search `--wait`, each request also runs in a fixed Python worker under the shared invocation deadline, including response consumption (v1.md §4.3).
+  The parent kills and reaps the worker at expiry; credentials travel over stdin, never argv or a file.
 
 ### 3.5 The test seam
 

@@ -1,16 +1,17 @@
 """The NG-SIEM search domain and captain exception N1 (docs/design/v1.md §3.3, §4.3, §10.2)."""
 
+import json
 import re
+import subprocess
 from typing import Any
 
 import pytest
-import requests
 import requests_mock
 
 from falcon_axi import search
 from falcon_axi.cli import run
 from falcon_axi.core import CliError
-from falcon_axi.transport import HttpTransport
+from falcon_axi.transport import HttpTransport, harness
 from falcon_axi.transport.operations import OPERATIONS, path_arguments
 from falcon_axi.transport.types import FalconResponse, RequestArgs
 from tests.support.recorded import CREDENTIAL_ENV, RecordedTransport, fixture, response, serve
@@ -25,6 +26,12 @@ def clock(monkeypatch: pytest.MonkeyPatch) -> list[float]:
     now = [0.0]
     monkeypatch.setattr(search.time, "monotonic", lambda: now[0])
     monkeypatch.setattr(search.time, "sleep", lambda seconds: now.__setitem__(0, now[0] + seconds))
+
+    def run_worker(args: list[str], **kwargs: Any) -> subprocess.CompletedProcess[str]:
+        reply = harness._worker_reply(json.loads(kwargs["input"]))
+        return subprocess.CompletedProcess(args, 0, stdout=json.dumps(reply))
+
+    monkeypatch.setattr(harness.subprocess, "run", run_worker)
     return now
 
 
@@ -151,18 +158,22 @@ def test_retry_after_cannot_extend_wait_budget(phase: str, clock: list[float]) -
 
 
 @pytest.mark.parametrize("verb", ["start", "status"])
-def test_inflight_timeout_returns_recoverable_running_job(verb: str, clock: list[float]) -> None:
-    def timeout(request: Any, context: Any) -> dict[str, Any]:
-        clock[0] += request.timeout.total
-        raise requests.exceptions.Timeout()
+def test_worker_deadline_returns_recoverable_running_job(
+    verb: str, clock: list[float], monkeypatch: pytest.MonkeyPatch
+) -> None:
+    def run_worker(args: list[str], **kwargs: Any) -> subprocess.CompletedProcess[str]:
+        payload = json.loads(kwargs["input"])
+        if payload["request"].get("operation_id") == "GetSearchStatusV1":
+            clock[0] += kwargs["timeout"]
+            raise subprocess.TimeoutExpired(args, kwargs["timeout"])
+        return subprocess.CompletedProcess(args, 0, stdout=json.dumps(harness._worker_reply(payload)))
+
+    monkeypatch.setattr(harness.subprocess, "run", run_worker)
 
     with requests_mock.Mocker() as mock:
         mock.post("https://api.crowdstrike.com/oauth2/token", json={"access_token": "synthetic-token"})
         mock.post(
             "https://api.crowdstrike.com/humio/api/v1/repositories/search-all/queryjobs", json={"id": "synthetic-job"}
-        )
-        mock.get(
-            "https://api.crowdstrike.com/humio/api/v1/repositories/search-all/queryjobs/synthetic-job", json=timeout
         )
         args = ["--query", QUERY] if verb == "start" else ["synthetic-job"]
         stdout, exit_code = run(

@@ -106,13 +106,13 @@ def parse(argv: Sequence[str]) -> Parsed:
     index = 0
     first = argv[0] if argv else None
     if first in SUBCOMMANDS and not (
-        first in COMMAND_SPECS and (len(argv) == 1 or (argv[1].startswith("-") and argv[1] not in ("--help", "-h")))
+        first in COMMAND_SPECS and (len(argv) == 1 or (argv[1].startswith("-") and argv[1] != "--help"))
     ):
         noun = str(first)
         index = 1
         while noun in SUBCOMMANDS:
             child = argv[index] if len(argv) > index else None
-            if child in ("--help", "-h") and index == len(argv) - 1:
+            if child == "--help" and index == len(argv) - 1:
                 return Parsed(noun, {"help": True}, ())
             if child not in SUBCOMMANDS[noun]:
                 raise CliError(

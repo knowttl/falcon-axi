@@ -37,14 +37,14 @@ __all__ = [
 def _send(prepared: PreparedOperation | PreparedToken) -> FalconResponse:
     # falconpy loads with the sink, not with the package, so no command that never reaches the
     # network pays for it (AXI §10).
-    from falcon_axi.transport.harness import mint_permit, send_permitted_request
+    from falcon_axi.transport.harness import _send_with_deadline, mint_permit
 
     permit = mint_permit()
     attempt = 1
     while True:
         remaining_seconds()
         try:
-            response = send_permitted_request(prepared, permit)
+            response = _send_with_deadline(prepared, permit)
         except CliError:
             remaining_seconds()
             raise

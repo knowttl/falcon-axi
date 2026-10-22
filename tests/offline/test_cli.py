@@ -19,10 +19,9 @@ REPO = Path(__file__).resolve().parent.parent.parent
 
 
 @pytest.mark.parametrize("group", SUBCOMMANDS)
-@pytest.mark.parametrize("flag", ["--help", "-h"])
-def test_group_help_lists_subcommands_without_authentication(group: str, flag: str) -> None:
+def test_group_help_lists_subcommands_without_authentication(group: str) -> None:
     recorded = RecordedTransport([])
-    stdout, exit_code = run([*group.split(), flag], recorded, {})
+    stdout, exit_code = run([*group.split(), "--help"], recorded, {})
     assert exit_code == 0
     assert stdout.splitlines() == [spec.summary for spec in COMMAND_SPECS.values() if spec.name.startswith(f"{group} ")]
     assert recorded.requests == []

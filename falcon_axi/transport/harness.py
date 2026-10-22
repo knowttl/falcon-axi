@@ -9,8 +9,12 @@ falconpy's `APIHarnessV2.command` accepts any Falcon operation id, including eve
 so the closed registry is checked before this module is ever reached.
 """
 
+import json
 import os
-from dataclasses import dataclass
+import subprocess
+import sys
+from collections.abc import Mapping
+from dataclasses import dataclass, fields
 from typing import Any
 
 import requests
@@ -18,7 +22,7 @@ from falconpy import APIHarnessV2
 from urllib3.util import Timeout
 
 from falcon_axi.core import CliError
-from falcon_axi.transport.budget import remaining_seconds
+from falcon_axi.transport.budget import BudgetExpired, deadline_after, remaining_seconds, request_budget
 from falcon_axi.transport.graphql import is_registered_query
 from falcon_axi.transport.operations import GRAPHQL_QUERY_IDS, operation
 from falcon_axi.transport.types import FalconResponse, PreparedOperation, PreparedToken
@@ -41,6 +45,49 @@ _PERMIT = Permit()
 
 def mint_permit() -> Permit:
     return _PERMIT
+
+
+def _send_with_deadline(prepared: PreparedOperation | PreparedToken, permit: Permit) -> FalconResponse:
+    remaining = remaining_seconds()
+    if remaining is None or permit is not _PERMIT:
+        return send_permitted_request(prepared, permit)
+    values = {field.name: getattr(prepared, field.name) for field in fields(prepared)}
+    payload = json.dumps(
+        {
+            "deadline": deadline_after(0),
+            "request": {key: dict(value) if isinstance(value, Mapping) else value for key, value in values.items()},
+        }
+    )
+    try:
+        result = subprocess.run(  # noqa: S603
+            [sys.executable, "-m", "falcon_axi.transport.harness"],
+            input=payload,
+            text=True,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.DEVNULL,
+            timeout=remaining_seconds(),
+            check=True,
+        )
+    except subprocess.TimeoutExpired as error:
+        raise BudgetExpired() from error
+    except subprocess.CalledProcessError as error:
+        raise CliError("UPSTREAM_ERROR", "the bounded Falcon request could not complete") from error
+    answer = json.loads(result.stdout)
+    if "error" in answer:
+        failure = answer["error"]
+        raise CliError(failure["code"], failure["message"], failure["help"], failure["details"])
+    return FalconResponse(**answer["response"])
+
+
+def _worker_reply(payload: dict[str, Any]) -> dict[str, Any]:
+    values = payload["request"]
+    prepared = PreparedToken(**values) if "form" in values else PreparedOperation(**values)
+    with request_budget(payload["deadline"]):
+        try:
+            response = send_permitted_request(prepared, mint_permit())
+        except CliError as error:
+            return {"error": {"code": error.code, "message": error.message, "help": error.help, "details": error.details}}
+        return {"response": {"status": response.status, "headers": dict(response.headers), "body": response.body}}
 
 
 def _proxy() -> dict[str, str] | None:
@@ -123,6 +170,7 @@ class _RecordingSession(requests.Session):
 
     def request(self, *args: Any, **kwargs: Any) -> requests.Response:
         try:
+            remaining_seconds()
             self.answer = super().request(*args, **kwargs)
         except Exception as error:
             self.failure = error
@@ -212,3 +260,7 @@ def send_permitted_request(prepared: PreparedOperation | PreparedToken, permit: 
     # The status, headers, and body are read from the response falconpy issued rather than from its
     # own container, so a redirect or an empty body is seen exactly as Falcon sent it.
     return _normalize(answer.status_code, answer.headers, _json_body(answer), refuse_redirect=True)
+
+
+if __name__ == "__main__":
+    json.dump(_worker_reply(json.load(sys.stdin)), sys.stdout)
