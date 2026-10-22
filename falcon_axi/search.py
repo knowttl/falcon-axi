@@ -182,6 +182,8 @@ def search_status(
             except BudgetExpired:
                 break
             except CliError as error:
+                if not wait:
+                    raise
                 raise CliError(
                     error.code,
                     error.message,
