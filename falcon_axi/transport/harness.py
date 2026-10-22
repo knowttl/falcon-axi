@@ -15,8 +15,10 @@ from typing import Any
 
 import requests
 from falconpy import APIHarnessV2
+from urllib3.util import Timeout
 
 from falcon_axi.core import CliError
+from falcon_axi.transport.budget import remaining_seconds
 from falcon_axi.transport.graphql import is_registered_query
 from falcon_axi.transport.operations import GRAPHQL_QUERY_IDS, operation
 from falcon_axi.transport.types import FalconResponse, PreparedOperation, PreparedToken
@@ -136,6 +138,8 @@ def send_permitted_request(prepared: PreparedOperation | PreparedToken, permit: 
             ["falcon-axi sends only requests originated by its sealed transport; report this as a bug"],
         )
     try:
+        remaining = remaining_seconds()
+        timeout = Timeout(total=min(TIMEOUT_SECONDS, remaining)) if remaining is not None else TIMEOUT_SECONDS
         if isinstance(prepared, PreparedToken):
             # D2 (docs/design/v1-python.md §3.3): falcon-axi mints the token itself, because
             # `requests` replays a POST body on a 307 or 308 and falconpy allows redirects on
@@ -150,7 +154,7 @@ def send_permitted_request(prepared: PreparedOperation | PreparedToken, permit: 
                     "user-agent": user_agent(),
                 },
                 allow_redirects=False,
-                timeout=TIMEOUT_SECONDS,
+                timeout=timeout,
             )
             return _normalize(
                 token_answer.status_code,
@@ -178,7 +182,7 @@ def send_permitted_request(prepared: PreparedOperation | PreparedToken, permit: 
             access_token=prepared.token,
             base_url=prepared.origin,
             user_agent=user_agent(),
-            timeout=TIMEOUT_SECONDS,
+            timeout=timeout,
             proxy=_proxy(),
             debug=False,
             sanitize_log=True,

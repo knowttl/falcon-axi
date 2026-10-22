@@ -19,6 +19,7 @@ from falcon_axi.domain import CommandOutput, body_of, rate_limit_note, text
 from falcon_axi.falcon_error import translate_falcon_error
 from falcon_axi.fql import since_seconds
 from falcon_axi.render import raw
+from falcon_axi.transport.budget import BudgetExpired, deadline_after, remaining_seconds, request_budget
 from falcon_axi.transport.operations import OperationId
 from falcon_axi.transport.types import FalconResponse, RequestArgs, Transport
 
@@ -46,17 +47,20 @@ def _request(
     body: Any = None,
     accepted: tuple[int, ...] = (200,),
     overrides: Mapping[int, CliError] | None = None,
+    deadline: float | None = None,
 ) -> FalconResponse:
-    response = transport.request(
-        id,
-        RequestArgs(
-            base_url=session.base_url,
-            token=session.token,
-            allow_unknown_origin=session.allow_unknown_origin,
-            path_params=path_params,
-            body=body,
-        ),
-    )
+    with request_budget(deadline):
+        remaining_seconds()
+        response = transport.request(
+            id,
+            RequestArgs(
+                base_url=session.base_url,
+                token=session.token,
+                allow_unknown_origin=session.allow_unknown_origin,
+                path_params=path_params,
+                body=body,
+            ),
+        )
     if response.status not in accepted:
         override = (overrides or {}).get(response.status)
         raise override if override is not None else translate_falcon_error(response, id, subject)
@@ -111,6 +115,7 @@ def start_search(
 
     This is one of the two operations captain exception N1 admits, and it requires `NGSIEM:write`.
     """
+    deadline = deadline_after(wait)
     if not query.strip():
         raise CliError(
             "VALIDATION_ERROR",
@@ -129,6 +134,7 @@ def start_search(
         {"repository": repository},
         body={"queryString": query, "start": window_end - since_seconds(since) * 1000, "end": window_end},
         overrides={400: _rejected_query(), 404: _rejected_query()},
+        deadline=deadline,
     )
     id = text(body_of(response).get("id"))
     if not id:
@@ -138,7 +144,7 @@ def start_search(
             ["Retry shortly", "Run `falcon-axi auth status` to re-check the credential"],
         )
     if wait:
-        return search_status(transport, session, id, repository, wait)
+        return search_status(transport, session, id, repository, wait, deadline=deadline)
     value: dict[str, Any] = {"search_id": id, "repository": repository, "query": query, "window": f"the last {since}"}
     return CommandOutput(
         value=_rate_limit(session, value),
@@ -156,23 +162,42 @@ def search_status(
     id: str,
     repository: str,
     wait: int = 0,
+    *,
+    deadline: float | None = None,
 ) -> CommandOutput:
     """`search status <search id>`: poll one job and render its events once it is done (§10.2)."""
-    deadline = time.monotonic() + wait
-    while True:
-        response = _request(
-            transport,
-            session,
-            "GetSearchStatusV1",
-            "NG-SIEM search status",
-            {"repository": repository, "id": id},
-            overrides={404: _unknown_job()},
-        )
-        body = body_of(response)
-        remaining = deadline - time.monotonic()
-        if body.get("done") or body.get("cancelled") or remaining <= 0:
-            break
-        time.sleep(min(1, remaining))
+    deadline = deadline if deadline is not None else deadline_after(wait)
+    response = FalconResponse(200, {}, {})
+    with request_budget(deadline):
+        while True:
+            try:
+                response = _request(
+                    transport,
+                    session,
+                    "GetSearchStatusV1",
+                    "NG-SIEM search status",
+                    {"repository": repository, "id": id},
+                    overrides={404: _unknown_job()},
+                )
+            except BudgetExpired:
+                break
+            except CliError as error:
+                raise CliError(
+                    error.code,
+                    error.message,
+                    (
+                        *error.help,
+                        f"Run `{_job_command('status', id, repository)}` to resume polling this job",
+                        f"Run `{_job_command('stop', id, repository)}` to cancel it",
+                    ),
+                    {**error.details, "search_id": id, "repository": repository},
+                ) from error
+            body = body_of(response)
+            remaining = deadline - time.monotonic() if deadline is not None else 0
+            if body.get("done") or body.get("cancelled") or remaining <= 0:
+                break
+            time.sleep(min(1, remaining))
+    body = body_of(response)
     if body.get("cancelled"):
         return CommandOutput(
             value=_rate_limit(session, {"state": "cancelled", "search_id": id}),

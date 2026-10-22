@@ -4,6 +4,7 @@ import os
 import re
 import shlex
 import sys
+import time
 from collections.abc import Mapping, Sequence
 from dataclasses import dataclass
 from typing import Any
@@ -385,7 +386,9 @@ def _run(
     bin: str | None = None,
 ) -> tuple[str, int]:
     """Returns the stdout document and the exit code. The transport is the only substitution point (§14.2)."""
+    started = time.monotonic()
     from falcon_axi.commands import COMMAND_SPECS
+    from falcon_axi.transport.budget import request_budget
 
     values = os.environ if env is None else env
     if transport is None:
@@ -404,20 +407,22 @@ def _run(
         if parsed.command == "home":
             return _home_view(transport, parsed.flags, values, bin or "falcon-axi", skill_hint(values) if not argv else ())
         spec = COMMAND_SPECS[parsed.command]
-        resolved = None
-        if spec.authentication != "none":
-            resolved = _session(transport, flags, values, diagnostic=spec.authentication == "diagnostic")
-        output = spec.handler(
-            Invocation(
-                spec,
-                transport,
-                flags,
-                parsed.positionals,
-                values,
-                resolved.session if resolved else None,
-                resolved.credential if resolved else None,
+        deadline = started + int(str(flags["wait"])) if "wait" in flags else None
+        with request_budget(deadline):
+            resolved = None
+            if spec.authentication != "none":
+                resolved = _session(transport, flags, values, diagnostic=spec.authentication == "diagnostic")
+            output = spec.handler(
+                Invocation(
+                    spec,
+                    transport,
+                    flags,
+                    parsed.positionals,
+                    values,
+                    resolved.session if resolved else None,
+                    resolved.credential if resolved else None,
+                )
             )
-        )
         member_cid = resolved.session.member_cid if resolved else _str(flags.get("member-cid"))
         return render(output.value, _followup_help(output.help, flags, member_cid)), 0
     except Exception as error:
