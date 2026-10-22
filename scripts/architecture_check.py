@@ -114,8 +114,24 @@ def check() -> bool:
                 ):
                     raise AssertionError(f"writable file open outside setup.py: {path}")
         forbidden = {module for module in imported if module.split(".")[0] in PROCESS_MODULES}
-        if forbidden and path != PACKAGE / "private_file.py":
+        if forbidden and path not in {PACKAGE / "private_file.py", NETWORK_SINK}:
             raise AssertionError(f"process execution is forbidden: {path} imports {', '.join(sorted(forbidden))}")
+        if path == NETWORK_SINK:
+            calls = [
+                node
+                for node in ast.walk(tree)
+                if isinstance(node, ast.Call) and ast.unparse(node.func).startswith("subprocess.")
+            ]
+            if forbidden != {"subprocess"} or len(calls) != 1 or ast.unparse(calls[0].func) != "subprocess.run":
+                raise AssertionError("the network sink permits only one fixed request-worker invocation")
+            call = calls[0]
+            if (
+                not call.args
+                or ast.unparse(call.args[0]) != "[sys.executable, '-P', '-m', 'falcon_axi.transport.harness']"
+                or not any(item.arg == "timeout" and ast.unparse(item.value) == "remaining_seconds()" for item in call.keywords)
+                or any(item.arg == "shell" for item in call.keywords)
+            ):
+                raise AssertionError("the request-worker command and remaining-budget timeout must be fixed")
         if path == PACKAGE / "private_file.py":
             process_imports = [
                 node

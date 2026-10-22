@@ -4,14 +4,23 @@ These assertions pin decision D2 (docs/design/v1-python.md §3.3): falcon-axi mi
 itself with redirects refused, and falconpy only ever executes an already-permitted read operation.
 """
 
+import json
+import subprocess
+import sys
+import time
+from collections.abc import Callable
+from pathlib import Path
+from typing import Any
+
 import pytest
 import requests
 import requests_mock
 
 from falcon_axi.core import CliError
-from falcon_axi.transport import HttpTransport
+from falcon_axi.transport import HttpTransport, harness
+from falcon_axi.transport.budget import BudgetExpired, request_budget
 from falcon_axi.transport.harness import mint_permit, send_permitted_request
-from falcon_axi.transport.types import OAuthTokenArgs, PreparedOperation, PreparedToken, RequestArgs
+from falcon_axi.transport.types import FalconResponse, OAuthTokenArgs, PreparedOperation, PreparedToken, RequestArgs
 
 TOKEN_URL = "https://api.crowdstrike.com/oauth2/token"
 QUERY_URL = "https://api.crowdstrike.com/alerts/queries/alerts/v2"
@@ -19,6 +28,104 @@ HYDRATE_URL = "https://api.crowdstrike.com/alerts/entities/alerts/v2"
 VULN_URL = "https://api.crowdstrike.com/spotlight/combined/vulnerabilities/v1"
 QUERYJOBS_URL = "https://api.crowdstrike.com/humio/api/v1/repositories/search-all/queryjobs"
 JSON = {"Content-Type": "application/json"}
+
+
+@pytest.fixture(params=["oauth", "StartSearchV1", "GetSearchStatusV1"])
+def deadline_request(request: pytest.FixtureRequest) -> Callable[[], FalconResponse]:
+    if request.param == "oauth":
+        return lambda: HttpTransport().request_oauth_token(
+            OAuthTokenArgs(base_url="https://api.crowdstrike.com", client_id="synthetic-id", client_secret="synthetic-secret")
+        )
+    path_params = {"repository": "search-all"}
+    if request.param == "GetSearchStatusV1":
+        path_params["id"] = "synthetic-job"
+    return lambda: HttpTransport().request(
+        request.param,
+        RequestArgs(
+            base_url="https://api.crowdstrike.com",
+            token="synthetic-token",
+            path_params=path_params,
+        ),
+    )
+
+
+@pytest.fixture
+def offline_worker(monkeypatch: pytest.MonkeyPatch) -> Callable[[str], list[bytes | str | None]]:
+    run = subprocess.run
+
+    def select(mode: str) -> list[bytes | str | None]:
+        interrupted: list[bytes | str | None] = []
+
+        def invoke(args: list[str], **kwargs: Any) -> subprocess.CompletedProcess[str]:
+            kwargs["stderr"] = subprocess.PIPE
+            try:
+                return run([sys.executable, "-m", "tests.support.response_worker", mode], **kwargs)
+            except subprocess.TimeoutExpired as error:
+                interrupted.append(error.stderr)
+                raise
+
+        monkeypatch.setattr("falcon_axi.transport.harness.subprocess.run", invoke)
+        return interrupted
+
+    return select
+
+
+def test_deadline_terminates_unfinished_response_consumption(
+    deadline_request: Callable[[], FalconResponse], offline_worker: Callable[[str], list[bytes | str | None]]
+) -> None:
+    interrupted = offline_worker("stall")
+    with request_budget(time.monotonic() + 3), pytest.raises(BudgetExpired):
+        deadline_request()
+    assert interrupted == [b"consuming response\n"]
+
+
+def test_deadline_worker_returns_a_completed_response(
+    deadline_request: Callable[[], FalconResponse], offline_worker: Callable[[str], list[bytes | str | None]]
+) -> None:
+    offline_worker("complete")
+    with request_budget(time.monotonic() + 10):
+        response = deadline_request()
+    assert response.status == 200
+    assert response.body == {"id": "synthetic-job", "done": True, "access_token": "synthetic-token"}
+
+
+def test_worker_startup_cannot_send_after_the_deadline(
+    deadline_request: Callable[[], FalconResponse], monkeypatch: pytest.MonkeyPatch
+) -> None:
+    now = [0.0]
+    monkeypatch.setattr(time, "monotonic", lambda: now[0])
+
+    def delayed_worker(args: list[str], **kwargs: Any) -> subprocess.CompletedProcess[str]:
+        now[0] = 5.0
+        reply = harness._worker_reply(json.loads(kwargs["input"]))
+        return subprocess.CompletedProcess(args, 0, stdout=json.dumps(reply))
+
+    monkeypatch.setattr(harness.subprocess, "run", delayed_worker)
+    with requests_mock.Mocker() as mock, request_budget(5), pytest.raises(BudgetExpired):
+        deadline_request()
+    assert mock.request_history == []
+
+
+def test_worker_ignores_dependencies_in_the_callers_directory(
+    deadline_request: Callable[[], FalconResponse], tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    (tmp_path / "requests.py").write_text("raise RuntimeError('untrusted dependency was imported')\n", encoding="utf-8")
+    monkeypatch.chdir(tmp_path)
+    monkeypatch.delenv("PYTHONPATH", raising=False)
+    monkeypatch.setenv("XDG_DATA_HOME", str(tmp_path / "data"))
+    run = subprocess.run
+
+    def expired_worker(args: list[str], **kwargs: Any) -> subprocess.CompletedProcess[str]:
+        payload = json.loads(kwargs["input"])
+        payload["deadline"] = 0
+        kwargs["input"] = json.dumps(payload)
+        return run(args, **kwargs)
+
+    monkeypatch.setattr(harness.subprocess, "run", expired_worker)
+    with request_budget(time.monotonic() + 10), pytest.raises(CliError) as expired:
+        deadline_request()
+    assert expired.value.code == "NETWORK_UNREACHABLE"
+    assert expired.value.message == "the search invocation reached its --wait deadline"
 
 
 def test_the_query_step_issues_the_registered_get_with_its_parameters() -> None:

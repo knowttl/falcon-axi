@@ -4,6 +4,7 @@ import os
 import re
 import shlex
 import sys
+import time
 from collections.abc import Mapping, Sequence
 from dataclasses import dataclass
 from typing import Any
@@ -104,11 +105,15 @@ def parse(argv: Sequence[str]) -> Parsed:
     command: str = "home"
     index = 0
     first = argv[0] if argv else None
-    if first in SUBCOMMANDS and not (first in COMMAND_SPECS and (len(argv) == 1 or argv[1].startswith("-"))):
+    if first in SUBCOMMANDS and not (
+        first in COMMAND_SPECS and (len(argv) == 1 or (argv[1].startswith("-") and argv[1] != "--help"))
+    ):
         noun = str(first)
         index = 1
         while noun in SUBCOMMANDS:
             child = argv[index] if len(argv) > index else None
+            if child == "--help" and index == len(argv) - 1:
+                return Parsed(noun, {"help": True}, ())
             if child not in SUBCOMMANDS[noun]:
                 raise CliError(
                     "VALIDATION_ERROR",
@@ -189,6 +194,13 @@ def parse(argv: Sequence[str]) -> Parsed:
     max_rows_of(flags)
     if "limit" in flags:
         limit_of(flags, COMMAND_SPECS[command])
+    if "wait" in flags:
+        try:
+            wait = int(str(flags["wait"]), 10)
+        except ValueError:
+            wait = 0
+        if not 1 <= wait <= 50:
+            raise CliError("VALIDATION_ERROR", "--wait must be an integer from 1 to 50 seconds")
     if "fields" in flags:
         assert spec is not None
         parse_fields(str(flags["fields"]), spec.extra_fields, spec.default_fields)
@@ -232,8 +244,10 @@ def parse(argv: Sequence[str]) -> Parsed:
 
 
 def help_text(command: str) -> str:
-    from falcon_axi.commands import COMMAND_SPECS
+    from falcon_axi.commands import COMMAND_SPECS, SUBCOMMANDS
 
+    if command in SUBCOMMANDS:
+        return "\n".join(spec.summary for spec in COMMAND_SPECS.values() if spec.name.startswith(f"{command} "))
     if command in COMMAND_SPECS:
         return COMMAND_SPECS[command].help
     return "\n".join(
@@ -372,7 +386,9 @@ def _run(
     bin: str | None = None,
 ) -> tuple[str, int]:
     """Returns the stdout document and the exit code. The transport is the only substitution point (§14.2)."""
+    started = time.monotonic()
     from falcon_axi.commands import COMMAND_SPECS
+    from falcon_axi.transport.budget import request_budget
 
     values = os.environ if env is None else env
     if transport is None:
@@ -391,20 +407,22 @@ def _run(
         if parsed.command == "home":
             return _home_view(transport, parsed.flags, values, bin or "falcon-axi", skill_hint(values) if not argv else ())
         spec = COMMAND_SPECS[parsed.command]
-        resolved = None
-        if spec.authentication != "none":
-            resolved = _session(transport, flags, values, diagnostic=spec.authentication == "diagnostic")
-        output = spec.handler(
-            Invocation(
-                spec,
-                transport,
-                flags,
-                parsed.positionals,
-                values,
-                resolved.session if resolved else None,
-                resolved.credential if resolved else None,
+        deadline = started + int(str(flags["wait"])) if "wait" in flags else None
+        with request_budget(deadline):
+            resolved = None
+            if spec.authentication != "none":
+                resolved = _session(transport, flags, values, diagnostic=spec.authentication == "diagnostic")
+            output = spec.handler(
+                Invocation(
+                    spec,
+                    transport,
+                    flags,
+                    parsed.positionals,
+                    values,
+                    resolved.session if resolved else None,
+                    resolved.credential if resolved else None,
+                )
             )
-        )
         member_cid = resolved.session.member_cid if resolved else _str(flags.get("member-cid"))
         return render(output.value, _followup_help(output.help, flags, member_cid)), 0
     except Exception as error:

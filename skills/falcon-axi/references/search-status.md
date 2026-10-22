@@ -3,15 +3,19 @@
 search status <id>        poll one search job and read its events
 
 ```text
-uvx falcon-axi search status <search id> [--repository <name>]
+uvx falcon-axi search status <search id> [--repository <name>] [--wait <seconds>]
 
 --repository the repository the job was started against (default search-all)
+--wait       poll for completion for 1-50 seconds (default: one poll)
 
-One call is one poll: it reports running, cancelled, or done, and carries the events once
+Start a job with search start, then use status; --wait bounds polling without cancelling it.
+It reports running, cancelled, or done, and carries the events once
 the job is done. Compare parsed_query with the query you sent, because NG-SIEM turns an
 unrecognised word into a free-text stage rather than an error.
 
-Example: uvx falcon-axi search status abc123
+Example: uvx falcon-axi search status abc123 --wait 30
+Bound results with | head(N) in the original query; format epoch-millisecond @timestamp with:
+| formatTime("%Y-%m-%dT%H:%M:%SZ", field=@timestamp, as=time, timezone="UTC")
 
 This command is read-only and requires only NGSIEM:read.
 ```

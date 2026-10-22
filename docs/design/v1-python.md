@@ -79,7 +79,8 @@ falconpy's `APIHarnessV2.command(operation_id, ...)` accepts any of Falcon's ope
 That is why the registry check must happen before falconpy is ever called, and why falconpy must be reachable from exactly one module.
 
 `falcon_axi/transport/harness.py` is that module.
-It is the only file that imports `falconpy`, it exposes one function, `send_permitted_request(prepared, permit)`, and it refuses any call that does not carry the module-private permit sentinel, which only the sealed `request()` and `request_oauth_token()` entry points mint after their checks pass.
+It is the only file that imports `falconpy`; `send_permitted_request(prepared, permit)` refuses any call that does not carry the module-private permit sentinel.
+The sealed `request()` and `request_oauth_token()` paths mint it after their checks pass; the fixed deadline worker (§3.4) remints it for the prepared request received from its parent.
 `scripts/architecture_check.py` asserts all of this by scanning the tree: `falconpy` appears in no other import, `.command(` appears in no other file, and no `from falconpy import` names anything but `APIHarnessV2`.
 
 ### 3.3 Redirects and the token endpoint
@@ -104,7 +105,10 @@ If falconpy later exposes a redirect switch on the token path, D2 can be revisit
 - **Error translation.** falconpy returns the raw envelope dict (`status_code`, `headers`, `body`); `falcon_error.py` translates it into the v1.md §9 envelope, never passing it through.
 - **User-Agent.** `APIHarnessV2(user_agent="falcon-axi/<version>")`, matching §3.4.
 - **Proxy.** `APIHarnessV2(proxy={"https": url})` uses the proxy environment variable documented in the README's [Configuration section](../../README.md#configuration).
-- **Timeout.** `APIHarnessV2(timeout=30)`, matching the 30-second `AbortSignal` in stage 1.
+- **Timeout.** The default request timeout is 30 seconds.
+  With search `--wait`, each request also runs in a fixed Python worker under the shared invocation deadline, including response consumption (v1.md §4.3).
+  The worker launches with `sys.executable -P -m falcon_axi.transport.harness`, preventing Python from prepending the caller's working directory to its import path while preserving installed-package resolution.
+  The parent kills and reaps the worker at expiry; credentials travel over stdin, never argv or a file.
 
 ### 3.5 The test seam
 

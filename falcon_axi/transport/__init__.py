@@ -8,7 +8,9 @@ minted for the single network sink.
 import time
 from types import MappingProxyType
 
+from falcon_axi.core import CliError
 from falcon_axi.origin import assert_trusted_origin
+from falcon_axi.transport.budget import remaining_seconds
 from falcon_axi.transport.graphql import request_body
 from falcon_axi.transport.operations import OperationId, operation, path_arguments
 from falcon_axi.transport.retry import MAX_ATTEMPTS, retry_plan
@@ -35,16 +37,22 @@ __all__ = [
 def _send(prepared: PreparedOperation | PreparedToken) -> FalconResponse:
     # falconpy loads with the sink, not with the package, so no command that never reaches the
     # network pays for it (AXI §10).
-    from falcon_axi.transport.harness import mint_permit, send_permitted_request
+    from falcon_axi.transport.harness import _send_with_deadline, mint_permit
 
     permit = mint_permit()
     attempt = 1
     while True:
-        response = send_permitted_request(prepared, permit)
+        remaining_seconds()
+        try:
+            response = _send_with_deadline(prepared, permit)
+        except CliError:
+            remaining_seconds()
+            raise
         plan = retry_plan(response.status, response.headers, attempt, time.time() * 1000) if attempt < MAX_ATTEMPTS else None
         if plan is None:
             return response
-        time.sleep(plan.wait_ms / 1000)
+        remaining = remaining_seconds()
+        time.sleep(min(plan.wait_ms / 1000, remaining) if remaining is not None else plan.wait_ms / 1000)
         attempt += 1
 
 

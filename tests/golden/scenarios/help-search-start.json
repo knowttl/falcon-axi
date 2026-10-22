@@ -1,5 +1,6 @@
 {
   "name": "help-search-start",
+  "comment": "Design section 4.3 adds optional bounded waiting, lifecycle follow-up, result bounds and readable CQL timestamp guidance.",
   "argv": [
     "search",
     "start",

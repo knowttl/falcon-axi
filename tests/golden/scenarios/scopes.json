@@ -1,5 +1,6 @@
 {
   "name": "scopes",
+  "comment": "Design section 4.3 adds GetSearchStatusV1 to search start for optional --wait, so NGSIEM:read also lists search start.",
   "argv": [
     "scopes"
   ],

@@ -141,7 +141,7 @@ Grant only the domains you use; available scopes depend on product licensing.
 | `Falcon Container Image:read` | container list, image list, image vulnerabilities, serverless list | yes |
 | `Data Protection:read` | classification list, classification show, data-policy list, data-policy show | yes |
 | `NGSIEM:write` | identity activity, search start, search stop | yes |
-| `NGSIEM:read` | search status | yes |
+| `NGSIEM:read` | search start, search status | yes |
 | `Identity Protection GraphQL:write` | identity list, identity show, identity timeline, identity assessment | yes |
 | `Identity Protection Entities:read` | identity list, identity show, identity sensor list, identity sensor show | yes |
 | `Identity Protection Timeline:read` | identity timeline | yes |
