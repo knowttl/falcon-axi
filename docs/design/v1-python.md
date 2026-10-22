@@ -106,6 +106,7 @@ If falconpy later exposes a redirect switch on the token path, D2 can be revisit
 - **Proxy.** `APIHarnessV2(proxy={"https": url})` uses the proxy environment variable documented in the README's [Configuration section](../../README.md#configuration).
 - **Timeout.** The default request timeout is 30 seconds.
   With search `--wait`, each request also runs in a fixed Python worker under the shared invocation deadline, including response consumption (v1.md §4.3).
+  The worker launches with `sys.executable -P -m falcon_axi.transport.harness`, preventing Python from prepending the caller's working directory to its import path while preserving installed-package resolution.
   The parent kills and reaps the worker at expiry; credentials travel over stdin, never argv or a file.
 
 ### 3.5 The test seam

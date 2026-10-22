@@ -187,6 +187,7 @@ def send_permitted_request(prepared: PreparedOperation | PreparedToken, permit: 
         )
     try:
         remaining = remaining_seconds()
+        # Requests accepts urllib3 Timeout objects, which its and falconpy's annotations omit.
         timeout = Timeout(total=min(TIMEOUT_SECONDS, remaining)) if remaining is not None else TIMEOUT_SECONDS
         if isinstance(prepared, PreparedToken):
             # D2 (docs/design/v1-python.md §3.3): falcon-axi mints the token itself, because
@@ -202,7 +203,7 @@ def send_permitted_request(prepared: PreparedOperation | PreparedToken, permit: 
                     "user-agent": user_agent(),
                 },
                 allow_redirects=False,
-                timeout=timeout,
+                timeout=timeout,  # type: ignore[arg-type]
             )
             return _normalize(
                 token_answer.status_code,
@@ -230,7 +231,7 @@ def send_permitted_request(prepared: PreparedOperation | PreparedToken, permit: 
             access_token=prepared.token,
             base_url=prepared.origin,
             user_agent=user_agent(),
-            timeout=timeout,
+            timeout=timeout,  # type: ignore[arg-type]
             proxy=_proxy(),
             debug=False,
             sanitize_log=True,

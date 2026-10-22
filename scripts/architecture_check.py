@@ -128,9 +128,7 @@ def check() -> bool:
             if (
                 not call.args
                 or ast.unparse(call.args[0]) != "[sys.executable, '-P', '-m', 'falcon_axi.transport.harness']"
-                or not any(
-                    item.arg == "timeout" and ast.unparse(item.value) == "remaining_seconds()" for item in call.keywords
-                )
+                or not any(item.arg == "timeout" and ast.unparse(item.value) == "remaining_seconds()" for item in call.keywords)
                 or any(item.arg == "shell" for item in call.keywords)
             ):
                 raise AssertionError("the request-worker command and remaining-budget timeout must be fixed")
