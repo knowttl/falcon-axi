@@ -9,6 +9,7 @@ import subprocess
 import sys
 import time
 from collections.abc import Callable
+from pathlib import Path
 from typing import Any
 
 import pytest
@@ -103,6 +104,28 @@ def test_worker_startup_cannot_send_after_the_deadline(
     with requests_mock.Mocker() as mock, request_budget(5), pytest.raises(BudgetExpired):
         deadline_request()
     assert mock.request_history == []
+
+
+def test_worker_ignores_dependencies_in_the_callers_directory(
+    deadline_request: Callable[[], FalconResponse], tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    (tmp_path / "requests.py").write_text("raise RuntimeError('untrusted dependency was imported')\n", encoding="utf-8")
+    monkeypatch.chdir(tmp_path)
+    monkeypatch.delenv("PYTHONPATH", raising=False)
+    monkeypatch.setenv("XDG_DATA_HOME", str(tmp_path / "data"))
+    run = subprocess.run
+
+    def expired_worker(args: list[str], **kwargs: Any) -> subprocess.CompletedProcess[str]:
+        payload = json.loads(kwargs["input"])
+        payload["deadline"] = 0
+        kwargs["input"] = json.dumps(payload)
+        return run(args, **kwargs)
+
+    monkeypatch.setattr(harness.subprocess, "run", expired_worker)
+    with request_budget(time.monotonic() + 10), pytest.raises(CliError) as expired:
+        deadline_request()
+    assert expired.value.code == "NETWORK_UNREACHABLE"
+    assert expired.value.message == "the search invocation reached its --wait deadline"
 
 
 def test_the_query_step_issues_the_registered_get_with_its_parameters() -> None:

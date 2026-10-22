@@ -127,7 +127,7 @@ def check() -> bool:
             call = calls[0]
             if (
                 not call.args
-                or ast.unparse(call.args[0]) != "[sys.executable, '-m', 'falcon_axi.transport.harness']"
+                or ast.unparse(call.args[0]) != "[sys.executable, '-P', '-m', 'falcon_axi.transport.harness']"
                 or not any(
                     item.arg == "timeout" and ast.unparse(item.value) == "remaining_seconds()" for item in call.keywords
                 )

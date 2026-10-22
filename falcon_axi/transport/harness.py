@@ -60,7 +60,7 @@ def _send_with_deadline(prepared: PreparedOperation | PreparedToken, permit: Per
     )
     try:
         result = subprocess.run(  # noqa: S603
-            [sys.executable, "-m", "falcon_axi.transport.harness"],
+            [sys.executable, "-P", "-m", "falcon_axi.transport.harness"],
             input=payload,
             text=True,
             stdout=subprocess.PIPE,
