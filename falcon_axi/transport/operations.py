@@ -19,6 +19,8 @@ from typing import Literal, get_args
 from falcon_axi.core import CliError
 
 OperationId = Literal[
+    "combined_summary_get",
+    "combined_edges_get",
     "RTR_ListAllSessions",
     "RTR_ListSessions",
     "RTRAuditSessions",
@@ -205,6 +207,39 @@ NGSIEM_DOC = "https://developer.crowdstrike.com/api-reference/collections/ngsiem
 IDENTITY_PROTECTION_DOC = "https://developer.crowdstrike.com/api-reference/collections/identity-protection/"
 
 CANONICAL: tuple[FalconOperation, ...] = (
+    FalconOperation(
+        id="combined_summary_get",
+        method="GET",
+        path="/threatgraph/combined/{vertex_type}/summary/v1",
+        scopes=("Threatgraph:read",),
+        effect="read",
+        evidence=Evidence(
+            doc_url="https://developer.crowdstrike.com/api-reference/collections/threatgraph/#combined_summary_get",
+            doc_scope="Threatgraph: READ",
+            falcon_mcp=(
+                "falcon-mcp has no tool for combined_summary_get. "
+                "falconpy/_endpoint/_threatgraph.py maps combined_summary_get to GET "
+                "/threatgraph/combined/{vertex_type}/summary/v1 (the SDK table uses {} with vertex_type). "
+                "PSFalcon Get-FalconThreatGraphVertex -IncludeEdge wraps the same operation."
+            ),
+        ),
+    ),
+    FalconOperation(
+        id="combined_edges_get",
+        method="GET",
+        path="/threatgraph/combined/edges/v1",
+        scopes=("Threatgraph:read",),
+        effect="read",
+        evidence=Evidence(
+            doc_url="https://developer.crowdstrike.com/api-reference/collections/threatgraph/#combined_edges_get",
+            doc_scope="Threatgraph: READ",
+            falcon_mcp=(
+                "falcon-mcp has no tool for combined_edges_get. "
+                "falconpy/_endpoint/_threatgraph.py maps combined_edges_get to GET "
+                "/threatgraph/combined/edges/v1. PSFalcon Get-FalconThreatGraphEdge wraps the same operation."
+            ),
+        ),
+    ),
     FalconOperation(
         id="RTR_ListAllSessions",
         method="GET",
@@ -1865,6 +1900,8 @@ def path_arguments(descriptor: FalconOperation, supplied: Mapping[str, str]) -> 
             f"operation {descriptor.id} was prepared with the wrong path variables",
             ["falcon-axi interpolates only the path variables its registry declares; report this as a bug"],
         )
+    if descriptor.id == "combined_summary_get" and supplied.get("vertex_type") != "processes":
+        raise CliError("READ_ONLY_VIOLATION", "ThreatGraph summaries are restricted to processes")
     for name, value in supplied.items():
         if not value.strip() or any(character in value for character in _PATH_SEPARATORS) or value in _DOT_SEGMENTS:
             raise CliError(

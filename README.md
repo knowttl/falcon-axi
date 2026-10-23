@@ -132,6 +132,7 @@ Grant only the domains you use; available scopes depend on product licensing.
 | Scope | Commands | Requirement |
 | --- | --- | --- |
 | `Alerts:read` | detection summary, detection list, detection show, detection process | yes |
+| `Threatgraph:read` | process tree | yes |
 | `Hosts:read` | host list, host show, host logins, host network | yes |
 | `Assets:read` | account list, account show, asset list, asset show, application list, login list | yes |
 | `Falcon Discover IoT:read` | iot list | yes |
@@ -254,6 +255,7 @@ Run any command with `--help` for its arguments and examples.
 | `detection list` | list detections from the Falcon Alerts collection |
 | `detection show` | <id>       the full detail for one detection |
 | `detection process` | <id>    process lineage recorded on one detection |
+| `process tree` | <pid-id>     process, up to five ancestors, and one child level |
 | `host list` | list hosts from the Falcon Hosts collection |
 | `host show` | <device id>     the full detail for one host |
 | `host logins` | <device id>   recent interactive logins on one host |

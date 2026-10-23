@@ -1,0 +1,16 @@
+{
+  "provenance": {
+    "operation": "combined_edges_get",
+    "reference": "https://github.com/CrowdStrike/falconpy/blob/main/samples/threat_graph/threat_finder.py",
+    "schema_read": "2026-10-22",
+    "provenance": "synthetic",
+    "note": "SDK sample supplies edge id and properties projection; successful combined-edge schema is absent from the API spec. Pagination next_page follows CrowdStrike's generated graph response model. No real telemetry."
+  },
+  "response": {
+    "status": 200,
+    "body": {
+      "meta": {"pagination": {"limit": 100, "offset": "", "next_page": "synthetic-next-child"}},
+      "resources": [{"id": "pid:synthetic-device:4", "properties": {"ImageFileName": "synthetic-descendant.exe", "CommandLine": "synthetic-descendant.exe", "SHA256HashData": "synthetic-sha256", "ProcessStartTime_formatted": "2026-01-01T00:03:00Z"}}]
+    }
+  }
+}

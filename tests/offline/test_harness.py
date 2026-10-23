@@ -146,6 +146,24 @@ def test_the_query_step_issues_the_registered_get_with_its_parameters() -> None:
     assert response.body["resources"] == ["ldt:a:1"]
 
 
+def test_threatgraph_summary_interpolates_the_fixed_process_path() -> None:
+    url = "https://api.crowdstrike.com/threatgraph/combined/processes/summary/v1"
+    with requests_mock.Mocker() as mock:
+        mock.get(url, json={"resources": []}, headers=JSON)
+        result = HttpTransport().request(
+            "combined_summary_get",
+            RequestArgs(
+                base_url="https://api.crowdstrike.com",
+                token="synthetic-token",
+                query={"ids": ("pid:synthetic-device:3",)},
+                path_params={"vertex_type": "processes"},
+            ),
+        )
+    assert mock.request_history[0].path == "/threatgraph/combined/processes/summary/v1"
+    assert mock.request_history[0].qs == {"ids": ["pid:synthetic-device:3"]}
+    assert result.status == 200
+
+
 def test_spotlight_facets_are_repeated_query_parameters() -> None:
     with requests_mock.Mocker() as mock:
         mock.get(VULN_URL, json={"resources": []}, headers=JSON)

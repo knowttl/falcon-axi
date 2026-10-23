@@ -25,6 +25,7 @@ from falcon_axi import (
     ioc,
     iom,
     policy,
+    process,
     quarantine,
     recon_notification,
     recon_record,
@@ -45,6 +46,7 @@ COMMAND_SPECS = {
     spec.name: spec
     for group in (
         detection.COMMAND_SPECS,
+        process.COMMAND_SPECS,
         host.COMMAND_SPECS,
         account.COMMAND_SPECS,
         discover.COMMAND_SPECS,
