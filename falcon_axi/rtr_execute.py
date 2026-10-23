@@ -227,7 +227,7 @@ def _execute_locked(
             failure.details.update(
                 run=run_id,
                 output=output,
-                complete=False,
+                complete=complete,
                 truncated=truncated,
                 cleanup=record["cleanup"],
             )

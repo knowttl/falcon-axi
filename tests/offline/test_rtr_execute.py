@@ -298,7 +298,11 @@ def test_delete_failure_is_an_explicit_failed_outcome(env, transport):
     with pytest.raises(CliError, match="deletion") as error:
         run(transport, env)
     assert error.value.details["cleanup"] == "failed"
+    assert error.value.details["complete"] is True
+    assert error.value.details["output"] == "synthetic output"
+    assert error.value.details["truncated"] is False
     assert records(env)[-1]["cleanup"] == "failed"
+    assert records(env)[-1]["command_outcome"] == "complete"
 
 
 def test_lost_init_is_unknown_owned_work_and_is_never_replayed(env, transport):
@@ -379,19 +383,23 @@ def test_outcome_failure_still_deletes_the_session(env, transport, monkeypatch):
     assert len(transport.operation_requests("RTR_DeleteSession")) == 1
     assert error.value.details["cleanup"] == "deleted"
     assert error.value.details["output"] == "synthetic output"
+    assert error.value.details["complete"] is True
+    assert error.value.details["truncated"] is False
     assert error.value.details["run"] == records(env)[0]["run"]
     assert error.value.details["journal_error"]["code"] == "CONFIG_INSECURE"
 
 
 @pytest.mark.parametrize(
-    "operation,cleanup,message,output",
+    "operation,cleanup,message,output,complete",
     [
-        ("RTR_DeleteSession", "failed", "deletion", "synthetic output"),
-        ("RTR_InitSession", "unknown", "synthetic lifecycle failure", ""),
-        ("RTR_ExecuteCommand", "deleted", "synthetic lifecycle failure", ""),
+        ("RTR_DeleteSession", "failed", "deletion", "synthetic output", True),
+        ("RTR_InitSession", "unknown", "synthetic lifecycle failure", "", False),
+        ("RTR_ExecuteCommand", "deleted", "synthetic lifecycle failure", "", False),
     ],
 )
-def test_outcome_failure_preserves_lifecycle_recovery(env, transport, monkeypatch, operation, cleanup, message, output):
+def test_outcome_failure_preserves_lifecycle_recovery(
+    env, transport, monkeypatch, operation, cleanup, message, output, complete
+):
     original = Journal.append
 
     def append(journal, record):
@@ -407,7 +415,7 @@ def test_outcome_failure_preserves_lifecycle_recovery(env, transport, monkeypatc
         "cleanup": cleanup,
         "run": records(env)[0]["run"],
         "output": output,
-        "complete": False,
+        "complete": complete,
         "truncated": False,
         "journal_error": {"code": "CONFIG_INSECURE", "message": "synthetic outcome flush failure"},
     }
