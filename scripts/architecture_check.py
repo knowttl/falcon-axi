@@ -62,9 +62,30 @@ def check() -> bool:
         text = path.read_text(encoding="utf-8")
         tree = ast.parse(text)
         imported = _imported_modules(tree)
+        journal_calls = (
+            {
+                child
+                for cls in tree.body
+                if isinstance(cls, ast.ClassDef) and cls.name == "Journal"
+                for method in cls.body
+                if isinstance(method, ast.FunctionDef) and method.name in {"_file", "append"}
+                for child in ast.walk(method)
+                if isinstance(child, ast.Call)
+            }
+            if path == PACKAGE / "rtr_journal.py"
+            else set()
+        )
         if path != PACKAGE / "setup.py":
             for node in ast.walk(tree):
                 if not isinstance(node, ast.Call):
+                    continue
+                # N3 admits only this private append/fsync writer, never general file mutation.
+                if node in journal_calls and ast.unparse(node.func) in {
+                    "os.mkdir",
+                    "os.open",
+                    "os.fdopen",
+                    "stream.write",
+                }:
                     continue
                 if isinstance(node.func, ast.Attribute) and node.func.attr in {
                     "write_text",

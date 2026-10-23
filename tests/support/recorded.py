@@ -12,6 +12,7 @@ from typing import Any
 
 from falcon_axi.transport.graphql import request_body
 from falcon_axi.transport.operations import operation, path_arguments
+from falcon_axi.transport.rtr import prepare_grant
 from falcon_axi.transport.types import FalconResponse, OAuthTokenArgs, RequestArgs
 
 FIXTURES = Path(__file__).resolve().parent.parent / "fixtures"
@@ -45,6 +46,7 @@ class RecordedTransport:
         descriptor = operation(id)
         path_arguments(descriptor, dict(args.path_params or {}))
         request_body(descriptor, args.document, args.variables, args.body)
+        prepare_grant(id, args)
         self.requests.append(("operation", (id, args)))
         for responder in self.responders:
             answer = responder(id, args)

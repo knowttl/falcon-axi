@@ -10,8 +10,8 @@ _values: ContextVar[set[str] | None] = ContextVar("redaction_values", default=No
 
 
 @contextmanager
-def redaction_scope() -> Iterator[None]:
-    token = _values.set(set())
+def redaction_scope(*, inherit: bool = False) -> Iterator[None]:
+    token = _values.set(set(_values.get() or ()) if inherit else set())
     try:
         yield
     finally:

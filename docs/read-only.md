@@ -21,8 +21,8 @@ See [search lifecycle](design/v1.md#43-ng-siem-search-was-excluded-on-the-creden
 It does not change the fixed read-only GraphQL contract.
 There is no host containment, response session, quarantine release, ingest, configuration write, or GraphQL mutation surface.
 RTR history reads session metadata and audit records without opening or executing a session, including under READ_ONLY.
-Only the three exact history operation tuples are admitted; all other RTR routes remain refused.
-The approved, unshipped RTR execution exception is owned by [N3's design contract](design/v1.md#45-rtr-was-excluded-on-semantic-execution-grounds-and-captain-exception-n3-narrowly-reverses-it).
+RTR operation admission and the internal execution core's guards are owned by [N3's design contract](design/v1.md#45-rtr-was-excluded-on-semantic-execution-grounds-and-captain-exception-n3-narrowly-reverses-it).
+The [implementation slices](design/v1.md#19-n3-implementation-slices) distinguish internal execution support from pending CLI exposure.
 
 ## Sensitive output
 

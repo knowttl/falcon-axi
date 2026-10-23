@@ -12,11 +12,12 @@ from typing import Any, Literal
 from falcon_axi.core import CliError
 from falcon_axi.private_file import read_private_file
 from falcon_axi.redaction import register_secret
+from falcon_axi.rtr_policy import RtrPolicy, profile_policy
 
 CredentialChannel = Literal["environment", "file"]
 PROFILE_NAME = re.compile(r"^[A-Za-z0-9][A-Za-z0-9_-]{0,63}$")
 ENV_NAME = re.compile(r"^[A-Za-z_][A-Za-z0-9_]*$")
-PROFILE_FIELDS = frozenset({"region", "memberCid", "clientId", "clientSecret"})
+PROFILE_FIELDS = frozenset({"region", "memberCid", "clientId", "clientSecret", "rtr"})
 ALIASES = {
     "FALCON_CLIENT_ID": "FALCON_AXI_CLIENT_ID",
     "FALCON_CLIENT_SECRET": "FALCON_AXI_CLIENT_SECRET",
@@ -36,6 +37,7 @@ class Credential:
     region: str | None = None
     member_cid: str | None = None
     secret_source: str = "env:FALCON_AXI_CLIENT_SECRET"  # noqa: S105
+    rtr: RtrPolicy = RtrPolicy()
 
 
 def normalized_environment(env: Mapping[str, str]) -> dict[str, str]:
@@ -165,6 +167,10 @@ def load_profiles(
         if "clientId" not in profile:
             raise _invalid(f"profile {name} requires clientId")
         _validate_ref(profile.get("clientSecret", {"env": "FALCON_AXI_CLIENT_SECRET"}), platform)
+        if "rtr" in profile:
+            if profile["rtr"] is None:
+                raise _invalid("rtr must be an object")
+            profile_policy(profile["rtr"])
     default = document.get("defaultProfile")
     if default is not None and (not isinstance(default, str) or default not in profiles):
         raise _invalid("defaultProfile must name an existing profile")
@@ -230,5 +236,13 @@ def resolve_credential(
     register_secret(settings["clientId"])
     register_secret(secret)
     return Credential(
-        settings["clientId"], secret, "file", path, selected, settings.get("region"), settings.get("memberCid"), source
+        settings["clientId"],
+        secret,
+        "file",
+        path,
+        selected,
+        settings.get("region"),
+        settings.get("memberCid"),
+        source,
+        profile_policy(settings.get("rtr")),
     )

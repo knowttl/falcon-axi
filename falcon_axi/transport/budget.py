@@ -6,6 +6,7 @@ from contextlib import contextmanager
 from contextvars import ContextVar
 
 from falcon_axi.core import CliError
+from falcon_axi.rtr_policy import CLEANUP_SECONDS
 
 _deadline: ContextVar[float | None] = ContextVar("request_deadline", default=None)
 
@@ -42,3 +43,13 @@ def remaining_seconds() -> float | None:
     if remaining <= 0:
         raise BudgetExpired()
     return remaining
+
+
+@contextmanager
+def rtr_cleanup_budget() -> Iterator[None]:
+    """N3 reserves deletion time independently of any expired invocation deadline."""
+    token = _deadline.set(time.monotonic() + CLEANUP_SECONDS)
+    try:
+        yield
+    finally:
+        _deadline.reset(token)
