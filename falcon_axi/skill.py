@@ -15,6 +15,9 @@ INSTALL_HINT = "Run `npx skills add knowttl/falcon-axi --skill falcon-axi` to in
 
 def skill_markdown() -> str:
     """Render only durable CLI guidance, never credentials or tenant state."""
+    from falcon_axi.rtr_policy import COMMANDS
+
+    rtr_commands = ", ".join("eventlog (view or list)" if name == "eventlog" else name for name in sorted(COMMANDS))
     return "\n".join(
         [
             "---",
@@ -84,6 +87,32 @@ def skill_markdown() -> str:
             "After ambiguous init or failed deletion, reconcile sessions in Falcon before retrying; "
             "never replay automatically.",
             "Execution currently requires POSIX private-file and signal primitives.",
+            "",
+            "### Running a command",
+            "",
+            "1. Find the 32-character device id with `uvx falcon-axi host list --hostname '<name>'`.",
+            "   Work on one host at a time and prove the workflow on a single host first.",
+            "2. Preview with `uvx falcon-axi rtr run <device_id> --command '<complete command>'`.",
+            "   The preview makes no network request and shows the effective policy and allowed commands.",
+            "3. Execute the identical command string with `--execute --confirm '<device_id>:<complete command>'`.",
+            "",
+            f"Allowed commands: {rtr_commands}.",
+            "Anything else is refused locally before any request, "
+            "including `help`, which exists only in the interactive console.",
+            "A command is one complete string such as `ls C:\\Windows`, `filehash <path>` or `reg query <key>`.",
+            "Pass it as a single shell argument; "
+            "use a shell whose quoting is predictable when the path contains spaces or backslashes.",
+            "Pipes, redirects, `;`, `&&`, backticks and `$(...)` are refused, "
+            "so run one command per call and combine the results yourself.",
+            "",
+            "The result has `run_id`, `output`, `complete`, `truncated` and `cleanup`.",
+            "`complete: true` means the command finished.",
+            "`truncated: true` or `complete: false` means the output was cut at the cap, "
+            "so narrow the command, for example a subfolder or a single file, and run it again.",
+            "`cleanup: deleted` means the session was closed; any other value needs the reconciliation step above.",
+            "Every execution opens and deletes a real session on the host, so a failed run still touches the host.",
+            "Review earlier activity without opening a session using `rtr session list`, `rtr session show <session_id>` "
+            "(Real time response:read) and `rtr audit list` (Real time response audit:read).",
             "",
         ]
     )
