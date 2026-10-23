@@ -18,9 +18,8 @@ What is shipped:
 - the package foundation: a Python package, the `falcon-axi` console script, and one offline
   `uv run scripts/verify.py` entry point;
 - `-v`, `-V`, and `--version`, printing the bare version;
-- the sealed transport and its closed operation registry, with evidence carried per operation, a
-  closed exception tiers confining N1, N2, and N4's write-labelled scopes to five named
-  operations, N3's guarded RTR lifecycle, and a single permitted network sink;
+- the sealed transport and its closed operation registry, with evidence carried per operation,
+  [closed exception tiers](v1.md#33-the-transport-is-the-enforcement-point), and a single permitted network sink;
 - AXI credential profiles and SecretRefs, per-call XDG paths, region selection and
   `X-Cs-Region` autodiscovery, Flight Control member-CID selection, `auth status`, `profile list`, and `config path`;
 - the home view and core read domains: `falcon-axi`, `detection list`, `detection show`, `host list`,
@@ -38,7 +37,7 @@ What is shipped:
   `report list`, and `report show`, with FQL filters and cursor pagination on lists;
 - the Identity Protection directory and timeline: `identity list`, `identity show`, and
   `identity timeline`, sending only fixed read-only GraphQL query documents under captain exception
-  N2, the other place falcon-axi asks for a write-labelled scope;
+  N2;
 - `identity assessment [--domain <name>]`, a fixed read-only security-assessment query under N2,
   and `identity sensor list` / `identity sensor show`, ordinary REST reads of sensor inventory;
 - identity-aware detections (`detection list --product idp`, with account and source-endpoint

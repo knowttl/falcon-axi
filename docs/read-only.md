@@ -12,8 +12,7 @@ Every registered operation carries its documented scope and corroborating source
 Only the permitted network sink can import and call the FalconPy harness.
 
 Captain exception N1 admits exactly `StartSearchV1` and `StopSearchV1` with `NGSIEM:write`.
-Captain exception N4 admits exactly `PostMalQueryExactSearchV1` and `PostMalQueryFuzzySearchV1` with `MalQuery:write`, validated literal patterns, and bounded matches.
-Hunt and all malware downloads remain unregistered.
+The [N4 design contract](design/v1.md#46-malquery-pattern-search-captain-exception-n4) owns MalQuery search admission, pattern and result bounds, and hunt/download exclusions.
 Captain exception N2 admits exactly `api_preempt_proxy_post_graphql` with `Identity Protection GraphQL:write`.
 These are closed ID allowlists; they do not authorize additional writes.
 The GraphQL sink accepts registered documents only, with caller inputs in variables, never caller-supplied query text.
