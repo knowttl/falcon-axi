@@ -1,0 +1,39 @@
+{
+  "provenance": {
+    "operation": "PostEntitiesAlertsV2",
+    "reference": "https://github.com/CrowdStrike/gofalcon/blob/main/falcon/models/detects_alert.go",
+    "schema_read": "2026-10-22",
+    "provenance": "synthetic"
+  },
+  "response": {
+    "status": 200,
+    "headers": {},
+    "body": {
+      "errors": [],
+      "resources": [{
+        "composite_id": "ldt:synthetic-agent:1001",
+        "product": "epp",
+        "filename": "synthetic-child.exe",
+        "filepath": "C:\\Synthetic\\synthetic-child.exe",
+        "cmdline": "synthetic-child.exe --example",
+        "sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "process_id": "1003",
+        "triggering_process_graph_id": "pid:synthetic-agent:1003",
+        "parent_details": {
+          "filename": "synthetic-parent.exe",
+          "filepath": "C:\\Synthetic\\synthetic-parent.exe",
+          "cmdline": "synthetic-parent.exe --example",
+          "sha256": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+          "process_id": "1002"
+        },
+        "grandparent_details": {
+          "filename": "synthetic-grandparent.exe",
+          "filepath": "C:\\Synthetic\\synthetic-grandparent.exe",
+          "cmdline": "synthetic-grandparent.exe --example",
+          "sha256": "cccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc",
+          "process_id": "1001"
+        }
+      }]
+    }
+  }
+}

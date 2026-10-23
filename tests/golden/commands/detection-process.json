@@ -1,0 +1,6 @@
+{
+  "name": "detection process",
+  "order": 350,
+  "summary": "  detection process <id>    process lineage recorded on one detection",
+  "scopes": [{"scope": "Alerts:read", "access": "read"}]
+}

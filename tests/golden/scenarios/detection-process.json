@@ -1,0 +1,6 @@
+{
+  "name": "detection-process",
+  "argv": ["detection", "process", "ldt:synthetic-agent:1001"],
+  "responders": [{"op": "PostEntitiesAlertsV2", "fixture": "alerts/hydrate-lineage.json"}],
+  "exit_code": 0
+}
