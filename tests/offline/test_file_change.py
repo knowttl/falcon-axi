@@ -117,9 +117,7 @@ def test_incomplete_list_hydration_fails_without_results_or_continuation(resourc
 @pytest.mark.parametrize("envelope", [True, False])
 def test_mismatched_detail_hydration_is_upstream_error(envelope):
     resources = [{"id": SECOND}]
-    recorded = RecordedTransport(
-        [serve("getChanges", response(200, {"resources": resources} if envelope else resources))]
-    )
+    recorded = RecordedTransport([serve("getChanges", response(200, {"resources": resources} if envelope else resources))])
     stdout, code = run(["file-change", "show", FIRST], recorded, CREDENTIAL_ENV)
     assert code == 1
     value = decode(stdout)
