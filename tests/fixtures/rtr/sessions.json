@@ -1,0 +1,7 @@
+{
+  "provenance": {"operation": "RTR_ListSessions", "reference": "https://developer.crowdstrike.com/api-reference/collections/real-time-response/#rtr-listsessions", "schema_read": "2026-10-22", "provenance": "synthetic"},
+  "response": {"status": 200, "body": {"resources": [
+    {"id": "synthetic-session-02", "hostname": "SYNTHETIC-HOST-02", "user_id": "synthetic-operator", "created_at": "2026-01-02T00:00:00Z", "origin": "synthetic-origin"},
+    {"id": "synthetic-session-01", "hostname": "SYNTHETIC-HOST-01", "user_id": "synthetic-operator", "created_at": "2026-01-01T00:00:00Z", "origin": "synthetic-origin"}
+  ]}}
+}

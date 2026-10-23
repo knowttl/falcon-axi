@@ -50,6 +50,8 @@ Product licensing also controls availability.
 | `Custom IOA Rules:read` | ioa group list | yes |
 | `Correlation Rules:read` | correlation-rule list | yes |
 | `Cases:read` | case list, case show | yes |
+| `Real time response:read` | rtr session list, rtr session show | yes |
+| `Real time response audit:read` | rtr audit list | yes |
 | `Sensor Usage:read` | sensor-usage list | yes |
 | `Monitoring rules (Falcon Intelligence Recon):read` | recon-rule list, recon-rule show, recon-notification list, recon-notification show, recon-record list, recon-record show | yes |
 
@@ -1218,6 +1220,45 @@ Use the opaque id from list output. Long text is truncated to 800 characters.
 --full  return untruncated text
 Read-only. Requires Cases:read.
 Example: falcon-axi case show <id> --full
+```
+
+## rtr session list
+
+```text
+falcon-axi rtr session list [--filter <FQL>] [--limit N] [--cursor <token>]
+
+--filter  raw FQL; + is AND, comma is OR, values are single-quoted
+--limit   rows in this call (default 20, ceiling 5000)
+--cursor  opaque continuation token from the previous call
+Read-only. Requires Real time response:read.
+Examples:
+  falcon-axi rtr session list
+  falcon-axi rtr session list --limit 2
+```
+
+## rtr session show
+
+```text
+falcon-axi rtr session show <id> [--full]
+
+Use the opaque id from list output. Long text is truncated to 800 characters.
+--full  return untruncated text
+Read-only. Requires Real time response:read.
+Example: falcon-axi rtr session show <id> --full
+```
+
+## rtr audit list
+
+```text
+falcon-axi rtr audit list [--filter <FQL>] [--limit N] [--cursor <token>]
+
+--filter  raw FQL; + is AND, comma is OR, values are single-quoted
+--limit   rows in this call (default 20, ceiling 1000)
+--cursor  opaque continuation token from the previous call
+Read-only. Requires Real time response audit:read.
+Examples:
+  falcon-axi rtr audit list
+  falcon-axi rtr audit list --limit 2
 ```
 
 ## auth status

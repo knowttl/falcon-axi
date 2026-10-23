@@ -18,6 +18,9 @@ from typing import Literal, get_args
 from falcon_axi.core import CliError
 
 OperationId = Literal[
+    "RTR_ListAllSessions",
+    "RTR_ListSessions",
+    "RTRAuditSessions",
     "exclusions_search_v2",
     "exclusions_get_v2",
     "ss_ioa_exclusions_search_v2",
@@ -167,6 +170,45 @@ NGSIEM_DOC = "https://developer.crowdstrike.com/api-reference/collections/ngsiem
 IDENTITY_PROTECTION_DOC = "https://developer.crowdstrike.com/api-reference/collections/identity-protection/"
 
 CANONICAL: tuple[FalconOperation, ...] = (
+    FalconOperation(
+        id="RTR_ListAllSessions",
+        method="GET",
+        path="/real-time-response/queries/sessions/v1",
+        scopes=("Real time response:read",),
+        effect="read",
+        evidence=Evidence(
+            "https://developer.crowdstrike.com/api-reference/collections/real-time-response/#rtr-listallsessions",
+            "Real time response: READ",
+            "falcon_mcp/common/api_scopes.py maps RTR_ListAllSessions to Real time response:read; "
+            "falcon_mcp/modules/rtr.py search_sessions queries this id before hydration.",
+        ),
+    ),
+    FalconOperation(
+        id="RTR_ListSessions",
+        method="POST",
+        path="/real-time-response/entities/sessions/GET/v1",
+        scopes=("Real time response:read",),
+        effect="read",
+        evidence=Evidence(
+            "https://developer.crowdstrike.com/api-reference/collections/real-time-response/#rtr-listsessions",
+            "Real time response: READ",
+            "falcon_mcp/common/api_scopes.py maps RTR_ListSessions to Real time response:read; "
+            "falcon_mcp/modules/rtr.py search_sessions hydrates ids in a POST body and restores query order.",
+        ),
+    ),
+    FalconOperation(
+        id="RTRAuditSessions",
+        method="GET",
+        path="/real-time-response-audit/combined/sessions/v1",
+        scopes=("Real time response audit:read",),
+        effect="read",
+        evidence=Evidence(
+            "https://developer.crowdstrike.com/api-reference/collections/real-time-response-audit/#rtrauditsessions",
+            "Real time response audit: READ",
+            "falcon_mcp/common/api_scopes.py maps RTRAuditSessions to real-time-response-audit:read "
+            "(Real time response audit:read); falcon_mcp/modules/rtr.py search_audit_sessions reads combined records.",
+        ),
+    ),
     FalconOperation(
         id="QueryMalwareEntities",
         method="GET",
@@ -1603,7 +1645,15 @@ CANONICAL: tuple[FalconOperation, ...] = (
 MUTATION_ROUTE_PATTERNS: tuple[re.Pattern[str], ...] = (
     re.compile(r"/entities/[^/]+/action", re.IGNORECASE),
     re.compile(r"/queries/[^/]+/action", re.IGNORECASE),
-    re.compile(r"/real-time-response/", re.IGNORECASE),
+)
+
+# Passive history is the entire RTR read admission (§4.5), including the separate audit collection.
+RTR_HISTORY_ROUTES = MappingProxyType(
+    {
+        "RTR_ListAllSessions": ("GET", "/real-time-response/queries/sessions/v1", ("Real time response:read",)),
+        "RTR_ListSessions": ("POST", "/real-time-response/entities/sessions/GET/v1", ("Real time response:read",)),
+        "RTRAuditSessions": ("GET", "/real-time-response-audit/combined/sessions/v1", ("Real time response audit:read",)),
+    }
 )
 
 _READ_SCOPE = re.compile(r":\s*READ$", re.IGNORECASE)
@@ -1679,6 +1729,9 @@ def _seal(entry: FalconOperation) -> FalconOperation:
         raise ValueError(f"operation {entry.id} is missing its §2.2 corroboration")
     if any(pattern.search(entry.path) for pattern in MUTATION_ROUTE_PATTERNS):
         raise ValueError(f"operation {entry.id} matches a known mutation route")
+    if entry.id in RTR_HISTORY_ROUTES or "/real-time-response" in entry.path.lower():
+        if entry.effect != "read" or RTR_HISTORY_ROUTES.get(entry.id) != (entry.method, entry.path, entry.scopes):
+            raise ValueError(f"operation {entry.id} is outside the exact RTR history routes")
     return entry
 
 

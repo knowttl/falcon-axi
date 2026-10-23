@@ -1,0 +1,6 @@
+{
+  "name": "rtr audit list",
+  "order": 2382,
+  "summary": "  rtr audit list             read audit_sessions",
+  "scopes": [{"scope": "Real time response audit:read", "access": "read", "required": "yes"}]
+}

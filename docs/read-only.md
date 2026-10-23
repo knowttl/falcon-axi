@@ -20,7 +20,9 @@ See [search lifecycle](design/v1.md#43-ng-siem-search-was-excluded-on-the-creden
 `FALCON_AXI_READ_ONLY=1` blocks search start, stop, and identity activity.
 It does not change the fixed read-only GraphQL contract.
 There is no host containment, response session, quarantine release, ingest, configuration write, or GraphQL mutation surface.
-The approved, unshipped RTR exception is owned by [N3's design contract](design/v1.md#45-rtr-was-excluded-on-semantic-execution-grounds-and-captain-exception-n3-narrowly-reverses-it).
+RTR history reads session metadata and audit records without opening or executing a session, including under READ_ONLY.
+Only the three exact history operation tuples are admitted; all other RTR routes remain refused.
+The approved, unshipped RTR execution exception is owned by [N3's design contract](design/v1.md#45-rtr-was-excluded-on-semantic-execution-grounds-and-captain-exception-n3-narrowly-reverses-it).
 
 ## Sensitive output
 

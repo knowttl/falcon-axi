@@ -1,0 +1,4 @@
+{
+  "provenance": {"operation": "RTR_ListAllSessions", "reference": "https://developer.crowdstrike.com/api-reference/collections/real-time-response/#rtr-listallsessions", "schema_read": "2026-10-22", "provenance": "synthetic"},
+  "response": {"status": 200, "body": {"resources": ["synthetic-session-01", "synthetic-session-02"], "meta": {"pagination": {"offset": 0, "total": 2}}}}
+}

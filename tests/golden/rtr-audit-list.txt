@@ -1,0 +1,3 @@
+count: 1 of 1 total
+audit_sessions[1]{id,hostname,user_id,created_at}:
+  synthetic-session-01,SYNTHETIC-HOST-01,synthetic-operator,"2026-01-01T00:00:00Z"

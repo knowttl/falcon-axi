@@ -1,0 +1,5 @@
+count: 2 of 2 total
+sessions[2]{id,hostname,user_id,created_at}:
+  synthetic-session-01,SYNTHETIC-HOST-01,synthetic-operator,"2026-01-01T00:00:00Z"
+  synthetic-session-02,SYNTHETIC-HOST-02,synthetic-operator,"2026-01-02T00:00:00Z"
+help[1]: "Run `falcon-axi rtr session show <id>` for the full record"

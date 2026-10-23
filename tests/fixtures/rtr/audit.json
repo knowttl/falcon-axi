@@ -1,0 +1,6 @@
+{
+  "provenance": {"operation": "RTRAuditSessions", "reference": "https://developer.crowdstrike.com/api-reference/collections/real-time-response-audit/#rtrauditsessions", "schema_read": "2026-10-22", "provenance": "synthetic"},
+  "response": {"status": 200, "body": {"resources": [
+    {"id": "synthetic-session-01", "hostname": "SYNTHETIC-HOST-01", "user_id": "synthetic-operator", "created_at": "2026-01-01T00:00:00Z", "deleted_at": "2026-01-01T00:01:00Z"}
+  ], "meta": {"pagination": {"offset": 0, "total": 1}}}}
+}
