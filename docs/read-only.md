@@ -1,12 +1,12 @@
 # Read-only enforcement
 
-falcon-axi reads Falcon data without changing hosts, detections, policies, or identities.
+The shipped CLI reads Falcon data without changing hosts, detections, policies, or identities.
 Starting and stopping NG-SIEM search jobs are its only tenant-side effects.
 Identity Protection's write-labelled GraphQL scope is used solely for registered read-only query documents.
 
 ## Closed transport boundary
 
-The [design invariant](design/v1.md#0-invariant-r-v1-is-read-only-with-two-captain-granted-exceptions) is enforced through a closed operation registry before the SDK is constructed.
+The [design invariant](design/v1.md#0-invariant-r-v1-is-read-only-with-three-captain-granted-exceptions) is enforced through a closed operation registry before the SDK is constructed.
 HTTP verbs and scope names alone do not prove a read: Falcon uses POST for reads, and some read-scoped operations have effects.
 Every registered operation carries its documented scope and corroborating source evidence.
 Only the permitted network sink can import and call the FalconPy harness.
@@ -20,6 +20,7 @@ See [search lifecycle](design/v1.md#43-ng-siem-search-was-excluded-on-the-creden
 `FALCON_AXI_READ_ONLY=1` blocks search start, stop, and identity activity.
 It does not change the fixed read-only GraphQL contract.
 There is no host containment, response session, quarantine release, ingest, configuration write, or GraphQL mutation surface.
+The approved, unshipped RTR exception is owned by [N3's design contract](design/v1.md#45-rtr-was-excluded-on-semantic-execution-grounds-and-captain-exception-n3-narrowly-reverses-it).
 
 ## Sensitive output
 

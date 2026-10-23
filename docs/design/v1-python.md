@@ -12,7 +12,7 @@ This document changes the implementation language and the HTTP client underneath
 It amends v1.md §2 (backend), §3.3 (transport enforcement, restated for Python), §14 (test layout, restated for pytest), and §16 (API client evaluation, now adopting falconpy), and it adds packaging and distribution, which v1.md never specified.
 Every section of v1.md not named here carries over unchanged, and a commissioned build must not narrow or widen the v1 command surface while porting.
 
-Invariant R is binding and carries over from v1.md §0: falcon-axi changes no tenant state and implements no mutating operation, with the two captain exceptions N1 (v1.md §4.3), starting and stopping an NG-SIEM search job, and N2 (v1.md §4.4), sending fixed read-only query documents through the write-labelled Identity Protection GraphQL scope.
+Invariant R and its closed captain exceptions are owned by [v1.md §0](v1.md#0-invariant-r-v1-is-read-only-with-three-captain-granted-exceptions) and remain binding.
 Nothing in a Python rewrite relaxes it further, and §3 below shows how the guarantee is rebuilt in Python.
 
 ## 1. Decision record
