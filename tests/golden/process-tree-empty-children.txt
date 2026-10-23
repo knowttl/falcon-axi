@@ -1,0 +1,5 @@
+lineage[1]{relation,id,filename,cmdline,sha256,start_time}:
+  process,"pid:synthetic-device:1",synthetic-root.exe,unknown,unknown,unknown
+ancestry: no further parent recorded
+children: 0 child processes
+child_count: 0

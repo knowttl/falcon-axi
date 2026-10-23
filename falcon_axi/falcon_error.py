@@ -32,6 +32,7 @@ _INVENTORY_REMEDIES: dict[OperationId, tuple[str, str]] = {
 #: License prerequisites for scope-denied remedies; provisioning guidance lives in README.md.
 #: Console picker visibility is inferred, not observed (docs/design/v1.md §17.17).
 LICENSE_GATED_SCOPES = {
+    "Threatgraph:read": "a Falcon subscription with ThreatGraph API access enabled",
     "Assets:read": "Falcon Discover or Exposure Management",
     "Real time response:read": "a Falcon subscription with Real Time Response enabled",
     "Real time response audit:read": "a Falcon subscription with Real Time Response audit enabled",

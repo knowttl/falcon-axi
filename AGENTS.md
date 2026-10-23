@@ -93,9 +93,10 @@ Two seams are worth knowing before changing them:
   offset; `cursor.py` carries the models in `docs/design/v1.md` §7.1 behind one `--cursor` vocabulary.
   `search.py` is a third shape again: an NG-SIEM query job carries no pagination metadata at all, so it has
   neither `--limit` nor `--cursor`; start and status optionally poll with a bounded `--wait` of 1-50 seconds.
-  Its three routes are also the only ones with `{path}` variables, which `path_arguments()` validates against
+  Its three routes and the ThreatGraph process-summary route have `{path}` variables, which `path_arguments()` validates against
   separators and dot segments before a request is prepared; `RecordedTransport` runs the same check so the
   test seam is never more permissive than the sealed transport.
+  ThreatGraph's `vertex_type` is fixed to `processes` at that boundary.
 - `falcon_axi/transport/harness.py` is the one file allowed to touch the network and the one file allowed to
   import `falconpy`, from which only `APIHarnessV2` may be named; `send_permitted_request` is the one function
   in it allowed to reach the network.

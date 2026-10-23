@@ -1,0 +1,10 @@
+{
+  "name": "process-tree-empty-children",
+  "argv": ["process", "tree", "pid:synthetic-device:1"],
+  "exit_code": 0,
+  "responders": [
+    {"op": "combined_summary_get", "fixture": "threatgraph/process-tree.json"},
+    {"op": "combined_edges_get", "response": {"status": 200, "body": {"resources": []}}}
+  ],
+  "comment": "P3 adds a ThreatGraph tree read with nearest-parent ordering and explicit empty children. Adding the command reference deliberately expands help, unknown-command discovery and the read-scope matrix under v1.md section 2.2."
+}

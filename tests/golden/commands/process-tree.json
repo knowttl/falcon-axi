@@ -1,0 +1,6 @@
+{
+  "name": "process tree",
+  "order": 2307.6,
+  "summary": "  process tree <pid-id>     process, up to five ancestors, and one child level",
+  "scopes": [{"scope": "Threatgraph:read", "access": "read"}]
+}
