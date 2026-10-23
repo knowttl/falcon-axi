@@ -19,6 +19,8 @@ from typing import Literal, get_args
 from falcon_axi.core import CliError
 
 OperationId = Literal[
+    "GetMalQueryMetadataV1",
+    "GetMalQueryQuotasV1",
     "QueryReports",
     "GetSummaryReports",
     "combined_summary_get",
@@ -383,6 +385,34 @@ CANONICAL: tuple[FalconOperation, ...] = (
             "falcon-mcp has no tool for QueryMalwareEntities. "
             "falconpy/_endpoint/_intel.py maps QueryMalwareEntities to GET /intel/combined/malware/v1. "
             "PSFalcon public/intel.ps1 Get-FalconMalwareFamily -Detailed wraps it.",
+        ),
+    ),
+    FalconOperation(
+        id="GetMalQueryMetadataV1",
+        method="GET",
+        path="/malquery/entities/metadata/v1",
+        scopes=("MalQuery:read",),
+        effect="read",
+        evidence=Evidence(
+            "https://developer.crowdstrike.com/api-reference/collections/malquery/#getmalquerymetadatav1",
+            "MalQuery: READ",
+            "falcon-mcp has no tool for GetMalQueryMetadataV1. "
+            "falconpy/_endpoint/_malquery.py maps GetMalQueryMetadataV1 to GET /malquery/entities/metadata/v1. "
+            "PSFalcon public/malquery.ps1 Get-FalconMalQuerySample wraps it and requires MalQuery: Read.",
+        ),
+    ),
+    FalconOperation(
+        id="GetMalQueryQuotasV1",
+        method="GET",
+        path="/malquery/aggregates/quotas/v1",
+        scopes=("MalQuery:read",),
+        effect="read",
+        evidence=Evidence(
+            "https://developer.crowdstrike.com/api-reference/collections/malquery/#getmalqueryquotasv1",
+            "MalQuery: READ",
+            "falcon-mcp has no tool for GetMalQueryQuotasV1. "
+            "falconpy/_endpoint/_malquery.py maps GetMalQueryQuotasV1 to GET /malquery/aggregates/quotas/v1. "
+            "PSFalcon public/malquery.ps1 Get-FalconMalQueryQuota wraps it and requires MalQuery: Read.",
         ),
     ),
     FalconOperation(

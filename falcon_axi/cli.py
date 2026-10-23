@@ -254,6 +254,10 @@ def parse(argv: Sequence[str]) -> Parsed:
         from falcon_axi.process import validate_process_id
 
         validate_process_id(positionals[0])
+    if command == "malquery show":
+        from falcon_axi.malquery import validate_sha256
+
+        validate_sha256(positionals[0])
     if command == "sandbox list":
         from falcon_axi.sandbox import sandbox_filter
 

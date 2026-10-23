@@ -1,0 +1,22 @@
+{
+  "provenance": {
+    "operation": "GetMalQueryMetadataV1",
+    "reference": "https://developer.crowdstrike.com/api-reference/collections/malquery/#getmalquerymetadatav1",
+    "schema_read": "2026-10-23",
+    "provenance": "synthetic"
+  },
+  "response": {
+    "status": 200,
+    "headers": {},
+    "body": [{
+      "family": "synthetic-family",
+      "filesize": 4096,
+      "filetype": "pe64",
+      "first_seen": "2026-01-01T00:00:00Z",
+      "label": "synthetic-label",
+      "md5": "synthetic-md5",
+      "sha1": "0000000000000000000000000000000000000000",
+      "sha256": "0000000000000000000000000000000000000000000000000000000000000000"
+    }]
+  }
+}

@@ -1,0 +1,6 @@
+{
+  "name": "malquery quota",
+  "order": 2307.84,
+  "summary": "  malquery quota            MalQuery quota counters and refresh time",
+  "scopes": [{"scope": "MalQuery:read", "access": "read"}]
+}

@@ -1,0 +1,6 @@
+{
+  "name": "malquery show",
+  "order": 2307.83,
+  "summary": "  malquery show <sha256>    indexed file metadata by SHA-256",
+  "scopes": [{"scope": "MalQuery:read", "access": "read"}]
+}

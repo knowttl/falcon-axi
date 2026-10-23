@@ -1,0 +1,6 @@
+{
+  "name": "malquery-quota",
+  "argv": ["malquery", "quota"],
+  "responders": [{"op": "GetMalQueryQuotasV1", "fixture": "malquery/quota.json"}],
+  "exit_code": 0
+}

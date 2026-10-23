@@ -155,6 +155,7 @@ Grant only the domains you use; available scopes depend on product licensing.
 | `Threatgraph:read` | process tree | yes |
 | `Sandbox (Falcon Intelligence):read` | sandbox list, sandbox show | yes |
 | `Falcon FileVantage:read` | file-change list, file-change show | yes |
+| `MalQuery:read` | malquery show, malquery quota | yes |
 | `Host Groups:read` | host-group list, host-group members | yes |
 | `Prevention Policies:read` | policy list, policy members | selected --type |
 | `Sensor Update Policies:read` | policy list, policy members | selected --type |
@@ -311,6 +312,8 @@ Run any command with `--help` for its arguments and examples.
 | `sandbox show` | <report-id> existing report summary and environment details |
 | `file-change list` | list FileVantage change history |
 | `file-change show` | <id>         inspect one FileVantage change |
+| `malquery show` | <sha256>    indexed file metadata by SHA-256 |
+| `malquery quota` | MalQuery quota counters and refresh time |
 | `host-group list` | list host-group list |
 | `host-group members` | <id>     list host-group members |
 | `policy list` | list policies of one required type |
