@@ -81,10 +81,9 @@ def execute_run(
     credential = resolve_credential(env, profile=profile, config=config)
     credential = replace(
         credential,
-        region=region or credential.region,
+        region=assert_trusted_origin(resolve_base_url(region=region or credential.region), False),
         member_cid=None if no_member_cid else member_cid or credential.member_cid,
     )
-    assert_trusted_origin(resolve_base_url(region=credential.region), False)
     if not credential.rtr.enabled:
         raise CliError("READ_ONLY_VIOLATION", "RTR execution requires explicit profile opt-in")
     base = parse_command(command, credential.rtr.commands)

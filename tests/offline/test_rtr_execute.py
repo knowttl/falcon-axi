@@ -254,8 +254,18 @@ def test_cli_preview_redacts_sensitive_command_arguments(env, transport):
     assert transport.requests == []
 
 
-def test_cli_region_and_tenant_flags_apply_to_whole_lifecycle(env, transport):
+@pytest.mark.parametrize(
+    "region",
+    [
+        "eu-1",
+        "https://api.eu-1.crowdstrike.com/",
+        "https://API.EU-1.CROWDSTRIKE.COM",
+        "https://API.EU-1.CROWDSTRIKE.COM/",
+    ],
+)
+def test_cli_region_and_tenant_flags_apply_to_whole_lifecycle(env, transport, region):
     transport.oauth = [response(201, {"access_token": "synthetic-rtr-token"}, {"x-cs-region": "eu-1"})]
+    emitted = []
     _, code = cli(
         transport,
         env,
@@ -263,15 +273,45 @@ def test_cli_region_and_tenant_flags_apply_to_whole_lifecycle(env, transport):
         "--confirm",
         f"{HOST}:ps",
         "--region",
-        "eu-1",
+        region,
         "--member-cid",
         "synthetic-child",
+        emit_preview=emitted.append,
     )
     assert code == 0
+    assert 'origin: "https://api.eu-1.crowdstrike.com"' in emitted[0]
     assert transport.oauth_requests()[0].member_cid == "synthetic-child"
     assert transport.oauth_requests()[0].base_url == "https://api.eu-1.crowdstrike.com"
     for _, args in [value for kind, value in transport.requests if kind == "operation"]:
         assert args.base_url == "https://api.eu-1.crowdstrike.com"
+
+
+@pytest.mark.parametrize(
+    "region",
+    [
+        "https://api.crowdstrike.com/",
+        "https://API.CROWDSTRIKE.COM",
+        "https://API.CROWDSTRIKE.COM/",
+    ],
+)
+def test_profile_region_is_canonical_in_local_preview_and_core_execution(env, transport, region):
+    path = Path(env["FALCON_AXI_CONFIG"])
+    document = json.loads(path.read_text())
+    document["profiles"]["triage"]["region"] = region
+    path.write_text(json.dumps(document))
+    output, code = cli(transport, env)
+    assert code == 0
+    assert f'origin: "{ORIGIN}"' in output
+    assert transport.requests == []
+    result = run(transport, env)
+    assert result.cleanup == "deleted"
+    assert transport.oauth_requests()[0].base_url == ORIGIN
+    assert [args.base_url for _, args in [value for kind, value in transport.requests if kind == "operation"]] == [
+        ORIGIN,
+        ORIGIN,
+        ORIGIN,
+        ORIGIN,
+    ]
 
 
 def test_success_deletes_the_returned_session_and_journals_without_output(env, transport):

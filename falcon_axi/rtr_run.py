@@ -32,8 +32,7 @@ def preview(ctx: Invocation) -> CommandOutput:
     member = None if ctx.flags.get("no-member-cid") else ctx.text("member-cid") or credential.member_cid
     if member:
         register_secret(member)
-    origin = resolve_base_url(region=ctx.text("region") or credential.region)
-    assert_trusted_origin(origin, False)
+    origin = assert_trusted_origin(resolve_base_url(region=ctx.text("region") or credential.region), False)
     parse_command(command, credential.rtr.commands)
     if executing and not credential.rtr.enabled:
         raise CliError("READ_ONLY_VIOLATION", "RTR execution requires explicit profile opt-in")
