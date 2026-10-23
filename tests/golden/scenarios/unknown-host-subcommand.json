@@ -1,5 +1,6 @@
 {
   "name": "unknown-host-subcommand",
+  "comment": "Design section 4.3 P7 adds host usb, so unknown-subcommand help now lists usb.",
   "argv": [
     "host",
     "contain"

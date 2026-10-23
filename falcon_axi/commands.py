@@ -40,6 +40,7 @@ from falcon_axi import (
     serverless,
     setup,
     shield,
+    usb,
     vuln,
 )
 
@@ -49,6 +50,7 @@ COMMAND_SPECS = {
     for group in (
         detection.COMMAND_SPECS,
         host.COMMAND_SPECS,
+        usb.COMMAND_SPECS,
         account.COMMAND_SPECS,
         discover.COMMAND_SPECS,
         vuln.COMMAND_SPECS,

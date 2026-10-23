@@ -234,6 +234,10 @@ def parse(argv: Sequence[str]) -> Parsed:
         since_seconds(_str(flags.get("since")) or IDENTITY_DEFAULT_SINCE)
     if command == "identity activity":
         activity_query(positionals[0])
+    if command == "host usb":
+        from falcon_axi.usb import usb_query
+
+        usb_query(positionals[0])
     if command in ("ioc hosts", "ioc processes"):
         from falcon_axi.ioc import validate_observation
 
@@ -418,7 +422,7 @@ def _run(
         if parsed.flags.get("help"):
             return f"{help_text(parsed.command)}\n", 0
         forced_read_only = read_only(values)
-        if forced_read_only and parsed.command in ("search start", "search stop", "identity activity"):
+        if forced_read_only and parsed.command in ("search start", "search stop", "identity activity", "host usb"):
             raise CliError("READ_ONLY_VIOLATION", "FALCON_AXI_READ_ONLY forbids search lifecycle changes")
         if parsed.command == "home":
             return _home_view(transport, parsed.flags, values, bin or "falcon-axi", skill_hint(values) if not argv else ())

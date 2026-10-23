@@ -103,7 +103,7 @@ There is no arbitrary API passthrough.
 
 Tenant-side effects are NG-SIEM search jobs and N3's explicitly authorized read-only RTR session lifecycle.
 See [API client permissions](#api-client-permissions) for required scopes.
-Set `FALCON_AXI_READ_ONLY=1` to block search start, search stop, identity activity, and RTR execution locally.
+Set `FALCON_AXI_READ_ONLY=1` to block search lifecycle changes and RTR execution locally; see the [switch contract](docs/design/v1.md#52-accepted-input-channels-in-precedence-order) for affected commands.
 Identity directory, timeline, and assessment reads require a scope Falcon labels write, but send only fixed read-only query documents.
 They accept no caller-supplied GraphQL.
 
@@ -133,6 +133,7 @@ Grant only the domains you use; available scopes depend on product licensing.
 | --- | --- | --- |
 | `Alerts:read` | detection summary, detection list, detection show, detection process | yes |
 | `Hosts:read` | host list, host show, host logins, host network | yes |
+| `NGSIEM:write` | host usb, identity activity, search start, search stop | yes |
 | `Assets:read` | account list, account show, asset list, asset show, application list, login list | yes |
 | `Falcon Discover IoT:read` | iot list | yes |
 | `Vulnerabilities:read` | vuln show, vuln list | yes |
@@ -143,7 +144,6 @@ Grant only the domains you use; available scopes depend on product licensing.
 | `Indicators (Falcon Intelligence):read` | indicator list, indicator show | yes |
 | `Falcon Container Image:read` | container list, image list, image vulnerabilities, serverless list | yes |
 | `Data Protection:read` | classification list, classification show, data-policy list, data-policy show | yes |
-| `NGSIEM:write` | identity activity, search start, search stop | yes |
 | `NGSIEM:read` | search start, search status | yes |
 | `Identity Protection GraphQL:write` | identity list, identity show, identity timeline, identity assessment | yes |
 | `Identity Protection Entities:read` | identity list, identity show, identity sensor list, identity sensor show | yes |
@@ -261,6 +261,7 @@ Run any command with `--help` for its arguments and examples.
 | `host show` | <device id>     the full detail for one host |
 | `host logins` | <device id>   recent interactive logins on one host |
 | `host network` | <device id>  IP and MAC address history for one host |
+| `host usb` | <device id>      start a search for one host's USB activity |
 | `account list` | list Discover accounts observed on endpoints |
 | `account show` | <id>         the full detail for one account |
 | `asset list` | list Discover managed and unmanaged assets |

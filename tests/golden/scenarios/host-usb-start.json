@@ -1,0 +1,12 @@
+{
+  "name": "host-usb-start",
+  "comment": "Design section 4.3 P7 adds a fixed USB search under N1 with dashboard-derived fields, not live-verified. The query projection deliberately adds #event_simpleName so connections, disconnections, and policy violations remain distinguishable when device fields match.",
+  "argv": ["host", "usb", "00000000000000000000000000000001"],
+  "responders": [
+    {
+      "op": "StartSearchV1",
+      "fixture": "ngsiem/start-search.json"
+    }
+  ],
+  "exit_code": 0
+}
