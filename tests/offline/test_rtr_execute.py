@@ -190,6 +190,28 @@ def test_cli_lifecycle_error_deletes_before_returning(env, transport, operation,
     assert len(transport.operation_requests("RTR_DeleteSession")) == 1
 
 
+@pytest.mark.parametrize("message", ["Command not found", "command NOT found: help"])
+def test_rejected_command_is_named_without_echoing_arguments(env, transport, message):
+    transport.responders.insert(
+        0, serve("RTR_ExecuteCommand", response(400, {"errors": [{"code": 40007, "message": message}]}))
+    )
+    with pytest.raises(CliError) as error:
+        run(transport, env, 'cat "C:\\Users\\someone\\notes.txt"')
+    assert (error.value.code, error.value.message) == ("UPSTREAM_ERROR", "Falcon does not accept the RTR command cat")
+    assert error.value.details["cleanup"] == "deleted"
+    assert len(transport.operation_requests("RTR_DeleteSession")) == 1
+    assert transport.operation_requests("RTR_CheckCommandStatus") == []
+
+
+def test_other_rejections_keep_the_generic_lifecycle_error(env, transport):
+    transport.responders.insert(
+        0, serve("RTR_ExecuteCommand", response(400, {"errors": [{"code": 400, "message": "Invalid session"}]}))
+    )
+    with pytest.raises(CliError, match="Falcon rejected the request for RTR lifecycle"):
+        run(transport, env)
+    assert len(transport.operation_requests("RTR_DeleteSession")) == 1
+
+
 @pytest.mark.parametrize("number", [signal.SIGINT, signal.SIGTERM])
 def test_cli_interrupt_deletes_and_restores_signal_handler(env, transport, number):
     previous = signal.getsignal(number)

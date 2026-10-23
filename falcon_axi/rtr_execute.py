@@ -12,7 +12,7 @@ from typing import Any
 from falcon_axi.auth import authenticate
 from falcon_axi.core import CliError
 from falcon_axi.credentials import Credential, read_only, resolve_credential, tool_directory, write_log_path
-from falcon_axi.falcon_error import translate_falcon_error
+from falcon_axi.falcon_error import falcon_messages, translate_falcon_error
 from falcon_axi.origin import assert_trusted_origin, resolve_base_url
 from falcon_axi.redaction import redact_text, redaction_scope, register_secret
 from falcon_axi.rtr_journal import Journal
@@ -128,6 +128,20 @@ def _execute_locked(
         remaining_seconds()
         response = transport.request(id, RequestArgs(authority.origin, authority.token, body=body, query=query, rtr=authority))
         if not 200 <= response.status < 300:
+            if (
+                id == "RTR_ExecuteCommand"
+                and response.status == 400
+                and any("command not found" in message.lower() for message in falcon_messages(response))
+            ):
+                # Only the allowlisted base command is named; the full string may carry paths.
+                raise CliError(
+                    "UPSTREAM_ERROR",
+                    f"Falcon does not accept the RTR command {base}",
+                    [
+                        "The command may exist only in the interactive RTR console, not in the command API",
+                        "Run `falcon-axi rtr run --help` for the commands this tool allows",
+                    ],
+                )
             raise translate_falcon_error(response, id, "RTR lifecycle")
         return response.body
 
