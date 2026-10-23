@@ -1,5 +1,18 @@
 # Changelog
 
+## [0.7.1](https://github.com/knowttl/falcon-axi/compare/v0.7.0...v0.7.1) (2026-10-23)
+
+
+### Bug Fixes
+
+* remove the console-only help command from the RTR command set ([#65](https://github.com/knowttl/falcon-axi/issues/65)) ([682cf37](https://github.com/knowttl/falcon-axi/commit/682cf3761adfb7afd087604d0d68945cd0612bfb))
+* return the output of a completed RTR command whose final status omits sequence_id ([#64](https://github.com/knowttl/falcon-axi/issues/64)) ([4c7c832](https://github.com/knowttl/falcon-axi/commit/4c7c8321dc1b355421cdf0074dab5ed1d035192f))
+
+
+### Documentation
+
+* teach the skill how to run RTR commands and read their results ([#67](https://github.com/knowttl/falcon-axi/issues/67)) ([7b82e20](https://github.com/knowttl/falcon-axi/commit/7b82e203b3819972cc1b3165377bc613c93dec2c))
+
 ## [0.7.0](https://github.com/knowttl/falcon-axi/compare/v0.6.0...v0.7.0) (2026-10-23)
 
 
