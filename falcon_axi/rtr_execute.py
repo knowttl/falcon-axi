@@ -138,8 +138,8 @@ def _execute_locked(
                     "UPSTREAM_ERROR",
                     f"Falcon does not accept the RTR command {base}",
                     [
-                        "The command may exist only in the interactive RTR console, not in the command API",
-                        "Run `falcon-axi rtr run --help` for the commands this tool allows",
+                        "The command may not exist on this host's platform, or only in the interactive RTR console",
+                        "Run `falcon-axi rtr run --help` for the commands and the platforms they were verified on",
                     ],
                 )
             raise translate_falcon_error(response, id, "RTR lifecycle")

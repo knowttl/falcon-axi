@@ -15,9 +15,8 @@ INSTALL_HINT = "Run `npx skills add knowttl/falcon-axi --skill falcon-axi` to in
 
 def skill_markdown() -> str:
     """Render only durable CLI guidance, never credentials or tenant state."""
-    from falcon_axi.rtr_policy import COMMANDS
+    from falcon_axi.rtr_policy import platform_availability
 
-    rtr_commands = ", ".join("eventlog (view or list)" if name == "eventlog" else name for name in sorted(COMMANDS))
     return "\n".join(
         [
             "---",
@@ -96,9 +95,12 @@ def skill_markdown() -> str:
             "   The preview makes no network request and shows the effective policy and allowed commands.",
             "3. Execute the identical command string with `--execute --confirm '<device_id>:<complete command>'`.",
             "",
-            f"Allowed commands: {rtr_commands}.",
+            "Allowed commands depend on the host's platform, and Falcon rejects a command that the platform lacks "
+            "as `Command not found`:",
+            *platform_availability(),
+            "`eventlog` permits only `view` and `list`.",
             "Anything else is refused locally before any request, "
-            "including `help`, which exists only in the interactive console.",
+            "including `help`, `clear` and `history`, which exist only in the interactive console.",
             "A command is one complete string such as `ls C:\\Windows`, `filehash <path>` or `reg query <key>`.",
             "Pass it as a single shell argument; "
             "use a shell whose quoting is predictable when the path contains spaces or backslashes.",

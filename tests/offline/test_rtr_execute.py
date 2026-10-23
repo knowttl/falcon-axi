@@ -5,6 +5,7 @@ import json
 import os
 import signal
 import time
+from importlib.resources import files
 from pathlib import Path
 
 import pytest
@@ -16,7 +17,7 @@ from falcon_axi.credentials import load_profiles
 from falcon_axi.redaction import redaction_scope, register_secret
 from falcon_axi.rtr_execute import execute_run
 from falcon_axi.rtr_journal import Journal
-from falcon_axi.rtr_policy import COMMANDS, OUTPUT_BYTES, OUTPUT_CHUNKS, RESPONSE_BYTES, parse_command
+from falcon_axi.rtr_policy import COMMANDS, OUTPUT_BYTES, OUTPUT_CHUNKS, RESPONSE_BYTES, parse_command, platform_availability
 from falcon_axi.transport import HttpTransport
 from falcon_axi.transport.budget import BudgetExpired, remaining_seconds, request_budget
 from falcon_axi.transport.harness import _worker_reply, mint_permit, send_permitted_request
@@ -444,6 +445,8 @@ def test_confirmation_must_match_byte_for_byte(env, transport, confirmation):
         "eventlog export x",
         "eventlog",
         "help",
+        "clear",
+        "history",
         "ps;ls",
         "ps\nls",
         "cat x > y",
@@ -472,6 +475,22 @@ def test_bad_command_is_refused_before_authentication(env, transport, command):
 @pytest.mark.parametrize("command", sorted(COMMANDS - {"eventlog"}) + ["eventlog view Application", "eventlog list"])
 def test_standard_command_tokens_are_admitted(command):
     assert parse_command(command) in {command.split()[0], "reg"}
+
+
+def test_platform_summary_lists_every_allowed_command_exactly_once():
+    listed = [name for line in platform_availability() for name in line.rsplit(": ", 1)[1].rstrip(".").split(", ")]
+    assert sorted(listed) == sorted(COMMANDS)
+
+
+def test_credential_schema_accepts_exactly_the_allowed_commands():
+    schema = json.loads(files("falcon_axi").joinpath("axi-credential.schema.json").read_text())
+    assert set(schema["properties"]["rtr"]["properties"]["commands"]["items"]["enum"]) == COMMANDS
+
+
+def test_command_help_states_where_each_command_was_verified():
+    output, code = cli_run(["rtr", "run", "--help"], transport=RecordedTransport([]), env={})
+    assert code == 0
+    assert all(line in output for line in platform_availability())
 
 
 @pytest.mark.parametrize(

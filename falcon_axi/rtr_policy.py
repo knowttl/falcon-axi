@@ -7,27 +7,46 @@ from typing import Any
 
 from falcon_axi.core import CliError
 
-COMMANDS = frozenset(
-    {
-        "cat",
-        "cd",
-        "clear",
-        "csrutil",
-        "env",
-        "eventlog",
-        "filehash",
-        "getsid",
-        "history",
-        "ifconfig",
-        "ipconfig",
-        "ls",
-        "mount",
-        "netstat",
-        "ps",
-        "reg query",
-        "users",
-    }
-)
+# The platforms on which each command was verified to run through the command API.
+# Falcon answers a command that the host's platform lacks with "Command not found", so availability is per platform.
+# Verified on one Windows and one Linux host; macOS was not tested, and csrutil, a macOS command, ran on neither.
+# The interactive console also has help, clear and history, which the command API rejects on every tested platform.
+COMMAND_PLATFORMS: dict[str, tuple[str, ...]] = {
+    "cat": ("windows", "linux"),
+    "cd": ("windows", "linux"),
+    "csrutil": (),
+    "env": ("windows", "linux"),
+    "eventlog": ("windows",),
+    "filehash": ("windows", "linux"),
+    "getsid": ("windows",),
+    "ifconfig": ("linux",),
+    "ipconfig": ("windows",),
+    "ls": ("windows", "linux"),
+    "mount": ("windows", "linux"),
+    "netstat": ("windows", "linux"),
+    "ps": ("windows", "linux"),
+    "reg query": ("windows",),
+    "users": ("linux",),
+}
+COMMANDS = frozenset(COMMAND_PLATFORMS)
+_AVAILABILITY_LINES = {
+    ("windows", "linux"): "Verified on both Windows and Linux: {}.",
+    ("windows",): "Verified on Windows only: {}.",
+    ("linux",): "Verified on Linux only: {}.",
+    (): "Accepted on neither Windows nor Linux, because it is a macOS command and macOS was not tested: {}.",
+}
+
+
+def platform_availability() -> tuple[str, ...]:
+    """One line per availability group, shared by the command help and the skill."""
+    lines = []
+    for platforms, template in _AVAILABILITY_LINES.items():
+        names = sorted(name for name, found in COMMAND_PLATFORMS.items() if found == platforms)
+        if names:
+            lines.append(template.format(", ".join(names)))
+    return tuple(lines)
+
+
 EXECUTION_SECONDS = 50
 CLEANUP_SECONDS = 10
 OUTPUT_BYTES = 64 * 1024
