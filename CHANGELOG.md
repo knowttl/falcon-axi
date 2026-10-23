@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.7.2](https://github.com/knowttl/falcon-axi/compare/v0.7.1...v0.7.2) (2026-10-23)
+
+
+### Bug Fixes
+
+* limit the RTR command set to commands the API accepts and record per-platform availability ([#71](https://github.com/knowttl/falcon-axi/issues/71)) ([a480ffd](https://github.com/knowttl/falcon-axi/commit/a480ffd3409bcecc1d06ec920e1822c8a51ad773))
+* name the command when Falcon rejects an RTR command as not found ([#69](https://github.com/knowttl/falcon-axi/issues/69)) ([91551b8](https://github.com/knowttl/falcon-axi/commit/91551b8abfaf8fb9bc2a435f58fb3a9610805494))
+
 ## [0.7.1](https://github.com/knowttl/falcon-axi/compare/v0.7.0...v0.7.1) (2026-10-23)
 
 
