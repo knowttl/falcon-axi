@@ -159,7 +159,7 @@ Grant only the domains you use; available scopes depend on product licensing.
 | `Prevention Policies:read` | policy list, policy members | selected --type |
 | `Sensor Update Policies:read` | policy list, policy members | selected --type |
 | `Firewall Management:read` | policy list, policy members, firewall rule list, firewall rule show, firewall group list | yes |
-| `Device Control Policies:read` | policy list, policy members | selected --type |
+| `Device Control Policies:read` | policy list, policy members, policy show | selected --type |
 | `Response Policies:read` | policy list, policy members | selected --type |
 | `Content Update Policies:read` | policy list, policy members | selected --type |
 | `Cloud Security API Assets:read` | cloud-asset list, cloud-asset show | yes |
@@ -314,6 +314,7 @@ Run any command with `--help` for its arguments and examples.
 | `host-group members` | <id>     list host-group members |
 | `policy list` | list policies of one required type |
 | `policy members` | <id>       list hosts assigned to a policy |
+| `policy show` | <id>          device-control USB classes and exceptions |
 | `cloud-asset list` | list CSPM cloud assets |
 | `cloud-asset show` | <id>         inspect one cloud-asset |
 | `iom list` | list cloud Indicators of Misconfiguration |

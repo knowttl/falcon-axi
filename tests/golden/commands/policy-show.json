@@ -1,0 +1,6 @@
+{
+  "name": "policy show",
+  "order": 2311.5,
+  "summary": "  policy show <id>          device-control USB classes and exceptions",
+  "scopes": [{"scope": "Device Control Policies:read", "access": "read", "required": "selected --type"}]
+}

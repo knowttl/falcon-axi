@@ -5,5 +5,6 @@
     "members",
     "--help"
   ],
-  "exit_code": 0
+  "exit_code": 0,
+  "changes": "P6 updates the shared policy help description of device-control inventory to its query and v2 hydrate behavior; membership remains a combined read (design section 1.2)."
 }

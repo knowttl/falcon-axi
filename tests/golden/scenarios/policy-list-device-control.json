@@ -10,9 +10,14 @@
   ],
   "responders": [
     {
-      "op": "queryCombinedDeviceControlPolicies",
-      "fixture": "policies/queryCombinedDeviceControlPolicies.json"
+      "op": "queryDeviceControlPolicies",
+      "fixture": "policies/device-control-query.json"
+    },
+    {
+      "op": "getDeviceControlPoliciesV2",
+      "fixture": "policies/device-control-details.json"
     }
   ],
-  "exit_code": 0
+  "exit_code": 0,
+  "changes": "P6 deliberately replaces deprecated combined v1 with queryDeviceControlPolicies plus v2 hydration (design section 1.2). Inventory columns stay the same; query order and totals survive hydration. Cursors bind the new query operation, a policy show suggestion exposes USB settings, and the synthetic second policy uses supported Mac instead of Linux."
 }

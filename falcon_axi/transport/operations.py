@@ -67,7 +67,8 @@ OperationId = Literal[
     "queryCombinedSensorUpdatePolicyMembers",
     "queryCombinedFirewallPolicies",
     "queryCombinedFirewallPolicyMembers",
-    "queryCombinedDeviceControlPolicies",
+    "queryDeviceControlPolicies",
+    "getDeviceControlPoliciesV2",
     "queryCombinedDeviceControlPolicyMembers",
     "queryCombinedRTResponsePolicies",
     "queryCombinedRTResponsePolicyMembers",
@@ -1113,18 +1114,34 @@ CANONICAL: tuple[FalconOperation, ...] = (
         ),
     ),
     FalconOperation(
-        id="queryCombinedDeviceControlPolicies",
+        id="queryDeviceControlPolicies",
         method="GET",
-        path="/policy/combined/device-control/v1",
+        path="/policy/queries/device-control/v1",
         scopes=("Device Control Policies:read",),
         effect="read",
         evidence=Evidence(
             doc_url="https://developer.crowdstrike.com/api-reference/collections/device-control-policies/",
             doc_scope="Device Control Policies: READ",
             falcon_mcp=(
-                "falcon_mcp/common/api_scopes.py maps queryCombinedDeviceControlPolicies "
+                "falcon_mcp/common/api_scopes.py maps queryDeviceControlPolicies "
                 "to Device Control Policies:read; falcon_mcp/modules/policies.py _OPERATIONS "
-                "and falconpy/_endpoint/_device_control_policies.py corroborate the combined read."
+                "corroborates the ID query followed by getDeviceControlPoliciesV2."
+            ),
+        ),
+    ),
+    FalconOperation(
+        id="getDeviceControlPoliciesV2",
+        method="GET",
+        path="/policy/entities/device-control/v2",
+        scopes=("Device Control Policies:read",),
+        effect="read",
+        evidence=Evidence(
+            doc_url="https://developer.crowdstrike.com/api-reference/collections/device-control-policies/",
+            doc_scope="Device Control Policies: READ",
+            falcon_mcp=(
+                "falcon_mcp/common/api_scopes.py maps getDeviceControlPoliciesV2 "
+                "to Device Control Policies:read; falcon_mcp/modules/policies.py _OPERATIONS "
+                "corroborates v2 hydration after queryDeviceControlPolicies."
             ),
         ),
     ),

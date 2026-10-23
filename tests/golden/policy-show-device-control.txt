@@ -1,0 +1,38 @@
+policy:
+  id: synthetic-policy-01
+  name: Synthetic policy one
+  platform_name: Windows
+  enabled: true
+  description: Synthetic USB investigation policy
+  usb_settings:
+    enforcement_mode: MONITOR_ENFORCE
+    end_user_notification: NOTIFY_USER
+    enhanced_file_metadata: true
+    pcie_enforcement_mode: MONITOR_ONLY
+    classes[2]:
+      - id: synthetic-class-01
+        class: MASS_STORAGE
+        action: BLOCK_ALL
+        exceptions[1]:
+          - id: synthetic-exception-01
+            class: MASS_STORAGE
+            action: FULL_ACCESS
+            description: Synthetic approved USB device
+            match_method: VID_PID_SERIAL
+            vendor_id: "1234"
+            vendor_name: Synthetic vendor
+            product_id: "5678"
+            product_name: Synthetic storage
+            serial_number: SYNTHETIC-USB-01
+            use_wildcard: false
+            expiration_time: "2027-01-01T00:00:00Z"
+            included_groups: []
+            included_users: []
+            excluded_groups: []
+            excluded_users: []
+            warning_trigger_ids: []
+      - id: synthetic-class-02
+        class: IMAGING
+        action: FULL_ACCESS
+        exceptions: []
+help[1]: "Run `falcon-axi policy members synthetic-policy-01 --type device-control` for assigned hosts"

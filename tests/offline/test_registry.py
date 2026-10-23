@@ -473,9 +473,16 @@ EXPECTED = {
         "effect": "read",
         "doc_scope": "Firewall Management: READ",
     },
-    "queryCombinedDeviceControlPolicies": {
+    "queryDeviceControlPolicies": {
         "method": "GET",
-        "path": "/policy/combined/device-control/v1",
+        "path": "/policy/queries/device-control/v1",
+        "scopes": ("Device Control Policies:read",),
+        "effect": "read",
+        "doc_scope": "Device Control Policies: READ",
+    },
+    "getDeviceControlPoliciesV2": {
+        "method": "GET",
+        "path": "/policy/entities/device-control/v2",
         "scopes": ("Device Control Policies:read",),
         "effect": "read",
         "doc_scope": "Device Control Policies: READ",

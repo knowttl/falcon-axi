@@ -39,7 +39,7 @@ Product licensing also controls availability.
 | `Prevention Policies:read` | policy list, policy members | selected --type |
 | `Sensor Update Policies:read` | policy list, policy members | selected --type |
 | `Firewall Management:read` | policy list, policy members, firewall rule list, firewall rule show, firewall group list | yes |
-| `Device Control Policies:read` | policy list, policy members | selected --type |
+| `Device Control Policies:read` | policy list, policy members, policy show | selected --type |
 | `Response Policies:read` | policy list, policy members | selected --type |
 | `Content Update Policies:read` | policy list, policy members | selected --type |
 | `Cloud Security API Assets:read` | cloud-asset list, cloud-asset show | yes |
@@ -1061,7 +1061,7 @@ falcon-axi policy list --type <type> [--filter <FQL>] [--limit N] [--cursor <tok
 
 Reads policy inventory or assigned host details, without changing policies or precedence.
 Requires the selected policy type's read scope; run `falcon-axi scopes` for the matrix.
-Device-control inventory uses the combined v1 schema, without v2 settings.
+Device-control inventory queries IDs and hydrates v2 policy data.
 Examples:
   falcon-axi policy list --type prevention --filter "enabled:true"
   falcon-axi policy members <id> --type sensor-update
@@ -1079,10 +1079,25 @@ falcon-axi policy members <id> --type <type> [--filter <FQL>] [--limit N] [--cur
 
 Reads policy inventory or assigned host details, without changing policies or precedence.
 Requires the selected policy type's read scope; run `falcon-axi scopes` for the matrix.
-Device-control inventory uses the combined v1 schema, without v2 settings.
+Device-control inventory queries IDs and hydrates v2 policy data.
 Examples:
   falcon-axi policy list --type prevention --filter "enabled:true"
   falcon-axi policy members <id> --type sensor-update
+```
+
+## policy show
+
+```text
+falcon-axi policy show <id> --type device-control
+
+--type  required: device-control (the only supported detail type)
+Reads v2 USB settings, including enforcement mode, classes, actions, and exceptions.
+Requires Device Control Policies:read and Falcon Device Control.
+An empty result can mean not licensed or no data; no live-tenant validation is claimed.
+
+Examples:
+  falcon-axi policy show synthetic-policy-01 --type device-control
+  falcon-axi policy list --type device-control
 ```
 
 ## cloud-asset list

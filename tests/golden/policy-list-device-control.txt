@@ -1,6 +1,6 @@
 count: 2 of 3 total
-continuation_cursor: eyJvcGVyYXRpb24iOiJxdWVyeUNvbWJpbmVkRGV2aWNlQ29udHJvbFBvbGljaWVzIiwibW9kZWwiOiJvZmZzZXQiLCJwb3NpdGlvbiI6MiwiZmluZ2VycHJpbnQiOiJjOTg1NzcwOTYyYzkxMjBmOWQ3YmRlYTE2NDVmM2ZiMDk3MGVmZWEzYzM2NTVjMGVkNjYxMDQxNjQ0OGI5N2Y1In0
+continuation_cursor: eyJvcGVyYXRpb24iOiJxdWVyeURldmljZUNvbnRyb2xQb2xpY2llcyIsIm1vZGVsIjoib2Zmc2V0IiwicG9zaXRpb24iOjIsImZpbmdlcnByaW50IjoiNjlkMTRmOTkzOTU2MjNiNzA3OTAwZDE1NTZlM2RmYzQ5OWM0Mjk5Zjk3NWUzNjkzN2M3NDA5ZDg2NjVmMTRjMCJ9
 policies[2]{id,name,platform_name,enabled}:
   synthetic-policy-01,Synthetic policy one,Windows,true
-  synthetic-policy-02,Synthetic policy two,Linux,false
-help[2]: "Run `falcon-axi policy members <id> --type device-control` for assigned hosts","Run `falcon-axi policy list --limit 2 --type device-control --cursor eyJvcGVyYXRpb24iOiJxdWVyeUNvbWJpbmVkRGV2aWNlQ29udHJvbFBvbGljaWVzIiwibW9kZWwiOiJvZmZzZXQiLCJwb3NpdGlvbiI6MiwiZmluZ2VycHJpbnQiOiJjOTg1NzcwOTYyYzkxMjBmOWQ3YmRlYTE2NDVmM2ZiMDk3MGVmZWEzYzM2NTVjMGVkNjYxMDQxNjQ0OGI5N2Y1In0` for the next page"
+  synthetic-policy-02,Synthetic policy two,Mac,false
+help[3]: "Run `falcon-axi policy show <id> --type device-control` for USB classes and exceptions","Run `falcon-axi policy members <id> --type device-control` for assigned hosts","Run `falcon-axi policy list --limit 2 --type device-control --cursor eyJvcGVyYXRpb24iOiJxdWVyeURldmljZUNvbnRyb2xQb2xpY2llcyIsIm1vZGVsIjoib2Zmc2V0IiwicG9zaXRpb24iOjIsImZpbmdlcnByaW50IjoiNjlkMTRmOTkzOTU2MjNiNzA3OTAwZDE1NTZlM2RmYzQ5OWM0Mjk5Zjk3NWUzNjkzN2M3NDA5ZDg2NjVmMTRjMCJ9` for the next page"

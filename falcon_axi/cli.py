@@ -240,6 +240,12 @@ def parse(argv: Sequence[str]) -> Parsed:
         validate_observation(positionals[0], command == "ioc processes", _str(flags.get("host")))
     if command in ("policy list", "policy members"):
         validate_policy_type(_str(flags.get("type")))
+    if command == "policy show" and flags.get("type") != "device-control":
+        raise CliError(
+            "VALIDATION_ERROR",
+            "policy show requires --type device-control",
+            ["Run `falcon-axi policy show <id> --type device-control` for USB settings"],
+        )
     if command == "process show":
         from falcon_axi.process import validate_process_id
 

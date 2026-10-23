@@ -5,5 +5,6 @@
     "list",
     "--help"
   ],
-  "exit_code": 0
+  "exit_code": 0,
+  "changes": "P6 replaces the deprecated device-control combined-v1 help claim with the current query and v2 hydrate behavior (design section 1.2)."
 }
