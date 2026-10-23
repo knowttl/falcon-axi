@@ -54,6 +54,33 @@ def test_exact_search_returns_a_request_id_and_status_reads_it_once() -> None:
     assert len(recorded.requests) == 4
 
 
+def test_status_caps_metadata_rows_and_preserves_request_status() -> None:
+    recorded = RecordedTransport(
+        [
+            serve(
+                "GetMalQueryRequestV1",
+                response(
+                    200,
+                    {
+                        "meta": {"reqid": REQUEST_ID, "status": "done"},
+                        "resources": [
+                            {"sha256": "0" * 64, "family": "synthetic-family", "filetype": "pe64", "filesize": 4096},
+                            {"sha256": "1" * 64, "family": "synthetic-other", "filetype": "pe32", "filesize": 2048},
+                        ],
+                    },
+                ),
+            )
+        ]
+    )
+    stdout, code = run(["malquery", "status", REQUEST_ID, "--limit", "1"], recorded, dict(CREDENTIAL_ENV))
+    assert code == 0
+    parsed = decode(stdout)
+    assert parsed["request"] == {"id": REQUEST_ID, "status": "done"}
+    assert parsed["samples"] == [{"sha256": "0" * 64, "family": "synthetic-family", "filetype": "pe64", "filesize": 4096}]
+    assert parsed["partial"] is True
+    assert "Results reached the requested limit; narrow the patterns to avoid an incomplete result" in parsed["help"]
+
+
 @pytest.mark.parametrize(
     "flags",
     [
