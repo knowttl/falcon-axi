@@ -1,5 +1,19 @@
 # Changelog
 
+## [0.7.0](https://github.com/knowttl/falcon-axi/compare/v0.6.0...v0.7.0) (2026-10-23)
+
+
+### Features
+
+* add bounded MalQuery exact and fuzzy searches ([#61](https://github.com/knowttl/falcon-axi/issues/61)) ([067d607](https://github.com/knowttl/falcon-axi/commit/067d6070c9d48357eaea6413deb652bad3518aed))
+* add Device Control policy USB details ([#58](https://github.com/knowttl/falcon-axi/issues/58)) ([e1773ac](https://github.com/knowttl/falcon-axi/commit/e1773acc92a68d70ba2ebd574739f4085c163992))
+* add existing sandbox report lookup ([#55](https://github.com/knowttl/falcon-axi/issues/55)) ([62c9089](https://github.com/knowttl/falcon-axi/commit/62c90897ef232e5fe93d3e2c14c8f8680ffa6f86))
+* add host USB activity searches ([#59](https://github.com/knowttl/falcon-axi/issues/59)) ([f2650b0](https://github.com/knowttl/falcon-axi/commit/f2650b0987c99bb8cb50ec340f86d7c7cd1b9422))
+* add MalQuery metadata and quota commands ([#60](https://github.com/knowttl/falcon-axi/issues/60)) ([f4d0794](https://github.com/knowttl/falcon-axi/commit/f4d0794eab01d5cb12760f68839dd899f73f2e6c))
+* add process details and investigation pivots ([#51](https://github.com/knowttl/falcon-axi/issues/51)) ([106b941](https://github.com/knowttl/falcon-axi/commit/106b94190f9c2bbf3c7dcfb0216eb09e146b1f6a))
+* add read-only FileVantage change history ([#57](https://github.com/knowttl/falcon-axi/issues/57)) ([9d4fab5](https://github.com/knowttl/falcon-axi/commit/9d4fab5f0ee718b43207821dc59ae1d9caab7ea9))
+* add ThreatGraph process tree investigation ([#54](https://github.com/knowttl/falcon-axi/issues/54)) ([1387d46](https://github.com/knowttl/falcon-axi/commit/1387d465c9762e47cac471ef6292d7b08761e0f4))
+
 ## [0.6.0](https://github.com/knowttl/falcon-axi/compare/v0.5.1...v0.6.0) (2026-10-23)
 
 
