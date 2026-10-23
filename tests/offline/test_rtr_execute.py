@@ -51,7 +51,7 @@ def env(tmp_path):
         "FALCON_AXI_CONFIG": str(path),
         "TEST_RTR_SECRET": "synthetic-secret",
         "FALCON_AXI_WRITE_LOG": str(tmp_path / "writes.log"),
-        "XDG_STATE_HOME": str(tmp_path / "state"),
+        "XDG_STATE_HOME": str(tmp_path / "rtr-state"),
     }
 
 
@@ -400,6 +400,43 @@ def test_journal_and_output_are_redacted_before_truncation(env, transport):
     journal = Path(env["FALCON_AXI_WRITE_LOG"]).read_text()
     assert "sensitive-path" not in journal
     assert "synthetic-secret" not in journal
+
+
+@pytest.mark.parametrize("destination", ["journal", "lock"])
+@pytest.mark.parametrize("mode", [0o770, 0o777])
+@pytest.mark.parametrize("existing", [False, True])
+def test_replaceable_ancestors_refuse_before_requests(env, transport, tmp_path, destination, mode, existing):
+    ancestor = tmp_path / "shared"
+    ancestor.mkdir()
+    private = ancestor / "private"
+    if existing:
+        private.mkdir(mode=0o700)
+    ancestor.chmod(mode)
+    if destination == "journal":
+        env["FALCON_AXI_WRITE_LOG"] = str(private / "writes.log")
+    else:
+        env["XDG_STATE_HOME"] = str(private / "state")
+    with pytest.raises(CliError) as error:
+        run(transport, env)
+    assert error.value.code == "CONFIG_INSECURE"
+    assert transport.requests == []
+    assert not (private / "writes.log").exists()
+    assert not (private / "state").exists()
+    assert private.exists() is existing
+
+
+@pytest.mark.parametrize("mode", [0o700, 0o755, 0o1777])
+def test_trusted_ancestors_allow_journaling_and_host_locking(env, transport, tmp_path, mode):
+    ancestor = tmp_path / "trusted"
+    ancestor.mkdir()
+    ancestor.chmod(mode)
+    env["FALCON_AXI_WRITE_LOG"] = str(ancestor / "private" / "writes.log")
+    env["XDG_STATE_HOME"] = str(ancestor / "private" / "state")
+    result = run(transport, env)
+    assert result.complete is True
+    assert result.cleanup == "deleted"
+    assert records(env)[-1]["cleanup"] == "deleted"
+    assert (ancestor / "private" / "state" / "falcon-axi" / f"rtr-{HOST}.lock").read_bytes() == b""
 
 
 @pytest.mark.parametrize("kind", ["symlink", "hardlink", "public", "directory", "fifo"])
