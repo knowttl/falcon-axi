@@ -12,7 +12,7 @@ uvx falcon-axi policy members <id> --type <type> [--filter <FQL>] [--limit N] [-
 
 Reads policy inventory or assigned host details, without changing policies or precedence.
 Requires the selected policy type's read scope; run `uvx falcon-axi scopes` for the matrix.
-Device-control inventory uses the combined v1 schema, without v2 settings.
+Device-control inventory queries IDs and hydrates v2 policy data.
 Examples:
   uvx falcon-axi policy list --type prevention --filter "enabled:true"
   uvx falcon-axi policy members <id> --type sensor-update

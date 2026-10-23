@@ -63,7 +63,7 @@ def test_only_policy_and_exclusion_scope_alternatives_depend_on_selected_type() 
     assert {row["scope"]: row["commands"] for row in rows if row["required"] == "selected --type"} == {
         "Prevention Policies:read": "policy list, policy members",
         "Sensor Update Policies:read": "policy list, policy members",
-        "Device Control Policies:read": "policy list, policy members",
+        "Device Control Policies:read": "policy list, policy members, policy show",
         "Response Policies:read": "policy list, policy members",
         "Content Update Policies:read": "policy list, policy members",
         "Machine Learning Exclusions:read": "exclusion list, exclusion show",

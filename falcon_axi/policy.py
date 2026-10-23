@@ -1,13 +1,13 @@
-"""Read-only policy inventory and host membership over combined policy operations."""
+"""Read-only policy inventory, Device Control details, and host membership."""
 
 import json
-from collections.abc import Mapping
+from collections.abc import Mapping, Sequence
 from typing import Any
 
 from falcon_axi.command import CommandSpec, Invocation
 from falcon_axi.core import CliError
 from falcon_axi.cursor import CursorContext, decode_offset, encode_cursor
-from falcon_axi.domain import DEFAULT_LIMIT, CommandOutput, rate_limit_note, resources, total
+from falcon_axi.domain import DEFAULT_LIMIT, CommandOutput, body_of, rate_limit_note, resources, total
 from falcon_axi.falcon_error import translate_falcon_error
 from falcon_axi.render import raw
 from falcon_axi.transport.operations import OperationId
@@ -18,12 +18,60 @@ POLICY_OPERATIONS: Mapping[str, tuple[OperationId, OperationId]] = {
     "prevention": ("queryCombinedPreventionPolicies", "queryCombinedPreventionPolicyMembers"),
     "sensor-update": ("queryCombinedSensorUpdatePoliciesV2", "queryCombinedSensorUpdatePolicyMembers"),
     "firewall": ("queryCombinedFirewallPolicies", "queryCombinedFirewallPolicyMembers"),
-    "device-control": ("queryCombinedDeviceControlPolicies", "queryCombinedDeviceControlPolicyMembers"),
+    "device-control": ("queryDeviceControlPolicies", "queryCombinedDeviceControlPolicyMembers"),
     "response": ("queryCombinedRTResponsePolicies", "queryCombinedRTResponsePolicyMembers"),
     "content-update": ("queryCombinedContentUpdatePolicies", "queryCombinedContentUpdatePolicyMembers"),
 }
 TYPE_CHOICES = "|".join(POLICY_OPERATIONS)
 QUERY_CEILING = 5000
+
+
+def _device_control_policies(ctx: Invocation, ids: Sequence[str]) -> list[Mapping[str, Any]]:
+    response = ctx.transport.request(
+        "getDeviceControlPoliciesV2",
+        RequestArgs(
+            base_url=ctx.session.base_url,
+            token=ctx.session.token,
+            allow_unknown_origin=ctx.session.allow_unknown_origin,
+            query={"ids": tuple(ids)},
+        ),
+    )
+    if response.status != 200:
+        raise translate_falcon_error(
+            response,
+            "getDeviceControlPoliciesV2",
+            "device-control policies",
+            not_found_command="policy list --type device-control",
+        )
+    # The v2 success schema is an array; also accept Falcon's resources envelope.
+    entries = response.body if isinstance(response.body, list) else body_of(response).get("resources")
+    if (
+        body_of(response).get("errors")
+        or not isinstance(entries, list)
+        or any(not isinstance(entry, Mapping) or not isinstance(entry.get("id"), str) for entry in entries)
+    ):
+        raise CliError("UPSTREAM_ERROR", "Falcon returned invalid device-control policies")
+    return entries
+
+
+def _show(ctx: Invocation) -> CommandOutput:
+    id = ctx.positionals[0]
+    entries = _device_control_policies(ctx, (id,))
+    if not entries:
+        raise CliError(
+            "NOT_FOUND",
+            "no device-control policy: not licensed or no data for that identifier",
+            ["Run `falcon-axi policy list --type device-control` to see current identifiers"],
+        )
+    record = next((entry for entry in entries if entry["id"] == id), None)
+    if record is None:
+        raise CliError("UPSTREAM_ERROR", "Falcon omitted the requested device-control policy")
+    detail = {field: record.get(field, "unknown") for field in ("id", "name", "platform_name", "enabled", "description")}
+    detail["usb_settings"] = record.get("usb_settings", raw("no USB settings recorded"))
+    return CommandOutput(
+        {"policy": detail},
+        (f"Run `falcon-axi policy members {id} --type device-control` for assigned hosts",),
+    )
 
 
 def validate_policy_type(value: str | None) -> str:
@@ -78,6 +126,13 @@ def _list(ctx: Invocation) -> CommandOutput:
             not_found_command=f"policy list --type {policy_type}",
         )
     entries = resources(response)
+    if policy_type == "device-control" and not members:
+        if (
+            body_of(response).get("errors")
+            or not isinstance(body_of(response).get("resources"), list)
+            or any(not isinstance(id, str) or not id for id in entries)
+        ):
+            raise CliError("UPSTREAM_ERROR", "Falcon returned invalid device-control policy identifiers")
     key = "members" if members else "policies"
     subject = f"{policy_type} policy members" if members else f"{policy_type} policies"
     help = (
@@ -87,16 +142,30 @@ def _list(ctx: Invocation) -> CommandOutput:
     )
     if not entries:
         return CommandOutput(
-            value={key: raw(f"no more {subject}" if offset else f"0 {subject} matching this query")},
+            value={
+                key: raw(
+                    (f"no more {subject}" if offset else f"0 {subject} matching this query")
+                    + (": not licensed or no data" if policy_type == "device-control" and not members else "")
+                )
+            },
             help=() if offset else (help,),
         )
     fields = ("device_id", "hostname", "platform_name", "status") if members else ("id", "name", "platform_name", "enabled")
-    rows = [{field: entry.get(field, "unknown") for field in fields} for entry in entries if isinstance(entry, Mapping)]
+    records = entries
+    if policy_type == "device-control" and not members:
+        hydrated = _device_control_policies(ctx, entries)
+        by_id = {record["id"]: record for record in hydrated}
+        if any(id not in by_id for id in entries):
+            raise CliError("UPSTREAM_ERROR", "Falcon omitted a requested device-control policy")
+        records = [by_id[id] for id in entries]
+    rows = [{field: entry.get(field, "unknown") for field in fields} for entry in records if isinstance(entry, Mapping)]
     count = total(response)
     position = offset + len(entries)
     more = len(entries) >= ctx.limit if count is None else position < count
     value: dict[str, Any] = {"count": raw(f"{len(rows)} of {count if count is not None else 'unknown'} total")}
     hints = [help]
+    if policy_type == "device-control" and not members:
+        hints.insert(0, "Run `falcon-axi policy show <id> --type device-control` for USB classes and exceptions")
     if more:
         continuation = encode_cursor(position, context, ctx.credential.client_secret)
         value["continuation_cursor"] = continuation
@@ -123,7 +192,7 @@ COMMAND_SPECS = tuple(
                 "",
                 "Reads policy inventory or assigned host details, without changing policies or precedence.",
                 "Requires the selected policy type's read scope; run `falcon-axi scopes` for the matrix.",
-                "Device-control inventory uses the combined v1 schema, without v2 settings.",
+                "Device-control inventory queries IDs and hydrates v2 policy data.",
                 "Examples:",
                 '  falcon-axi policy list --type prevention --filter "enabled:true"',
                 "  falcon-axi policy members <id> --type sensor-update",
@@ -135,7 +204,8 @@ COMMAND_SPECS = tuple(
             else "  policy members <id>       list hosts assigned to a policy"
         ),
         handler=_list,
-        operations=tuple(pair[index] for pair in POLICY_OPERATIONS.values()),
+        operations=tuple(pair[index] for pair in POLICY_OPERATIONS.values())
+        + (("getDeviceControlPoliciesV2",) if verb == "list" else ()),
         flags=("type", "filter", "limit", "cursor"),
         value_flags=("type", "filter", "limit", "cursor"),
         limit_ceiling=(QUERY_CEILING, "combined policy query"),
@@ -144,4 +214,28 @@ COMMAND_SPECS = tuple(
         else None,
     )
     for index, verb in enumerate(("list", "members"))
+) + (
+    CommandSpec(
+        name="policy show",
+        handler=_show,
+        operations=("getDeviceControlPoliciesV2",),
+        summary="  policy show <id>          device-control USB classes and exceptions",
+        positional=("policy identifier", "Run `falcon-axi policy list --type device-control` to find policy ids"),
+        flags=("type",),
+        value_flags=("type",),
+        help="\n".join(
+            [
+                "falcon-axi policy show <id> --type device-control",
+                "",
+                "--type  required: device-control (the only supported detail type)",
+                "Reads v2 USB settings, including enforcement mode, classes, actions, and exceptions.",
+                "Requires Device Control Policies:read and Falcon Device Control.",
+                "An empty result can mean not licensed or no data; no live-tenant validation is claimed.",
+                "",
+                "Examples:",
+                "  falcon-axi policy show synthetic-policy-01 --type device-control",
+                "  falcon-axi policy list --type device-control",
+            ]
+        ),
+    ),
 )

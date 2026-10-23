@@ -1,0 +1,6 @@
+{
+  "name": "policy-show-device-control",
+  "argv": ["policy", "show", "synthetic-policy-01", "--type", "device-control"],
+  "responders": [{"op": "getDeviceControlPoliciesV2", "fixture": "policies/device-control-details.json"}],
+  "exit_code": 0
+}
