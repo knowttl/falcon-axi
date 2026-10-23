@@ -863,13 +863,47 @@ def test_polling_carries_protocol_sequence_independently_of_attempt_count(env, t
     assert [args.query["sequence_id"] for args in transport.operation_requests("RTR_CheckCommandStatus")] == [0, 0, 71]
 
 
-@pytest.mark.parametrize("sequence", [None, True, -1, "1", 0])
+@pytest.mark.parametrize("sequence_field", [{}, {"sequence_id": None}])
+def test_completed_command_without_output_sequence_returns_its_output(env, transport, monkeypatch, sequence_field):
+    monkeypatch.setattr("falcon_axi.rtr_execute.time.sleep", lambda _: None)
+    chunks = iter(
+        [
+            response(200, {"resources": [{"stdout": "", "stderr": "", "complete": False, "sequence_id": 0}]}),
+            response(200, {"resources": [{"stdout": "", "stderr": "", "complete": False, "sequence_id": 0}]}),
+            response(200, {"resources": [{"stdout": "final output", "stderr": "", "complete": True, **sequence_field}]}),
+        ]
+    )
+    transport.responders.insert(0, serve("RTR_CheckCommandStatus", lambda _: next(chunks)))
+    result = run(transport, env)
+    assert result.output == "final output"
+    assert (result.complete, result.truncated, result.cleanup) == (True, False, "deleted")
+    assert [args.query["sequence_id"] for args in transport.operation_requests("RTR_CheckCommandStatus")] == [0, 0, 0]
+    assert len(transport.operation_requests("RTR_DeleteSession")) == 1
+    assert records(env)[-1]["command_outcome"] == "complete"
+
+
+@pytest.mark.parametrize("sequence", [True, -1, "1", 0])
 def test_invalid_or_regressing_output_sequence_fails_and_deletes(env, transport, monkeypatch, sequence):
     monkeypatch.setattr("falcon_axi.rtr_execute.time.sleep", lambda _: None)
     chunks = iter(
         [
             response(200, {"resources": [{"stdout": "first", "complete": False, "sequence_id": 1}]}),
             response(200, {"resources": [{"stdout": "invalid", "complete": True, "sequence_id": sequence}]}),
+        ]
+    )
+    transport.responders.insert(0, serve("RTR_CheckCommandStatus", lambda _: next(chunks)))
+    with pytest.raises(CliError, match="invalid output sequence") as error:
+        run(transport, env)
+    assert error.value.details["output"] == "first"
+    assert error.value.details["cleanup"] == "deleted"
+
+
+def test_missing_output_sequence_on_an_incomplete_response_fails_and_deletes(env, transport, monkeypatch):
+    monkeypatch.setattr("falcon_axi.rtr_execute.time.sleep", lambda _: None)
+    chunks = iter(
+        [
+            response(200, {"resources": [{"stdout": "first", "complete": False, "sequence_id": 1}]}),
+            response(200, {"resources": [{"stdout": "invalid", "complete": False}]}),
         ]
     )
     transport.responders.insert(0, serve("RTR_CheckCommandStatus", lambda _: next(chunks)))
