@@ -6,7 +6,7 @@ This page preserves the domain rollout inventory formerly in the README; it is h
 
 - [v1 behavior and safety design](v1.md): command contracts, scopes, pagination, redaction, transport enforcement, and closed decisions in section 17.
 - [Python implementation amendment](v1-python.md): package structure, SDK confinement, golden comparisons, packaging, and commissioning history.
-- [Read-only enforcement](../read-only.md): the two closed exceptions and source-parity validation limits.
+- [Read-only enforcement](../read-only.md): shipped transport enforcement and source-parity validation limits.
 - [Contributor workflow](../../CONTRIBUTING.md): offline verification and documentation generation.
 
 ## Implemented domain rollout
@@ -89,4 +89,4 @@ What is shipped:
 
 Tenant discovery and standalone Identity Protection incident queries remain absent.
 There is no arbitrary GraphQL, GraphQL mutation, response session, containment, ingest, configuration change, report PDF, or rule-file download.
-The complete exclusion contract is in [v1 section 1.5](v1.md#15-command-surface-non-goals), and exception history is in sections 4.3 and 4.4.
+The complete exclusion contract is in [v1 section 1.5](v1.md#15-command-surface-non-goals), and the closed exceptions are owned by [v1 section 0](v1.md#0-invariant-r-v1-is-read-only-with-three-captain-granted-exceptions).

@@ -4,15 +4,11 @@ This file is the project's committed home for project-intrinsic agent knowledge:
 
 - Add durable project-specific notes here as they are discovered through real work.
 
-## v1 is read-only, with exactly two captain-granted exceptions
+## v1 read-only invariant
 
-**falcon-axi v1 changes no state in a Falcon tenant and implements no write, create, update, delete, execute,
-containment, quarantine, release, or response operation, apart from starting and stopping an NG-SIEM search
-job under captain exception N1.
-Captain exception N2 additionally admits the Identity Protection GraphQL write-labelled scope, solely for fixed
-read-only query documents; it is not general write authority.**
-This is a captain-confirmed, binding architectural invariant.
-Relaxing it further is a captain decision, never an agent's; N1 and N2 are not precedents to extend, and if a
+**`docs/design/v1.md` §0 owns the captain-confirmed, binding read-only invariant and its closed exceptions.**
+The README's generated command reference owns delivery status.
+Relaxing the invariant further is a captain decision, never an agent's; its exceptions are not precedents to extend, and if a
 task seems to require any other mutation, stop and escalate.
 
 Three consequences that catch people out:
@@ -26,7 +22,7 @@ Three consequences that catch people out:
   scope, and falcon-mcp's treatment of it as corroboration, or, when falcon-mcp has no tool for the operation,
   falconpy's generated endpoint table plus PSFalcon wrapping it (`docs/design/v1.md` §2.2).
   The transport's operation registry carries that evidence as a required field and the local required-check
-  set asserts it, per tier: a `: READ` doc scope for a read, a `: WRITE` one for each exception.
+  set asserts it, per tier as defined in `docs/design/v1.md` §2.2.
 - **The exceptions are closed by id allowlists, not by discipline.**
   `SEARCH_LIFECYCLE_IDS` in `falcon_axi/transport/operations.py` is exactly `StartSearchV1` and `StopSearchV1`,
   and registry sealing rejects any other descriptor claiming `effect: "search-lifecycle"`, any scope other than
