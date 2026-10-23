@@ -204,8 +204,16 @@ def test_confirmation_must_match_byte_for_byte(env, transport, confirmation):
         "cat x > y",
         "ps | ls",
         "cat $(ps)",
+        'cat "$(ps)"',
         "cat `ps`",
+        'cat "`ps`"',
         "cat x && ps",
+        "cat x || ps",
+        'cat "x;ps"',
+        'cat "x|ps"',
+        'cat "x&&ps"',
+        'cat "x>y"',
+        "cat (ps)",
         "cat 'unclosed",
         "cat\x00x",
     ],
@@ -219,6 +227,24 @@ def test_bad_command_is_refused_before_authentication(env, transport, command):
 @pytest.mark.parametrize("command", sorted(COMMANDS - {"eventlog"}) + ["eventlog view Application", "eventlog list"])
 def test_standard_command_tokens_are_admitted(command):
     assert parse_command(command) in {command.split()[0], "reg"}
+
+
+@pytest.mark.parametrize(
+    "command",
+    [
+        r'cat "C:\Program Files (x86)\Vendor\config.txt"',
+        r"cat 'C:\Program Files (x86)\Vendor\config.txt'",
+    ],
+)
+def test_quoted_parenthesized_path_is_sent_unchanged(env, transport, command):
+    result = run(transport, env, command)
+    assert result.complete is True
+    assert transport.operation_requests("RTR_ExecuteCommand")[0].body == {
+        "base_command": "cat",
+        "command_string": command,
+        "session_id": "synthetic-session",
+    }
+    assert result.cleanup == "deleted"
 
 
 @pytest.mark.parametrize(
@@ -285,6 +311,53 @@ def test_lost_init_is_unknown_owned_work_and_is_never_replayed(env, transport):
     assert records(env)[-1]["cleanup"] == "unknown"
 
 
+@pytest.mark.parametrize(
+    "status,code,guidance",
+    [
+        (401, "AUTH_FAILED", "Run `falcon-axi auth status` after updating the credential"),
+        (
+            403,
+            "SCOPE_DENIED",
+            "Grant Real time response:read to the API client in the Falcon console "
+            "under Support and resources > API clients and keys",
+        ),
+        (429, "RATE_LIMITED", "Wait for the rate limit window to reset and retry"),
+    ],
+)
+def test_init_refusal_preserves_actionable_error_and_recovery(env, transport, status, code, guidance):
+    transport.responders.insert(0, serve("RTR_InitSession", response(status, {})))
+    with pytest.raises(CliError) as error:
+        run(transport, env)
+    assert error.value.code == code
+    assert guidance in error.value.help
+    assert error.value.details["cleanup"] == "unknown"
+    assert error.value.details["run"] == records(env)[-1]["run"]
+    assert error.value.details["output"] == ""
+    assert records(env)[-1]["cleanup"] == "unknown"
+    assert len(transport.operation_requests("RTR_InitSession")) == 1
+    assert transport.operation_requests("RTR_ExecuteCommand") == []
+    assert transport.operation_requests("RTR_DeleteSession") == []
+
+
+def test_init_scope_refusal_retains_required_scopes_when_outcome_write_fails(env, transport, monkeypatch):
+    original = Journal.append
+
+    def append(journal, record):
+        if record["phase"] == "outcome":
+            raise CliError("CONFIG_INSECURE", "synthetic outcome flush failure")
+        original(journal, record)
+
+    monkeypatch.setattr(Journal, "append", append)
+    transport.responders.insert(0, serve("RTR_InitSession", response(403, {})))
+    with pytest.raises(CliError) as error:
+        run(transport, env)
+    assert error.value.code == "SCOPE_DENIED"
+    assert error.value.details["required_scopes"] == ["Real time response:read"]
+    assert error.value.details["cleanup"] == "unknown"
+    assert error.value.details["run"] == records(env)[0]["run"]
+    assert error.value.details["journal_error"]["code"] == "CONFIG_INSECURE"
+
+
 def test_intent_failure_prevents_authentication(env, transport, monkeypatch):
     monkeypatch.setattr(Journal, "append", lambda *args: (_ for _ in ()).throw(CliError("CONFIG_INSECURE", "synthetic")))
     with pytest.raises(CliError, match="synthetic"):
@@ -314,7 +387,7 @@ def test_outcome_failure_still_deletes_the_session(env, transport, monkeypatch):
     "operation,cleanup,message,output",
     [
         ("RTR_DeleteSession", "failed", "deletion", "synthetic output"),
-        ("RTR_InitSession", "unknown", "initialization outcome is unknown", ""),
+        ("RTR_InitSession", "unknown", "synthetic lifecycle failure", ""),
         ("RTR_ExecuteCommand", "deleted", "synthetic lifecycle failure", ""),
     ],
 )

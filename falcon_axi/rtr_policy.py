@@ -61,7 +61,7 @@ def parse_command(command: str, allowed: frozenset[str] = COMMANDS) -> str:
         not command
         or len(command.encode("utf-8")) > COMMAND_BYTES
         or any(ord(char) < 32 or ord(char) == 127 for char in command)
-        or any(char in command for char in ";|&<>`$()\u0085\u2028\u2029")
+        or any(char in command for char in ";|&<>`$\u0085\u2028\u2029")
     ):
         raise CliError("VALIDATION_ERROR", "RTR requires one command without shell syntax or control characters")
     try:
@@ -71,6 +71,8 @@ def parse_command(command: str, allowed: frozenset[str] = COMMANDS) -> str:
         raise CliError("VALIDATION_ERROR", "RTR command has unmatched quotes") from error
     if not tokens:
         raise CliError("VALIDATION_ERROR", "RTR command is empty")
+    if any(("(" in token or ")" in token) and not (token[0] in "\"'" and token[-1] == token[0]) for token in tokens):
+        raise CliError("VALIDATION_ERROR", "RTR parentheses require a quoted data argument")
     base = "reg query" if tokens[:2] == ["reg", "query"] else tokens[0]
     if base not in allowed:
         raise CliError("READ_ONLY_VIOLATION", "RTR command is outside the effective read-only command set")
