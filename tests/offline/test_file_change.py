@@ -95,6 +95,38 @@ def test_hydration_caps_batches_at_500_and_restores_order():
     assert [len(args.query["ids"]) for args in recorded.operation_requests("getChanges")] == [500, 500, 1]
 
 
+@pytest.mark.parametrize("resources", [[{"id": SECOND}], []])
+@pytest.mark.parametrize("envelope", [True, False])
+def test_incomplete_list_hydration_fails_without_results_or_continuation(resources, envelope):
+    recorded = RecordedTransport(
+        [
+            serve("highVolumeQueryChanges", fixture("filevantage/query.json")),
+            serve("getChanges", response(200, {"resources": resources} if envelope else resources)),
+        ]
+    )
+    stdout, code = run(["file-change", "list"], recorded, CREDENTIAL_ENV)
+    assert code == 1
+    value = decode(stdout)
+    assert value["code"] == "UPSTREAM_ERROR"
+    assert "count" not in value
+    assert "file_changes" not in value
+    assert "change_ids" not in value
+    assert "continuation_cursor" not in value
+
+
+@pytest.mark.parametrize("envelope", [True, False])
+def test_mismatched_detail_hydration_is_upstream_error(envelope):
+    resources = [{"id": SECOND}]
+    recorded = RecordedTransport(
+        [serve("getChanges", response(200, {"resources": resources} if envelope else resources))]
+    )
+    stdout, code = run(["file-change", "show", FIRST], recorded, CREDENTIAL_ENV)
+    assert code == 1
+    value = decode(stdout)
+    assert value["code"] == "UPSTREAM_ERROR"
+    assert "file_change" not in value
+
+
 def test_show_includes_process_fields_and_diff_without_content_request():
     recorded = RecordedTransport([serve("getChanges", fixture("filevantage/changes.json"))])
     stdout, code = run(["file-change", "show", FIRST], recorded, CREDENTIAL_ENV)
@@ -144,7 +176,7 @@ def test_rejected_fql_names_filevantage_host_filter():
     assert "falcon-axi file-change list --help" in stdout
 
 
-@pytest.mark.parametrize("answer", [response(404, {}), response(200, {"resources": []})])
+@pytest.mark.parametrize("answer", [response(404, {}), response(200, {"resources": []}), response(200, [])])
 def test_missing_change_suggests_list(answer):
     recorded = RecordedTransport([serve("getChanges", answer)])
     stdout, code = run(["file-change", "show", FIRST], recorded, CREDENTIAL_ENV)

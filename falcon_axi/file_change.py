@@ -47,7 +47,7 @@ def _resources(answer: FalconResponse) -> list[Any]:
     return listed
 
 
-def _hydrate(ctx: Invocation, ids: Sequence[str]) -> list[Mapping[str, Any]]:
+def _hydrate(ctx: Invocation, ids: Sequence[str], *, allow_empty: bool = False) -> list[Mapping[str, Any]]:
     by_id: dict[str, Mapping[str, Any]] = {}
     for start in range(0, len(ids), 500):
         answer = _request(ctx, "getChanges", {"ids": tuple(ids[start : start + 500])})
@@ -55,7 +55,11 @@ def _hydrate(ctx: Invocation, ids: Sequence[str]) -> list[Mapping[str, Any]]:
             if not isinstance(record, Mapping) or not isinstance(record.get("id"), str):
                 raise CliError("UPSTREAM_ERROR", "Falcon returned a file change without an identifier")
             by_id[record["id"]] = record
-    return [by_id[id] for id in ids if id in by_id]
+    if allow_empty and not by_id:
+        return []
+    if any(id not in by_id for id in ids):
+        raise CliError("UPSTREAM_ERROR", "Falcon omitted requested file change identifiers")
+    return [by_id[id] for id in ids]
 
 
 def _project(record: Mapping[str, Any]) -> dict[str, Any]:
@@ -113,7 +117,7 @@ def _list(ctx: Invocation) -> CommandOutput:
 
 
 def _show(ctx: Invocation) -> CommandOutput:
-    records = _hydrate(ctx, [ctx.positionals[0]])
+    records = _hydrate(ctx, [ctx.positionals[0]], allow_empty=True)
     if not records:
         raise CliError(
             "NOT_FOUND", "no file change matched that identifier", ["Run `falcon-axi file-change list` to find identifiers"]
