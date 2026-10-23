@@ -12,7 +12,7 @@ This document changes the implementation language and the HTTP client underneath
 It amends v1.md §2 (backend), §3.3 (transport enforcement, restated for Python), §14 (test layout, restated for pytest), and §16 (API client evaluation, now adopting falconpy), and it adds packaging and distribution, which v1.md never specified.
 Every section of v1.md not named here carries over unchanged, and a commissioned build must not narrow or widen the v1 command surface while porting.
 
-Invariant R and its closed captain exceptions are owned by [v1.md §0](v1.md#0-invariant-r-v1-is-read-only-with-three-captain-granted-exceptions) and remain binding.
+Invariant R and its closed captain exceptions are owned by [v1.md §0](v1.md#0-invariant-r-v1-is-read-only-with-four-captain-granted-exceptions) and remain binding.
 Nothing in a Python rewrite relaxes it further, and §3 below shows how the guarantee is rebuilt in Python.
 
 ## 1. Decision record

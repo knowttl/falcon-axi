@@ -8,6 +8,7 @@ The read tier admits only read-scoped operations. Captain exceptions N1 and N2 a
 write-labelled effects defined below (docs/design/v1.md §4.3, §4.4); each is confined to its own
 id allowlist and scope, and N2 additionally requires fixed read-only query documents.
 N3 admits four exact read-scoped RTR lifecycle tuples, behind separate one-run authorization.
+N4 admits only exact/fuzzy MalQuery pattern searches, with validated patterns and bounded results.
 """
 
 import re
@@ -21,6 +22,9 @@ from falcon_axi.core import CliError
 OperationId = Literal[
     "GetMalQueryMetadataV1",
     "GetMalQueryQuotasV1",
+    "GetMalQueryRequestV1",
+    "PostMalQueryExactSearchV1",
+    "PostMalQueryFuzzySearchV1",
     "QueryReports",
     "GetSummaryReports",
     "combined_summary_get",
@@ -134,7 +138,7 @@ OperationId = Literal[
 
 OPERATION_IDS: tuple[str, ...] = get_args(OperationId)
 
-Effect = Literal["read", "search-lifecycle", "graphql-query", "rtr-read-only-execute"]
+Effect = Literal["read", "search-lifecycle", "graphql-query", "rtr-read-only-execute", "malquery-search"]
 EFFECTS: tuple[str, ...] = get_args(Effect)
 
 RTR_EXECUTION_TUPLES = MappingProxyType(
@@ -182,6 +186,15 @@ SEARCH_LIFECYCLE_SCOPES: tuple[str, ...] = ("NGSIEM:write",)
 #: falcon-axi therefore never sends caller-supplied GraphQL: only the fixed query documents in
 #: `falcon_axi/transport/graphql.py` reach it.
 GRAPHQL_QUERY_IDS: frozenset[str] = frozenset({"api_preempt_proxy_post_graphql"})
+
+# N4 admits pattern searches only, never YARA hunts or sample downloads.
+MALQUERY_SEARCH_IDS: frozenset[str] = frozenset({"PostMalQueryExactSearchV1", "PostMalQueryFuzzySearchV1"})
+MALQUERY_SEARCH_ROUTES = MappingProxyType(
+    {
+        "PostMalQueryExactSearchV1": "/malquery/queries/exact-search/v1",
+        "PostMalQueryFuzzySearchV1": "/malquery/combined/fuzzy-search/v1",
+    }
+)
 
 #: The one write-labelled scope N2 admits. The per-document `:read` scopes live with the documents.
 GRAPHQL_QUERY_SCOPES: tuple[str, ...] = ("Identity Protection GraphQL:write",)
@@ -399,6 +412,48 @@ CANONICAL: tuple[FalconOperation, ...] = (
             "falcon-mcp has no tool for GetMalQueryMetadataV1. "
             "falconpy/_endpoint/_malquery.py maps GetMalQueryMetadataV1 to GET /malquery/entities/metadata/v1. "
             "PSFalcon public/malquery.ps1 Get-FalconMalQuerySample wraps it and requires MalQuery: Read.",
+        ),
+    ),
+    FalconOperation(
+        id="GetMalQueryRequestV1",
+        method="GET",
+        path="/malquery/entities/requests/v1",
+        scopes=("MalQuery:read",),
+        effect="read",
+        evidence=Evidence(
+            "https://developer.crowdstrike.com/api-reference/collections/malquery/#getmalqueryrequestv1",
+            "MalQuery: READ",
+            "falcon-mcp has no tool for GetMalQueryRequestV1. "
+            "falconpy/_endpoint/_malquery.py maps GetMalQueryRequestV1 to GET /malquery/entities/requests/v1. "
+            "PSFalcon public/malquery.ps1 Get-FalconMalQuery wraps it and requires MalQuery: Read.",
+        ),
+    ),
+    FalconOperation(
+        id="PostMalQueryExactSearchV1",
+        method="POST",
+        path="/malquery/queries/exact-search/v1",
+        scopes=("MalQuery:write",),
+        effect="malquery-search",
+        evidence=Evidence(
+            "https://developer.crowdstrike.com/api-reference/collections/malquery/#postmalqueryexactsearchv1",
+            "MalQuery: WRITE",
+            "falcon-mcp has no tool for PostMalQueryExactSearchV1. "
+            "falconpy/_endpoint/_malquery.py maps PostMalQueryExactSearchV1 to POST /malquery/queries/exact-search/v1. "
+            "PSFalcon public/malquery.ps1 Invoke-FalconMalQuery wraps it and requires MalQuery: Write.",
+        ),
+    ),
+    FalconOperation(
+        id="PostMalQueryFuzzySearchV1",
+        method="POST",
+        path="/malquery/combined/fuzzy-search/v1",
+        scopes=("MalQuery:write",),
+        effect="malquery-search",
+        evidence=Evidence(
+            "https://developer.crowdstrike.com/api-reference/collections/malquery/#postmalqueryfuzzysearchv1",
+            "MalQuery: WRITE",
+            "falcon-mcp has no tool for PostMalQueryFuzzySearchV1. "
+            "falconpy/_endpoint/_malquery.py maps PostMalQueryFuzzySearchV1 to POST /malquery/combined/fuzzy-search/v1. "
+            "PSFalcon public/malquery.ps1 Invoke-FalconMalQuery -Fuzzy wraps it and requires MalQuery: Write.",
         ),
     ),
     FalconOperation(
@@ -1916,14 +1971,26 @@ _DOT_SEGMENTS = (".", "..")
 
 
 def _seal_effect(entry: FalconOperation) -> None:
-    """The four enforcement tiers (§3.3 properties 2, 4, and 9).
+    """The five enforcement tiers (§3.3 properties 2, 4, and 9).
 
     A read must cite a `: READ` scope and use a read verb. The `search-lifecycle` tier exists only
     for the ids captain exception N1 names, and each must cite `NGSIEM: WRITE` and carry exactly
     the one write scope the exception admits. The `graphql-query` tier exists only for the one id
     captain exception N2 names, which must cite `Identity Protection GraphQL: WRITE`, carry exactly
-    that scope, and be a POST. No other write scope is representable in any tier.
+    that scope, and be a POST. N4 admits only its two exact pattern-search POST routes with
+    MalQuery:write and validated bounded bodies. No other write scope is representable.
     """
+    if entry.id in MALQUERY_SEARCH_IDS or entry.effect == "malquery-search":
+        if (
+            entry.id not in MALQUERY_SEARCH_IDS
+            or entry.effect != "malquery-search"
+            or entry.method != "POST"
+            or entry.path != MALQUERY_SEARCH_ROUTES.get(entry.id)
+            or entry.scopes != ("MalQuery:write",)
+            or entry.evidence.doc_scope != "MalQuery: WRITE"
+        ):
+            raise ValueError(f"operation {entry.id} is outside captain exception N4")
+        return
     if entry.id in RTR_EXECUTION_IDS or entry.effect == "rtr-read-only-execute":
         if (
             RTR_EXECUTION_TUPLES.get(entry.id) != (entry.method, entry.path, entry.effect, entry.scopes)

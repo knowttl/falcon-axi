@@ -330,6 +330,7 @@ def request_body(
     document_name: str | None,
     variables: Mapping[str, Any] | None,
     body: Any,
+    query: Mapping[str, Any] | None = None,
 ) -> Any:
     """The request body a registered operation sends; for the GraphQL operation it is built here.
 
@@ -343,6 +344,10 @@ def request_body(
                 f"operation {descriptor.id} does not take a graphql document",
                 ["falcon-axi sends a graphql document only through its registered graphql operation; report this as a bug"],
             )
+        if descriptor.effect == "malquery-search":
+            from falcon_axi.transport.malquery import validate_search_body
+
+            return validate_search_body(body, query)
         return body
     if document_name is None or body is not None:
         raise CliError(

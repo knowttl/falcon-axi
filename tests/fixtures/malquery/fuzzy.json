@@ -1,0 +1,23 @@
+{
+  "provenance": {
+    "operation": "PostMalQueryFuzzySearchV1",
+    "reference": "https://developer.crowdstrike.com/api-reference/collections/malquery/#postmalqueryfuzzysearchv1",
+    "schema_read": "2026-10-23",
+    "provenance": "synthetic"
+  },
+  "response": {
+    "status": 200,
+    "headers": {},
+    "body": {
+      "meta": {},
+      "resources": [
+        {
+          "sha256": "0000000000000000000000000000000000000000000000000000000000000000",
+          "family": "synthetic-family",
+          "filetype": "pe64",
+          "filesize": 4096
+        }
+      ]
+    }
+  }
+}

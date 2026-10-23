@@ -167,6 +167,19 @@ def translate_falcon_error(
             ],
         )
     if response.status == 403:
+        if descriptor.effect == "malquery-search":
+            return CliError(
+                "SCOPE_DENIED",
+                "MalQuery search is not licensed or not permitted for this API client",
+                [
+                    "Grant MalQuery:write in the Falcon console under Support and resources > API clients and keys",
+                    "Falcon MalQuery licensing is required; if the scope is absent from the picker, "
+                    "the tenant may lack that subscription",
+                    "Captain exception N4 admits only bounded exact and fuzzy pattern searches, never hunt or download",
+                    "Run `falcon-axi scopes` for the matrix",
+                ],
+                {"required_scopes": list(scopes)},
+            )
         if descriptor.effect == "graphql-query":
             # Falcon scopes the GraphQL endpoint WRITE even for a read-only query (captain exception N2, §4.4).
             return CliError(

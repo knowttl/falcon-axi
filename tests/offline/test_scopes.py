@@ -27,6 +27,7 @@ def test_the_only_write_scopes_in_the_matrix_are_the_two_the_captain_exceptions_
     parsed = decode(stdout)
     write_rows = {row["scope"]: row["commands"] for row in parsed["scopes"] if row["access"] == "write"}
     assert write_rows == {
+        "MalQuery:write": "malquery search",
         "NGSIEM:write": "host usb, identity activity, search start, search stop",
         "Identity Protection GraphQL:write": "identity list, identity show, identity timeline, identity assessment",
     }

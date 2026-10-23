@@ -1,0 +1,7 @@
+request:
+  id: 00000000-0000-4000-8000-000000000001
+  status: done
+count: 1 shown; total unknown
+samples[1]{sha256,family,filetype,filesize}:
+  "0000000000000000000000000000000000000000000000000000000000000000",synthetic-family,pe64,4096
+help[2]: "Run `falcon-axi malquery show <sha256>` for indexed file metadata","Run `falcon-axi malquery status 00000000-0000-4000-8000-000000000001 --limit 20` to read the request again"

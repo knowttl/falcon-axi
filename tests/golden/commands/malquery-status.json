@@ -1,0 +1,11 @@
+{
+  "name": "malquery status",
+  "order": 2307.86,
+  "summary": "  malquery status <id>      exact-search request status and bounded metadata results",
+  "scopes": [
+    {
+      "scope": "MalQuery:read",
+      "access": "read"
+    }
+  ]
+}

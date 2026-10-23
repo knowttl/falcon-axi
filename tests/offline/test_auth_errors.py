@@ -19,7 +19,8 @@ def test_auth_status_reports_the_channel_and_region_without_printing_any_value()
     assert re.search(r"^tenant: us-1 \(own CID unavailable\)$", stdout, re.MULTILINE)
     assert re.search(
         r"^scopes: read scopes, plus NGSIEM:write for `search start`, `search stop`, and `identity activity`, "
-        r"and Identity Protection GraphQL:write for the fixed Identity Protection query commands, alone$",
+        r"Identity Protection GraphQL:write for the fixed Identity Protection query commands, "
+        r"and MalQuery:write for bounded exact/fuzzy searches \(N4\)$",
         stdout,
         re.MULTILINE,
     )

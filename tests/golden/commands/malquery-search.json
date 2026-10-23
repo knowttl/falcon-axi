@@ -1,0 +1,11 @@
+{
+  "name": "malquery search",
+  "order": 2307.85,
+  "summary": "  malquery search           bounded exact or fuzzy literal-pattern search (N4)",
+  "scopes": [
+    {
+      "scope": "MalQuery:write",
+      "access": "write"
+    }
+  ]
+}

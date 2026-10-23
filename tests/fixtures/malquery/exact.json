@@ -1,0 +1,19 @@
+{
+  "provenance": {
+    "operation": "PostMalQueryExactSearchV1",
+    "reference": "https://developer.crowdstrike.com/api-reference/collections/malquery/#postmalqueryexactsearchv1",
+    "schema_read": "2026-10-23",
+    "provenance": "synthetic"
+  },
+  "response": {
+    "status": 200,
+    "headers": {},
+    "body": {
+      "meta": {
+        "reqid": "00000000-0000-4000-8000-000000000001",
+        "status": "pending"
+      },
+      "resources": []
+    }
+  }
+}

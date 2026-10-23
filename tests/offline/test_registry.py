@@ -7,6 +7,7 @@ import pytest
 from falcon_axi.core import CliError
 from falcon_axi.transport.operations import (
     GRAPHQL_QUERY_IDS,
+    MALQUERY_SEARCH_IDS,
     MUTATION_ROUTE_PATTERNS,
     OPERATION_IDS,
     OPERATIONS,
@@ -19,6 +20,9 @@ from falcon_axi.transport.operations import (
 #: Operations whose §2.2 corroboration is falconpy's generated table plus PSFalcon, because falcon-mcp
 #: has no tool for them, mapped to the falconpy endpoint module that lists each one.
 NO_FALCON_MCP_TOOL = {
+    "GetMalQueryRequestV1": "_malquery",
+    "PostMalQueryExactSearchV1": "_malquery",
+    "PostMalQueryFuzzySearchV1": "_malquery",
     "GetMalQueryMetadataV1": "_malquery",
     "GetMalQueryQuotasV1": "_malquery",
     "QueryReports": "_falconx_sandbox",
@@ -55,6 +59,27 @@ NO_FALCON_MCP_TOOL = {
 }
 
 EXPECTED = {
+    "GetMalQueryRequestV1": {
+        "method": "GET",
+        "path": "/malquery/entities/requests/v1",
+        "scopes": ("MalQuery:read",),
+        "effect": "read",
+        "doc_scope": "MalQuery: READ",
+    },
+    "PostMalQueryExactSearchV1": {
+        "method": "POST",
+        "path": "/malquery/queries/exact-search/v1",
+        "scopes": ("MalQuery:write",),
+        "effect": "malquery-search",
+        "doc_scope": "MalQuery: WRITE",
+    },
+    "PostMalQueryFuzzySearchV1": {
+        "method": "POST",
+        "path": "/malquery/combined/fuzzy-search/v1",
+        "scopes": ("MalQuery:write",),
+        "effect": "malquery-search",
+        "doc_scope": "MalQuery: WRITE",
+    },
     "GetMalQueryMetadataV1": {
         "method": "GET",
         "path": "/malquery/entities/metadata/v1",
@@ -880,7 +905,7 @@ def test_no_registered_path_matches_a_known_mutation_route() -> None:
 def test_every_registered_scope_is_a_read_scope_outside_the_two_captain_exceptions() -> None:
     assert SEARCH_LIFECYCLE_IDS == {"StartSearchV1", "StopSearchV1"}
     assert GRAPHQL_QUERY_IDS == {"api_preempt_proxy_post_graphql"}
-    exceptions = SEARCH_LIFECYCLE_IDS | GRAPHQL_QUERY_IDS
+    exceptions = SEARCH_LIFECYCLE_IDS | GRAPHQL_QUERY_IDS | MALQUERY_SEARCH_IDS
     for id in EXPECTED:
         for scope in registered_scopes([id]):
             assert scope.endswith(":write" if id in exceptions else ":read")

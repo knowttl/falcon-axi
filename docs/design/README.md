@@ -19,8 +19,8 @@ What is shipped:
   `uv run scripts/verify.py` entry point;
 - `-v`, `-V`, and `--version`, printing the bare version;
 - the sealed transport and its closed operation registry, with evidence carried per operation, a
-  second and third enforcement tier confining the two write-labelled scopes to three named
-  operations, and a single permitted network sink;
+  closed exception tiers confining N1, N2, and N4's write-labelled scopes to five named
+  operations, N3's guarded RTR lifecycle, and a single permitted network sink;
 - AXI credential profiles and SecretRefs, per-call XDG paths, region selection and
   `X-Cs-Region` autodiscovery, Flight Control member-CID selection, `auth status`, `profile list`, and `config path`;
 - the home view and core read domains: `falcon-axi`, `detection list`, `detection show`, `host list`,
@@ -87,4 +87,4 @@ What is shipped:
 
 Tenant discovery and standalone Identity Protection incident queries remain absent.
 There is no arbitrary GraphQL, GraphQL mutation, containment, ingest, configuration change, report PDF, or rule-file download.
-The complete exclusion contract is in [v1 section 1.5](v1.md#15-command-surface-non-goals), and the closed exceptions are owned by [v1 section 0](v1.md#0-invariant-r-v1-is-read-only-with-three-captain-granted-exceptions).
+The complete exclusion contract is in [v1 section 1.5](v1.md#15-command-surface-non-goals), and the closed exceptions are owned by [v1 section 0](v1.md#0-invariant-r-v1-is-read-only-with-four-captain-granted-exceptions).

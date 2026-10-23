@@ -50,7 +50,9 @@ def _send(prepared: PreparedOperation | PreparedToken) -> FalconResponse:
             remaining_seconds()
             raise
         # N3 never replays a send, including a 429. Status and cleanup are bounded by their caller too.
-        if isinstance(prepared, PreparedOperation) and prepared.rtr is not None:
+        if isinstance(prepared, PreparedOperation) and (
+            prepared.rtr is not None or operation(prepared.operation_id).effect == "malquery-search"
+        ):
             return response
         plan = retry_plan(response.status, response.headers, attempt, time.time() * 1000) if attempt < MAX_ATTEMPTS else None
         if plan is None:
@@ -72,7 +74,7 @@ class HttpTransport:
                 origin=origin,
                 token=args.token,
                 query=MappingProxyType(dict(args.query or {})),
-                body=request_body(descriptor, args.document, args.variables, args.body),
+                body=request_body(descriptor, args.document, args.variables, args.body, args.query),
                 path_params=MappingProxyType(path_arguments(descriptor, dict(args.path_params or {}))),
                 rtr=prepare_grant(id, args),
             )

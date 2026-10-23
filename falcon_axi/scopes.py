@@ -1,8 +1,8 @@
 """`falcon-axi scopes`: the command-to-scope matrix, projected from operation and document registries (§8.3).
 
 It is local-only and authentication-free, and because it is generated from the registry it cannot
-drift from what falcon-axi actually calls and cannot name a write scope beyond the two the captain's exceptions
-admit: no other registered operation has one (§4.3, §4.4, §5.7).
+drift from what falcon-axi actually calls and cannot name a write scope beyond N1, N2, and N4's
+closed grants: no other registered operation has one (§4.3, §4.4, §4.6, §5.7).
 """
 
 from typing import Any
@@ -46,10 +46,12 @@ def scope_rows() -> list[dict[str, str]]:
 def scope_matrix() -> CommandOutput:
     value: dict[str, Any] = {
         "posture": raw(
-            "read-only except two write-labelled scopes: NGSIEM:write for NG-SIEM search start and stop and identity activity "
+            "read-only except three write-labelled scopes: NGSIEM:write for NG-SIEM search start and stop "
+            "and identity activity "
             "(captain exception N1), and Identity Protection GraphQL:write for fixed read-only identity queries "
             "(captain exception N2); Real time response:read also permits guarded host execution "
-            "with profile opt-in and exact confirmation (captain exception N3)"
+            "with profile opt-in and exact confirmation (captain exception N3); "
+            "MalQuery:write permits bounded exact/fuzzy pattern searches (captain exception N4)"
         ),
         "scopes": scope_rows(),
         "member_cid_token_scope": raw("unresolved (Flight Control read may be required; see design section 17.7)"),
@@ -58,14 +60,16 @@ def scope_matrix() -> CommandOutput:
         value=value,
         help=(
             "Grant these scopes in the Falcon console under Support and resources > API clients and keys",
-            "Grant read access only, apart from NGSIEM:write and Identity Protection GraphQL:write; "
-            "falcon-axi needs no other write scope",
+            "Grant read access only, apart from NGSIEM:write, Identity Protection GraphQL:write, "
+            "and MalQuery:write; falcon-axi needs no other write scope",
             "Identity Protection GraphQL:write is labelled write because Falcon requires it even for read-only queries; "
             "falcon-axi sends only its own fixed read queries, never caller-supplied GraphQL (captain exception N2)",
             "Omit NGSIEM:write and `search start`, `search stop`, and `identity activity` fail with SCOPE_DENIED",
             "Omit Identity Protection GraphQL:write and `identity list`, `identity show`, `identity timeline`, "
             "and `identity assessment` "
             "fail with SCOPE_DENIED",
+            "MalQuery:write needs Falcon MalQuery licensing and admits only bounded exact/fuzzy search under N4; "
+            "hunt and sample downloads remain excluded",
             "Assets:read is license-gated to Falcon Discover or Exposure Management; "
             "omit it and the `account`, `asset`, `application`, and `login` commands fail with SCOPE_DENIED",
         ),
