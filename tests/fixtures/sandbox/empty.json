@@ -1,0 +1,4 @@
+{
+  "provenance": {"operation": "QueryReports", "reference": "https://developer.crowdstrike.com/api-reference/collections/falconx-sandbox/#queryreports", "schema_read": "2026-10-22", "provenance": "synthetic"},
+  "response": {"status": 200, "body": {"meta": {"pagination": {"total": 0}}, "resources": []}}
+}

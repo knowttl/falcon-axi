@@ -47,7 +47,9 @@ def test_process_view_renders_recorded_lineage_without_another_operation() -> No
         },
     ]
     assert recorded.operation_requests("PostEntitiesAlertsV2")[0].body == {"composite_ids": [LINEAGE_ID]}
-    assert "sandbox" not in stdout
+    assert f"sandbox list --sha256 {'a' * 64}" in stdout
+    assert f"sandbox list --sha256 {'b' * 64}" in stdout
+    assert f"sandbox list --sha256 {'c' * 64}" in stdout
 
 
 @pytest.mark.parametrize(

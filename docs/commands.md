@@ -33,6 +33,7 @@ Product licensing also controls availability.
 | `IOC Management:read` | ioc list, ioc show | yes |
 | `IOCs (Indicators of Compromise):read` | ioc hosts, ioc processes, process show | yes |
 | `Threatgraph:read` | process tree | yes |
+| `Sandbox (Falcon Intelligence):read` | sandbox list, sandbox show | yes |
 | `Host Groups:read` | host-group list, host-group members | yes |
 | `Prevention Policies:read` | policy list, policy members | selected --type |
 | `Sensor Update Policies:read` | policy list, policy members | selected --type |
@@ -948,6 +949,41 @@ Examples:
 Read-only; requires Threatgraph:read and a subscription with ThreatGraph API access.
 Response shape source: CrowdStrike SDK sample falconpy samples/threat_graph/threat_finder.py,
 not a resource schema in the API spec; source-matched and tested offline, not tenant-validated.
+```
+
+## sandbox list
+
+```text
+falcon-axi sandbox list (--sha256 <hash> | --filter <FQL>) [--limit <n>] [--cursor <token>]
+
+--sha256  exactly 64 hex characters; builds sandbox.sha256:'<hash>'
+--filter  FQL instead of a hash; exactly one selector is required
+--limit   reports per page (default 20, maximum 5000)
+--cursor  opaque continuation token for the same query
+One row per sandbox environment; count and pagination refer to reports.
+The hash filter field is partner-corroborated, not CrowdStrike-documented.
+
+Examples:
+  falcon-axi sandbox list --sha256 0000000000000000000000000000000000000000000000000000000000000000
+  falcon-axi sandbox list --filter "verdict:'malicious'"
+
+Read-only; requires Sandbox (Falcon Intelligence):read and Falcon Intelligence (Sandbox).
+Reads existing reports only; an empty result can mean not licensed or no data.
+```
+
+## sandbox show
+
+```text
+falcon-axi sandbox show <report-id>
+
+Includes file_type, classification_tags, submit_url, and sha256 per environment.
+Omits tenant CID, user identity, and artifact download handles.
+
+Examples:
+  falcon-axi sandbox show synthetic-report-01
+  falcon-axi sandbox list --filter "verdict:'malicious'"
+
+Read-only; requires Sandbox (Falcon Intelligence):read and Falcon Intelligence (Sandbox).
 ```
 
 ## host-group list

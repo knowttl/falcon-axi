@@ -1,5 +1,6 @@
 """The detections domain: pure functions from arguments to requests and responses to rows."""
 
+import re
 import shlex
 from collections.abc import Mapping, Sequence
 from typing import Any
@@ -306,6 +307,9 @@ def detection_process(transport: Transport, session: Session, id: str, full: boo
     for pivot in dict.fromkeys(pivots):
         if pivot and PROCESS_ID.fullmatch(pivot):
             help.append(f"Run `falcon-axi process show {pivot}` for process details")
+    for hash in dict.fromkeys(row["sha256"] for row in rows):
+        if isinstance(hash, str) and re.fullmatch(r"[a-fA-F0-9]{64}", hash):
+            help.append(f"Run `falcon-axi sandbox list --sha256 {hash}` for existing sandbox reports")
     return CommandOutput(value=value, help=tuple(help))
 
 

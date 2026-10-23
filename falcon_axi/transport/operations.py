@@ -19,6 +19,8 @@ from typing import Literal, get_args
 from falcon_axi.core import CliError
 
 OperationId = Literal[
+    "QueryReports",
+    "GetSummaryReports",
     "combined_summary_get",
     "combined_edges_get",
     "RTR_ListAllSessions",
@@ -344,6 +346,34 @@ CANONICAL: tuple[FalconOperation, ...] = (
             "falcon-mcp has no tool for QueryMalwareEntities. "
             "falconpy/_endpoint/_intel.py maps QueryMalwareEntities to GET /intel/combined/malware/v1. "
             "PSFalcon public/intel.ps1 Get-FalconMalwareFamily -Detailed wraps it.",
+        ),
+    ),
+    FalconOperation(
+        id="QueryReports",
+        method="GET",
+        path="/falconx/queries/reports/v1",
+        scopes=("Sandbox (Falcon Intelligence):read",),
+        effect="read",
+        evidence=Evidence(
+            "https://developer.crowdstrike.com/api-reference/collections/falconx-sandbox/#queryreports",
+            "Sandbox (Falcon Intelligence): READ",
+            "falcon-mcp has no tool for QueryReports. "
+            "falconpy/_endpoint/_falconx_sandbox.py maps QueryReports to GET /falconx/queries/reports/v1. "
+            "PSFalcon public/falconx.ps1 Get-FalconReport's default parameter set wraps QueryReports.",
+        ),
+    ),
+    FalconOperation(
+        id="GetSummaryReports",
+        method="GET",
+        path="/falconx/entities/report-summaries/v1",
+        scopes=("Sandbox (Falcon Intelligence):read",),
+        effect="read",
+        evidence=Evidence(
+            "https://developer.crowdstrike.com/api-reference/collections/falconx-sandbox/#getsummaryreports",
+            "Sandbox (Falcon Intelligence): READ",
+            "falcon-mcp has no tool for GetSummaryReports. "
+            "falconpy/_endpoint/_falconx_sandbox.py maps GetSummaryReports to GET /falconx/entities/report-summaries/v1. "
+            "PSFalcon public/falconx.ps1 Get-FalconReport -Summary wraps GetSummaryReports.",
         ),
     ),
     FalconOperation(

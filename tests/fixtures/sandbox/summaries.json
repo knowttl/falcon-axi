@@ -1,0 +1,10 @@
+{
+  "provenance": {"operation": "GetSummaryReports", "reference": "https://developer.crowdstrike.com/api-reference/collections/falconx-sandbox/#getsummaryreports", "schema_read": "2026-10-22", "provenance": "synthetic", "note": "Documented summary resources with nested sandbox environments; values wholly invented."},
+  "response": {"status": 200, "body": {"resources": [
+    {"id": "synthetic-report-02", "verdict": "no specific threat", "created_timestamp": "2026-01-02T00:00:00Z", "sandbox": [{"threat_score": 0, "environment_description": "Synthetic Linux", "submit_name": "synthetic-second.bin", "sha256": "1111111111111111111111111111111111111111111111111111111111111111"}]},
+    {"id": "synthetic-report-01", "verdict": "malicious", "created_timestamp": "2026-01-01T00:00:00Z", "user_id": "synthetic-user-id", "user_name": "synthetic-user-name", "ioc_report_broad_csv_artifact_id": "synthetic-artifact-id", "sandbox": [
+      {"verdict": "malicious", "threat_score": 90, "environment_description": "Synthetic Windows", "submit_name": "synthetic-first.exe", "file_type": "PE executable", "classification_tags": ["synthetic-classification"], "submit_url": "https://example.invalid/synthetic", "sha256": "0000000000000000000000000000000000000000000000000000000000000000"},
+      {"verdict": "suspicious", "threat_score": 60, "environment_description": "Synthetic Windows alternate", "submit_name": "synthetic-first.exe", "sha256": "0000000000000000000000000000000000000000000000000000000000000000"}
+    ]}
+  ]}}
+}

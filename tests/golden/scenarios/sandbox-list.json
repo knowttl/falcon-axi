@@ -1,0 +1,9 @@
+{
+  "name": "sandbox-list",
+  "argv": ["sandbox", "list", "--sha256", "0000000000000000000000000000000000000000000000000000000000000000"],
+  "responders": [
+    {"op": "QueryReports", "fixture": "sandbox/query.json"},
+    {"op": "GetSummaryReports", "fixture": "sandbox/summaries.json"}
+  ],
+  "exit_code": 0
+}
