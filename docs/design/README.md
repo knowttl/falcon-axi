@@ -18,9 +18,8 @@ What is shipped:
 - the package foundation: a Python package, the `falcon-axi` console script, and one offline
   `uv run scripts/verify.py` entry point;
 - `-v`, `-V`, and `--version`, printing the bare version;
-- the sealed transport and its closed operation registry, with evidence carried per operation, a
-  second and third enforcement tier confining the two write-labelled scopes to three named
-  operations, and a single permitted network sink;
+- the sealed transport and its closed operation registry, with evidence carried per operation,
+  [closed exception tiers](v1.md#33-the-transport-is-the-enforcement-point), and a single permitted network sink;
 - AXI credential profiles and SecretRefs, per-call XDG paths, region selection and
   `X-Cs-Region` autodiscovery, Flight Control member-CID selection, `auth status`, `profile list`, and `config path`;
 - the home view and core read domains: `falcon-axi`, `detection list`, `detection show`, `host list`,
@@ -38,7 +37,7 @@ What is shipped:
   `report list`, and `report show`, with FQL filters and cursor pagination on lists;
 - the Identity Protection directory and timeline: `identity list`, `identity show`, and
   `identity timeline`, sending only fixed read-only GraphQL query documents under captain exception
-  N2, the other place falcon-axi asks for a write-labelled scope;
+  N2;
 - `identity assessment [--domain <name>]`, a fixed read-only security-assessment query under N2,
   and `identity sensor list` / `identity sensor show`, ordinary REST reads of sensor inventory;
 - identity-aware detections (`detection list --product idp`, with account and source-endpoint
@@ -87,4 +86,4 @@ What is shipped:
 
 Tenant discovery and standalone Identity Protection incident queries remain absent.
 There is no arbitrary GraphQL, GraphQL mutation, containment, ingest, configuration change, report PDF, or rule-file download.
-The complete exclusion contract is in [v1 section 1.5](v1.md#15-command-surface-non-goals), and the closed exceptions are owned by [v1 section 0](v1.md#0-invariant-r-v1-is-read-only-with-three-captain-granted-exceptions).
+The complete exclusion contract is in [v1 section 1.5](v1.md#15-command-surface-non-goals), and the closed exceptions are owned by [v1 section 0](v1.md#0-invariant-r-v1-is-read-only-with-four-captain-granted-exceptions).

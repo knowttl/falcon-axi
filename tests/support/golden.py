@@ -128,7 +128,7 @@ class _GoldenTransport:
     def request(self, id: str, args: RequestArgs) -> FalconResponse:
         descriptor = operation(id)
         path_arguments(descriptor, dict(args.path_params or {}))
-        request_body(descriptor, args.document, args.variables, args.body)
+        request_body(descriptor, args.document, args.variables, args.body, args.query)
         for responder in self.responders:
             answer = responder(id, args)
             if answer is not None:

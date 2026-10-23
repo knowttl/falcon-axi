@@ -4,6 +4,6 @@ profile: env
 endpoint: "https://api.us-2.crowdstrike.com"
 client_secret_source: "env:FALCON_CLIENT_SECRET"
 tenant: us-2 (re-targeted from us-1) (own CID unavailable)
-scopes: read scopes, plus NGSIEM:write for `search start`, `search stop`, and `identity activity`, and Identity Protection GraphQL:write for the fixed Identity Protection query commands, alone
+scopes: read scopes, plus NGSIEM:write for `search start`, `search stop`, and `identity activity`, Identity Protection GraphQL:write for the fixed Identity Protection query commands, and MalQuery:write for bounded exact/fuzzy searches (N4)
 rate_limit: 5999 of 6000 requests remaining
 help[1]: "Run `falcon-axi detection list` to read detections with this credential"

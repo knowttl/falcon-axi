@@ -1,0 +1,17 @@
+{
+  "name": "malquery-search-fuzzy",
+  "argv": [
+    "malquery",
+    "search",
+    "--hex",
+    "4D 5A",
+    "--fuzzy"
+  ],
+  "responders": [
+    {
+      "op": "PostMalQueryFuzzySearchV1",
+      "fixture": "malquery/fuzzy.json"
+    }
+  ],
+  "exit_code": 0
+}

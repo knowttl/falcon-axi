@@ -25,6 +25,7 @@ from falcon_axi.core import CliError
 from falcon_axi.rtr_policy import RESPONSE_BYTES
 from falcon_axi.transport.budget import BudgetExpired, deadline_after, remaining_seconds, request_budget
 from falcon_axi.transport.graphql import is_registered_query
+from falcon_axi.transport.malquery import validate_search_body
 from falcon_axi.transport.operations import GRAPHQL_QUERY_IDS, operation
 from falcon_axi.transport.rtr import _signing_key, validate_grant
 from falcon_axi.transport.types import FalconResponse, PreparedOperation, PreparedToken
@@ -241,6 +242,10 @@ def send_permitted_request(prepared: PreparedOperation | PreparedToken, permit: 
 
         descriptor = operation(prepared.operation_id)
         validate_grant(prepared)
+        if descriptor.effect == "malquery-search":
+            validate_search_body(prepared.body, prepared.query)
+            if prepared.query or prepared.path_params:
+                raise CliError("READ_ONLY_VIOLATION", "MalQuery search accepts only N4's bounded pattern body")
         if descriptor.id in GRAPHQL_QUERY_IDS and not is_registered_query(prepared.body):
             # The last check before the network: the GraphQL endpoint also accepts mutations (§4.4),
             # so nothing but a registered document may reach it, whatever built the prepared request.

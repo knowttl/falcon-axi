@@ -1,5 +1,6 @@
 {
   "name": "help-top",
+  "comment": "N4 section 4.6 adds search/status discovery and names the third optional write scope.",
   "argv": [
     "--help"
   ],

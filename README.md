@@ -101,9 +101,10 @@ falcon-axi reads Falcon data without changing hosts, detections, policies, or id
 It cannot contain endpoints, release quarantined files, update configuration, or send GraphQL mutations.
 There is no arbitrary API passthrough.
 
-Tenant-side effects are NG-SIEM search jobs and N3's explicitly authorized read-only RTR session lifecycle.
+Tenant-side effects are NG-SIEM search jobs, N3's explicitly authorized read-only RTR lifecycle, and N4's bounded MalQuery exact/fuzzy searches.
+MalQuery pattern search requires optional `MalQuery:write` and Falcon MalQuery licensing under N4; hunt and all malware downloads stay excluded.
 See [API client permissions](#api-client-permissions) for required scopes.
-Set `FALCON_AXI_READ_ONLY=1` to block search lifecycle changes and RTR execution locally; see the [switch contract](docs/design/v1.md#52-accepted-input-channels-in-precedence-order) for affected commands.
+Set `FALCON_AXI_READ_ONLY=1` to enforce the local [switch contract](docs/design/v1.md#52-accepted-input-channels-in-precedence-order), which lists the affected commands.
 Identity directory, timeline, and assessment reads require a scope Falcon labels write, but send only fixed read-only query documents.
 They accept no caller-supplied GraphQL.
 
@@ -155,7 +156,8 @@ Grant only the domains you use; available scopes depend on product licensing.
 | `Threatgraph:read` | process tree | yes |
 | `Sandbox (Falcon Intelligence):read` | sandbox list, sandbox show | yes |
 | `Falcon FileVantage:read` | file-change list, file-change show | yes |
-| `MalQuery:read` | malquery show, malquery quota | yes |
+| `MalQuery:read` | malquery show, malquery quota, malquery status | yes |
+| `MalQuery:write` | malquery search | yes |
 | `Host Groups:read` | host-group list, host-group members | yes |
 | `Prevention Policies:read` | policy list, policy members | selected --type |
 | `Sensor Update Policies:read` | policy list, policy members | selected --type |
@@ -314,6 +316,8 @@ Run any command with `--help` for its arguments and examples.
 | `file-change show` | <id>         inspect one FileVantage change |
 | `malquery show` | <sha256>    indexed file metadata by SHA-256 |
 | `malquery quota` | MalQuery quota counters and refresh time |
+| `malquery search` | bounded exact or fuzzy literal-pattern search (N4) |
+| `malquery status` | <id>      exact-search request status and bounded metadata results |
 | `host-group list` | list host-group list |
 | `host-group members` | <id>     list host-group members |
 | `policy list` | list policies of one required type |

@@ -30,10 +30,13 @@ Three consequences that catch people out:
   `GRAPHQL_QUERY_IDS` is exactly `api_preempt_proxy_post_graphql`, sealed the same way to
   `Identity Protection GraphQL:write`, and GraphQL text reaches it only as a registered document from
   `falcon_axi/transport/graphql.py`, never as caller input.
+  N4 seals `MALQUERY_SEARCH_IDS` to exactly `PostMalQueryExactSearchV1` and `PostMalQueryFuzzySearchV1`,
+  with `MalQuery:write`, canonical POST routes, validated literal patterns, and bounded results rechecked at the sink.
+  N3 separately seals its guarded RTR lifecycle (§4.5); N4 admits no hunt, multidownload, or sample download.
   Admitting a further state-changing operation requires editing its closed allowlist (§3.3), which is the reviewable diff §1.6 demands.
 
 See `docs/design/v1.md` §0 (the invariant), §1.5 (excluded capability classes), §2.2 (the two-citation rule),
-§3 (transport enforcement), §4.3 and §4.4 (captain exceptions N1 and N2 and their boundaries), §5.7
+§3 (transport enforcement), §4.3-§4.6 (captain exceptions N1-N4 and their boundaries), §5.7
 (provisioning), and §15 (live-test boundary).
 
 ## The v1 design is authoritative

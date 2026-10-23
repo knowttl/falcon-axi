@@ -89,8 +89,15 @@ def test_invalid_quota_does_not_invent_zero_counters(body) -> None:
     assert decode(stdout)["code"] == "UPSTREAM_ERROR"
 
 
-def test_malquery_registry_admits_only_metadata_and_quota_reads() -> None:
-    assert {id for id in OPERATIONS if "MalQuery" in id} == {"GetMalQueryMetadataV1", "GetMalQueryQuotasV1"}
-    assert not any(id.startswith("PostMalQuery") for id in OPERATIONS)
+def test_malquery_registry_admits_only_n4_searches_and_metadata_reads() -> None:
+    assert {id for id in OPERATIONS if "MalQuery" in id} == {
+        "GetMalQueryMetadataV1",
+        "GetMalQueryQuotasV1",
+        "GetMalQueryRequestV1",
+        "PostMalQueryExactSearchV1",
+        "PostMalQueryFuzzySearchV1",
+    }
+    assert "PostMalQueryHuntV1" not in OPERATIONS
+    assert "PostMalQueryEntitiesSamplesMultidownloadV1" not in OPERATIONS
     assert "GetMalQueryDownloadV1" not in OPERATIONS
     assert "GetMalQueryEntitiesSamplesFetchV1" not in OPERATIONS

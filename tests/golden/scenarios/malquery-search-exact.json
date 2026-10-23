@@ -1,0 +1,16 @@
+{
+  "name": "malquery-search-exact",
+  "argv": [
+    "malquery",
+    "search",
+    "--string",
+    "SYNTHETIC"
+  ],
+  "responders": [
+    {
+      "op": "PostMalQueryExactSearchV1",
+      "fixture": "malquery/exact.json"
+    }
+  ],
+  "exit_code": 0
+}

@@ -258,6 +258,14 @@ def parse(argv: Sequence[str]) -> Parsed:
         from falcon_axi.malquery import validate_sha256
 
         validate_sha256(positionals[0])
+    if command == "malquery search":
+        from falcon_axi.transport.malquery import search_body
+
+        search_body(_str(flags.get("string")), _str(flags.get("hex")), limit_of(flags, COMMAND_SPECS[command]))
+    if command == "malquery status":
+        from falcon_axi.malquery import validate_request_id
+
+        validate_request_id(positionals[0])
     if command == "sandbox list":
         from falcon_axi.sandbox import sandbox_filter
 
@@ -288,10 +296,10 @@ def help_text(command: str) -> str:
             "RTR execution requires profile opt-in, --execute, and exact host:command --confirm (N3). It",
             "requires Alerts:read, Hosts:read, Vulnerabilities:read, Vulnerabilities (Falcon Intelligence):read,",
             "NGSIEM:read, Identity Protection Entities:read, Identity Protection Timeline:read, and",
-            "Identity Protection Assessment:read, plus two",
+            "Identity Protection Assessment:read, plus three",
             "write-labelled scopes: NGSIEM:write for `search start`, `search stop`, and `identity activity`, and",
             "Identity Protection GraphQL:write for the fixed Identity Protection query commands,",
-            "which Falcon requires even for read-only queries.",
+            "which Falcon requires even for read-only queries, and MalQuery:write for bounded exact/fuzzy searches (N4).",
             "The `account`, `asset`, `application`, and `login` commands need license-gated Assets:read.",
             "The `indicator` commands require the license-gated Indicators (Falcon Intelligence):read scope.",
         ]
@@ -426,7 +434,13 @@ def _run(
         if parsed.flags.get("help"):
             return f"{help_text(parsed.command)}\n", 0
         forced_read_only = read_only(values)
-        if forced_read_only and parsed.command in ("search start", "search stop", "identity activity", "host usb"):
+        if forced_read_only and parsed.command in (
+            "search start",
+            "search stop",
+            "identity activity",
+            "host usb",
+            "malquery search",
+        ):
             raise CliError("READ_ONLY_VIOLATION", "FALCON_AXI_READ_ONLY forbids search lifecycle changes")
         if parsed.command == "home":
             return _home_view(transport, parsed.flags, values, bin or "falcon-axi", skill_hint(values) if not argv else ())

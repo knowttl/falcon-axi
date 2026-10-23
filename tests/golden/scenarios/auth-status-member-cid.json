@@ -1,5 +1,6 @@
 {
   "name": "auth-status-member-cid",
+  "comment": "N4 section 4.6 deliberately adds the optional MalQuery:write grant to authentication scope guidance.",
   "argv": [
     "auth",
     "status",

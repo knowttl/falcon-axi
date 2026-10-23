@@ -1,17 +1,18 @@
 # Read-only enforcement
 
 The shipped CLI reads Falcon data without changing hosts, detections, policies, or identities.
-Tenant-side effects are NG-SIEM search jobs and N3's explicitly authorized read-only RTR session lifecycle.
+Tenant-side effects are NG-SIEM search jobs, N3's explicitly authorized read-only RTR lifecycle, and N4's bounded MalQuery exact/fuzzy searches.
 Identity Protection's write-labelled GraphQL scope is used solely for registered read-only query documents.
 
 ## Closed transport boundary
 
-The [design invariant](design/v1.md#0-invariant-r-v1-is-read-only-with-three-captain-granted-exceptions) is enforced through a closed operation registry before the SDK is constructed.
+The [design invariant](design/v1.md#0-invariant-r-v1-is-read-only-with-four-captain-granted-exceptions) is enforced through a closed operation registry before the SDK is constructed.
 HTTP verbs and scope names alone do not prove a read: Falcon uses POST for reads, and some read-scoped operations have effects.
 Every registered operation carries its documented scope and corroborating source evidence.
 Only the permitted network sink can import and call the FalconPy harness.
 
 Captain exception N1 admits exactly `StartSearchV1` and `StopSearchV1` with `NGSIEM:write`.
+The [N4 design contract](design/v1.md#46-malquery-pattern-search-captain-exception-n4) owns MalQuery search admission, pattern and result bounds, and hunt/download exclusions.
 Captain exception N2 admits exactly `api_preempt_proxy_post_graphql` with `Identity Protection GraphQL:write`.
 These are closed ID allowlists; they do not authorize additional writes.
 The GraphQL sink accepts registered documents only, with caller inputs in variables, never caller-supplied query text.

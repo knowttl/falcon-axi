@@ -45,7 +45,7 @@ class RecordedTransport:
         # and validates the path variables exactly as `HttpTransport.request` does (§14.2).
         descriptor = operation(id)
         path_arguments(descriptor, dict(args.path_params or {}))
-        request_body(descriptor, args.document, args.variables, args.body)
+        request_body(descriptor, args.document, args.variables, args.body, args.query)
         prepare_grant(id, args)
         self.requests.append(("operation", (id, args)))
         for responder in self.responders:

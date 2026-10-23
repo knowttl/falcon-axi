@@ -35,7 +35,8 @@ Product licensing also controls availability.
 | `Threatgraph:read` | process tree | yes |
 | `Sandbox (Falcon Intelligence):read` | sandbox list, sandbox show | yes |
 | `Falcon FileVantage:read` | file-change list, file-change show | yes |
-| `MalQuery:read` | malquery show, malquery quota | yes |
+| `MalQuery:read` | malquery show, malquery quota, malquery status | yes |
+| `MalQuery:write` | malquery search | yes |
 | `Host Groups:read` | host-group list, host-group members | yes |
 | `Prevention Policies:read` | policy list, policy members | selected --type |
 | `Sensor Update Policies:read` | policy list, policy members | selected --type |
@@ -1068,6 +1069,42 @@ Examples:
   falcon-axi malquery show 0000000000000000000000000000000000000000000000000000000000000000
 
 Read-only; requires MalQuery:read and Falcon MalQuery. Does not consume search or download quota.
+```
+
+## malquery search
+
+```text
+falcon-axi malquery search --string <ASCII> | --hex <bytes> [--fuzzy] [--limit N]
+
+At least one pattern is required; combine --string and --hex to search for both.
+--string: 1-4096 printable ASCII characters with nonblank content (API type ascii).
+--hex: 1-4096 literal hex byte pairs, optional spaces; no wildcards or YARA.
+--fuzzy: synchronous metadata rows, with possible false positives; default exact returns a request id.
+--limit: maximum matches, default 20, CLI cap 100 (not a published API maximum).
+No pagination, automatic polling, or replay; status uses `malquery status <id>`.
+
+Examples:
+  falcon-axi malquery search --string SYNTHETIC-PATTERN --limit 20
+  falcon-axi malquery search --hex '4d 5a' --fuzzy --limit 10
+
+Requires MalQuery:write and Falcon MalQuery under captain exception N4.
+FALCON_AXI_READ_ONLY refuses searches. Hunt and all sample downloads remain excluded.
+```
+
+## malquery status
+
+```text
+falcon-axi malquery status <id> [--limit N]
+
+id: UUID returned by exact search; reads once, with no automatic polling.
+--limit: maximum displayed rows, default 20, CLI cap 100; no upstream pagination parameter.
+Renders request status and sha256, family, filetype, filesize; a capped result is marked partial.
+
+Examples:
+  falcon-axi malquery status 00000000-0000-4000-8000-000000000001
+  falcon-axi malquery status 00000000-0000-4000-8000-000000000001 --limit 100
+
+Read-only; requires MalQuery:read and Falcon MalQuery. No hunt or download is started.
 ```
 
 ## host-group list
