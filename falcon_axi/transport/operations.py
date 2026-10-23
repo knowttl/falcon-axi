@@ -7,6 +7,7 @@ endpoint table plus another first-party CrowdStrike SDK (PSFalcon), not a missin
 The read tier admits only read-scoped operations. Captain exceptions N1 and N2 admit the two
 write-labelled effects defined below (docs/design/v1.md §4.3, §4.4); each is confined to its own
 id allowlist and scope, and N2 additionally requires fixed read-only query documents.
+N3 admits four exact read-scoped RTR lifecycle tuples, behind separate one-run authorization.
 """
 
 import re
@@ -18,6 +19,10 @@ from typing import Literal, get_args
 from falcon_axi.core import CliError
 
 OperationId = Literal[
+    "RTR_InitSession",
+    "RTR_ExecuteCommand",
+    "RTR_CheckCommandStatus",
+    "RTR_DeleteSession",
     "exclusions_search_v2",
     "exclusions_get_v2",
     "ss_ioa_exclusions_search_v2",
@@ -116,8 +121,38 @@ OperationId = Literal[
 
 OPERATION_IDS: tuple[str, ...] = get_args(OperationId)
 
-Effect = Literal["read", "search-lifecycle", "graphql-query"]
+Effect = Literal["read", "search-lifecycle", "graphql-query", "rtr-read-only-execute"]
 EFFECTS: tuple[str, ...] = get_args(Effect)
+
+RTR_EXECUTION_TUPLES = MappingProxyType(
+    {
+        "RTR_InitSession": (
+            "POST",
+            "/real-time-response/entities/sessions/v1",
+            "rtr-read-only-execute",
+            ("Real time response:read",),
+        ),
+        "RTR_ExecuteCommand": (
+            "POST",
+            "/real-time-response/entities/command/v1",
+            "rtr-read-only-execute",
+            ("Real time response:read",),
+        ),
+        "RTR_CheckCommandStatus": (
+            "GET",
+            "/real-time-response/entities/command/v1",
+            "rtr-read-only-execute",
+            ("Real time response:read",),
+        ),
+        "RTR_DeleteSession": (
+            "DELETE",
+            "/real-time-response/entities/sessions/v1",
+            "rtr-read-only-execute",
+            ("Real time response:read",),
+        ),
+    }
+)
+RTR_EXECUTION_IDS = frozenset(RTR_EXECUTION_TUPLES)
 
 #: The whole of captain exception N1 (docs/design/v1.md §4.3): the only ids whose effect may be
 #: `search-lifecycle`, and so the only ids that may cite a write scope. `GetSearchStatusV1` is not
@@ -167,6 +202,58 @@ NGSIEM_DOC = "https://developer.crowdstrike.com/api-reference/collections/ngsiem
 IDENTITY_PROTECTION_DOC = "https://developer.crowdstrike.com/api-reference/collections/identity-protection/"
 
 CANONICAL: tuple[FalconOperation, ...] = (
+    FalconOperation(
+        "RTR_InitSession",
+        "POST",
+        "/real-time-response/entities/sessions/v1",
+        ("Real time response:read",),
+        "rtr-read-only-execute",
+        Evidence(
+            "https://developer.crowdstrike.com/api-reference/collections/real-time-response/#rtr-initsession",
+            "Real time response: READ",
+            "falcon_mcp/common/api_scopes.py maps RTR_InitSession to Real time response:read; "
+            "falcon_mcp/modules/rtr.py init_session uses RTR_InitSession.",
+        ),
+    ),
+    FalconOperation(
+        "RTR_ExecuteCommand",
+        "POST",
+        "/real-time-response/entities/command/v1",
+        ("Real time response:read",),
+        "rtr-read-only-execute",
+        Evidence(
+            "https://developer.crowdstrike.com/api-reference/collections/real-time-response/#rtr-executecommand",
+            "Real time response: READ",
+            "falcon_mcp/common/api_scopes.py maps RTR_ExecuteCommand to Real time response:read; "
+            "falcon_mcp/modules/rtr.py execute_read_only_command uses RTR_ExecuteCommand.",
+        ),
+    ),
+    FalconOperation(
+        "RTR_CheckCommandStatus",
+        "GET",
+        "/real-time-response/entities/command/v1",
+        ("Real time response:read",),
+        "rtr-read-only-execute",
+        Evidence(
+            "https://developer.crowdstrike.com/api-reference/collections/real-time-response/#rtr-checkcommandstatus",
+            "Real time response: READ",
+            "falcon_mcp/common/api_scopes.py maps RTR_CheckCommandStatus to Real time response:read; "
+            "falcon_mcp/modules/rtr.py check_command_status uses RTR_CheckCommandStatus.",
+        ),
+    ),
+    FalconOperation(
+        "RTR_DeleteSession",
+        "DELETE",
+        "/real-time-response/entities/sessions/v1",
+        ("Real time response:read",),
+        "rtr-read-only-execute",
+        Evidence(
+            "https://developer.crowdstrike.com/api-reference/collections/real-time-response/#rtr-deletesession",
+            "Real time response: READ",
+            "falcon_mcp/common/api_scopes.py maps RTR_DeleteSession to Real time response:read; "
+            "falcon_mcp/modules/rtr.py delete_session uses RTR_DeleteSession.",
+        ),
+    ),
     FalconOperation(
         id="QueryMalwareEntities",
         method="GET",
@@ -1616,7 +1703,7 @@ _DOT_SEGMENTS = (".", "..")
 
 
 def _seal_effect(entry: FalconOperation) -> None:
-    """The three enforcement tiers (§3.3 properties 2 and 4).
+    """The four enforcement tiers (§3.3 properties 2, 4, and 9).
 
     A read must cite a `: READ` scope and use a read verb. The `search-lifecycle` tier exists only
     for the ids captain exception N1 names, and each must cite `NGSIEM: WRITE` and carry exactly
@@ -1624,6 +1711,13 @@ def _seal_effect(entry: FalconOperation) -> None:
     captain exception N2 names, which must cite `Identity Protection GraphQL: WRITE`, carry exactly
     that scope, and be a POST. No other write scope is representable in any tier.
     """
+    if entry.id in RTR_EXECUTION_IDS or entry.effect == "rtr-read-only-execute":
+        if (
+            RTR_EXECUTION_TUPLES.get(entry.id) != (entry.method, entry.path, entry.effect, entry.scopes)
+            or entry.evidence.doc_scope != "Real time response: READ"
+        ):
+            raise ValueError(f"operation {entry.id} is outside captain exception N3")
+        return
     if entry.effect == "read":
         if not _READ_SCOPE.search(entry.evidence.doc_scope):
             raise ValueError(f"operation {entry.id} does not cite a read scope")
@@ -1677,7 +1771,9 @@ def _seal(entry: FalconOperation) -> FalconOperation:
         raise ValueError(f"operation {entry.id} is missing evidence")
     if not _second_citation(entry):
         raise ValueError(f"operation {entry.id} is missing its §2.2 corroboration")
-    if any(pattern.search(entry.path) for pattern in MUTATION_ROUTE_PATTERNS):
+    if any(pattern.search(entry.path) for pattern in MUTATION_ROUTE_PATTERNS) and (
+        RTR_EXECUTION_TUPLES.get(entry.id) != (entry.method, entry.path, entry.effect, entry.scopes)
+    ):
         raise ValueError(f"operation {entry.id} matches a known mutation route")
     return entry
 

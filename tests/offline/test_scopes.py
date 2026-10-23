@@ -13,7 +13,8 @@ from tests.support.recorded import NO_CREDENTIAL_ENV, RecordedTransport
 def test_every_printed_scope_comes_from_the_registry_with_its_access_derived_from_it() -> None:
     stdout, _ = run(["scopes"], RecordedTransport([]), dict(NO_CREDENTIAL_ENV))
     parsed = decode(stdout)
-    registered = {scope for descriptor in OPERATIONS.values() for scope in descriptor.scopes} | {
+    shipped_ids = {id for spec in COMMAND_SPECS.values() for id in spec.operations}
+    registered = {scope for id in shipped_ids for scope in OPERATIONS[id].scopes} | {
         scope for entry in GRAPHQL_DOCUMENTS.values() for scope in entry.read_scopes
     }
     assert {row["scope"] for row in parsed["scopes"]} == registered

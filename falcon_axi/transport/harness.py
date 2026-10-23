@@ -22,9 +22,11 @@ from falconpy import APIHarnessV2
 from urllib3.util import Timeout
 
 from falcon_axi.core import CliError
+from falcon_axi.rtr_policy import RESPONSE_BYTES
 from falcon_axi.transport.budget import BudgetExpired, deadline_after, remaining_seconds, request_budget
 from falcon_axi.transport.graphql import is_registered_query
 from falcon_axi.transport.operations import GRAPHQL_QUERY_IDS, operation
+from falcon_axi.transport.rtr import _signing_key, validate_grant
 from falcon_axi.transport.types import FalconResponse, PreparedOperation, PreparedToken
 from falcon_axi.version import user_agent
 
@@ -48,6 +50,8 @@ def mint_permit() -> Permit:
 
 
 def _send_with_deadline(prepared: PreparedOperation | PreparedToken, permit: Permit) -> FalconResponse:
+    if isinstance(prepared, PreparedOperation):
+        validate_grant(prepared)
     remaining = remaining_seconds()
     if remaining is None or permit is not _PERMIT:
         return send_permitted_request(prepared, permit)
@@ -55,6 +59,7 @@ def _send_with_deadline(prepared: PreparedOperation | PreparedToken, permit: Per
     payload = json.dumps(
         {
             "deadline": deadline_after(0),
+            "rtr_key": _signing_key.get().hex(),
             "request": {key: dict(value) if isinstance(value, Mapping) else value for key, value in values.items()},
         }
     )
@@ -82,7 +87,15 @@ def _send_with_deadline(prepared: PreparedOperation | PreparedToken, permit: Per
 def _worker_reply(payload: dict[str, Any]) -> dict[str, Any]:
     values = payload["request"]
     prepared = PreparedToken(**values) if "form" in values else PreparedOperation(**values)
-    with request_budget(payload["deadline"]):
+    key_token = _signing_key.set(bytes.fromhex(payload.get("rtr_key", _signing_key.get().hex())))
+    try:
+        return _bounded_worker_reply(prepared, payload["deadline"])
+    finally:
+        _signing_key.reset(key_token)
+
+
+def _bounded_worker_reply(prepared: PreparedOperation | PreparedToken, deadline: float | None) -> dict[str, Any]:
+    with request_budget(deadline):
         try:
             response = send_permitted_request(prepared, mint_permit())
         except CliError as error:
@@ -163,15 +176,29 @@ class _RecordingSession(requests.Session):
     the error envelope owes the caller (§9.2).
     """
 
-    def __init__(self) -> None:
+    def __init__(self, bounded: bool = False) -> None:
         super().__init__()
         self.failure: BaseException | None = None
         self.answer: requests.Response | None = None
+        self.bounded = bounded
 
     def request(self, *args: Any, **kwargs: Any) -> requests.Response:
         try:
             remaining_seconds()
+            if self.bounded:
+                kwargs["stream"] = True
             self.answer = super().request(*args, **kwargs)
+            if self.bounded:
+                data = bytearray()
+                try:
+                    for chunk in self.answer.iter_content(chunk_size=8192):
+                        remaining_seconds()
+                        if len(data) + len(chunk) > RESPONSE_BYTES:
+                            raise CliError("UPSTREAM_ERROR", "RTR response exceeded its acquisition byte cap")
+                        data.extend(chunk)
+                    self.answer._content = bytes(data)
+                finally:
+                    self.answer.close()
         except Exception as error:
             self.failure = error
             raise
@@ -213,6 +240,7 @@ def send_permitted_request(prepared: PreparedOperation | PreparedToken, permit: 
             )
 
         descriptor = operation(prepared.operation_id)
+        validate_grant(prepared)
         if descriptor.id in GRAPHQL_QUERY_IDS and not is_registered_query(prepared.body):
             # The last check before the network: the GraphQL endpoint also accepts mutations (§4.4),
             # so nothing but a registered document may reach it, whatever built the prepared request.
@@ -226,7 +254,7 @@ def send_permitted_request(prepared: PreparedOperation | PreparedToken, permit: 
             # falconpy's uber path-variable map for this one operation lists `search_id` beside
             # `id` and reads every name it lists while interpolating, so both must be present.
             path_params["search_id"] = path_params["id"]
-        session = _RecordingSession()
+        session = _RecordingSession(bounded=prepared.rtr is not None)
         harness = APIHarnessV2(
             access_token=prepared.token,
             base_url=prepared.origin,
@@ -244,6 +272,8 @@ def send_permitted_request(prepared: PreparedOperation | PreparedToken, permit: 
             **path_params,
         )
         if session.failure is not None:
+            if isinstance(session.failure, CliError):
+                raise session.failure
             raise _transport_failure(session.failure) from session.failure
         answer = session.answer
     except CliError:

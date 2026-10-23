@@ -10,6 +10,7 @@ from falcon_axi.transport.operations import (
     MUTATION_ROUTE_PATTERNS,
     OPERATION_IDS,
     OPERATIONS,
+    RTR_EXECUTION_IDS,
     SEARCH_LIFECYCLE_IDS,
     operation,
     registered_scopes,
@@ -45,6 +46,34 @@ NO_FALCON_MCP_TOOL = {
 }
 
 EXPECTED = {
+    "RTR_InitSession": {
+        "method": "POST",
+        "path": "/real-time-response/entities/sessions/v1",
+        "scopes": ("Real time response:read",),
+        "effect": "rtr-read-only-execute",
+        "doc_scope": "Real time response: READ",
+    },
+    "RTR_ExecuteCommand": {
+        "method": "POST",
+        "path": "/real-time-response/entities/command/v1",
+        "scopes": ("Real time response:read",),
+        "effect": "rtr-read-only-execute",
+        "doc_scope": "Real time response: READ",
+    },
+    "RTR_CheckCommandStatus": {
+        "method": "GET",
+        "path": "/real-time-response/entities/command/v1",
+        "scopes": ("Real time response:read",),
+        "effect": "rtr-read-only-execute",
+        "doc_scope": "Real time response: READ",
+    },
+    "RTR_DeleteSession": {
+        "method": "DELETE",
+        "path": "/real-time-response/entities/sessions/v1",
+        "scopes": ("Real time response:read",),
+        "effect": "rtr-read-only-execute",
+        "doc_scope": "Real time response: READ",
+    },
     "QueryMalwareEntities": {
         "method": "GET",
         "path": "/intel/combined/malware/v1",
@@ -720,7 +749,7 @@ def test_every_descriptor_equals_its_canonical_value_and_carries_matching_eviden
         assert descriptor.scopes == expected["scopes"]
         assert descriptor.effect == expected["effect"]
         assert descriptor.evidence.doc_scope == expected["doc_scope"]
-        suffix = ": READ" if descriptor.effect == "read" else ": WRITE"
+        suffix = ": READ" if descriptor.effect in {"read", "rtr-read-only-execute"} else ": WRITE"
         assert descriptor.evidence.doc_scope.upper().endswith(suffix)
         assert descriptor.evidence.doc_url.startswith("https://")
         citation = descriptor.evidence.falcon_mcp
@@ -735,6 +764,15 @@ def test_every_descriptor_equals_its_canonical_value_and_carries_matching_eviden
 
 def test_no_registered_path_matches_a_known_mutation_route() -> None:
     for descriptor in OPERATIONS.values():
+        if descriptor.id in RTR_EXECUTION_IDS:
+            expected = EXPECTED[descriptor.id]
+            assert (descriptor.method, descriptor.path, descriptor.effect, descriptor.scopes) == (
+                expected["method"],
+                expected["path"],
+                expected["effect"],
+                expected["scopes"],
+            )
+            continue
         for pattern in MUTATION_ROUTE_PATTERNS:
             assert pattern.search(descriptor.path) is None, f"{descriptor.id} matches {pattern.pattern}"
 

@@ -3,7 +3,10 @@
 from collections.abc import Mapping
 from dataclasses import dataclass, field
 from types import MappingProxyType
-from typing import Any, Protocol
+from typing import TYPE_CHECKING, Any, Protocol
+
+if TYPE_CHECKING:
+    from falcon_axi.transport.rtr import RunAuthority
 
 from falcon_axi.transport.operations import OperationId
 
@@ -30,6 +33,7 @@ class RequestArgs:
     document: str | None = None
     variables: Mapping[str, Any] | None = None
     allow_unknown_origin: bool = False
+    rtr: "RunAuthority | None" = None
 
 
 @dataclass(frozen=True)
@@ -61,6 +65,7 @@ class PreparedOperation:
     query: Mapping[str, QueryValue] = field(default_factory=lambda: MappingProxyType({}))
     body: Any = None
     path_params: Mapping[str, str] = field(default_factory=lambda: MappingProxyType({}))
+    rtr: dict[str, Any] | None = None
 
 
 @dataclass(frozen=True)
