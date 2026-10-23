@@ -202,8 +202,9 @@ def test_session_detail_redacts_before_truncation(full: bool) -> None:
 )
 def test_non_history_operations_are_refused_before_send(op: str) -> None:
     with requests_mock.Mocker() as network:
-        with pytest.raises(CliError, match="not a registered"):
+        with pytest.raises(CliError) as error:
             HttpTransport().request(op, RequestArgs(base_url="https://api.crowdstrike.com", token="synthetic"))
+        assert error.value.code == "READ_ONLY_VIOLATION"
         assert network.call_count == 0
 
 

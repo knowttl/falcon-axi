@@ -1821,11 +1821,9 @@ def _seal(entry: FalconOperation) -> FalconOperation:
         raise ValueError(f"operation {entry.id} is missing evidence")
     if not _second_citation(entry):
         raise ValueError(f"operation {entry.id} is missing its §2.2 corroboration")
-    if any(pattern.search(entry.path) for pattern in MUTATION_ROUTE_PATTERNS) and (
-        RTR_EXECUTION_TUPLES.get(entry.id) != (entry.method, entry.path, entry.effect, entry.scopes)
-    ):
+    if any(pattern.search(entry.path) for pattern in MUTATION_ROUTE_PATTERNS):
         raise ValueError(f"operation {entry.id} matches a known mutation route")
-    if entry.id in RTR_HISTORY_ROUTES or "/real-time-response" in entry.path.lower():
+    if entry.id not in RTR_EXECUTION_IDS and (entry.id in RTR_HISTORY_ROUTES or "/real-time-response" in entry.path.lower()):
         if entry.effect != "read" or RTR_HISTORY_ROUTES.get(entry.id) != (entry.method, entry.path, entry.scopes):
             raise ValueError(f"operation {entry.id} is outside the exact RTR history routes")
     return entry

@@ -18,7 +18,7 @@ from falcon_axi.rtr_policy import COMMANDS, OUTPUT_BYTES, OUTPUT_CHUNKS, RESPONS
 from falcon_axi.transport import HttpTransport
 from falcon_axi.transport.budget import BudgetExpired, remaining_seconds, request_budget
 from falcon_axi.transport.harness import _worker_reply, mint_permit, send_permitted_request
-from falcon_axi.transport.operations import CANONICAL, RTR_EXECUTION_IDS, _seal
+from falcon_axi.transport.operations import RTR_EXECUTION_IDS, _seal, operation
 from falcon_axi.transport.rtr import _AUTHORITY, RunAuthority
 from falcon_axi.transport.types import PreparedOperation, RequestArgs
 from tests.support.recorded import RecordedTransport, response, serve
@@ -574,7 +574,7 @@ def test_init_authority_is_consumed_before_a_send_can_be_replayed():
 )
 def test_n3_registry_admits_only_the_exact_tuples(field, value):
     with pytest.raises(ValueError):
-        _seal(dataclasses.replace(CANONICAL[0], **{field: value}))
+        _seal(dataclasses.replace(operation("RTR_InitSession"), **{field: value}))
 
 
 def test_read_only_enabled_after_init_still_allows_owned_cleanup(env, transport):
