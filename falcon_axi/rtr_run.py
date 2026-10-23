@@ -12,7 +12,15 @@ from falcon_axi.domain import CommandOutput
 from falcon_axi.origin import assert_trusted_origin, resolve_base_url
 from falcon_axi.redaction import register_secret
 from falcon_axi.rtr_execute import execute_run
-from falcon_axi.rtr_policy import CLEANUP_SECONDS, EXECUTION_SECONDS, OUTPUT_BYTES, OUTPUT_CHUNKS, parse_command, validate_host
+from falcon_axi.rtr_policy import (
+    CLEANUP_SECONDS,
+    EXECUTION_SECONDS,
+    OUTPUT_BYTES,
+    OUTPUT_CHUNKS,
+    parse_command,
+    platform_availability,
+    validate_host,
+)
 
 
 def preview(ctx: Invocation) -> CommandOutput:
@@ -104,8 +112,9 @@ COMMAND_SPECS = (
                 "50-second execution budget; separate 10-second mandatory session deletion budget.",
                 "Output caps: 64 KiB and 64 status requests; incomplete/truncated output is explicit.",
                 "A durable private redacted journal is mandatory; no offline queue, pulse, or replay.",
-                "Commands: cat, cd, clear, csrutil, env, eventlog view/list, filehash, getsid,",
-                "history, ifconfig, ipconfig, ls, mount, netstat, ps, reg query, users.",
+                "Falcon rejects a command that the host's platform lacks as Command not found.",
+                *platform_availability(),
+                "eventlog permits only view and list; help, clear and history exist only in the interactive console.",
                 "No shell syntax; eventlog backup/export, scripts, and file transfers are excluded.",
                 "Examples:",
                 "  falcon-axi rtr run aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa --command ps --profile triage",
