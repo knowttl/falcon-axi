@@ -1,0 +1,16 @@
+{
+  "provenance": {
+    "operation": "highVolumeQueryChanges",
+    "reference": "https://developer.crowdstrike.com/api-reference/collections/filevantage/#highvolumequerychanges",
+    "schema_read": "2026-10-22",
+    "provenance": "synthetic",
+    "note": "Documented string resources in the Falcon SDK envelope; synthetic pagination.after follows the PSFalcon scroll convention. No live data."
+  },
+  "response": {
+    "status": 200,
+    "body": {
+      "resources": ["synthetic-change-01", "synthetic-change-02"],
+      "meta": {"pagination": {"after": "synthetic-filevantage-next", "total": 3}}
+    }
+  }
+}

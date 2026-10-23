@@ -13,6 +13,8 @@ _FILTER_WORDS = re.compile(r"\b(fql|filter|query)\b", re.IGNORECASE)
 _INVENTORY_REMEDIES: dict[OperationId, tuple[str, str]] = {
     "QueryReports": ("sandbox list --filter \"verdict:'malicious'\"", "verdict:'malicious'"),
     "GetSummaryReports": ("sandbox list --filter \"verdict:'malicious'\"", "verdict:'malicious'"),
+    "highVolumeQueryChanges": ("file-change list", "host.name:'SYNTHETIC-HOST'"),
+    "getChanges": ("file-change list", "host.name:'SYNTHETIC-HOST'"),
     "RTR_ListAllSessions": ("rtr session list", "hostname:'SYNTHETIC-*'"),
     "RTR_ListSessions": ("rtr session list", "hostname:'SYNTHETIC-*'"),
     "RTRAuditSessions": ("rtr audit list", "created_at:>'now-7d'"),
@@ -35,6 +37,7 @@ _INVENTORY_REMEDIES: dict[OperationId, tuple[str, str]] = {
 #: Console picker visibility is inferred, not observed (docs/design/v1.md §17.17).
 LICENSE_GATED_SCOPES = {
     "Sandbox (Falcon Intelligence):read": "Falcon Intelligence (Sandbox)",
+    "Falcon FileVantage:read": "Falcon FileVantage",
     "Threatgraph:read": "a Falcon subscription with ThreatGraph API access enabled",
     "Assets:read": "Falcon Discover or Exposure Management",
     "Real time response:read": "a Falcon subscription with Real Time Response enabled",

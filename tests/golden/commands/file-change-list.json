@@ -1,0 +1,6 @@
+{
+  "name": "file-change list",
+  "order": 2307.81,
+  "summary": "  file-change list              list FileVantage change history",
+  "scopes": [{"scope": "Falcon FileVantage:read", "access": "read"}]
+}

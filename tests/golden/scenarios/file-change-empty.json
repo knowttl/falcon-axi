@@ -1,0 +1,6 @@
+{
+  "name": "file-change-empty",
+  "argv": ["file-change", "list"],
+  "responders": [{"op": "highVolumeQueryChanges", "fixture": "filevantage/empty.json"}],
+  "exit_code": 0
+}

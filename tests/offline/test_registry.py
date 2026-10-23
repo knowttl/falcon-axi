@@ -21,6 +21,8 @@ from falcon_axi.transport.operations import (
 NO_FALCON_MCP_TOOL = {
     "QueryReports": "_falconx_sandbox",
     "GetSummaryReports": "_falconx_sandbox",
+    "highVolumeQueryChanges": "_filevantage",
+    "getChanges": "_filevantage",
     "combined_summary_get": "_threatgraph",
     "combined_edges_get": "_threatgraph",
     "QueryMalwareEntities": "_intel",
@@ -64,6 +66,20 @@ EXPECTED = {
         "scopes": ("Sandbox (Falcon Intelligence):read",),
         "effect": "read",
         "doc_scope": "Sandbox (Falcon Intelligence): READ",
+    },
+    "highVolumeQueryChanges": {
+        "method": "GET",
+        "path": "/filevantage/queries/changes/v3",
+        "scopes": ("Falcon FileVantage:read",),
+        "effect": "read",
+        "doc_scope": "Falcon FileVantage: READ",
+    },
+    "getChanges": {
+        "method": "GET",
+        "path": "/filevantage/entities/changes/v2",
+        "scopes": ("Falcon FileVantage:read",),
+        "effect": "read",
+        "doc_scope": "Falcon FileVantage: READ",
     },
     "entities_processes": {
         "method": "GET",

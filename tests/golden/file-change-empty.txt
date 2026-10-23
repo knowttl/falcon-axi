@@ -1,0 +1,2 @@
+count: 0
+file_changes: no file changes; this can mean no matching data or a tenant without Falcon FileVantage licensing

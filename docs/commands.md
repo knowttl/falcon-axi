@@ -34,6 +34,7 @@ Product licensing also controls availability.
 | `IOCs (Indicators of Compromise):read` | ioc hosts, ioc processes, process show | yes |
 | `Threatgraph:read` | process tree | yes |
 | `Sandbox (Falcon Intelligence):read` | sandbox list, sandbox show | yes |
+| `Falcon FileVantage:read` | file-change list, file-change show | yes |
 | `Host Groups:read` | host-group list, host-group members | yes |
 | `Prevention Policies:read` | policy list, policy members | selected --type |
 | `Sensor Update Policies:read` | policy list, policy members | selected --type |
@@ -984,6 +985,36 @@ Examples:
   falcon-axi sandbox list --filter "verdict:'malicious'"
 
 Read-only; requires Sandbox (Falcon Intelligence):read and Falcon Intelligence (Sandbox).
+```
+
+## file-change list
+
+```text
+falcon-axi file-change list [--filter <FQL>] [--limit N] [--cursor <token>]
+
+Read FileVantage change history, newest action_timestamp first.
+--filter   raw FQL; for example host.name:'SYNTHETIC-HOST' or action_timestamp:>'now-7d'
+--limit    rows per call (default 20, ceiling 5000); hydration uses batches of 500 ids
+--cursor   opaque after token bound to the query, sort, region, tenant and credential
+change_ids lists identifiers in the same order as the compact rows.
+Read-only; requires Falcon FileVantage:read and Falcon FileVantage licensing.
+Empty results can mean no matching changes or no FileVantage license.
+Captured file contents are excluded.
+
+Example: falcon-axi file-change list --filter "host.name:'SYNTHETIC-HOST'"
+```
+
+## file-change show
+
+```text
+falcon-axi file-change show <id>
+
+Show change metadata, process fields and the documented diff object.
+The id comes from change_ids in `falcon-axi file-change list`.
+Read-only; requires Falcon FileVantage:read and Falcon FileVantage licensing.
+Captured file contents are excluded; no content download is performed.
+
+Example: falcon-axi file-change show 00000000000000000000000000000001
 ```
 
 ## host-group list

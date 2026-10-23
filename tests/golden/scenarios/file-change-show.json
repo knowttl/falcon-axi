@@ -1,0 +1,6 @@
+{
+  "name": "file-change-show",
+  "argv": ["file-change", "show", "synthetic-change-01"],
+  "responders": [{"op": "getChanges", "fixture": "filevantage/changes.json"}],
+  "exit_code": 0
+}

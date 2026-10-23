@@ -1,0 +1,14 @@
+file_change:
+  id: synthetic-change-01
+  action_timestamp: "2026-01-01T00:01:00Z"
+  action_type: FileWrite
+  entity_type: File
+  entity_path: /synthetic/first.conf
+  host: SYNTHETIC-HOST
+  severity: High
+  process_id: "1234"
+  process_image_file_name: /synthetic/editor
+  command_line: synthetic-editor --example
+  parent_process_image_file_name: /synthetic/shell
+  grandparent_process_image_file_name: /synthetic/launcher
+  diff:
