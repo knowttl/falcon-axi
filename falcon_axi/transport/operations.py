@@ -78,6 +78,8 @@ OperationId = Literal[
     "DevicesRanOn",
     "ProcessesRanOn",
     "entities_processes",
+    "highVolumeQueryChanges",
+    "getChanges",
     "queryCombinedHostGroups",
     "queryCombinedGroupMembers",
     "combined_hosts",
@@ -210,6 +212,40 @@ NGSIEM_DOC = "https://developer.crowdstrike.com/api-reference/collections/ngsiem
 IDENTITY_PROTECTION_DOC = "https://developer.crowdstrike.com/api-reference/collections/identity-protection/"
 
 CANONICAL: tuple[FalconOperation, ...] = (
+    FalconOperation(
+        id="highVolumeQueryChanges",
+        method="GET",
+        path="/filevantage/queries/changes/v3",
+        scopes=("Falcon FileVantage:read",),
+        effect="read",
+        evidence=Evidence(
+            doc_url="https://developer.crowdstrike.com/api-reference/collections/filevantage/#highvolumequerychanges",
+            doc_scope="Falcon FileVantage: READ",
+            falcon_mcp=(
+                "falcon-mcp has no tool for highVolumeQueryChanges. falconpy/_endpoint/_filevantage.py maps "
+                "highVolumeQueryChanges to GET /filevantage/queries/changes/v3 with after, filter, limit and sort. "
+                "PSFalcon public/filevantage.ps1 Get-FalconFileVantageChange defaults to this route "
+                "and requires Falcon FileVantage: Read."
+            ),
+        ),
+    ),
+    FalconOperation(
+        id="getChanges",
+        method="GET",
+        path="/filevantage/entities/changes/v2",
+        scopes=("Falcon FileVantage:read",),
+        effect="read",
+        evidence=Evidence(
+            doc_url="https://developer.crowdstrike.com/api-reference/collections/filevantage/#getchanges",
+            doc_scope="Falcon FileVantage: READ",
+            falcon_mcp=(
+                "falcon-mcp has no tool for getChanges. falconpy/_endpoint/_filevantage.py maps getChanges "
+                "to GET /filevantage/entities/changes/v2 with at most 500 ids. "
+                "PSFalcon public/filevantage.ps1 Get-FalconFileVantageChange -Id wraps this route "
+                "and requires Falcon FileVantage: Read."
+            ),
+        ),
+    ),
     FalconOperation(
         id="combined_summary_get",
         method="GET",
