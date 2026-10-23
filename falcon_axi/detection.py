@@ -13,6 +13,7 @@ from falcon_axi.domain import DEFAULT_LIMIT, CommandOutput, parse_fields, rate_l
 from falcon_axi.falcon_error import translate_falcon_error
 from falcon_axi.fql import PRODUCTS, SEVERITIES, STATUSES, DetectionQuery, describe_detection_query, detection_filter
 from falcon_axi.identity import is_account_subject
+from falcon_axi.process import PROCESS_ID
 from falcon_axi.render import raw, redact, truncate
 from falcon_axi.transport.types import RequestArgs, Transport
 from falcon_axi.walk import Page, max_rows_of, offset_page, walk
@@ -300,8 +301,12 @@ def detection_process(transport: Transport, session: Session, id: str, full: boo
             shortened |= truncated
         rows.append(row)
     value["processes"] = rows
-    help = (f"Run `falcon-axi detection process {shlex.quote(id)} --full` to see complete command lines",) if shortened else ()
-    return CommandOutput(value=value, help=help)
+    help = [f"Run `falcon-axi detection process {shlex.quote(id)} --full` to see complete command lines"] if shortened else []
+    pivots = [text(alert.get("triggering_process_graph_id")), *(row["process_id"] for row in rows)]
+    for pivot in dict.fromkeys(pivots):
+        if pivot and PROCESS_ID.fullmatch(pivot):
+            help.append(f"Run `falcon-axi process show {pivot}` for process details")
+    return CommandOutput(value=value, help=tuple(help))
 
 
 def summarize_detections(transport: Transport, session: Session, query: DetectionQuery) -> CommandOutput:

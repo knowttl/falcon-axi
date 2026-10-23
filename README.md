@@ -151,7 +151,7 @@ Grant only the domains you use; available scopes depend on product licensing.
 | `Identity Protection Assessment:read` | identity assessment | yes |
 | `Identity Protection Policy Rules:read` | identity rule list, identity rule show | yes |
 | `IOC Management:read` | ioc list, ioc show | yes |
-| `IOCs (Indicators of Compromise):read` | ioc hosts, ioc processes | yes |
+| `IOCs (Indicators of Compromise):read` | ioc hosts, ioc processes, process show | yes |
 | `Host Groups:read` | host-group list, host-group members | yes |
 | `Prevention Policies:read` | policy list, policy members | selected --type |
 | `Sensor Update Policies:read` | policy list, policy members | selected --type |
@@ -301,6 +301,7 @@ Run any command with `--help` for its arguments and examples.
 | `ioc show` | <id>             read one custom indicator |
 | `ioc hosts` | <type:value>  list observed hosts for a custom IOC |
 | `ioc processes` | <type:value>  list observed processes for a custom IOC |
+| `process show` | <pid-id>     read one observed process |
 | `host-group list` | list host-group list |
 | `host-group members` | <id>     list host-group members |
 | `policy list` | list policies of one required type |

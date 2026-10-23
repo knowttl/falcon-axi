@@ -1,5 +1,6 @@
 {
   "name": "ioc-processes",
+  "comment": "P2 deliberately adds the shipped process show pivot before the existing continuation hint, as specified in design §1.2.",
   "argv": [
     "ioc",
     "processes",

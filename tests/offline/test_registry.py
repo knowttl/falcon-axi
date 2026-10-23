@@ -28,6 +28,7 @@ NO_FALCON_MCP_TOOL = {
     "GetCombinedImages": "_container_images",
     "DevicesRanOn": "_iocs",
     "ProcessesRanOn": "_iocs",
+    "entities_processes": "_iocs",
     "get_hosts": "_discover",
     "query_logins": "_discover",
     "get_logins": "_discover",
@@ -46,6 +47,13 @@ NO_FALCON_MCP_TOOL = {
 }
 
 EXPECTED = {
+    "entities_processes": {
+        "method": "GET",
+        "path": "/processes/entities/processes/v1",
+        "scopes": ("IOCs (Indicators of Compromise):read",),
+        "effect": "read",
+        "doc_scope": "IOCs (Indicators of Compromise): READ",
+    },
     "RTR_ListAllSessions": {
         "method": "GET",
         "path": "/real-time-response/queries/sessions/v1",

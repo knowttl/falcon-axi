@@ -134,7 +134,7 @@ def _ran_on(ctx: Invocation) -> CommandOutput:
         name: [{field: id} for id in ids] if ids else raw(f"0 {name} observed for this IOC"),
     }
     help = (
-        []
+        ["Run `falcon-axi process show <process_id>` for process details"]
         if processes
         else [
             "Run `falcon-axi host show <device_id>` for host details",
