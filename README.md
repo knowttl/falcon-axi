@@ -102,17 +102,13 @@ It cannot contain endpoints, release quarantined files, update configuration, or
 There is no arbitrary API passthrough.
 
 Tenant-side effects are NG-SIEM search jobs and N3's explicitly authorized read-only RTR session lifecycle.
-They require `NGSIEM:write`; `identity activity` starts the same kind of job.
+See [API client permissions](#api-client-permissions) for required scopes.
 Set `FALCON_AXI_READ_ONLY=1` to block search start, search stop, identity activity, and RTR execution locally.
 Identity directory, timeline, and assessment reads require a scope Falcon labels write, but send only fixed read-only query documents.
 They accept no caller-supplied GraphQL.
 
 `falcon-axi rtr run <device_id> --command '<complete command>'` previews locally without a network request.
-Execution requires a configured profile with `"rtr": {"enabled": true}` and both `--execute` and `--confirm '<device_id>:<complete command>'` matching exactly.
-A profile's optional `rtr.commands` can only narrow the fixed read-only set; `eventlog` backup/export and shell syntax are refused.
-RTR execution requires `Real time response:read`, product entitlement, and POSIX private-file and signal primitives.
-Each invocation owns initialization, one command, bounded polling, and mandatory session deletion, with a durable private redacted journal.
-See [RTR operator guidance](docs/read-only.md#rtr-operator-guidance) for limits and recovery.
+See [RTR operator guidance](docs/read-only.md#rtr-operator-guidance) for profile opt-in, exact execution confirmation, platform requirements, limits, and recovery.
 
 Credentials and standalone tenant CID fields are redacted from stdout and stderr.
 Composite detection IDs contain a tenant CID and remain intact so they can be passed to detail commands.

@@ -26,11 +26,12 @@ RTR operation admission and execution guards are owned by [N3's design contract]
 ## RTR operator guidance
 
 Use `falcon-axi rtr run <device_id> --command '<complete command>' --profile triage` for a local preview.
+Before executing, check [API client permissions](../README.md#api-client-permissions) and Falcon product entitlement.
 The selected profile must explicitly set `"rtr": {"enabled": true}` before execution; its optional `commands` array can only narrow the fixed read-only set.
 Add `--execute --confirm '<device_id>:<complete command>'` to execute exactly that host and command, including all arguments.
 The preview is flushed before any session creation, including for confirmed execution.
 READ_ONLY always overrides execution authorization; local previews and passive history remain available.
-The command requires POSIX private-file and signal primitives and fails closed if private journaling is unavailable.
+Execution requires POSIX private-file and signal primitives and fails closed if private journaling is unavailable.
 
 The shared authentication/init/execute/poll budget is 50 seconds, with a separate 10-second deletion budget.
 Acquisition is capped at 1 MiB per response, 64 status requests, and 64 KiB retained redacted output.
