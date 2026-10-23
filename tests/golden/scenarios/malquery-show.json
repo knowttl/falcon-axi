@@ -1,0 +1,7 @@
+{
+  "name": "malquery-show",
+  "argv": ["malquery", "show", "0000000000000000000000000000000000000000000000000000000000000000"],
+  "responders": [{"op": "GetMalQueryMetadataV1", "fixture": "malquery/metadata.json"}],
+  "exit_code": 0,
+  "reason": "P8 adds pure MalQuery metadata and quota reads, deliberately extending command discovery and scopes with MalQuery:read."
+}

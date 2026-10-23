@@ -19,6 +19,8 @@ from falcon_axi.transport.operations import (
 #: Operations whose §2.2 corroboration is falconpy's generated table plus PSFalcon, because falcon-mcp
 #: has no tool for them, mapped to the falconpy endpoint module that lists each one.
 NO_FALCON_MCP_TOOL = {
+    "GetMalQueryMetadataV1": "_malquery",
+    "GetMalQueryQuotasV1": "_malquery",
     "QueryReports": "_falconx_sandbox",
     "GetSummaryReports": "_falconx_sandbox",
     "highVolumeQueryChanges": "_filevantage",
@@ -53,6 +55,20 @@ NO_FALCON_MCP_TOOL = {
 }
 
 EXPECTED = {
+    "GetMalQueryMetadataV1": {
+        "method": "GET",
+        "path": "/malquery/entities/metadata/v1",
+        "scopes": ("MalQuery:read",),
+        "effect": "read",
+        "doc_scope": "MalQuery: READ",
+    },
+    "GetMalQueryQuotasV1": {
+        "method": "GET",
+        "path": "/malquery/aggregates/quotas/v1",
+        "scopes": ("MalQuery:read",),
+        "effect": "read",
+        "doc_scope": "MalQuery: READ",
+    },
     "QueryReports": {
         "method": "GET",
         "path": "/falconx/queries/reports/v1",

@@ -1,0 +1,9 @@
+malquery:
+  family: synthetic-family
+  filesize: 4096
+  filetype: pe64
+  first_seen: "2026-01-01T00:00:00Z"
+  label: synthetic-label
+  md5: synthetic-md5
+  sha1: "0000000000000000000000000000000000000000"
+  sha256: "0000000000000000000000000000000000000000000000000000000000000000"

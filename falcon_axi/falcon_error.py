@@ -36,6 +36,7 @@ _INVENTORY_REMEDIES: dict[OperationId, tuple[str, str]] = {
 #: License prerequisites for scope-denied remedies; provisioning guidance lives in README.md.
 #: Console picker visibility is inferred, not observed (docs/design/v1.md §17.17).
 LICENSE_GATED_SCOPES = {
+    "MalQuery:read": "Falcon MalQuery",
     "Device Control Policies:read": "Falcon Device Control",
     "Sandbox (Falcon Intelligence):read": "Falcon Intelligence (Sandbox)",
     "Falcon FileVantage:read": "Falcon FileVantage",

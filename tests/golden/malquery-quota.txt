@@ -1,0 +1,11 @@
+quota:
+  days_left: 20
+  download_count: 0
+  download_counts: []
+  download_limit: 100
+  hunt_count: 2
+  hunt_counts: []
+  hunt_limit: 50
+  monitor_count: 1
+  monitor_limit: 10
+  refresh_time: "2026-02-01T00:00:00Z"

@@ -35,6 +35,7 @@ Product licensing also controls availability.
 | `Threatgraph:read` | process tree | yes |
 | `Sandbox (Falcon Intelligence):read` | sandbox list, sandbox show | yes |
 | `Falcon FileVantage:read` | file-change list, file-change show | yes |
+| `MalQuery:read` | malquery show, malquery quota | yes |
 | `Host Groups:read` | host-group list, host-group members | yes |
 | `Prevention Policies:read` | policy list, policy members | selected --type |
 | `Sensor Update Policies:read` | policy list, policy members | selected --type |
@@ -1036,6 +1037,37 @@ Read-only; requires Falcon FileVantage:read and Falcon FileVantage licensing.
 Captured file contents are excluded; no content download is performed.
 
 Example: falcon-axi file-change show 00000000000000000000000000000001
+```
+
+## malquery show
+
+```text
+falcon-axi malquery show <sha256>
+
+sha256 must contain exactly 64 hex characters; validated before authentication.
+Renders family, filesize, filetype, first_seen, label, md5, sha1, and sha256.
+An empty result can mean no indexed file or missing Falcon MalQuery licensing.
+
+Examples:
+  falcon-axi malquery show 0000000000000000000000000000000000000000000000000000000000000000
+  falcon-axi malquery quota
+
+Read-only; requires MalQuery:read and Falcon MalQuery. No search or sample download.
+```
+
+## malquery quota
+
+```text
+falcon-axi malquery quota
+
+Renders download, hunt, and monitor counts and limits, days_left, and refresh_time.
+Includes the documented download_counts and hunt_counts arrays; absent fields are unknown.
+
+Examples:
+  falcon-axi malquery quota
+  falcon-axi malquery show 0000000000000000000000000000000000000000000000000000000000000000
+
+Read-only; requires MalQuery:read and Falcon MalQuery. Does not consume search or download quota.
 ```
 
 ## host-group list
