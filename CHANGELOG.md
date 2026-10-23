@@ -1,5 +1,20 @@
 # Changelog
 
+## [0.6.0](https://github.com/knowttl/falcon-axi/compare/v0.5.1...v0.6.0) (2026-10-23)
+
+
+### Features
+
+* add guarded RTR read-only execution core ([#48](https://github.com/knowttl/falcon-axi/issues/48)) ([a6b7e6b](https://github.com/knowttl/falcon-axi/commit/a6b7e6b3072ba6c8a71421a2b56031baeb134526))
+* add read-only RTR session and audit history commands ([#47](https://github.com/knowttl/falcon-axi/issues/47)) ([5a40e69](https://github.com/knowttl/falcon-axi/commit/5a40e694e674eb41736060012cdc64bf04c1f443))
+* **cli:** expose guarded read-only RTR command execution ([#50](https://github.com/knowttl/falcon-axi/issues/50)) ([c7203d0](https://github.com/knowttl/falcon-axi/commit/c7203d03b27089779952a6fbf96919d4b1bd058b))
+* **falcon_axi:** add detection process lineage view ([#49](https://github.com/knowttl/falcon-axi/issues/49)) ([085ea6d](https://github.com/knowttl/falcon-axi/commit/085ea6d95b3de1fc7e0acfa0f04b3f6997992e30))
+
+
+### Documentation
+
+* define guarded read-only RTR design and rollout ([#45](https://github.com/knowttl/falcon-axi/issues/45)) ([efe7efc](https://github.com/knowttl/falcon-axi/commit/efe7efcf897d01431107ebad86621283d56ce32f))
+
 ## [0.5.1](https://github.com/knowttl/falcon-axi/compare/v0.5.0...v0.5.1) (2026-10-22)
 
 
