@@ -5,7 +5,7 @@ import re
 import shlex
 import sys
 import time
-from collections.abc import Mapping, Sequence
+from collections.abc import Callable, Mapping, Sequence
 from dataclasses import dataclass
 from typing import Any
 
@@ -263,7 +263,7 @@ def help_text(command: str) -> str:
             "",
             f"Regions: {', '.join(REGIONS)}",
             "",
-            "falcon-axi lists no command that changes a host, a detection, a policy, or an identity. It",
+            "RTR execution requires profile opt-in, --execute, and exact host:command --confirm (N3). It",
             "requires Alerts:read, Hosts:read, Vulnerabilities:read, Vulnerabilities (Falcon Intelligence):read,",
             "NGSIEM:read, Identity Protection Entities:read, Identity Protection Timeline:read, and",
             "Identity Protection Assessment:read, plus two",
@@ -384,6 +384,7 @@ def _run(
     transport: Any = None,
     env: Mapping[str, str] | None = None,
     bin: str | None = None,
+    emit_preview: Callable[[str], None] | None = None,
 ) -> tuple[str, int]:
     """Returns the stdout document and the exit code. The transport is the only substitution point (§14.2)."""
     started = time.monotonic()
@@ -396,6 +397,7 @@ def _run(
 
         transport = http_transport
     flags: Mapping[str, str | bool] = {}
+    preview = ""
     try:
         parsed = parse(argv)
         flags = parsed.flags
@@ -412,23 +414,31 @@ def _run(
             resolved = None
             if spec.authentication != "none":
                 resolved = _session(transport, flags, values, diagnostic=spec.authentication == "diagnostic")
-            output = spec.handler(
-                Invocation(
-                    spec,
-                    transport,
-                    flags,
-                    parsed.positionals,
-                    values,
-                    resolved.session if resolved else None,
-                    resolved.credential if resolved else None,
-                )
+            invocation = Invocation(
+                spec,
+                transport,
+                flags,
+                parsed.positionals,
+                values,
+                resolved.session if resolved else None,
+                resolved.credential if resolved else None,
             )
+            output = spec.handler(invocation)
+            if parsed.command == "rtr run" and flags.get("execute"):
+                from falcon_axi.rtr_run import execute
+
+                preview = redact_text(render(output.value))
+                if emit_preview is not None:
+                    emit_preview(preview)
+                    preview = ""
+                output = execute(invocation)
         member_cid = resolved.session.member_cid if resolved else _str(flags.get("member-cid"))
-        return render(output.value, _followup_help(output.help, flags, member_cid)), 0
+        return preview + render(output.value, _followup_help(output.help, flags, member_cid)), 0
     except Exception as error:
         known = error if isinstance(error, CliError) else CliError("UNKNOWN", "an unexpected error occurred")
         return (
-            render(
+            preview
+            + render(
                 {"error": known.message, "code": known.code, **known.details},
                 _followup_help(known.help, flags, _str(flags.get("member-cid"))),
             ),
@@ -441,20 +451,26 @@ def run(
     transport: Any = None,
     env: Mapping[str, str] | None = None,
     bin: str | None = None,
+    *,
+    emit_preview: Callable[[str], None] | None = None,
 ) -> tuple[str, int]:
     version = version_output(argv)
     if version is not None:
         return version, 0
     with redaction_scope():
-        stdout, exit_code = _run(argv, transport, env, bin)
+        stdout, exit_code = _run(argv, transport, env, bin, emit_preview)
         return redact_text(stdout), exit_code
 
 
 def main() -> int:
+    def emit_preview(document: str) -> None:
+        sys.stdout.write(document)
+        sys.stdout.flush()
+
     stdout = version_output(sys.argv[1:])
     exit_code = 0
     if stdout is None:
-        stdout, exit_code = run(sys.argv[1:], bin=sys.argv[0] or "falcon-axi")
+        stdout, exit_code = run(sys.argv[1:], bin=sys.argv[0] or "falcon-axi", emit_preview=emit_preview)
     sys.stdout.write(stdout)
     return exit_code
 

@@ -48,7 +48,8 @@ def scope_matrix() -> CommandOutput:
         "posture": raw(
             "read-only except two write-labelled scopes: NGSIEM:write for NG-SIEM search start and stop and identity activity "
             "(captain exception N1), and Identity Protection GraphQL:write for fixed read-only identity queries "
-            "(captain exception N2)"
+            "(captain exception N2); Real time response:read also permits guarded host execution "
+            "with profile opt-in and exact confirmation (captain exception N3)"
         ),
         "scopes": scope_rows(),
         "member_cid_token_scope": raw("unresolved (Flight Control read may be required; see design section 17.7)"),

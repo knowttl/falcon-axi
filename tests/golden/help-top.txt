@@ -9,7 +9,7 @@ Global flags:
 
 Regions: us-1, us-2, eu-1, us-gov-1
 
-falcon-axi lists no command that changes a host, a detection, a policy, or an identity. It
+RTR execution requires profile opt-in, --execute, and exact host:command --confirm (N3). It
 requires Alerts:read, Hosts:read, Vulnerabilities:read, Vulnerabilities (Falcon Intelligence):read,
 NGSIEM:read, Identity Protection Entities:read, Identity Protection Timeline:read, and
 Identity Protection Assessment:read, plus two

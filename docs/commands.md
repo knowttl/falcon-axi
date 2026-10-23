@@ -50,7 +50,7 @@ Product licensing also controls availability.
 | `Custom IOA Rules:read` | ioa group list | yes |
 | `Correlation Rules:read` | correlation-rule list | yes |
 | `Cases:read` | case list, case show | yes |
-| `Real time response:read` | rtr session list, rtr session show | yes |
+| `Real time response:read` | rtr session list, rtr session show, rtr run | yes |
 | `Real time response audit:read` | rtr audit list | yes |
 | `Sensor Usage:read` | sensor-usage list | yes |
 | `Monitoring rules (Falcon Intelligence Recon):read` | recon-rule list, recon-rule show, recon-notification list, recon-notification show, recon-record list, recon-record show | yes |
@@ -1277,6 +1277,25 @@ Read-only. Requires Real time response audit:read.
 Examples:
   falcon-axi rtr audit list
   falcon-axi rtr audit list --limit 2
+```
+
+## rtr run
+
+```text
+falcon-axi rtr run <device_id> --command '<complete command>' [--execute --confirm '<device_id>:<complete command>']
+
+Default: local preview, no network request. Requires one 32-hex device id.
+Execution requires profile rtr.enabled=true and exact host:command confirmation.
+FALCON_AXI_READ_ONLY always forbids execution; previews remain available.
+50-second execution budget; separate 10-second mandatory session deletion budget.
+Output caps: 64 KiB and 64 status requests; incomplete/truncated output is explicit.
+A durable private redacted journal is mandatory; no offline queue, pulse, or replay.
+Commands: cat, cd, clear, csrutil, env, eventlog view/list, filehash, getsid, help,
+history, ifconfig, ipconfig, ls, mount, netstat, ps, reg query, users.
+No shell syntax; eventlog backup/export, scripts, and file transfers are excluded.
+Examples:
+  falcon-axi rtr run aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa --command ps --profile triage
+  falcon-axi rtr run aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa --command ps --profile triage --execute --confirm 'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa:ps'
 ```
 
 ## auth status
