@@ -11,7 +11,7 @@ from typing import Any
 
 from falcon_axi.auth import authenticate
 from falcon_axi.core import CliError
-from falcon_axi.credentials import read_only, resolve_credential, write_log_path
+from falcon_axi.credentials import Credential, read_only, resolve_credential, tool_directory, write_log_path
 from falcon_axi.falcon_error import translate_falcon_error
 from falcon_axi.origin import REGIONS
 from falcon_axi.redaction import redact_text, redaction_scope, register_secret
@@ -76,7 +76,7 @@ def execute_run(
         raise CliError("READ_ONLY_VIOLATION", "FALCON_AXI_READ_ONLY forbids RTR execution")
     validate_host(host)
     credential = resolve_credential(env, profile=profile, config=config)
-    if credential.profile == "env" or not credential.rtr.enabled:
+    if not credential.rtr.enabled:
         raise CliError("READ_ONLY_VIOLATION", "RTR execution requires explicit profile opt-in")
     base = parse_command(command, credential.rtr.commands)
     if confirmation != f"{host}:{command}":
@@ -84,6 +84,20 @@ def execute_run(
     if credential.member_cid:
         register_secret(credential.member_cid)
     journal = Journal(write_log_path(env))
+    lock = Journal(str(tool_directory("state", env) / f"rtr-{host.lower()}.lock"))
+    with lock.lock():
+        return _execute_locked(transport, env, host, command, base, credential, journal)
+
+
+def _execute_locked(
+    transport: Transport,
+    env: Mapping[str, str],
+    host: str,
+    command: str,
+    base: str,
+    credential: Credential,
+    journal: Journal,
+) -> RunResult:
     run_id = uuid.uuid4().hex
     record: dict[str, Any] = {
         "run": run_id,
@@ -134,7 +148,8 @@ def execute_run(
             )
             authority.request_id = _identifier(executed, "cloud_request_id")
             record.update(phase="status", command_outcome="unknown")
-            for sequence in range(OUTPUT_CHUNKS):
+            sequence = 0
+            for _ in range(OUTPUT_CHUNKS):
                 chunk = _resource(
                     request(
                         "RTR_CheckCommandStatus",
@@ -147,6 +162,10 @@ def execute_run(
                 stdout, stderr = chunk.get("stdout", ""), chunk.get("stderr", "")
                 if not isinstance(stdout, str) or not isinstance(stderr, str) or type(chunk.get("complete")) is not bool:
                     raise CliError("UPSTREAM_ERROR", "RTR returned malformed command output")
+                returned_sequence = chunk.get("sequence_id")
+                if type(returned_sequence) is not int or returned_sequence < sequence:
+                    raise CliError("UPSTREAM_ERROR", "RTR returned an invalid output sequence")
+                sequence = returned_sequence
                 raw_output += stdout + stderr
                 encoded = redact_text(raw_output).encode()
                 output = encoded[:OUTPUT_BYTES].decode("utf-8", errors="ignore")
@@ -193,7 +212,15 @@ def execute_run(
                 {"cleanup": "unknown", "run": run_id},
             )
         record["phase"] = "outcome"
-        journal.append(record)
+        try:
+            journal.append(record)
+        except CliError as error:
+            if isinstance(failure, CliError):
+                failure.details["journal_error"] = {"code": error.code, "message": error.message}
+            else:
+                error.details["journal_error"] = {"code": error.code, "message": error.message}
+                error.__cause__ = failure
+                failure = error
     if failure is not None:
         if isinstance(failure, CliError):
             failure.details.update(
