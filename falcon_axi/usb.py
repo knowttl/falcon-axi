@@ -18,8 +18,9 @@ def usb_query(device_id: str) -> str:
     return (
         "#event_simpleName=/^(DcUsbDeviceConnected|DcUsbDeviceDisconnected|DcUsbDevicePolicyViolation)$/ "
         f"aid={device_id.lower()} "
-        "| table([@timestamp, ComputerName, DeviceManufacturer, DeviceProduct, DevicePropertyDeviceDescription, "
-        "DeviceUsbClass, DcPolicyAction, event_platform], limit=200, sortby=@timestamp, order=desc)"
+        "| table([@timestamp, #event_simpleName, ComputerName, DeviceManufacturer, DeviceProduct, "
+        "DevicePropertyDeviceDescription, DeviceUsbClass, DcPolicyAction, event_platform], "
+        "limit=200, sortby=@timestamp, order=desc)"
     )
 
 

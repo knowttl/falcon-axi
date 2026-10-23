@@ -31,12 +31,24 @@ def test_host_usb_starts_the_fixed_bounded_search(flags: list[str], span: int) -
     assert request.body["queryString"] == (
         "#event_simpleName=/^(DcUsbDeviceConnected|DcUsbDeviceDisconnected|DcUsbDevicePolicyViolation)$/ "
         "aid=000000000000000000000000000000ab "
-        "| table([@timestamp, ComputerName, DeviceManufacturer, DeviceProduct, DevicePropertyDeviceDescription, "
-        "DeviceUsbClass, DcPolicyAction, event_platform], limit=200, sortby=@timestamp, order=desc)"
+        "| table([@timestamp, #event_simpleName, ComputerName, DeviceManufacturer, DeviceProduct, "
+        "DevicePropertyDeviceDescription, DeviceUsbClass, DcPolicyAction, event_platform], "
+        "limit=200, sortby=@timestamp, order=desc)"
     )
     assert request.body["end"] - request.body["start"] == span
     assert "search status synthetic-search-job-01" in stdout
     assert recorded.operation_requests("GetSearchStatusV1") == []
+
+
+@pytest.mark.parametrize("value", ["1", "true", "TRUE"])
+def test_host_usb_read_only_refuses_job_creation_before_authentication(value: str) -> None:
+    recorded = RecordedTransport(STARTED)
+    stdout, exit_code = run(
+        ["host", "usb", "0" * 32], recorded, {**CREDENTIAL_ENV, "FALCON_AXI_READ_ONLY": value}
+    )
+    assert exit_code == 1
+    assert "READ_ONLY_VIOLATION" in stdout
+    assert recorded.requests == []
 
 
 @pytest.mark.parametrize(

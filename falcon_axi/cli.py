@@ -422,7 +422,7 @@ def _run(
         if parsed.flags.get("help"):
             return f"{help_text(parsed.command)}\n", 0
         forced_read_only = read_only(values)
-        if forced_read_only and parsed.command in ("search start", "search stop", "identity activity"):
+        if forced_read_only and parsed.command in ("search start", "search stop", "identity activity", "host usb"):
             raise CliError("READ_ONLY_VIOLATION", "FALCON_AXI_READ_ONLY forbids search lifecycle changes")
         if parsed.command == "home":
             return _home_view(transport, parsed.flags, values, bin or "falcon-axi", skill_hint(values) if not argv else ())
