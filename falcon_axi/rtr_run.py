@@ -104,7 +104,7 @@ COMMAND_SPECS = (
                 "50-second execution budget; separate 10-second mandatory session deletion budget.",
                 "Output caps: 64 KiB and 64 status requests; incomplete/truncated output is explicit.",
                 "A durable private redacted journal is mandatory; no offline queue, pulse, or replay.",
-                "Commands: cat, cd, clear, csrutil, env, eventlog view/list, filehash, getsid, help,",
+                "Commands: cat, cd, clear, csrutil, env, eventlog view/list, filehash, getsid,",
                 "history, ifconfig, ipconfig, ls, mount, netstat, ps, reg query, users.",
                 "No shell syntax; eventlog backup/export, scripts, and file transfers are excluded.",
                 "Examples:",

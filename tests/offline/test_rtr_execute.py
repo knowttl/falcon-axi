@@ -421,6 +421,7 @@ def test_confirmation_must_match_byte_for_byte(env, transport, confirmation):
         "eventlog backup x",
         "eventlog export x",
         "eventlog",
+        "help",
         "ps;ls",
         "ps\nls",
         "cat x > y",
