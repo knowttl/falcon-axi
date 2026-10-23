@@ -27,6 +27,11 @@ class Journal:
             # Traverse using directory descriptors, refusing symlinks in every component.
             directory = os.open("/", os.O_RDONLY | os.O_DIRECTORY)
             for part in self.path.parent.parts[1:]:
+                ancestor = os.fstat(directory)
+                if ancestor.st_uid not in {0, os.getuid()} or (
+                    ancestor.st_mode & 0o022 and not ancestor.st_mode & stat.S_ISVTX
+                ):
+                    raise OSError("replaceable journal ancestor")
                 try:
                     child = os.open(part, os.O_RDONLY | os.O_DIRECTORY | os.O_NOFOLLOW, dir_fd=directory)
                 except FileNotFoundError:
