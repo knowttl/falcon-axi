@@ -1,5 +1,8 @@
 import re
 
+import pytest
+from toon_format import decode
+
 from falcon_axi.cli import run
 from falcon_axi.cursor import CursorContext, encode_cursor
 from falcon_axi.detection import ALERTS_WALL, HYDRATE_CHUNK
@@ -8,6 +11,81 @@ from tests.support.recorded import CREDENTIAL_ENV, RecordedTransport, fixture, r
 
 QUERY_PAGE = fixture("alerts/query-page.json")
 HYDRATE_PAGE = fixture("alerts/hydrate-page.json")
+LINEAGE_ID = "ldt:synthetic-agent:1001"
+
+
+def test_process_view_renders_recorded_lineage_without_another_operation() -> None:
+    recorded = RecordedTransport([serve("PostEntitiesAlertsV2", fixture("alerts/hydrate-lineage.json"))])
+    stdout, code = run(["detection", "process", LINEAGE_ID], recorded, dict(CREDENTIAL_ENV))
+    assert code == 0
+    result = decode(stdout)
+    assert result["triggering_process_graph_id"] == "pid:synthetic-agent:1003"
+    assert result["processes"] == [
+        {
+            "relation": "triggering",
+            "filename": "synthetic-child.exe",
+            "filepath": "C:\\Synthetic\\synthetic-child.exe",
+            "cmdline": "synthetic-child.exe --example",
+            "sha256": "a" * 64,
+            "process_id": "1003",
+        },
+        {
+            "relation": "parent",
+            "filename": "synthetic-parent.exe",
+            "filepath": "C:\\Synthetic\\synthetic-parent.exe",
+            "cmdline": "synthetic-parent.exe --example",
+            "sha256": "b" * 64,
+            "process_id": "1002",
+        },
+        {
+            "relation": "grandparent",
+            "filename": "synthetic-grandparent.exe",
+            "filepath": "C:\\Synthetic\\synthetic-grandparent.exe",
+            "cmdline": "synthetic-grandparent.exe --example",
+            "sha256": "c" * 64,
+            "process_id": "1001",
+        },
+    ]
+    assert recorded.operation_requests("PostEntitiesAlertsV2")[0].body == {"composite_ids": [LINEAGE_ID]}
+    assert "sandbox" not in stdout
+
+
+@pytest.mark.parametrize(
+    "alert, expected",
+    [
+        ({"filename": "synthetic.exe"}, "parent: no parent recorded"),
+        ({"product": "idp", "source_account_name": "synthetic-user"}, "processes: no process recorded for this detection"),
+    ],
+)
+def test_process_view_states_missing_process_context(alert: dict, expected: str) -> None:
+    recorded = RecordedTransport(
+        [serve("PostEntitiesAlertsV2", response(200, {"resources": [{"composite_id": LINEAGE_ID, **alert}]}))]
+    )
+    stdout, code = run(["detection", "process", LINEAGE_ID], recorded, dict(CREDENTIAL_ENV))
+    assert code == 0
+    assert expected in stdout
+
+
+@pytest.mark.parametrize("relation", [None, "parent_details", "grandparent_details"])
+@pytest.mark.parametrize("full", [False, True])
+def test_process_command_lines_preview_or_expand_each_generation(relation: str | None, full: bool) -> None:
+    alert = {"composite_id": LINEAGE_ID, "filename": "synthetic.exe"}
+    command = "x" * 801
+    payload = {"cmdline": command}
+    alert.update(payload if relation is None else {relation: payload})
+    recorded = RecordedTransport([serve("PostEntitiesAlertsV2", response(200, {"resources": [alert]}))])
+    stdout, code = run(["detection", "process", LINEAGE_ID, *(["--full"] if full else [])], recorded, dict(CREDENTIAL_ENV))
+    assert code == 0
+    assert (command in stdout) == full
+    assert ("truncated, 801 chars total" in stdout) == (not full)
+    assert (f"detection process {LINEAGE_ID} --full" in stdout) == (not full)
+
+
+def test_process_view_missing_detection_is_not_an_empty_lineage() -> None:
+    recorded = RecordedTransport([serve("PostEntitiesAlertsV2", response(200, {"resources": []}))])
+    stdout, code = run(["detection", "process", LINEAGE_ID], recorded, dict(CREDENTIAL_ENV))
+    assert code == 1
+    assert "code: NOT_FOUND" in stdout
 
 
 def _rows(stdout: str) -> list[str]:

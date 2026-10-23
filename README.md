@@ -128,7 +128,7 @@ Grant only the domains you use; available scopes depend on product licensing.
 <!-- permissions:start -->
 | Scope | Commands | Requirement |
 | --- | --- | --- |
-| `Alerts:read` | detection summary, detection list, detection show | yes |
+| `Alerts:read` | detection summary, detection list, detection show, detection process | yes |
 | `Hosts:read` | host list, host show, host logins, host network | yes |
 | `Assets:read` | account list, account show, asset list, asset show, application list, login list | yes |
 | `Falcon Discover IoT:read` | iot list | yes |
@@ -250,6 +250,7 @@ Run any command with `--help` for its arguments and examples.
 | `detection summary` | counts of detections by severity |
 | `detection list` | list detections from the Falcon Alerts collection |
 | `detection show` | <id>       the full detail for one detection |
+| `detection process` | <id>    process lineage recorded on one detection |
 | `host list` | list hosts from the Falcon Hosts collection |
 | `host show` | <device id>     the full detail for one host |
 | `host logins` | <device id>   recent interactive logins on one host |

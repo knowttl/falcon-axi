@@ -11,7 +11,7 @@ Product licensing also controls availability.
 
 | Scope | Commands | Requirement |
 | --- | --- | --- |
-| `Alerts:read` | detection summary, detection list, detection show | yes |
+| `Alerts:read` | detection summary, detection list, detection show, detection process | yes |
 | `Hosts:read` | host list, host show, host logins, host network | yes |
 | `Assets:read` | account list, account show, asset list, asset show, application list, login list | yes |
 | `Falcon Discover IoT:read` | iot list | yes |
@@ -111,6 +111,24 @@ falcon-axi detection show <composite id> [--full]
 --full       print long fields such as the command line without truncation
 
 Example: falcon-axi detection show "ldt:aid:1234"
+
+This command is read-only and requires only Alerts:read.
+```
+
+## detection process
+
+```text
+falcon-axi detection process <composite id> [--full]
+
+--full       print command lines without the default 800-character truncation
+
+Show the triggering process, parent, and grandparent recorded on the alert.
+Rows contain relation, filename, filepath, cmdline, sha256, and process_id.
+triggering_process_graph_id is the alert's graph pivot; this view does not fetch a graph.
+Absent ancestors and alerts without a process are stated explicitly.
+Examples:
+  falcon-axi detection process 'ldt:synthetic-agent:1001'
+  falcon-axi detection process 'ldt:synthetic-agent:1001' --full
 
 This command is read-only and requires only Alerts:read.
 ```

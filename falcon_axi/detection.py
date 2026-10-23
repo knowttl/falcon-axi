@@ -13,7 +13,7 @@ from falcon_axi.domain import DEFAULT_LIMIT, CommandOutput, parse_fields, rate_l
 from falcon_axi.falcon_error import translate_falcon_error
 from falcon_axi.fql import PRODUCTS, SEVERITIES, STATUSES, DetectionQuery, describe_detection_query, detection_filter
 from falcon_axi.identity import is_account_subject
-from falcon_axi.render import raw, truncate
+from falcon_axi.render import raw, redact, truncate
 from falcon_axi.transport.types import RequestArgs, Transport
 from falcon_axi.walk import Page, max_rows_of, offset_page, walk
 
@@ -261,6 +261,46 @@ def show_detection(transport: Transport, session: Session, id: str, full: bool) 
     return CommandOutput(value={"detection": detail}, help=tuple(help))
 
 
+def detection_process(transport: Transport, session: Session, id: str, full: bool) -> CommandOutput:
+    """Project only the lineage recorded on the alert, without fetching a process graph."""
+    alerts = _hydrate_alerts(transport, session, [id])
+    if not alerts:
+        raise CliError(
+            "NOT_FOUND",
+            "no detection matched that identifier",
+            ["Run `falcon-axi detection list` to see current detection identifiers"],
+        )
+    alert = alerts[0]
+    fields = ("filename", "filepath", "cmdline", "sha256", "process_id")
+    value: dict[str, Any] = {
+        "id": _id_of(alert),
+        "triggering_process_graph_id": text(alert.get("triggering_process_graph_id")) or "unknown",
+    }
+    if not any(text(alert.get(field)) for field in (*fields, "triggering_process_graph_id")):
+        value["processes"] = raw("no process recorded for this detection")
+        return CommandOutput(value=value, help=())
+    rows = []
+    shortened = False
+    for relation, entry in (
+        ("triggering", alert),
+        ("parent", alert.get("parent_details")),
+        ("grandparent", alert.get("grandparent_details")),
+    ):
+        if not isinstance(entry, Mapping) or not entry:
+            value[relation] = raw(f"no {relation} recorded")
+            continue
+        row = {"relation": relation, **{field: text(entry.get(field)) or "unknown" for field in fields}}
+        # Redact before truncating so a preview cannot cut a secret's closing marker off.
+        row["cmdline"] = redact(row["cmdline"])
+        if not full:
+            row["cmdline"], truncated = truncate(row["cmdline"])
+            shortened |= truncated
+        rows.append(row)
+    value["processes"] = rows
+    help = (f"Run `falcon-axi detection process {shlex.quote(id)} --full` to see complete command lines",) if shortened else ()
+    return CommandOutput(value=value, help=help)
+
+
 def summarize_detections(transport: Transport, session: Session, query: DetectionQuery) -> CommandOutput:
     """Count severity terms server-side without walking the Alerts result window (§10.3)."""
     spec: dict[str, Any] = {
@@ -344,6 +384,10 @@ def _detection_list(ctx: Invocation) -> CommandOutput:
 
 def _detection_show(ctx: Invocation) -> CommandOutput:
     return show_detection(ctx.transport, ctx.session, ctx.positionals[0], bool(ctx.flags.get("full")))
+
+
+def _detection_process(ctx: Invocation) -> CommandOutput:
+    return detection_process(ctx.transport, ctx.session, ctx.positionals[0], bool(ctx.flags.get("full")))
 
 
 def _detection_query_of(flags: Mapping[str, str | bool]) -> DetectionQuery:
@@ -439,6 +483,31 @@ COMMAND_SPECS = (
         ),
         summary="  detection show <id>       the full detail for one detection",
         handler=_detection_show,
+        operations=("PostEntitiesAlertsV2",),
+        flags=("full",),
+        positional=("detection identifier", "Run `falcon-axi detection list` to see current detection identifiers"),
+    ),
+    CommandSpec(
+        name="detection process",
+        help="\n".join(
+            [
+                "falcon-axi detection process <composite id> [--full]",
+                "",
+                "--full       print command lines without the default 800-character truncation",
+                "",
+                "Show the triggering process, parent, and grandparent recorded on the alert.",
+                "Rows contain relation, filename, filepath, cmdline, sha256, and process_id.",
+                "triggering_process_graph_id is the alert's graph pivot; this view does not fetch a graph.",
+                "Absent ancestors and alerts without a process are stated explicitly.",
+                "Examples:",
+                "  falcon-axi detection process 'ldt:synthetic-agent:1001'",
+                "  falcon-axi detection process 'ldt:synthetic-agent:1001' --full",
+                "",
+                "This command is read-only and requires only Alerts:read.",
+            ]
+        ),
+        summary="  detection process <id>    process lineage recorded on one detection",
+        handler=_detection_process,
         operations=("PostEntitiesAlertsV2",),
         flags=("full",),
         positional=("detection identifier", "Run `falcon-axi detection list` to see current detection identifiers"),

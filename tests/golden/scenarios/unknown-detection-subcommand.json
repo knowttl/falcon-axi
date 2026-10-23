@@ -1,5 +1,6 @@
 {
   "name": "unknown-detection-subcommand",
+  "comment": "Detection lineage adds the process subcommand to discovery under v1.md section 1.2; detection show output remains unchanged.",
   "argv": [
     "detection",
     "contain"
