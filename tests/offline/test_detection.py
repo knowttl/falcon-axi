@@ -66,6 +66,25 @@ def test_process_view_states_missing_process_context(alert: dict, expected: str)
     assert expected in stdout
 
 
+@pytest.mark.parametrize("relation", ["parent", "grandparent"])
+@pytest.mark.parametrize("full", [False, True])
+def test_process_view_preserves_ancestors_without_triggering_fields(relation: str, full: bool) -> None:
+    alert = {"composite_id": LINEAGE_ID, f"{relation}_details": {"filename": "synthetic-ancestor.exe"}}
+    recorded = RecordedTransport([serve("PostEntitiesAlertsV2", response(200, {"resources": [alert]}))])
+    stdout, code = run(["detection", "process", LINEAGE_ID, *(["--full"] if full else [])], recorded, dict(CREDENTIAL_ENV))
+    assert code == 0
+    assert decode(stdout)["processes"][1:] == [
+        {
+            "relation": relation,
+            "filename": "synthetic-ancestor.exe",
+            "filepath": "unknown",
+            "cmdline": "unknown",
+            "sha256": "unknown",
+            "process_id": "unknown",
+        }
+    ]
+
+
 @pytest.mark.parametrize("relation", [None, "parent_details", "grandparent_details"])
 @pytest.mark.parametrize("full", [False, True])
 def test_process_command_lines_preview_or_expand_each_generation(relation: str | None, full: bool) -> None:

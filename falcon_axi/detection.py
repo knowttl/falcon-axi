@@ -276,16 +276,19 @@ def detection_process(transport: Transport, session: Session, id: str, full: boo
         "id": _id_of(alert),
         "triggering_process_graph_id": text(alert.get("triggering_process_graph_id")) or "unknown",
     }
-    if not any(text(alert.get(field)) for field in (*fields, "triggering_process_graph_id")):
+    lineage = (
+        ("triggering", alert),
+        ("parent", alert.get("parent_details")),
+        ("grandparent", alert.get("grandparent_details")),
+    )
+    if not any(text(alert.get(field)) for field in (*fields, "triggering_process_graph_id")) and not any(
+        isinstance(entry, Mapping) and entry for _, entry in lineage[1:]
+    ):
         value["processes"] = raw("no process recorded for this detection")
         return CommandOutput(value=value, help=())
     rows = []
     shortened = False
-    for relation, entry in (
-        ("triggering", alert),
-        ("parent", alert.get("parent_details")),
-        ("grandparent", alert.get("grandparent_details")),
-    ):
+    for relation, entry in lineage:
         if not isinstance(entry, Mapping) or not entry:
             value[relation] = raw(f"no {relation} recorded")
             continue
