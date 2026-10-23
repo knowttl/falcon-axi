@@ -68,7 +68,10 @@ They hold in Python as follows.
 ### 3.1 The closed registry
 
 `falcon_axi/transport/operations.py` holds the descriptors specified by v1.md §2.1 as frozen dataclasses with a closed `Effect` union and the required two-citation `evidence` block.
-The exception boundaries and GraphQL document contract are owned by v1.md §3.3, §4.3, and §4.4.
+The exception boundaries and GraphQL document contract are owned by v1.md §3.3, §4.3, §4.4, and §4.5.
+N3's internal R2 tier binds a run's host, command, and session through one-use authority and signed prepared grants, rechecked in the network sink and the bounded worker.
+The worker's signing key travels only over its existing private stdin channel, alongside the request and deadline.
+The recorded transport uses the same grant preparation; no invocation selects or creates unchecked execution authority.
 `OperationId` is a `Literal[...]` union, so an unknown ID is a type error at check time and a `READ_ONLY_VIOLATION` at run time, exactly as `operation()` behaves today.
 `MUTATION_ROUTE_PATTERNS` and the `seal()` checks port verbatim.
 Registry growth still requires both citations in the same change (v1.md §2.2).
@@ -150,6 +153,7 @@ falcon_axi/
     __init__.py                sealed request() and request_oauth_token(); mints permits
     operations.py              the closed registry with evidence
     graphql.py                 the closed query-document registry and request-body gate
+    rtr.py                     N3 one-run authority and signed sink-grant validation
     harness.py                 the only falconpy import; send_permitted_request
     retry.py                   429 and RetryAfter
     types.py                   Transport protocol, FalconResponse, request args

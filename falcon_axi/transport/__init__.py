@@ -14,6 +14,7 @@ from falcon_axi.transport.budget import remaining_seconds
 from falcon_axi.transport.graphql import request_body
 from falcon_axi.transport.operations import OperationId, operation, path_arguments
 from falcon_axi.transport.retry import MAX_ATTEMPTS, retry_plan
+from falcon_axi.transport.rtr import prepare_grant
 from falcon_axi.transport.types import (
     FalconResponse,
     OAuthTokenArgs,
@@ -48,6 +49,9 @@ def _send(prepared: PreparedOperation | PreparedToken) -> FalconResponse:
         except CliError:
             remaining_seconds()
             raise
+        # N3 never replays a send, including a 429. Status and cleanup are bounded by their caller too.
+        if isinstance(prepared, PreparedOperation) and prepared.rtr is not None:
+            return response
         plan = retry_plan(response.status, response.headers, attempt, time.time() * 1000) if attempt < MAX_ATTEMPTS else None
         if plan is None:
             return response
@@ -70,6 +74,7 @@ class HttpTransport:
                 query=MappingProxyType(dict(args.query or {})),
                 body=request_body(descriptor, args.document, args.variables, args.body),
                 path_params=MappingProxyType(path_arguments(descriptor, dict(args.path_params or {}))),
+                rtr=prepare_grant(id, args),
             )
         )
 
