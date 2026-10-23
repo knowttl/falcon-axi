@@ -1,0 +1,6 @@
+{
+  "name": "sandbox list",
+  "order": 2307.7,
+  "summary": "  sandbox list             existing sandbox reports by hash or FQL",
+  "scopes": [{"scope": "Sandbox (Falcon Intelligence):read", "access": "read"}]
+}

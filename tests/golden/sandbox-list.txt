@@ -1,0 +1,6 @@
+count: 2 of 2 total reports
+sandbox_reports[3]{id,verdict,threat_score,environment_description,submit_name,created_timestamp}:
+  synthetic-report-01,malicious,90,Synthetic Windows,synthetic-first.exe,"2026-01-01T00:00:00Z"
+  synthetic-report-01,malicious,60,Synthetic Windows alternate,synthetic-first.exe,"2026-01-01T00:00:00Z"
+  synthetic-report-02,no specific threat,0,Synthetic Linux,synthetic-second.bin,"2026-01-02T00:00:00Z"
+help[1]: "Run `falcon-axi sandbox show <report-id>` for report details"

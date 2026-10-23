@@ -19,6 +19,8 @@ from falcon_axi.transport.operations import (
 #: Operations whose §2.2 corroboration is falconpy's generated table plus PSFalcon, because falcon-mcp
 #: has no tool for them, mapped to the falconpy endpoint module that lists each one.
 NO_FALCON_MCP_TOOL = {
+    "QueryReports": "_falconx_sandbox",
+    "GetSummaryReports": "_falconx_sandbox",
     "combined_summary_get": "_threatgraph",
     "combined_edges_get": "_threatgraph",
     "QueryMalwareEntities": "_intel",
@@ -49,6 +51,20 @@ NO_FALCON_MCP_TOOL = {
 }
 
 EXPECTED = {
+    "QueryReports": {
+        "method": "GET",
+        "path": "/falconx/queries/reports/v1",
+        "scopes": ("Sandbox (Falcon Intelligence):read",),
+        "effect": "read",
+        "doc_scope": "Sandbox (Falcon Intelligence): READ",
+    },
+    "GetSummaryReports": {
+        "method": "GET",
+        "path": "/falconx/entities/report-summaries/v1",
+        "scopes": ("Sandbox (Falcon Intelligence):read",),
+        "effect": "read",
+        "doc_scope": "Sandbox (Falcon Intelligence): READ",
+    },
     "entities_processes": {
         "method": "GET",
         "path": "/processes/entities/processes/v1",

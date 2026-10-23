@@ -1,0 +1,6 @@
+{
+  "name": "sandbox show",
+  "order": 2307.8,
+  "summary": "  sandbox show <report-id> existing report summary and environment details",
+  "scopes": [{"scope": "Sandbox (Falcon Intelligence):read", "access": "read"}]
+}

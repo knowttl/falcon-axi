@@ -1,5 +1,6 @@
 {
   "name": "detection-process",
+  "change": "Sandbox lookup now ships; recorded valid lineage hashes suggest reading existing sandbox reports.",
   "argv": ["detection", "process", "ldt:synthetic-agent:1001"],
   "responders": [{"op": "PostEntitiesAlertsV2", "fixture": "alerts/hydrate-lineage.json"}],
   "exit_code": 0

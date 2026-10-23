@@ -11,6 +11,8 @@ from falcon_axi.transport.types import FalconResponse
 
 _FILTER_WORDS = re.compile(r"\b(fql|filter|query)\b", re.IGNORECASE)
 _INVENTORY_REMEDIES: dict[OperationId, tuple[str, str]] = {
+    "QueryReports": ("sandbox list --filter \"verdict:'malicious'\"", "verdict:'malicious'"),
+    "GetSummaryReports": ("sandbox list --filter \"verdict:'malicious'\"", "verdict:'malicious'"),
     "RTR_ListAllSessions": ("rtr session list", "hostname:'SYNTHETIC-*'"),
     "RTR_ListSessions": ("rtr session list", "hostname:'SYNTHETIC-*'"),
     "RTRAuditSessions": ("rtr audit list", "created_at:>'now-7d'"),
@@ -32,6 +34,7 @@ _INVENTORY_REMEDIES: dict[OperationId, tuple[str, str]] = {
 #: License prerequisites for scope-denied remedies; provisioning guidance lives in README.md.
 #: Console picker visibility is inferred, not observed (docs/design/v1.md §17.17).
 LICENSE_GATED_SCOPES = {
+    "Sandbox (Falcon Intelligence):read": "Falcon Intelligence (Sandbox)",
     "Threatgraph:read": "a Falcon subscription with ThreatGraph API access enabled",
     "Assets:read": "Falcon Discover or Exposure Management",
     "Real time response:read": "a Falcon subscription with Real Time Response enabled",
