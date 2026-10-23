@@ -3,7 +3,8 @@
 import json
 import os
 import stat
-from collections.abc import Mapping
+from collections.abc import Iterator, Mapping
+from contextlib import contextmanager
 from datetime import UTC, datetime
 from pathlib import Path
 from typing import Any
@@ -16,7 +17,8 @@ class Journal:
     def __init__(self, path: str) -> None:
         self.path = Path(path)
 
-    def append(self, record: Mapping[str, Any]) -> None:
+    @contextmanager
+    def _file(self) -> Iterator[tuple[int, int]]:
         descriptor = -1
         directory = -1
         try:
@@ -28,7 +30,10 @@ class Journal:
                 try:
                     child = os.open(part, os.O_RDONLY | os.O_DIRECTORY | os.O_NOFOLLOW, dir_fd=directory)
                 except FileNotFoundError:
-                    os.mkdir(part, mode=0o700, dir_fd=directory)
+                    try:
+                        os.mkdir(part, mode=0o700, dir_fd=directory)
+                    except FileExistsError:
+                        pass
                     os.fsync(directory)
                     child = os.open(part, os.O_RDONLY | os.O_DIRECTORY | os.O_NOFOLLOW, dir_fd=directory)
                 os.close(directory)
@@ -45,17 +50,37 @@ class Journal:
             info = os.fstat(descriptor)
             if not stat.S_ISREG(info.st_mode) or info.st_nlink != 1 or info.st_uid != os.getuid() or info.st_mode & 0o077:
                 raise OSError("unsafe journal file")
-            data = (redact_text(json.dumps({"timestamp": datetime.now(UTC).isoformat(), **record})) + "\n").encode()
-            with os.fdopen(descriptor, "ab") as stream:
-                descriptor = -1
-                stream.write(data)
-                stream.flush()
-                os.fsync(stream.fileno())
-            os.fsync(directory)
         except OSError as error:
             raise CliError("CONFIG_INSECURE", "RTR journal could not be durably written") from error
+        else:
+            yield descriptor, directory
         finally:
             if descriptor >= 0:
                 os.close(descriptor)
             if directory >= 0:
                 os.close(directory)
+
+    @contextmanager
+    def lock(self) -> Iterator[None]:
+        with self._file() as (descriptor, _):
+            import fcntl
+
+            try:
+                fcntl.flock(descriptor, fcntl.LOCK_EX | fcntl.LOCK_NB)
+            except BlockingIOError as error:
+                raise CliError("READ_ONLY_VIOLATION", "Another local RTR run is active for this host") from error
+            except OSError as error:
+                raise CliError("CONFIG_INSECURE", "RTR host lock could not be acquired") from error
+            yield
+
+    def append(self, record: Mapping[str, Any]) -> None:
+        try:
+            with self._file() as (descriptor, directory):
+                data = (redact_text(json.dumps({"timestamp": datetime.now(UTC).isoformat(), **record})) + "\n").encode()
+                with os.fdopen(os.dup(descriptor), "ab") as stream:
+                    stream.write(data)
+                    stream.flush()
+                    os.fsync(stream.fileno())
+                os.fsync(directory)
+        except OSError as error:
+            raise CliError("CONFIG_INSECURE", "RTR journal could not be durably written") from error

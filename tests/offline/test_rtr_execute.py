@@ -51,6 +51,7 @@ def env(tmp_path):
         "FALCON_AXI_CONFIG": str(path),
         "TEST_RTR_SECRET": "synthetic-secret",
         "FALCON_AXI_WRITE_LOG": str(tmp_path / "writes.log"),
+        "XDG_STATE_HOME": str(tmp_path / "state"),
     }
 
 
@@ -60,7 +61,10 @@ def transport():
         [
             serve("RTR_InitSession", response(201, {"resources": [{"session_id": "synthetic-session"}]})),
             serve("RTR_ExecuteCommand", response(201, {"resources": [{"cloud_request_id": "synthetic-command"}]})),
-            serve("RTR_CheckCommandStatus", response(200, {"resources": [{"stdout": "synthetic output", "complete": True}]})),
+            serve(
+                "RTR_CheckCommandStatus",
+                response(200, {"resources": [{"stdout": "synthetic output", "complete": True, "sequence_id": 0}]}),
+            ),
             serve("RTR_DeleteSession", response(204, None)),
         ]
     )
@@ -88,7 +92,7 @@ def run(transport, env, command="ps", confirmation=None):
     return execute_run(transport, env, HOST, command, confirmation if confirmation is not None else f"{HOST}:{command}")
 
 
-def test_success_deletes_the_owned_session_and_journals_without_output(env, transport):
+def test_success_deletes_the_returned_session_and_journals_without_output(env, transport):
     result = run(transport, env)
     assert result.output == "synthetic output"
     assert (result.complete, result.truncated, result.cleanup) == (True, False, "deleted")
@@ -138,6 +142,40 @@ def test_environment_credentials_never_opt_in(env, transport):
     with pytest.raises(CliError, match="profile opt-in"):
         run(transport, env)
     assert transport.requests == []
+
+
+def test_file_profile_named_env_can_opt_in(env, transport):
+    path = Path(env["FALCON_AXI_CONFIG"])
+    document = json.loads(path.read_text())
+    document["profiles"]["env"] = document["profiles"].pop("triage")
+    document["defaultProfile"] = "env"
+    path.write_text(json.dumps(document))
+    assert run(transport, env).complete is True
+
+
+@pytest.mark.parametrize("operation", ["RTR_InitSession", "RTR_ExecuteCommand", "RTR_CheckCommandStatus", "RTR_DeleteSession"])
+@pytest.mark.parametrize("rival_host", [HOST, HOST.upper()])
+def test_overlapping_host_run_is_refused_before_requests(env, transport, operation, rival_host):
+    rival = RecordedTransport([])
+    original = transport.responders.copy()
+
+    def overlap(args):
+        with pytest.raises(CliError, match="Another local RTR run") as error:
+            execute_run(
+                rival,
+                {**env, "FALCON_AXI_WRITE_LOG": env["FALCON_AXI_WRITE_LOG"] + ".other"},
+                rival_host,
+                "ps",
+                f"{rival_host}:ps",
+            )
+        assert error.value.code == "READ_ONLY_VIOLATION"
+        assert rival.requests == []
+        return next(answer for responder in original if (answer := responder(operation, args)) is not None)
+
+    transport.responders.insert(0, serve(operation, overlap))
+    assert run(transport, env).cleanup == "deleted"
+    transport.responders = original
+    assert run(transport, env).complete is True
 
 
 @pytest.mark.parametrize("confirmation", ["", "yes", "*:ps", HOST + ":ps ", HOST + ":ls"])
@@ -263,9 +301,43 @@ def test_outcome_failure_still_deletes_the_session(env, transport, monkeypatch):
         original(journal, record)
 
     monkeypatch.setattr(Journal, "append", append)
-    with pytest.raises(CliError, match="outcome flush"):
+    with pytest.raises(CliError, match="outcome flush") as error:
         run(transport, env)
     assert len(transport.operation_requests("RTR_DeleteSession")) == 1
+    assert error.value.details["cleanup"] == "deleted"
+    assert error.value.details["output"] == "synthetic output"
+    assert error.value.details["run"] == records(env)[0]["run"]
+    assert error.value.details["journal_error"]["code"] == "CONFIG_INSECURE"
+
+
+@pytest.mark.parametrize(
+    "operation,cleanup,message,output",
+    [
+        ("RTR_DeleteSession", "failed", "deletion", "synthetic output"),
+        ("RTR_InitSession", "unknown", "initialization outcome is unknown", ""),
+        ("RTR_ExecuteCommand", "deleted", "synthetic lifecycle failure", ""),
+    ],
+)
+def test_outcome_failure_preserves_lifecycle_recovery(env, transport, monkeypatch, operation, cleanup, message, output):
+    original = Journal.append
+
+    def append(journal, record):
+        if record["phase"] == "outcome":
+            raise CliError("CONFIG_INSECURE", "synthetic outcome flush failure")
+        original(journal, record)
+
+    monkeypatch.setattr(Journal, "append", append)
+    transport.responders.insert(0, serve(operation, fail(CliError("NETWORK_UNREACHABLE", "synthetic lifecycle failure"))))
+    with pytest.raises(CliError, match=message) as error:
+        run(transport, env)
+    assert error.value.details == {
+        "cleanup": cleanup,
+        "run": records(env)[0]["run"],
+        "output": output,
+        "complete": False,
+        "truncated": False,
+        "journal_error": {"code": "CONFIG_INSECURE", "message": "synthetic outcome flush failure"},
+    }
 
 
 def test_output_byte_cap_returns_incomplete_and_deletes(env, transport):
@@ -280,6 +352,7 @@ def test_output_byte_cap_returns_incomplete_and_deletes(env, transport):
                         {
                             "stdout": "x" * (OUTPUT_BYTES + 1),
                             "complete": True,
+                            "sequence_id": 0,
                         }
                     ]
                 },
@@ -293,7 +366,9 @@ def test_output_byte_cap_returns_incomplete_and_deletes(env, transport):
 
 def test_output_chunk_cap_is_finite(env, transport, monkeypatch):
     monkeypatch.setattr("falcon_axi.rtr_execute.time.sleep", lambda _: None)
-    transport.responders.insert(0, serve("RTR_CheckCommandStatus", response(200, {"resources": [{"complete": False}]})))
+    transport.responders.insert(
+        0, serve("RTR_CheckCommandStatus", response(200, {"resources": [{"complete": False, "sequence_id": 0}]}))
+    )
     result = run(transport, env)
     assert len(transport.operation_requests("RTR_CheckCommandStatus")) == OUTPUT_CHUNKS
     assert (result.complete, result.truncated, result.cleanup) == (False, True, "deleted")
@@ -311,6 +386,7 @@ def test_journal_and_output_are_redacted_before_truncation(env, transport):
                         {
                             "stdout": "synthetic-secret",
                             "complete": True,
+                            "sequence_id": 0,
                         }
                     ]
                 },
@@ -423,12 +499,44 @@ def test_redaction_covers_a_secret_split_across_chunks(env, transport, monkeypat
     monkeypatch.setattr("falcon_axi.rtr_execute.time.sleep", lambda _: None)
     chunks = iter(
         [
-            response(200, {"resources": [{"stdout": "synthetic-", "complete": False}]}),
-            response(200, {"resources": [{"stdout": "secret", "complete": True}]}),
+            response(200, {"resources": [{"stdout": "synthetic-", "complete": False, "sequence_id": 0}]}),
+            response(200, {"resources": [{"stdout": "secret", "complete": True, "sequence_id": 1}]}),
         ]
     )
     transport.responders.insert(0, serve("RTR_CheckCommandStatus", lambda _: next(chunks)))
     assert run(transport, env).output == "[redacted]"
+
+
+def test_polling_carries_protocol_sequence_independently_of_attempt_count(env, transport, monkeypatch):
+    monkeypatch.setattr("falcon_axi.rtr_execute.time.sleep", lambda _: None)
+    chunks = iter(
+        [
+            response(200, {"resources": [{"stdout": "", "complete": False, "sequence_id": 0}]}),
+            response(200, {"resources": [{"stdout": "first", "complete": False, "sequence_id": 71}]}),
+            response(200, {"resources": [{"stdout": "second", "complete": True, "sequence_id": 72}]}),
+        ]
+    )
+    transport.responders.insert(0, serve("RTR_CheckCommandStatus", lambda _: next(chunks)))
+    result = run(transport, env)
+    assert result.output == "firstsecond"
+    assert result.complete is True
+    assert [args.query["sequence_id"] for args in transport.operation_requests("RTR_CheckCommandStatus")] == [0, 0, 71]
+
+
+@pytest.mark.parametrize("sequence", [None, True, -1, "1", 0])
+def test_invalid_or_regressing_output_sequence_fails_and_deletes(env, transport, monkeypatch, sequence):
+    monkeypatch.setattr("falcon_axi.rtr_execute.time.sleep", lambda _: None)
+    chunks = iter(
+        [
+            response(200, {"resources": [{"stdout": "first", "complete": False, "sequence_id": 1}]}),
+            response(200, {"resources": [{"stdout": "invalid", "complete": True, "sequence_id": sequence}]}),
+        ]
+    )
+    transport.responders.insert(0, serve("RTR_CheckCommandStatus", lambda _: next(chunks)))
+    with pytest.raises(CliError, match="invalid output sequence") as error:
+        run(transport, env)
+    assert error.value.details["output"] == "first"
+    assert error.value.details["cleanup"] == "deleted"
 
 
 def test_execution_tier_does_not_replay_a_rate_limited_send():

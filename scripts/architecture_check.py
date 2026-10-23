@@ -68,7 +68,7 @@ def check() -> bool:
                 for cls in tree.body
                 if isinstance(cls, ast.ClassDef) and cls.name == "Journal"
                 for method in cls.body
-                if isinstance(method, ast.FunctionDef) and method.name == "append"
+                if isinstance(method, ast.FunctionDef) and method.name in {"_file", "append"}
                 for child in ast.walk(method)
                 if isinstance(child, ast.Call)
             }

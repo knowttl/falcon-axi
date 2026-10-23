@@ -61,7 +61,7 @@ class RunAuthority:
             if not self.request_id or not self.executed or self.deleted or self.status_requests >= OUTPUT_CHUNKS:
                 raise _deny()
             sequence = query.get("sequence_id")
-            if type(sequence) is not int or not 0 <= sequence < OUTPUT_CHUNKS:
+            if type(sequence) is not int or sequence < 0:
                 raise _deny()
             expected_body, expected_query = None, {"cloud_request_id": self.request_id, "sequence_id": sequence}
         elif id == "RTR_DeleteSession":
