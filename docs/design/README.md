@@ -68,10 +68,8 @@ What is shipped:
   `ioc processes <type:value> --host <device_id>`;
 - host-group reads: `host-group list` and `host-group members <id>`.
   See [the command reference](v1.md#141-custom-iocs-and-host-groups) for pagination and observation inputs.
-- policy inventory and host membership: `policy list --type <type>` and `policy members <id> --type <type>`
-  for `prevention`, `sensor-update`, `firewall`, `device-control`, `response`, and `content-update`.
-  Both accept `--filter`, `--limit`, and `--cursor` and require only the selected type's read scope.
-  Policy precedence, enable/disable, and writes are not exposed.
+- policy inventory, host membership, and Device Control USB configuration details.
+  See the policy contract in [v1 §1.2](v1.md#12-shipped-read-domains-plus-ng-siem-search-and-the-identity-directory-under-captain-exceptions-n1-and-n2) for supported types and read boundaries, and the [generated command reference](../commands.md#policy-list) for usage.
 
 - weekly sensor usage reports: `sensor-usage list [--filter <FQL>]`;
 - Falcon Recon reads: `recon-rule list|show`, `recon-notification list|show`, and
