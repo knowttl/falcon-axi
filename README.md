@@ -167,6 +167,8 @@ Grant only the domains you use; available scopes depend on product licensing.
 | `Custom IOA Rules:read` | ioa group list | yes |
 | `Correlation Rules:read` | correlation-rule list | yes |
 | `Cases:read` | case list, case show | yes |
+| `Real time response:read` | rtr session list, rtr session show | yes |
+| `Real time response audit:read` | rtr audit list | yes |
 | `Sensor Usage:read` | sensor-usage list | yes |
 | `Monitoring rules (Falcon Intelligence Recon):read` | recon-rule list, recon-rule show, recon-notification list, recon-notification show, recon-record list, recon-record show | yes |
 <!-- permissions:end -->
@@ -317,6 +319,9 @@ Run any command with `--help` for its arguments and examples.
 | `correlation-rule list` | read correlation_rules |
 | `case list` | read cases |
 | `case show` | <id>             read one record |
+| `rtr session list` | read sessions |
+| `rtr session show` | <id>      read one record |
+| `rtr audit list` | read audit_sessions |
 | `auth status` | whether a credential resolved, and where to |
 | `profile list` | configured profile names, without reading secrets |
 | `config path` | config and write-journal paths |

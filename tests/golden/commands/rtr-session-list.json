@@ -1,0 +1,6 @@
+{
+  "name": "rtr session list",
+  "order": 2380,
+  "summary": "  rtr session list           read sessions",
+  "scopes": [{"scope": "Real time response:read", "access": "read", "required": "yes"}]
+}

@@ -1,0 +1,7 @@
+{
+  "name": "rtr-audit-list",
+  "argv": ["rtr", "audit", "list"],
+  "responders": [{"op": "RTRAuditSessions", "fixture": "rtr/audit.json"}],
+  "exit_code": 0,
+  "comment": "R1 audit history is a passive combined read with its own audit read scope, no hydration and no live calls."
+}

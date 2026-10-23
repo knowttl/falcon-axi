@@ -11,6 +11,9 @@ from falcon_axi.transport.types import FalconResponse
 
 _FILTER_WORDS = re.compile(r"\b(fql|filter|query)\b", re.IGNORECASE)
 _INVENTORY_REMEDIES: dict[OperationId, tuple[str, str]] = {
+    "RTR_ListAllSessions": ("rtr session list", "hostname:'SYNTHETIC-*'"),
+    "RTR_ListSessions": ("rtr session list", "hostname:'SYNTHETIC-*'"),
+    "RTRAuditSessions": ("rtr audit list", "created_at:>'now-7d'"),
     "cloud_security_assets_queries": ("cloud-asset list", "cloud_provider:'aws'"),
     "cloud_security_assets_entities_get": ("cloud-asset list", "cloud_provider:'aws'"),
     "cspm_evaluations_iom_queries": ("iom list", "severity:'critical'+status:'non-compliant'"),
@@ -28,7 +31,11 @@ _INVENTORY_REMEDIES: dict[OperationId, tuple[str, str]] = {
 
 #: License prerequisites for scope-denied remedies; provisioning guidance lives in README.md.
 #: Console picker visibility is inferred, not observed (docs/design/v1.md §17.17).
-LICENSE_GATED_SCOPES = {"Assets:read": "Falcon Discover or Exposure Management"}
+LICENSE_GATED_SCOPES = {
+    "Assets:read": "Falcon Discover or Exposure Management",
+    "Real time response:read": "a Falcon subscription with Real Time Response enabled",
+    "Real time response audit:read": "a Falcon subscription with Real Time Response audit enabled",
+}
 
 
 def _body_of(response: FalconResponse) -> Mapping[str, Any]:
@@ -86,10 +93,10 @@ def translate_falcon_error(
         )
     if response.status == 400:
         if any(_FILTER_WORDS.search(message) for message in messages):
-            if filter_help is not None:
-                command, example = filter_help
-            elif remedy:
+            if remedy:
                 command, example = remedy
+            elif filter_help is not None:
+                command, example = filter_help
             elif "Falcon Container Image:read" in scopes:
                 if id == "GetCombinedVulnerabilitiesSARIF":
                     command, example = "serverless list", "cloud_provider:'aws'"

@@ -1,0 +1,10 @@
+{
+  "name": "rtr-session-list",
+  "argv": ["rtr", "session", "list", "--limit", "2"],
+  "responders": [
+    {"op": "RTR_ListAllSessions", "fixture": "rtr/ids.json"},
+    {"op": "RTR_ListSessions", "fixture": "rtr/sessions.json"}
+  ],
+  "exit_code": 0,
+  "comment": "Design sections 4.5 and 19 admit R1 passive RTR history only. help-top, unknown-command and scopes deliberately gain rtr session list/show and rtr audit list. Query order and total survive POST hydration; execution remains unshipped. All data is synthetic."
+}

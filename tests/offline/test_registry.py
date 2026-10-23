@@ -45,6 +45,27 @@ NO_FALCON_MCP_TOOL = {
 }
 
 EXPECTED = {
+    "RTR_ListAllSessions": {
+        "method": "GET",
+        "path": "/real-time-response/queries/sessions/v1",
+        "scopes": ("Real time response:read",),
+        "effect": "read",
+        "doc_scope": "Real time response: READ",
+    },
+    "RTR_ListSessions": {
+        "method": "POST",
+        "path": "/real-time-response/entities/sessions/GET/v1",
+        "scopes": ("Real time response:read",),
+        "effect": "read",
+        "doc_scope": "Real time response: READ",
+    },
+    "RTRAuditSessions": {
+        "method": "GET",
+        "path": "/real-time-response-audit/combined/sessions/v1",
+        "scopes": ("Real time response audit:read",),
+        "effect": "read",
+        "doc_scope": "Real time response audit: READ",
+    },
     "QueryMalwareEntities": {
         "method": "GET",
         "path": "/intel/combined/malware/v1",
