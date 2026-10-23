@@ -1,0 +1,6 @@
+{
+  "name": "rtr run",
+  "order": 2383,
+  "summary": "  rtr run                   preview or execute one read-only RTR command on one host",
+  "scopes": [{"scope": "Real time response:read", "access": "read", "required": "yes"}]
+}

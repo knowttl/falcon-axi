@@ -140,8 +140,8 @@ def test_help_never_advertises_a_command_the_cli_does_not_have() -> None:
         else:
             assert "--fields" not in stdout, f"{' '.join(argv)} advertises --fields"
     top, _ = run(["--help"], RecordedTransport([]), dict(CREDENTIAL_ENV))
-    # The two write-labelled scopes are named where an operator will see them, and no mutating command is listed.
-    assert "lists no command that changes a host, a detection, a policy, or an identity" in top
+    # Operators see both write-labelled scopes and N3's explicit execution authorization contract.
+    assert "RTR execution requires profile opt-in, --execute, and exact host:command --confirm (N3)" in top
     assert "NGSIEM:write" in top
     assert "Identity Protection GraphQL:write" in " ".join(top.split())
     assert VERSION in top

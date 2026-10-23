@@ -1,4 +1,4 @@
-"""Internal N3 execute core. No CLI registration until R3."""
+"""N3 execute core with bounded execution and unconditional session cleanup."""
 
 import os
 import signal
@@ -6,14 +6,14 @@ import time
 import uuid
 from collections.abc import Iterator, Mapping
 from contextlib import contextmanager
-from dataclasses import dataclass
+from dataclasses import dataclass, replace
 from typing import Any
 
 from falcon_axi.auth import authenticate
 from falcon_axi.core import CliError
 from falcon_axi.credentials import Credential, read_only, resolve_credential, tool_directory, write_log_path
 from falcon_axi.falcon_error import translate_falcon_error
-from falcon_axi.origin import REGIONS
+from falcon_axi.origin import assert_trusted_origin, resolve_base_url
 from falcon_axi.redaction import redact_text, redaction_scope, register_secret
 from falcon_axi.rtr_journal import Journal
 from falcon_axi.rtr_policy import EXECUTION_SECONDS, OUTPUT_BYTES, OUTPUT_CHUNKS, parse_command, validate_host
@@ -66,16 +66,25 @@ def execute_run(
     *,
     profile: str | None = None,
     config: str | None = None,
+    region: str | None = None,
+    member_cid: str | None = None,
+    no_member_cid: bool = False,
 ) -> RunResult:
     """Authorize before authentication, execute once, and clean up within a separate budget.
 
-    The future CLI must emit its preview before calling this core.
+    The CLI emits its preview before calling this core.
     A lost init response leaves the session id unknown; recovery is manual in Falcon, never a replay.
     """
     if read_only(env) or read_only(os.environ):
         raise CliError("READ_ONLY_VIOLATION", "FALCON_AXI_READ_ONLY forbids RTR execution")
     validate_host(host)
     credential = resolve_credential(env, profile=profile, config=config)
+    credential = replace(
+        credential,
+        region=region or credential.region,
+        member_cid=None if no_member_cid else member_cid or credential.member_cid,
+    )
+    assert_trusted_origin(resolve_base_url(region=credential.region), False)
     if not credential.rtr.enabled:
         raise CliError("READ_ONLY_VIOLATION", "RTR execution requires explicit profile opt-in")
     base = parse_command(command, credential.rtr.commands)
@@ -126,7 +135,7 @@ def _execute_locked(
     try:
         with request_budget(time.monotonic() + EXECUTION_SECONDS):
             record["phase"] = "authentication"
-            origin = REGIONS.get(credential.region or "us-1", credential.region or "")
+            origin = resolve_base_url(region=credential.region)
             session = authenticate(transport, credential, origin, credential.member_cid)
             authority.origin, authority.token = session.base_url, session.token
             record.update(phase="init", cleanup="unknown")

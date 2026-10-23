@@ -3,12 +3,14 @@
 import dataclasses
 import json
 import os
+import signal
 import time
 from pathlib import Path
 
 import pytest
 import requests_mock
 
+from falcon_axi.cli import run as cli_run
 from falcon_axi.core import CliError
 from falcon_axi.credentials import load_profiles
 from falcon_axi.redaction import redaction_scope, register_secret
@@ -90,6 +92,186 @@ def fail(error):
 
 def run(transport, env, command="ps", confirmation=None):
     return execute_run(transport, env, HOST, command, confirmation if confirmation is not None else f"{HOST}:{command}")
+
+
+def cli(transport, env, *extra, command="ps", emit_preview=None):
+    return cli_run(
+        ["rtr", "run", HOST, "--command", command, *extra],
+        transport=transport,
+        env=env,
+        emit_preview=emit_preview,
+    )
+
+
+@pytest.mark.parametrize("read_only", ["0", "1"])
+def test_cli_preview_is_local_and_shows_effective_limits(env, transport, read_only):
+    env["FALCON_AXI_READ_ONLY"] = read_only
+    output, code = cli(transport, env)
+    assert code == 0
+    assert "preview:" in output
+    assert f"host: {HOST}" in output
+    assert "execution_seconds: 50" in output
+    assert "output_bytes: 65536" in output
+    assert "session_deletion: mandatory" in output
+    assert transport.requests == []
+    assert not Path(env["FALCON_AXI_WRITE_LOG"]).exists()
+
+
+def test_cli_emits_preview_before_initialization_and_deletes_on_success(env, transport):
+    emitted = []
+
+    def initialize(args):
+        assert len(emitted) == 1
+        assert "command: ps" in emitted[0]
+        return response(201, {"resources": [{"session_id": "synthetic-session"}]})
+
+    transport.responders.insert(0, serve("RTR_InitSession", initialize))
+    output, code = cli(transport, env, "--execute", "--confirm", f"{HOST}:ps", emit_preview=emitted.append)
+    assert code == 0
+    assert "synthetic output" in output
+    assert "cleanup: deleted" in output
+    assert records(env)[-1]["cleanup"] == "deleted"
+    assert len(transport.operation_requests("RTR_DeleteSession")) == 1
+
+
+@pytest.mark.parametrize(
+    "extra",
+    [
+        ("--execute",),
+        ("--execute", "--confirm", "yes"),
+        ("--execute", "--confirm", f"{'b' * 32}:ps"),
+        ("--execute", "--confirm", f"{HOST}:ls"),
+        ("--confirm", f"{HOST}:ps"),
+    ],
+)
+def test_cli_requires_both_execution_flags_and_exact_confirmation(env, transport, extra):
+    output, code = cli(transport, env, *extra)
+    assert code == 2
+    assert "VALIDATION_ERROR" in output
+    assert transport.requests == []
+
+
+@pytest.mark.parametrize("command", ["runscript", "eventlog backup", "eventlog export", "reg delete HKLM", "ps; ls"])
+def test_cli_disallowed_commands_never_authenticate(env, transport, command):
+    _, code = cli(transport, env, "--execute", "--confirm", f"{HOST}:{command}", command=command)
+    assert code != 0
+    assert transport.requests == []
+
+
+@pytest.mark.parametrize("policy", [{"enabled": False}, {"enabled": True, "commands": ["ls"]}])
+def test_cli_profile_refusal_precedes_all_requests(env, transport, policy):
+    replace_profile(env, policy)
+    output, code = cli(transport, env, "--execute", "--confirm", f"{HOST}:ps")
+    assert code == 1
+    assert "READ_ONLY_VIOLATION" in output
+    assert transport.requests == []
+
+
+def test_cli_read_only_wins_over_opt_in_and_confirmation(env, transport):
+    env["FALCON_AXI_READ_ONLY"] = "1"
+    output, code = cli(transport, env, "--execute", "--confirm", f"{HOST}:ps")
+    assert code == 1
+    assert "READ_ONLY_VIOLATION" in output
+    assert transport.requests == []
+
+
+@pytest.mark.parametrize(
+    "operation,error",
+    [
+        ("RTR_ExecuteCommand", CliError("NETWORK_UNREACHABLE", "synthetic failure")),
+        ("RTR_CheckCommandStatus", BudgetExpired()),
+    ],
+)
+def test_cli_lifecycle_error_deletes_before_returning(env, transport, operation, error):
+    transport.responders.insert(0, serve(operation, fail(error)))
+    output, code = cli(transport, env, "--execute", "--confirm", f"{HOST}:ps")
+    assert code == 1
+    assert "cleanup: deleted" in output
+    assert len(transport.operation_requests("RTR_DeleteSession")) == 1
+
+
+@pytest.mark.parametrize("number", [signal.SIGINT, signal.SIGTERM])
+def test_cli_interrupt_deletes_and_restores_signal_handler(env, transport, number):
+    previous = signal.getsignal(number)
+
+    def interrupt(args):
+        signal.raise_signal(number)
+
+    transport.responders.insert(0, serve("RTR_CheckCommandStatus", interrupt))
+    output, code = cli(transport, env, "--execute", "--confirm", f"{HOST}:ps")
+    assert code == 1
+    assert "interrupted" in output
+    assert "cleanup: deleted" in output
+    assert signal.getsignal(number) == previous
+    assert len(transport.operation_requests("RTR_DeleteSession")) == 1
+
+
+def test_cli_ambiguous_init_requires_manual_recovery_without_replay(env, transport):
+    transport.responders.insert(0, serve("RTR_InitSession", fail(BudgetExpired())))
+    output, code = cli(transport, env, "--execute", "--confirm", f"{HOST}:ps")
+    assert code == 1
+    assert "cleanup: unknown" in output
+    assert "Reconcile the host's sessions in Falcon before retrying" in output
+    assert len(transport.operation_requests("RTR_InitSession")) == 1
+    assert transport.operation_requests("RTR_ExecuteCommand") == []
+    assert transport.operation_requests("RTR_DeleteSession") == []
+
+
+def test_cli_output_cap_is_explicit_and_session_is_deleted(env, transport):
+    transport.responders.insert(
+        0,
+        serve(
+            "RTR_CheckCommandStatus",
+            response(
+                200,
+                {
+                    "resources": [{"stdout": "x" * (OUTPUT_BYTES + 1), "complete": True, "sequence_id": 0}],
+                },
+            ),
+        ),
+    )
+    output, code = cli(transport, env, "--execute", "--confirm", f"{HOST}:ps")
+    assert code == 0
+    assert "truncated: true" in output
+    assert "complete: false" in output
+    assert "cleanup: deleted" in output
+    assert len(transport.operation_requests("RTR_DeleteSession")) == 1
+
+
+def test_cli_failed_cleanup_is_never_success(env, transport):
+    transport.responders.insert(0, serve("RTR_DeleteSession", response(500, {})))
+    output, code = cli(transport, env, "--execute", "--confirm", f"{HOST}:ps")
+    assert code == 1
+    assert "cleanup: failed" in output
+    assert "complete: true" in output
+
+
+def test_cli_preview_redacts_sensitive_command_arguments(env, transport):
+    output, code = cli(transport, env, command="cat synthetic-secret")
+    assert code == 0
+    assert "synthetic-secret" not in output
+    assert "cat [redacted]" in output
+    assert transport.requests == []
+
+
+def test_cli_region_and_tenant_flags_apply_to_whole_lifecycle(env, transport):
+    transport.oauth = [response(201, {"access_token": "synthetic-rtr-token"}, {"x-cs-region": "eu-1"})]
+    _, code = cli(
+        transport,
+        env,
+        "--execute",
+        "--confirm",
+        f"{HOST}:ps",
+        "--region",
+        "eu-1",
+        "--member-cid",
+        "synthetic-child",
+    )
+    assert code == 0
+    assert transport.oauth_requests()[0].member_cid == "synthetic-child"
+    assert transport.oauth_requests()[0].base_url == "https://api.eu-1.crowdstrike.com"
+    for _, args in [value for kind, value in transport.requests if kind == "operation"]:
+        assert args.base_url == "https://api.eu-1.crowdstrike.com"
 
 
 def test_success_deletes_the_returned_session_and_journals_without_output(env, transport):

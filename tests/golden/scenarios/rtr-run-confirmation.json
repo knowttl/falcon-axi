@@ -1,0 +1,7 @@
+{
+  "name": "rtr-run-confirmation",
+  "argv": ["rtr", "run", "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "--command", "ps", "--execute", "--confirm", "yes"],
+  "env": "none",
+  "exit_code": 2,
+  "comment": "Design sections 4.5 and 19 ship R3 exact host:command confirmation. Invalid confirmation is rejected locally before credential resolution or requests. help-top, unknown-command discovery, and scopes deliberately gain rtr run; help-top explicitly names N3's authorization contract. All values are synthetic."
+}

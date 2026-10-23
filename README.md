@@ -98,14 +98,21 @@ Preserve unrelated settings and hooks.
 ## Safety
 
 falcon-axi reads Falcon data without changing hosts, detections, policies, or identities.
-It cannot contain endpoints, run response sessions, release quarantined files, update configuration, or send GraphQL mutations.
+It cannot contain endpoints, release quarantined files, update configuration, or send GraphQL mutations.
 There is no arbitrary API passthrough.
 
-Starting and stopping an NG-SIEM search job are its only tenant-side effects.
+Tenant-side effects are NG-SIEM search jobs and N3's explicitly authorized read-only RTR session lifecycle.
 They require `NGSIEM:write`; `identity activity` starts the same kind of job.
-Set `FALCON_AXI_READ_ONLY=1` to block search start, search stop, and identity activity locally.
+Set `FALCON_AXI_READ_ONLY=1` to block search start, search stop, identity activity, and RTR execution locally.
 Identity directory, timeline, and assessment reads require a scope Falcon labels write, but send only fixed read-only query documents.
 They accept no caller-supplied GraphQL.
+
+`falcon-axi rtr run <device_id> --command '<complete command>'` previews locally without a network request.
+Execution requires a configured profile with `"rtr": {"enabled": true}` and both `--execute` and `--confirm '<device_id>:<complete command>'` matching exactly.
+A profile's optional `rtr.commands` can only narrow the fixed read-only set; `eventlog` backup/export and shell syntax are refused.
+RTR execution requires `Real time response:read`, product entitlement, and POSIX private-file and signal primitives.
+Each invocation owns initialization, one command, bounded polling, and mandatory session deletion, with a durable private redacted journal.
+See [RTR operator guidance](docs/read-only.md#rtr-operator-guidance) for limits and recovery.
 
 Credentials and standalone tenant CID fields are redacted from stdout and stderr.
 Composite detection IDs contain a tenant CID and remain intact so they can be passed to detail commands.
@@ -167,7 +174,7 @@ Grant only the domains you use; available scopes depend on product licensing.
 | `Custom IOA Rules:read` | ioa group list | yes |
 | `Correlation Rules:read` | correlation-rule list | yes |
 | `Cases:read` | case list, case show | yes |
-| `Real time response:read` | rtr session list, rtr session show | yes |
+| `Real time response:read` | rtr session list, rtr session show, rtr run | yes |
 | `Real time response audit:read` | rtr audit list | yes |
 | `Sensor Usage:read` | sensor-usage list | yes |
 | `Monitoring rules (Falcon Intelligence Recon):read` | recon-rule list, recon-rule show, recon-notification list, recon-notification show, recon-record list, recon-record show | yes |
@@ -322,6 +329,7 @@ Run any command with `--help` for its arguments and examples.
 | `rtr session list` | read sessions |
 | `rtr session show` | <id>      read one record |
 | `rtr audit list` | read audit_sessions |
+| `rtr run` | preview or execute one read-only RTR command on one host |
 | `auth status` | whether a credential resolved, and where to |
 | `profile list` | configured profile names, without reading secrets |
 | `config path` | config and write-journal paths |

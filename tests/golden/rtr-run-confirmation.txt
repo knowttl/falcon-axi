@@ -1,0 +1,2 @@
+error: "--confirm must match '<device_id>:<complete command>' exactly"
+code: VALIDATION_ERROR
