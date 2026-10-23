@@ -6,7 +6,7 @@ Identity Protection's write-labelled GraphQL scope is used solely for registered
 
 ## Closed transport boundary
 
-The [design invariant](design/v1.md#0-invariant-r-v1-is-read-only-with-two-captain-granted-exceptions) is enforced through a closed operation registry before the SDK is constructed.
+The [design invariant](design/v1.md#0-invariant-r-v1-is-read-only-with-three-captain-granted-exceptions) is enforced through a closed operation registry before the SDK is constructed.
 HTTP verbs and scope names alone do not prove a read: Falcon uses POST for reads, and some read-scoped operations have effects.
 Every registered operation carries its documented scope and corroborating source evidence.
 Only the permitted network sink can import and call the FalconPy harness.
