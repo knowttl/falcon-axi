@@ -13,6 +13,7 @@ Product licensing also controls availability.
 | --- | --- | --- |
 | `Alerts:read` | detection summary, detection list, detection show, detection process | yes |
 | `Hosts:read` | host list, host show, host logins, host network | yes |
+| `NGSIEM:write` | host usb, identity activity, search start, search stop | yes |
 | `Assets:read` | account list, account show, asset list, asset show, application list, login list | yes |
 | `Falcon Discover IoT:read` | iot list | yes |
 | `Vulnerabilities:read` | vuln show, vuln list | yes |
@@ -23,7 +24,6 @@ Product licensing also controls availability.
 | `Indicators (Falcon Intelligence):read` | indicator list, indicator show | yes |
 | `Falcon Container Image:read` | container list, image list, image vulnerabilities, serverless list | yes |
 | `Data Protection:read` | classification list, classification show, data-policy list, data-policy show | yes |
-| `NGSIEM:write` | identity activity, search start, search stop | yes |
 | `NGSIEM:read` | search start, search status | yes |
 | `Identity Protection GraphQL:write` | identity list, identity show, identity timeline, identity assessment | yes |
 | `Identity Protection Entities:read` | identity list, identity show, identity sensor list, identity sensor show | yes |
@@ -199,6 +199,27 @@ Retrieves the IP and MAC address history Falcon retains for one sensor host.
 The device id is the AID printed by `falcon-axi host list`.
 Example: falcon-axi host network abc123
 Read-only; requires Hosts:read. This endpoint has no pagination parameters.
+```
+
+## host usb
+
+```text
+falcon-axi host usb <device id> [--since <window>]
+
+The device id is the 32-character hexadecimal AID printed by `falcon-axi host list`.
+--since      relative window such as 24h or 7d (default 24h)
+
+Starts a fixed NG-SIEM search in search-all for USB connections, disconnections, and policy
+violations on one host, newest first, bounded to 200 events. Poll with `search status`.
+An empty result can mean no USB events or no Device Control licence.
+Event and field names come from CrowdStrike's community-content dashboard; not live-verified.
+
+Examples:
+  falcon-axi host usb 00000000000000000000000000000001
+  falcon-axi host usb 00000000000000000000000000000001 --since 7d
+
+This command starts a job on the tenant and requires NGSIEM:write (captain exception N1).
+It changes no host, device, or policy. Polling requires NGSIEM:read.
 ```
 
 ## account list

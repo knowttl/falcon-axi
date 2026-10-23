@@ -21,6 +21,62 @@ STARTED = [serve("StartSearchV1", fixture("ngsiem/start-search.json"))]
 DONE = [serve("GetSearchStatusV1", fixture("ngsiem/search-status-done.json"))]
 
 
+@pytest.mark.parametrize(("flags", "span"), [([], 86_400_000), (["--since", "7d"], 604_800_000)])
+def test_host_usb_starts_the_fixed_bounded_search(flags: list[str], span: int) -> None:
+    recorded = RecordedTransport(STARTED)
+    stdout, exit_code = run(["host", "usb", "000000000000000000000000000000AB", *flags], recorded, dict(CREDENTIAL_ENV))
+    assert exit_code == 0
+    request = recorded.operation_requests("StartSearchV1")[0]
+    assert request.path_params == {"repository": "search-all"}
+    assert request.body["queryString"] == (
+        "#event_simpleName=/^(DcUsbDeviceConnected|DcUsbDeviceDisconnected|DcUsbDevicePolicyViolation)$/ "
+        "aid=000000000000000000000000000000ab "
+        "| table([@timestamp, ComputerName, DeviceManufacturer, DeviceProduct, DevicePropertyDeviceDescription, "
+        "DeviceUsbClass, DcPolicyAction, event_platform], limit=200, sortby=@timestamp, order=desc)"
+    )
+    assert request.body["end"] - request.body["start"] == span
+    assert "search status synthetic-search-job-01" in stdout
+    assert recorded.operation_requests("GetSearchStatusV1") == []
+
+
+@pytest.mark.parametrize(
+    "device_id",
+    ["abc123", "0" * 31, "0" * 33, "g" * 32, "０" * 32, "0" * 32 + "\n", "*", "x | head(1)", '" OR aid=*'],
+)
+def test_host_usb_refuses_invalid_ids_before_authentication(device_id: str) -> None:
+    recorded = RecordedTransport([])
+    stdout, exit_code = run(["host", "usb", device_id], recorded, dict(CREDENTIAL_ENV))
+    assert exit_code == 2
+    assert "32-character hexadecimal device id" in stdout
+    assert recorded.requests == []
+
+
+@pytest.mark.parametrize(
+    "args",
+    [[], ["0" * 32, "extra"], ["0" * 32, "--repository", "other"], ["0" * 32, "--since", "invalid"]],
+)
+def test_host_usb_refuses_invalid_arguments_before_authentication(args: list[str]) -> None:
+    recorded = RecordedTransport([])
+    stdout, exit_code = run(["host", "usb", *args], recorded, dict(CREDENTIAL_ENV))
+    assert exit_code == 2
+    assert "VALIDATION_ERROR" in stdout
+    assert recorded.requests == []
+
+
+def test_host_usb_help_explains_empty_results_and_licensing() -> None:
+    stdout, exit_code = run(["host", "usb", "--help"], RecordedTransport([]), {})
+    assert exit_code == 0
+    assert "An empty result can mean no USB events or no Device Control licence" in stdout
+
+
+def test_host_usb_scope_failure_names_the_search_scope() -> None:
+    recorded = RecordedTransport([serve("StartSearchV1", fixture("errors/403-scope.json"))])
+    stdout, exit_code = run(["host", "usb", "0" * 32], recorded, dict(CREDENTIAL_ENV))
+    assert exit_code == 1
+    assert "SCOPE_DENIED" in stdout
+    assert "NGSIEM:write" in stdout
+
+
 @pytest.fixture
 def clock(monkeypatch: pytest.MonkeyPatch) -> list[float]:
     now = [0.0]

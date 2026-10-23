@@ -234,6 +234,10 @@ def parse(argv: Sequence[str]) -> Parsed:
         since_seconds(_str(flags.get("since")) or IDENTITY_DEFAULT_SINCE)
     if command == "identity activity":
         activity_query(positionals[0])
+    if command == "host usb":
+        from falcon_axi.usb import usb_query
+
+        usb_query(positionals[0])
     if command in ("ioc hosts", "ioc processes"):
         from falcon_axi.ioc import validate_observation
 

@@ -133,6 +133,7 @@ Grant only the domains you use; available scopes depend on product licensing.
 | --- | --- | --- |
 | `Alerts:read` | detection summary, detection list, detection show, detection process | yes |
 | `Hosts:read` | host list, host show, host logins, host network | yes |
+| `NGSIEM:write` | host usb, identity activity, search start, search stop | yes |
 | `Assets:read` | account list, account show, asset list, asset show, application list, login list | yes |
 | `Falcon Discover IoT:read` | iot list | yes |
 | `Vulnerabilities:read` | vuln show, vuln list | yes |
@@ -143,7 +144,6 @@ Grant only the domains you use; available scopes depend on product licensing.
 | `Indicators (Falcon Intelligence):read` | indicator list, indicator show | yes |
 | `Falcon Container Image:read` | container list, image list, image vulnerabilities, serverless list | yes |
 | `Data Protection:read` | classification list, classification show, data-policy list, data-policy show | yes |
-| `NGSIEM:write` | identity activity, search start, search stop | yes |
 | `NGSIEM:read` | search start, search status | yes |
 | `Identity Protection GraphQL:write` | identity list, identity show, identity timeline, identity assessment | yes |
 | `Identity Protection Entities:read` | identity list, identity show, identity sensor list, identity sensor show | yes |
@@ -261,6 +261,7 @@ Run any command with `--help` for its arguments and examples.
 | `host show` | <device id>     the full detail for one host |
 | `host logins` | <device id>   recent interactive logins on one host |
 | `host network` | <device id>  IP and MAC address history for one host |
+| `host usb` | <device id>      start a search for one host's USB activity |
 | `account list` | list Discover accounts observed on endpoints |
 | `account show` | <id>         the full detail for one account |
 | `asset list` | list Discover managed and unmanaged assets |

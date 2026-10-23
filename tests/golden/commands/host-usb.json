@@ -1,0 +1,11 @@
+{
+  "name": "host usb",
+  "order": 602,
+  "summary": "  host usb <device id>      start a search for one host's USB activity",
+  "scopes": [
+    {
+      "scope": "NGSIEM:write",
+      "access": "write"
+    }
+  ]
+}
