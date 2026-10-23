@@ -153,6 +153,7 @@ Grant only the domains you use; available scopes depend on product licensing.
 | `IOC Management:read` | ioc list, ioc show | yes |
 | `IOCs (Indicators of Compromise):read` | ioc hosts, ioc processes, process show | yes |
 | `Threatgraph:read` | process tree | yes |
+| `Falcon FileVantage:read` | file-change list, file-change show | yes |
 | `Host Groups:read` | host-group list, host-group members | yes |
 | `Prevention Policies:read` | policy list, policy members | selected --type |
 | `Sensor Update Policies:read` | policy list, policy members | selected --type |
@@ -304,6 +305,8 @@ Run any command with `--help` for its arguments and examples.
 | `ioc processes` | <type:value>  list observed processes for a custom IOC |
 | `process show` | <pid-id>     read one observed process |
 | `process tree` | <pid-id>     process, up to five ancestors, and one child level |
+| `file-change list` | list FileVantage change history |
+| `file-change show` | <id>         inspect one FileVantage change |
 | `host-group list` | list host-group list |
 | `host-group members` | <id>     list host-group members |
 | `policy list` | list policies of one required type |

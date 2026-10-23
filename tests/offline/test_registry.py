@@ -19,6 +19,8 @@ from falcon_axi.transport.operations import (
 #: Operations whose §2.2 corroboration is falconpy's generated table plus PSFalcon, because falcon-mcp
 #: has no tool for them, mapped to the falconpy endpoint module that lists each one.
 NO_FALCON_MCP_TOOL = {
+    "highVolumeQueryChanges": "_filevantage",
+    "getChanges": "_filevantage",
     "combined_summary_get": "_threatgraph",
     "combined_edges_get": "_threatgraph",
     "QueryMalwareEntities": "_intel",
@@ -49,6 +51,20 @@ NO_FALCON_MCP_TOOL = {
 }
 
 EXPECTED = {
+    "highVolumeQueryChanges": {
+        "method": "GET",
+        "path": "/filevantage/queries/changes/v3",
+        "scopes": ("Falcon FileVantage:read",),
+        "effect": "read",
+        "doc_scope": "Falcon FileVantage: READ",
+    },
+    "getChanges": {
+        "method": "GET",
+        "path": "/filevantage/entities/changes/v2",
+        "scopes": ("Falcon FileVantage:read",),
+        "effect": "read",
+        "doc_scope": "Falcon FileVantage: READ",
+    },
     "entities_processes": {
         "method": "GET",
         "path": "/processes/entities/processes/v1",

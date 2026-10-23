@@ -1,0 +1,41 @@
+{
+  "provenance": {
+    "operation": "getChanges",
+    "reference": "https://developer.crowdstrike.com/api-reference/collections/filevantage/#getchanges",
+    "schema_read": "2026-10-22",
+    "provenance": "synthetic",
+    "note": "Documented resource fields in the SDK envelope. host.name follows the documented FQL example; diff is documented only as an object so no nested schema is invented. No live data."
+  },
+  "response": {
+    "status": 200,
+    "body": {
+      "resources": [
+        {
+          "id": "synthetic-change-02",
+          "action_timestamp": "2026-01-01T00:00:00Z",
+          "action_type": "FileWrite",
+          "entity_type": "File",
+          "entity_path": "/synthetic/second.conf",
+          "host": {"name": "SYNTHETIC-HOST"},
+          "severity": "Low"
+        },
+        {
+          "id": "synthetic-change-01",
+          "action_timestamp": "2026-01-01T00:01:00Z",
+          "action_type": "FileWrite",
+          "entity_type": "File",
+          "entity_path": "/synthetic/first.conf",
+          "host": {"name": "SYNTHETIC-HOST", "cid": "synthetic-hidden-host-cid"},
+          "severity": "High",
+          "cid": "synthetic-hidden-cid",
+          "process_id": "1234",
+          "process_image_file_name": "/synthetic/editor",
+          "command_line": "synthetic-editor --example",
+          "parent_process_image_file_name": "/synthetic/shell",
+          "grandparent_process_image_file_name": "/synthetic/launcher",
+          "diff": {}
+        }
+      ]
+    }
+  }
+}

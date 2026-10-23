@@ -11,6 +11,8 @@ from falcon_axi.transport.types import FalconResponse
 
 _FILTER_WORDS = re.compile(r"\b(fql|filter|query)\b", re.IGNORECASE)
 _INVENTORY_REMEDIES: dict[OperationId, tuple[str, str]] = {
+    "highVolumeQueryChanges": ("file-change list", "host.name:'SYNTHETIC-HOST'"),
+    "getChanges": ("file-change list", "host.name:'SYNTHETIC-HOST'"),
     "RTR_ListAllSessions": ("rtr session list", "hostname:'SYNTHETIC-*'"),
     "RTR_ListSessions": ("rtr session list", "hostname:'SYNTHETIC-*'"),
     "RTRAuditSessions": ("rtr audit list", "created_at:>'now-7d'"),
@@ -32,6 +34,7 @@ _INVENTORY_REMEDIES: dict[OperationId, tuple[str, str]] = {
 #: License prerequisites for scope-denied remedies; provisioning guidance lives in README.md.
 #: Console picker visibility is inferred, not observed (docs/design/v1.md §17.17).
 LICENSE_GATED_SCOPES = {
+    "Falcon FileVantage:read": "Falcon FileVantage",
     "Threatgraph:read": "a Falcon subscription with ThreatGraph API access enabled",
     "Assets:read": "Falcon Discover or Exposure Management",
     "Real time response:read": "a Falcon subscription with Real Time Response enabled",

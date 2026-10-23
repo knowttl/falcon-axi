@@ -1,0 +1,6 @@
+{
+  "name": "file-change show",
+  "order": 2307.8,
+  "summary": "  file-change show <id>         inspect one FileVantage change",
+  "scopes": [{"scope": "Falcon FileVantage:read", "access": "read"}]
+}
