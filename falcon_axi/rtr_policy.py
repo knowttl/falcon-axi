@@ -17,7 +17,6 @@ COMMANDS = frozenset(
         "eventlog",
         "filehash",
         "getsid",
-        "help",
         "history",
         "ifconfig",
         "ipconfig",
