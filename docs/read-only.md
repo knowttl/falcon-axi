@@ -17,7 +17,7 @@ These are closed ID allowlists; they do not authorize additional writes.
 The GraphQL sink accepts registered documents only, with caller inputs in variables, never caller-supplied query text.
 See [search lifecycle](design/v1.md#43-ng-siem-search-was-excluded-on-the-credential-scope-test-and-captain-exception-n1-reversed-it) and [Identity Protection](design/v1.md#44-the-identity-protection-directory-was-excluded-on-the-credential-scope-test-and-captain-exception-n2-reversed-it) for exception history and contracts.
 
-`FALCON_AXI_READ_ONLY=1` blocks search start, stop, identity activity, and RTR execution.
+The [`FALCON_AXI_READ_ONLY` contract](design/v1.md#52-accepted-input-channels-in-precedence-order) defines which commands the switch blocks before authentication.
 It does not change the fixed read-only GraphQL contract.
 There is no host containment, quarantine release, ingest, configuration write, or GraphQL mutation surface.
 RTR history reads session metadata and audit records without opening or executing a session, including under READ_ONLY.

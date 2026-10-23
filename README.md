@@ -103,7 +103,7 @@ There is no arbitrary API passthrough.
 
 Tenant-side effects are NG-SIEM search jobs and N3's explicitly authorized read-only RTR session lifecycle.
 See [API client permissions](#api-client-permissions) for required scopes.
-Set `FALCON_AXI_READ_ONLY=1` to block search start, search stop, identity activity, and RTR execution locally.
+Set `FALCON_AXI_READ_ONLY=1` to block search lifecycle changes and RTR execution locally; see the [switch contract](docs/design/v1.md#52-accepted-input-channels-in-precedence-order) for affected commands.
 Identity directory, timeline, and assessment reads require a scope Falcon labels write, but send only fixed read-only query documents.
 They accept no caller-supplied GraphQL.
 

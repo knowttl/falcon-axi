@@ -43,9 +43,7 @@ def test_host_usb_starts_the_fixed_bounded_search(flags: list[str], span: int) -
 @pytest.mark.parametrize("value", ["1", "true", "TRUE"])
 def test_host_usb_read_only_refuses_job_creation_before_authentication(value: str) -> None:
     recorded = RecordedTransport(STARTED)
-    stdout, exit_code = run(
-        ["host", "usb", "0" * 32], recorded, {**CREDENTIAL_ENV, "FALCON_AXI_READ_ONLY": value}
-    )
+    stdout, exit_code = run(["host", "usb", "0" * 32], recorded, {**CREDENTIAL_ENV, "FALCON_AXI_READ_ONLY": value})
     assert exit_code == 1
     assert "READ_ONLY_VIOLATION" in stdout
     assert recorded.requests == []
