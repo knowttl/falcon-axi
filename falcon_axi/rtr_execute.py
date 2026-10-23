@@ -70,7 +70,7 @@ def execute_run(
     """Authorize before authentication, execute once, and clean up within a separate budget.
 
     The future CLI must emit its preview before calling this core.
-    A lost init response leaves ownership unknown; recovery is manual in Falcon, never a replay.
+    A lost init response leaves the session id unknown; recovery is manual in Falcon, never a replay.
     """
     if read_only(env) or read_only(os.environ):
         raise CliError("READ_ONLY_VIOLATION", "FALCON_AXI_READ_ONLY forbids RTR execution")
