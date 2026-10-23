@@ -19,6 +19,8 @@ from falcon_axi.transport.operations import (
 #: Operations whose §2.2 corroboration is falconpy's generated table plus PSFalcon, because falcon-mcp
 #: has no tool for them, mapped to the falconpy endpoint module that lists each one.
 NO_FALCON_MCP_TOOL = {
+    "combined_summary_get": "_threatgraph",
+    "combined_edges_get": "_threatgraph",
     "QueryMalwareEntities": "_intel",
     "GetMalwareEntities": "_intel",
     "get_policy_rules_query": "_identity_protection",
@@ -53,6 +55,20 @@ EXPECTED = {
         "scopes": ("IOCs (Indicators of Compromise):read",),
         "effect": "read",
         "doc_scope": "IOCs (Indicators of Compromise): READ",
+    },
+    "combined_summary_get": {
+        "method": "GET",
+        "path": "/threatgraph/combined/{vertex_type}/summary/v1",
+        "scopes": ("Threatgraph:read",),
+        "effect": "read",
+        "doc_scope": "Threatgraph: READ",
+    },
+    "combined_edges_get": {
+        "method": "GET",
+        "path": "/threatgraph/combined/edges/v1",
+        "scopes": ("Threatgraph:read",),
+        "effect": "read",
+        "doc_scope": "Threatgraph: READ",
     },
     "RTR_ListAllSessions": {
         "method": "GET",

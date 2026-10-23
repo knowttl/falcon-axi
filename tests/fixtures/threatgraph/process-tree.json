@@ -1,0 +1,31 @@
+{
+  "provenance": {
+    "operation": "combined_summary_get",
+    "reference": "https://github.com/CrowdStrike/falconpy/blob/main/samples/threat_graph/threat_finder.py",
+    "schema_read": "2026-10-22",
+    "provenance": "synthetic",
+    "note": "The API spec omits successful resource schemas. SDK sample establishes resources, properties and edges with id; parent_process is a documented edge type. Entirely invented three-generation tree."
+  },
+  "response": {
+    "status": 200,
+    "body": {
+      "resources": [
+        {
+          "id": "pid:synthetic-device:3",
+          "properties": {"ImageFileName": "synthetic-child.exe", "CommandLine": "synthetic-child.exe --inspect", "SHA256HashData": "synthetic-sha256", "ProcessStartTime_formatted": "2026-01-01T00:02:00Z"},
+          "edges": {"parent_process": [{"id": "pid:synthetic-device:2"}]}
+        },
+        {
+          "id": "pid:synthetic-device:2",
+          "properties": {"ImageFileName": "synthetic-parent.exe"},
+          "edges": {"parent_process": [{"id": "pid:synthetic-device:1"}]}
+        },
+        {
+          "id": "pid:synthetic-device:1",
+          "properties": {"ImageFileName": "synthetic-root.exe"},
+          "edges": {}
+        }
+      ]
+    }
+  }
+}
