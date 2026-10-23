@@ -193,6 +193,11 @@ def translate_falcon_error(
                 f"Grant {' and '.join(scopes)} (read only) to the API client in the Falcon console "
                 "under Support and resources > API clients and keys",
                 *(f"{note}; if the scope is absent from the picker, the tenant lacks that subscription" for note in licensed),
+                *(
+                    ["Process details may be unavailable under this tenant's subscription or API client permissions"]
+                    if id == "entities_processes"
+                    else []
+                ),
                 "A 403 can also mean the API client is disabled",
             ],
             {"required_scopes": list(scopes)},

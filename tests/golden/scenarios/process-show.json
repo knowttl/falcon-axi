@@ -1,0 +1,22 @@
+{
+  "name": "process-show",
+  "argv": ["process", "show", "pid:00000000000000000000000000000001:1234"],
+  "responders": [{
+    "op": "entities_processes",
+    "response": {
+      "status": 200,
+      "body": [{
+        "command_line": "synthetic-child.exe --example",
+        "device_id": "synthetic-device-01",
+        "file_name": "synthetic-child.exe",
+        "process_id": "pid:00000000000000000000000000000001:1234",
+        "process_id_local": "4321",
+        "start_timestamp": "2026-01-01T00:00:00Z",
+        "start_timestamp_raw": "134116992000000000",
+        "stop_timestamp": "2026-01-01T00:01:00Z",
+        "stop_timestamp_raw": "134116992600000000"
+      }]
+    }
+  }],
+  "exit_code": 0
+}

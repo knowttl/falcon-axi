@@ -1,0 +1,25 @@
+{
+  "provenance": {
+    "operation": "entities_processes",
+    "reference": "https://developer.crowdstrike.com/api-reference/collections/iocs/#entitiesprocesses",
+    "schema_read": "2026-10-22",
+    "provenance": "synthetic"
+  },
+  "response": {
+    "status": 200,
+    "headers": {},
+    "body": [
+      {
+        "command_line": "synthetic-child.exe --example",
+        "device_id": "synthetic-device-01",
+        "file_name": "synthetic-child.exe",
+        "process_id": "pid:synthetic-device-01:1234",
+        "process_id_local": "4321",
+        "start_timestamp": "2026-01-01T00:00:00Z",
+        "start_timestamp_raw": "134116992000000000",
+        "stop_timestamp": "2026-01-01T00:01:00Z",
+        "stop_timestamp_raw": "134116992600000000"
+      }
+    ]
+  }
+}

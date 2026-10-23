@@ -240,6 +240,10 @@ def parse(argv: Sequence[str]) -> Parsed:
         validate_observation(positionals[0], command == "ioc processes", _str(flags.get("host")))
     if command in ("policy list", "policy members"):
         validate_policy_type(_str(flags.get("type")))
+    if command == "process show":
+        from falcon_axi.process import validate_process_id
+
+        validate_process_id(positionals[0])
     return Parsed(command, flags, tuple(positionals))
 
 

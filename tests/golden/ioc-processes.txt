@@ -2,4 +2,4 @@ count: 1 of 2 total
 processes[1]{process_id}:
   "pid:synthetic-device-01:1234"
 continuation_cursor: eyJvcGVyYXRpb24iOiJQcm9jZXNzZXNSYW5PbiIsIm1vZGVsIjoib2Zmc2V0IiwicG9zaXRpb24iOjEsImZpbmdlcnByaW50IjoiZmE2M2YwZjAxYmQzMjhmMjc1MzZlY2JkNTlkM2U4MDQ1MGQzZWYwMzgxYWRmODhlZTA1YmVjY2JjNWMxYjcyOCJ9
-help[1]: "Run `falcon-axi ioc processes domain:example.invalid --host synthetic-device-01 --cursor eyJvcGVyYXRpb24iOiJQcm9jZXNzZXNSYW5PbiIsIm1vZGVsIjoib2Zmc2V0IiwicG9zaXRpb24iOjEsImZpbmdlcnByaW50IjoiZmE2M2YwZjAxYmQzMjhmMjc1MzZlY2JkNTlkM2U4MDQ1MGQzZWYwMzgxYWRmODhlZTA1YmVjY2JjNWMxYjcyOCJ9` for the next page"
+help[2]: "Run `falcon-axi process show <process_id>` for process details","Run `falcon-axi ioc processes domain:example.invalid --host synthetic-device-01 --cursor eyJvcGVyYXRpb24iOiJQcm9jZXNzZXNSYW5PbiIsIm1vZGVsIjoib2Zmc2V0IiwicG9zaXRpb24iOjEsImZpbmdlcnByaW50IjoiZmE2M2YwZjAxYmQzMjhmMjc1MzZlY2JkNTlkM2U4MDQ1MGQzZWYwMzgxYWRmODhlZTA1YmVjY2JjNWMxYjcyOCJ9` for the next page"

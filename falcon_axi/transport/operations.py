@@ -73,6 +73,7 @@ OperationId = Literal[
     "indicator_get_v1",
     "DevicesRanOn",
     "ProcessesRanOn",
+    "entities_processes",
     "queryCombinedHostGroups",
     "queryCombinedGroupMembers",
     "combined_hosts",
@@ -1158,6 +1159,20 @@ CANONICAL: tuple[FalconOperation, ...] = (
             falcon_mcp="falcon-mcp has no tool for ProcessesRanOn. "
             "falconpy/_endpoint/_iocs.py maps ProcessesRanOn to GET /indicators/queries/processes/v1. "
             "PSFalcon public/indicators.ps1 Get-FalconIocProcess wraps this read; device_id is required.",
+        ),
+    ),
+    FalconOperation(
+        id="entities_processes",
+        method="GET",
+        path="/processes/entities/processes/v1",
+        scopes=("IOCs (Indicators of Compromise):read",),
+        effect="read",
+        evidence=Evidence(
+            doc_url="https://developer.crowdstrike.com/api-reference/collections/iocs/#entitiesprocesses",
+            doc_scope="IOCs (Indicators of Compromise): READ",
+            falcon_mcp="falcon-mcp has no tool for entities_processes. "
+            "falconpy/_endpoint/_iocs.py maps entities_processes to GET /processes/entities/processes/v1. "
+            "PSFalcon public/indicators.ps1 Get-FalconIocProcess -Id wraps this read with ids query parameters.",
         ),
     ),
     FalconOperation(

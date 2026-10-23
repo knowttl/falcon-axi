@@ -31,7 +31,7 @@ Product licensing also controls availability.
 | `Identity Protection Assessment:read` | identity assessment | yes |
 | `Identity Protection Policy Rules:read` | identity rule list, identity rule show | yes |
 | `IOC Management:read` | ioc list, ioc show | yes |
-| `IOCs (Indicators of Compromise):read` | ioc hosts, ioc processes | yes |
+| `IOCs (Indicators of Compromise):read` | ioc hosts, ioc processes, process show | yes |
 | `Host Groups:read` | host-group list, host-group members | yes |
 | `Prevention Policies:read` | policy list, policy members | selected --type |
 | `Sensor Update Policies:read` | policy list, policy members | selected --type |
@@ -910,6 +910,24 @@ Types: domain, ipv4, ipv6, md5, sha256. IPv6 values retain their colons.
 Returns observed identifiers; no process details or actions are requested.
 Example: falcon-axi ioc processes domain:example.invalid --host <device_id>
 Read-only; requires IOCs (Indicators of Compromise):read.
+```
+
+## process show
+
+```text
+falcon-axi process show <pid-id> [--full]
+
+ID shape: pid:<32 hex device ID>:<decimal ID>; use ioc processes to find it.
+Returns command_line, device_id, file_name, process_id, process_id_local,
+start_timestamp, start_timestamp_raw, stop_timestamp, and stop_timestamp_raw.
+--full  expand the command line beyond its 800-character preview
+
+Examples:
+  falcon-axi process show pid:00000000000000000000000000000001:1234
+  falcon-axi process show pid:00000000000000000000000000000001:1234 --full
+
+Read-only; requires IOCs (Indicators of Compromise):read.
+Availability depends on the tenant's subscription and API client permissions.
 ```
 
 ## host-group list

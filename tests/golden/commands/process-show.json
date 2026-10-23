@@ -1,0 +1,6 @@
+{
+  "name": "process show",
+  "order": 2307.5,
+  "summary": "  process show <pid-id>     read one observed process",
+  "scopes": [{"scope": "IOCs (Indicators of Compromise):read", "access": "read"}]
+}
