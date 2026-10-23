@@ -73,7 +73,7 @@ N3's internal R2 tier binds a run's host, command, and session through one-use a
 The worker's signing key travels only over its existing private stdin channel, alongside the request and deadline.
 The recorded transport uses the same grant preparation; no invocation selects or creates unchecked execution authority.
 `OperationId` is a `Literal[...]` union, so an unknown ID is a type error at check time and a `READ_ONLY_VIOLATION` at run time, exactly as `operation()` behaves today.
-`MUTATION_ROUTE_PATTERNS` and the `seal()` checks port verbatim.
+The route-pattern and sealing checks enforce v1.md §3.3, including property 9's exact N3 exceptions.
 Registry growth still requires both citations in the same change (v1.md §2.2).
 
 ### 3.2 The single network sink, and why falconpy needs the gate in front of it
