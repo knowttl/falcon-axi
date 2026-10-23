@@ -17,7 +17,7 @@ from falcon_axi.origin import REGIONS
 from falcon_axi.redaction import redact_text, redaction_scope, register_secret
 from falcon_axi.rtr_journal import Journal
 from falcon_axi.rtr_policy import EXECUTION_SECONDS, OUTPUT_BYTES, OUTPUT_CHUNKS, parse_command, validate_host
-from falcon_axi.transport.budget import remaining_seconds, request_budget, rtr_cleanup_budget
+from falcon_axi.transport.budget import BudgetExpired, remaining_seconds, request_budget, rtr_cleanup_budget
 from falcon_axi.transport.operations import OperationId
 from falcon_axi.transport.rtr import _AUTHORITY, RunAuthority
 from falcon_axi.transport.types import RequestArgs, Transport
@@ -205,11 +205,12 @@ def _execute_locked(
                     )
                     failure.__cause__ = error
         if record["cleanup"] == "unknown":
-            failure = CliError(
-                "UPSTREAM_ERROR",
-                "RTR initialization outcome is unknown",
-                ["Reconcile the host's sessions in Falcon before retrying; never replay initialization automatically"],
-                {"cleanup": "unknown", "run": run_id},
+            if not isinstance(failure, CliError) or isinstance(failure, BudgetExpired):
+                unknown = CliError("UPSTREAM_ERROR", "RTR initialization outcome is unknown")
+                unknown.__cause__ = failure
+                failure = unknown
+            failure.help += (
+                "Reconcile the host's sessions in Falcon before retrying; never replay initialization automatically",
             )
         record["phase"] = "outcome"
         try:
