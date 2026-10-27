@@ -1,5 +1,6 @@
 {
   "name": "search-status-done",
+  "comment": "Design section 10.2 clarifies that parsed_query echoes only the filter; the field name and value remain unchanged.",
   "argv": [
     "search",
     "status",

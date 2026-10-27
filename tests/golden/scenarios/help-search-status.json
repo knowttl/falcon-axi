@@ -1,6 +1,6 @@
 {
   "name": "help-search-status",
-  "comment": "Design section 4.3 adds optional bounded waiting and readable CQL timestamp guidance while retaining one poll by default.",
+  "comment": "Design sections 4.3 and 10.2 retain bounded waiting and timestamp guidance, and clarify that parsed_query echoes only the filter, excluding stages after the first pipe.",
   "argv": [
     "search",
     "status",

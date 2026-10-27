@@ -5,4 +5,4 @@ parsed_query: "#event_simpleName=ProcessRollup2 | head(2)"
 events[2]{ComputerName,FileName,UserName,timestamp}:
   WIN-DC-01,powershell.exe,synthetic-user-a,"2026-07-28T09:14:02Z"
   WIN-WS-42,rundll32.exe,synthetic-user-b,"2026-07-28T09:15:44Z"
-help[2]: "Compare parsed_query with the query you sent: NG-SIEM turns an unrecognised word into a free-text stage rather than an error","Bound a large result set in the query itself, with `| head(N)` or an aggregate such as `groupBy([...], function=count())`"
+help[2]: "parsed_query echoes the filter part only; stages after the first pipe are not echoed. Compare it with the filter you sent: NG-SIEM turns an unrecognised word into a free-text stage rather than an error","Bound a large result set in the query itself, with `| head(N)` or an aggregate such as `groupBy([...], function=count())`"
