@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.7.4](https://github.com/knowttl/falcon-axi/compare/v0.7.3...v0.7.4) (2026-10-27)
+
+
+### Bug Fixes
+
+* preserve application inventory fields and host details (TD-017) ([#74](https://github.com/knowttl/falcon-axi/issues/74)) ([48b1237](https://github.com/knowttl/falcon-axi/commit/48b123713b4c1e63ada2fd26f116de50acfd5266))
+
 ## [0.7.3](https://github.com/knowttl/falcon-axi/compare/v0.7.2...v0.7.3) (2026-10-27)
 
 
