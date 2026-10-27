@@ -1,3 +1,5 @@
-error: search start requires a CQL query
+error: "CQL syntax error at line 1, column 1: missing query"
 code: VALIDATION_ERROR
-help[2]: "CQL is pipe-based: a filter, then commands, for example `#event_simpleName=ProcessRollup2 | head(5)`","Run `falcon-axi search start --help` for the query shape"
+diagnostics[1]{line,column,message,expected}:
+  1,1,missing query,a non-empty CQL query in --query
+help[1]: "Expected a non-empty CQL query in --query; correct the CQL structure before retrying"

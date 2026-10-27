@@ -4,5 +4,6 @@
     "search",
     "start"
   ],
-  "exit_code": 2
+  "exit_code": 2,
+  "comment": "The owner-approved local CQL contract reports only code, line, column, token class and fix hint, without submitted query text or caret excerpts (v1.md section 4.3). Missing queries now use that same diagnostic envelope."
 }

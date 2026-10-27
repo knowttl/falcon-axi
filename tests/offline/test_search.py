@@ -303,8 +303,8 @@ def test_a_missing_or_blank_query_is_refused_before_the_job_is_started() -> None
     for argv in (["search", "start"], ["search", "start", "--query", "   "]):
         stdout, exit_code = run(argv, recorded, dict(CREDENTIAL_ENV))
         assert exit_code == 2
-        assert "search start requires a CQL query" in stdout
-    assert recorded.operation_requests("StartSearchV1") == []
+        assert "missing query" in stdout
+    assert recorded.requests == []
 
 
 def test_search_status_renders_the_events_and_the_filter_the_api_actually_parsed() -> None:

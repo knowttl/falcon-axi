@@ -222,6 +222,10 @@ def parse(argv: Sequence[str]) -> Parsed:
         validate_data_protection_sort(_str(flags.get("sort")), command == "data-policy list")
     if "since" in flags:
         window(str(flags["since"]))
+    if command == "search start":
+        from falcon_axi.cql import validate_query
+
+        validate_query(_str(flags.get("query")) or "")
     if command in ("identity list", "identity assessment"):
         validate_identity_query(_identity_query_of(flags))
     if command == "identity rule list":
