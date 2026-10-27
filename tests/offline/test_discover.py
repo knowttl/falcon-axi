@@ -125,9 +125,10 @@ def test_application_expansion_hint_replays_current_page_and_next_hint_advances(
         expected["vendor"] = "Synthetic Vendor"
     assert document["applications"] == [expected]
     assert "synthetic-token" not in stdout
-    assert expanded.operation_requests("combined_applications")[0].query == page.operation_requests(
-        "combined_applications"
-    )[0].query
+    assert (
+        expanded.operation_requests("combined_applications")[0].query
+        == page.operation_requests("combined_applications")[0].query
+    )
     assert document["continuation_cursor"] != incoming
     assert document["continuation_cursor"] == preview["continuation_cursor"]
     next_argv = shlex.split(document["help"][0].split("`")[1])[1:]
