@@ -382,9 +382,63 @@ def test_a_rejected_search_is_answered_in_cql_terms_rather_than_fql_terms() -> N
     recorded = RecordedTransport([serve("StartSearchV1", rejected)])
     stdout, exit_code = run(["search", "start", "--query", "SELECT * FROM events"], recorded, dict(CREDENTIAL_ENV))
     assert exit_code == 2
-    assert "NG-SIEM rejected this search" in stdout
+    assert "invalid query string" in stdout
     assert "CQL is pipe-based" in stdout
     assert "FQL uses + for AND" not in stdout
+
+
+def test_rejected_search_preserves_all_server_messages_and_redacts_secrets() -> None:
+    secret = CREDENTIAL_ENV["FALCON_CLIENT_SECRET"]
+    rejected = response(400, {"errors": [{"message": "Expected ')' at line 2"}, {"message": f"token={secret}"}]})
+    recorded = RecordedTransport([serve("StartSearchV1", rejected)])
+    stdout, exit_code = run(["search", "start", "--query", QUERY], recorded, dict(CREDENTIAL_ENV))
+    assert exit_code == 2
+    assert "Expected ')' at line 2" in stdout
+    assert secret not in stdout
+    assert "[redacted]" in stdout
+    assert len(recorded.operation_requests("StartSearchV1")) == 1
+
+
+@pytest.mark.parametrize("status", [400, 404])
+def test_search_rejection_without_messages_keeps_cql_guidance(status: int) -> None:
+    recorded = RecordedTransport([serve("StartSearchV1", response(status, {}))])
+    stdout, exit_code = run(["search", "start", "--query", QUERY], recorded, dict(CREDENTIAL_ENV))
+    assert exit_code == 2
+    assert "NG-SIEM rejected this search" in stdout
+    assert "CQL is pipe-based" in stdout
+
+
+def test_completed_search_surfaces_sanitised_warning_codes_and_messages() -> None:
+    secret = CREDENTIAL_ENV["FALCON_CLIENT_SECRET"]
+    body = {"done": True, "events": [], "warnings": [{"code": "LIMIT", "message": f"Limit reached token={secret}"}]}
+    recorded = RecordedTransport([serve("GetSearchStatusV1", response(200, body))])
+    stdout, exit_code = run(["search", "status", "synthetic-job"], recorded, dict(CREDENTIAL_ENV))
+    assert exit_code == 0
+    assert "warnings[1]{code,message}" in stdout
+    assert "LIMIT" in stdout
+    assert "Limit reached" in stdout
+    assert secret not in stdout
+    assert "[redacted]" in stdout
+
+
+@pytest.mark.parametrize(
+    ("query", "parsed", "differs"),
+    [
+        (QUERY, "#event_simpleName=ProcessRollup2", False),
+        ('message="a|b" | head(2)', 'message="a|b"', False),
+        ("misspelled | head(2)", "*", True),
+        ("field=value2 | head(2)", "field=value", True),
+        ("field=value", "field=value", False),
+    ],
+)
+def test_wait_compares_the_parsed_filter_with_the_submitted_query(
+    query: str, parsed: str, differs: bool, clock: list[float]
+) -> None:
+    body = {"done": True, "events": [], "metaData": {"filterQuery": {"queryString": parsed}}}
+    recorded = RecordedTransport([*STARTED, serve("GetSearchStatusV1", response(200, body))])
+    stdout, exit_code = run(["search", "start", "--query", query, "--wait", "10"], recorded, dict(CREDENTIAL_ENV))
+    assert exit_code == 0
+    assert ("The normalized filter differs" in stdout) == differs
 
 
 def test_a_scope_failure_on_a_write_scoped_operation_asks_for_the_write_scope() -> None:

@@ -32,7 +32,7 @@ What is shipped:
   `host network <device_id>` for Falcon sensor-host IP and MAC address history;
 - Falcon Shield SaaS posture checks: `shield list` and `shield show`, using `SaaS Security:read`;
 - NG-SIEM search: `search start`, `search status`, and `search stop`, the three operations captain
-  exception N1 admits;
+  exception N1 admits, with redacted server rejection details, completed-job warnings, and advisory filter comparison during `search start --wait`;
 - Falcon Intelligence: `actor list`, `actor show` (including `--mitre` for JSON ATT&CK mappings),
   `report list`, and `report show`, with FQL filters and cursor pagination on lists;
 - the Identity Protection directory and timeline: `identity list`, `identity show`, and
