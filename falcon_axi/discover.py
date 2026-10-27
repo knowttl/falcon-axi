@@ -1,5 +1,6 @@
 """Discover inventory reads, distinct from the Falcon sensor-host collection."""
 
+import shlex
 from collections.abc import Mapping
 from typing import Any
 
@@ -93,7 +94,9 @@ def _application_rows(ctx: Invocation, entries: list[Any], help: list[str]) -> l
         if isinstance(entry, Mapping)
     ]
     if shortened:
-        help.append(f"Run `{ctx.suggestion} --full` for untruncated application fields")
+        cursor = ctx.text("cursor")
+        page = f" --cursor {shlex.quote(cursor)}" if cursor else ""
+        help.append(f"Run `{ctx.suggestion}{page} --full` for untruncated application fields")
     return rows
 
 

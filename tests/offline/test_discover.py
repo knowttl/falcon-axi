@@ -1,6 +1,7 @@
 """Discover shapes follow the official API reference and SDKs, without tenant validation."""
 
 import re
+import shlex
 
 import pytest
 from toon_format import decode
@@ -84,6 +85,61 @@ def test_application_raw_output_redacts_before_recursive_preview(full: bool) -> 
     assert "synthetic-cid" not in stdout
     assert "synthetic-token" not in stdout
     assert "synthetic-secret" not in stdout
+
+
+@pytest.mark.parametrize("fields", [None, "id,name,host"])
+def test_application_expansion_hint_replays_current_page_and_next_hint_advances(fields: str | None) -> None:
+    argv = ["application", "list", "--filter", "name:'Synthetic Browser'", "--limit", "1"]
+    if fields is not None:
+        argv.extend(["--fields", fields])
+    first = RecordedTransport([serve("combined_applications", fixture("discover/applications-page.json"))])
+    stdout, code = run(argv, first, dict(CREDENTIAL_ENV))
+    assert code == 0
+    incoming = decode(stdout)["continuation_cursor"]
+    record = {
+        "id": "synthetic-second-page",
+        "name": "x" * 501,
+        "host": {"hostname": "SYNTHETIC-HOST", "token": "synthetic-token"},
+        "vendor": "Synthetic Vendor",
+    }
+    answer = response(
+        200,
+        {"resources": [record], "meta": {"pagination": {"after": "synthetic-third-page"}}},
+    )
+    page = RecordedTransport([serve("combined_applications", answer)])
+    stdout, code = run([*argv, "--cursor", incoming], page, dict(CREDENTIAL_ENV))
+    assert code == 0
+    preview = decode(stdout)
+    assert preview["applications"][0]["name"] == "x" * 500 + "… (truncated, 501 chars total)"
+    expansion = shlex.split(preview["help"][0].split("`")[1])[1:]
+    expanded = RecordedTransport([serve("combined_applications", answer)])
+    stdout, code = run(expansion, expanded, dict(CREDENTIAL_ENV))
+    assert code == 0
+    document = decode(stdout)
+    expected = {
+        "id": "synthetic-second-page",
+        "name": "x" * 501,
+        "host": {"hostname": "SYNTHETIC-HOST", "token": "[redacted]"},
+    }
+    if fields is None:
+        expected["vendor"] = "Synthetic Vendor"
+    assert document["applications"] == [expected]
+    assert "synthetic-token" not in stdout
+    assert expanded.operation_requests("combined_applications")[0].query == page.operation_requests(
+        "combined_applications"
+    )[0].query
+    assert document["continuation_cursor"] != incoming
+    assert document["continuation_cursor"] == preview["continuation_cursor"]
+    next_argv = shlex.split(document["help"][0].split("`")[1])[1:]
+    assert "--full" in next_argv
+    assert next_argv[next_argv.index("--cursor") + 1] == document["continuation_cursor"]
+    following = RecordedTransport([serve("combined_applications", response(200, {"resources": []}))])
+    _, code = run(next_argv, following, dict(CREDENTIAL_ENV))
+    assert code == 0
+    assert following.operation_requests("combined_applications")[0].query == {
+        **page.operation_requests("combined_applications")[0].query,
+        "after": "synthetic-third-page",
+    }
 
 
 @pytest.mark.parametrize("fields", ["", "name,", "hostname", "not_a_field"])
