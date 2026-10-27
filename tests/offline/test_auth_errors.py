@@ -1,6 +1,9 @@
 import re
 from dataclasses import replace
 
+import pytest
+from toon_format import decode
+
 from falcon_axi.cli import run
 from falcon_axi.render import render
 from tests.support.recorded import CREDENTIAL_ENV, RecordedTransport, fixture, serve
@@ -139,3 +142,23 @@ def test_redaction_covers_every_sensitive_key_that_reaches_the_renderer() -> Non
         assert secret not in rendered, f"render leaked {secret}"
     assert "synthetic-customer-cid" not in rendered
     assert len(re.findall(r"\[redacted\]", rendered)) == 9
+
+
+@pytest.mark.parametrize(
+    ("text", "expected"),
+    [
+        ("#repo.cid=synthetic-tenant | head(5)", "#repo.cid=[redacted] | head(5)"),
+        ('cid="synthetic tenant" | head(5)', "cid=[redacted] | head(5)"),
+        ('"member_cid": "synthetic tenant"', '"member_cid": [redacted]'),
+        ("client_id=synthetic-id", "client_id=[redacted]"),
+        ("client_secret=synthetic-secret", "client_secret=[redacted]"),
+        ("access_token=synthetic-access", "access_token=[redacted]"),
+        ('Authorization="Bearer synthetic-token"', "Authorization=[redacted]"),
+        ("Authorization: Bearer synthetic-token", "Authorization: [redacted]"),
+        ("token=eyJzeW50aGV0aWM.payload.signature", "token=[redacted]"),
+        ("Bearer eyJzeW50aGV0aWM.payload.signature", "Bearer [redacted]"),
+        ("repo=services/OR/logs | head(5)", "repo=services/OR/logs | head(5)"),
+    ],
+)
+def test_sensitive_text_is_redacted_in_data_and_help(text: str, expected: str) -> None:
+    assert decode(render({"message": text}, [text])) == {"message": expected, "help": [expected]}

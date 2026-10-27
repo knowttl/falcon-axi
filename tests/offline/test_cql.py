@@ -1,6 +1,7 @@
 """Pre-auth CQL checks reject only certain structural breakage."""
 
 import pytest
+from toon_format import decode
 
 from falcon_axi.cli import run
 from falcon_axi.core import CliError
@@ -56,6 +57,24 @@ def test_structural_errors_have_actionable_diagnostics_before_authentication(
         "* | x:=1/2 | head(5)",
         "* | x:=/a\\/b[()|]/i | head(5)",
         "field!=/a[()|]/ | head(5)",
+        "repo.name=docker/* | head(5)",
+        "repo=services/OR/logs | head(5)",
+        "repo=services/AND/logs | head(5)",
+        "repo=services/NOT/logs | head(5)",
+        "NOT /[)]/ | head(5)",
+        "foo /[)]/ | head(5)",
+        "foo AND /[)]/ | head(5)",
+        "foo OR /[)]/ | head(5)",
+        "foo NOT /[)]/ | head(5)",
+        "* | field match { /[)]/ => head(5); /[(]/ => head(2) }",
+        "* | case { foo | head(5); bar | head(2) }",
+        "* | join(query={foo | head(5)}, field=aid)",
+        '* | case { message="||" | head(5); /[|]/ | head(2) }',
+        "* | case { foo /* || */ | head(5); bar // ||\n| head(2) }",
+        "* | x:=a / b / c | head(5)",
+        "* | x:=a / b",
+        "* | [total:=count(), max(value)]",
+        "* | f(total:=count(), limit=5)",
         '* | regex("[()|]\\"") | head(5)',
         "* /* ([ | := */ | head(5) // ([ | :=",
         "* | unknownFunction(field=unknown)",
@@ -68,3 +87,72 @@ def test_valid_or_ambiguous_queries_reach_the_server_unchanged(query: str) -> No
     stdout, exit_code = run(["search", "start", "--query", query], recorded, dict(CREDENTIAL_ENV))
     assert exit_code == 0, stdout
     assert recorded.operation_requests("StartSearchV1")[0].body["queryString"] == query
+
+
+@pytest.mark.parametrize(
+    "query",
+    [
+        "* | case { x=1 || head(5); * | head(5) }",
+        "* | case { x=1 | /* comment */ | head(5); * | head(5) }",
+        "* | case { | head(5); * | head(5) }",
+        "* | case { x=1 | head(5); | head(5) }",
+        "* | case { x=1 | ; * | head(5) }",
+        "* | case { x=1 | head(5); * | }",
+        "* | field match { a => x=1 || head(5); * => head(5) }",
+        "* | field match { a => | head(5); * => head(5) }",
+        "* | field match { a => head(5); * => | head(5) }",
+        "* | field match { a => x=1 | ; * => head(5) }",
+        "* | field match { a => head(5); * => x=1 | }",
+        "* | join(query={x=1 || head(5)}, field=aid)",
+        "* | join(query={ | head(5)}, field=aid)",
+        "* | join(query={x=1 | }, field=aid)",
+        "* | join(query={x=1 | // comment\n | head(5)}, field=aid)",
+        "* | case { x=1 | join(query={y=2 || head(5)}, field=aid) }",
+    ],
+)
+def test_nested_empty_stages_fail_before_authentication(query: str) -> None:
+    recorded = RecordedTransport([])
+    stdout, exit_code = run(["search", "start", "--query", query], recorded, {})
+    assert exit_code == 2
+    assert "code: VALIDATION_ERROR" in stdout
+    assert "empty pipeline stage" in stdout
+    assert recorded.requests == []
+
+
+@pytest.mark.parametrize(
+    "query",
+    [
+        "* | [total:=, count()]",
+        "* | stats([total:= /* comment */ , count()])",
+        "* | f(total:=, limit=5)",
+        "* | f(g(total:=, limit=5))",
+    ],
+)
+def test_comma_cannot_end_an_assignment_without_an_expression(query: str) -> None:
+    recorded = RecordedTransport([])
+    stdout, exit_code = run(["search", "start", "--query", query], recorded, {})
+    assert exit_code == 2
+    assert "':=' has no right-hand side" in stdout
+    assert recorded.requests == []
+
+
+@pytest.mark.parametrize(
+    "query",
+    [
+        "#repo.cid=synthetic-tenant | head(",
+        'cid="synthetic-tenant" | head(',
+        'member_cid="synthetic tenant" | head(',
+        'message="Bearer eyJzeW50aGV0aWM.payload.signature" | head(',
+    ],
+)
+def test_pre_auth_excerpts_redact_sensitive_values_and_keep_the_caret_aligned(query: str) -> None:
+    recorded = RecordedTransport([])
+    stdout, exit_code = run(["search", "start", "--query", query], recorded, {})
+    assert exit_code == 2
+    assert "synthetic-tenant" not in stdout
+    assert "synthetic tenant" not in stdout
+    assert "eyJzeW50aGV0aWM.payload.signature" not in stdout
+    excerpt, caret = decode(stdout)["help"][0].split("\n")
+    assert "[redacted]" in excerpt
+    assert caret == " " * excerpt.index("(") + "^"
+    assert recorded.requests == []
