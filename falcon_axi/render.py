@@ -61,7 +61,9 @@ _SECRET_PATTERN = re.compile(
 )
 
 _KEY_VALUE_PATTERN = re.compile(
-    r'(?<![\w.#])("?(?:' + "|".join(re.escape(key) for key in sorted(REDACTED_KEYS)) + r')"?\s*[:=]\s*)'
+    r'(?<![\w.#])("?(?:'
+    + "|".join(re.escape(key) for key in sorted(REDACTED_KEYS))
+    + r')"?\s*(?:<=>|:=|!=|==|=~|<=|>=|=|<|>|:|\blike\b)\s*)'
     r'(\[redacted\]|"(?:\\.|[^"\\\n])*(?:"|$)|Bearer[ \t]+[^\s|,;)\]}]+|[^\s|,;)\]}]+)',
     re.IGNORECASE,
 )

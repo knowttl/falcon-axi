@@ -5,7 +5,7 @@ import pytest
 from toon_format import decode
 
 from falcon_axi.cli import run
-from falcon_axi.render import render
+from falcon_axi.render import REDACTED_KEYS, render
 from tests.support.recorded import CREDENTIAL_ENV, RecordedTransport, fixture, serve
 
 SECRET = CREDENTIAL_ENV["FALCON_CLIENT_SECRET"]
@@ -161,4 +161,13 @@ def test_redaction_covers_every_sensitive_key_that_reaches_the_renderer() -> Non
     ],
 )
 def test_sensitive_text_is_redacted_in_data_and_help(text: str, expected: str) -> None:
+    assert decode(render({"message": text}, [text])) == {"message": expected, "help": [expected]}
+
+
+@pytest.mark.parametrize("key", sorted(REDACTED_KEYS))
+@pytest.mark.parametrize("operator", [":", "=", ":=", "!=", "==", "=~", "<=>", "<", "<=", ">", ">=", " like "])
+@pytest.mark.parametrize("value", ["synthetic-tenant", '"synthetic tenant"'])
+def test_sensitive_values_are_redacted_after_complete_operators(key: str, operator: str, value: str) -> None:
+    text = f"{key}{operator}{value}"
+    expected = f"{key}{operator}[redacted]"
     assert decode(render({"message": text}, [text])) == {"message": expected, "help": [expected]}

@@ -14,6 +14,13 @@ from tests.support.recorded import CREDENTIAL_ENV, RecordedTransport, fixture, s
     [
         ("*\n| groupBy([ComputerName], function=count()\n| head(5)", "'(' is never closed", 2, 10, ")"),
         ('ComputerName="host1 | head(5)', "unterminated string", 1, 14, '"'),
+        ('message="first\nsecond" | head(5)', "unterminated string", 1, 9, '"'),
+        ('message="first\\\nsecond" | head(5)', "unterminated string", 1, 9, '"'),
+        ('message="first\rsecond" | head(5)', "unterminated string", 1, 9, '"'),
+        ('* | f(message="first\nsecond")', "unterminated string", 1, 15, '"'),
+        ("message=/first\nsecond/ | head(5)", "unterminated regex literal", 1, 9, "/"),
+        ("message=/first\\\nsecond/ | head(5)", "unterminated regex literal", 1, 9, "/"),
+        ("message=/first\rsecond/ | head(5)", "unterminated regex literal", 1, 9, "/"),
         ("* | head(5) |", "query ends with an empty pipeline stage", 1, 13, "a function after the last '|'"),
         ("* || head(5)", "empty pipeline stage", 1, 4, "a filter or function before '|'"),
         ("| head(5)", "empty pipeline stage", 1, 1, "a filter or function before '|'"),
@@ -24,6 +31,12 @@ from tests.support.recorded import CREDENTIAL_ENV, RecordedTransport, fixture, s
         ("CommandLine=/invoke-expression | head(5)", "unterminated regex literal", 1, 13, "/"),
         ('in(field=aid, values=["a","b"))', "unexpected ')'", 1, 30, "]"),
         ("* | /* comment", "unterminated block comment", 1, 5, "*/"),
+        ("* | head(5)/* unfinished", "unterminated block comment", 1, 12, "*/"),
+        ("* | [count()]/* unfinished", "unterminated block comment", 1, 14, "*/"),
+        ("* | case { * }/* unfinished", "unterminated block comment", 1, 15, "*/"),
+        ('message="x"/* unfinished', "unterminated block comment", 1, 12, "*/"),
+        ("message=/x//* unfinished", "unterminated block comment", 1, 12, "*/"),
+        ("message=/x/i/* unfinished", "unterminated block comment", 1, 13, "*/"),
         ("* )", "unexpected ')'", 1, 3, None),
         ('* | x:="escaped\\"', "unterminated string", 1, 8, '"'),
     ],
@@ -73,6 +86,23 @@ def test_structural_errors_have_actionable_diagnostics_before_authentication(
         "* | case { foo /* || */ | head(5); bar // ||\n| head(2) }",
         "* | x:=a / b / c | head(5)",
         "* | x:=a / b",
+        "* | x := (a / b) | field=/x/",
+        "* | f(value=a / b) | field=/x/",
+        "* | case { * | x := (a / b); * | head(5) } | field=/x/",
+        "* | join(query={ * | x := (a / b) }, field=aid) | field=/x/",
+        "* | head(5)/* ) */",
+        "* | [count()]/* ] */",
+        "* | case { * }/* } */",
+        'message="x"/* ) */ | head(5)',
+        "message=/x//* ) */ | head(5)",
+        "message=/x/i/* ) */ | head(5)",
+        "* | head(5)// )",
+        "* | [count()]// ]",
+        "* | case { * }// }",
+        'message="x"// )\n| head(5)',
+        "message=/x/// )\n| head(5)",
+        "message=/x/i// )\n| head(5)",
+        '* | f(message="first\\nsecond")',
         "* | [total:=count(), max(value)]",
         "* | f(total:=count(), limit=5)",
         '* | regex("[()|]\\"") | head(5)',
@@ -140,6 +170,10 @@ def test_comma_cannot_end_an_assignment_without_an_expression(query: str) -> Non
     "query",
     [
         "#repo.cid=synthetic-tenant | head(",
+        "#repo.cid!=synthetic-tenant | head(",
+        'cid := "synthetic-tenant" | head(',
+        'test(cid == "synthetic-tenant") | head(',
+        'cid like "synthetic-tenant" | head(',
         'cid="synthetic-tenant" | head(',
         'member_cid="synthetic tenant" | head(',
         'message="Bearer eyJzeW50aGV0aWM.payload.signature" | head(',
@@ -154,5 +188,5 @@ def test_pre_auth_excerpts_redact_sensitive_values_and_keep_the_caret_aligned(qu
     assert "eyJzeW50aGV0aWM.payload.signature" not in stdout
     excerpt, caret = decode(stdout)["help"][0].split("\n")
     assert "[redacted]" in excerpt
-    assert caret == " " * excerpt.index("(") + "^"
+    assert caret == " " * excerpt.rindex("(") + "^"
     assert recorded.requests == []

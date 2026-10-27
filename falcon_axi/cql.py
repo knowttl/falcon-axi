@@ -43,14 +43,13 @@ def validate_query(query: str) -> None:
         if char.isspace():
             i += 1
             continue
-        token_start = i == 0 or query[i - 1].isspace() or previous in ("=", "(", ",", "|", "[", "{", ";", "=>")
-        if query.startswith("/*", i) and token_start:
+        if query.startswith("/*", i):
             end = query.find("*/", i + 2)
             if end < 0:
                 fail(i, "unterminated block comment", "*/")
             i = end + 2
             continue
-        if query.startswith("//", i) and token_start:
+        if query.startswith("//", i):
             end = query.find("\n", i)
             i = len(query) if end < 0 else end
             continue
@@ -58,19 +57,21 @@ def validate_query(query: str) -> None:
             if char in "|)]};,":
                 fail(assignment, "':=' has no right-hand side", "an expression after ':='")
             assignment = None
-        regex = char == "/" and token_start
+        regex = char == "/"
+        if regex and previous not in ("", "=", "(", ",", "|", "[", "{", ";", "=>", "AND", "OR", "NOT"):
+            return
         if char == '"' or regex:
             delimiter = char
             end = i + 1
             while end < len(query) and query[end] != delimiter:
-                if regex and query[end] == "\n":
+                if query[end] in "\r\n":
                     break
-                end += 2 if query[end] == "\\" else 1
+                end += 2 if query[end] == "\\" and end + 1 < len(query) and query[end + 1] not in "\r\n" else 1
             if end >= len(query) or query[end] != delimiter:
-                if regex and previous not in ("", "=", "(", ",", "|", "[", "{", ";", "=>", "AND", "OR", "NOT"):
-                    return
                 fail(i, "unterminated regex literal" if regex else "unterminated string", delimiter)
             i = end + 1
+            while regex and i < len(query) and query[i] in "dim":
+                i += 1
             stage_has_content = True
             previous = "value"
             continue
