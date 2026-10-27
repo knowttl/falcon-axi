@@ -119,15 +119,6 @@ def start_search(
     This is one of the two operations captain exception N1 admits, and it requires `NGSIEM:write`.
     """
     deadline = deadline_after(wait)
-    if not query.strip():
-        raise CliError(
-            "VALIDATION_ERROR",
-            "search start requires a CQL query",
-            [
-                "CQL is pipe-based: a filter, then commands, for example `#event_simpleName=ProcessRollup2 | head(5)`",
-                "Run `falcon-axi search start --help` for the query shape",
-            ],
-        )
     window_end = int(time.time() * 1000)
     response = _request(
         transport,
