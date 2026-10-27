@@ -387,6 +387,8 @@ Run the selected list with `--help` for its own limits.
 NG-SIEM jobs have no cursor or limit flags.
 Bound results in CQL with a command such as `head(200)`, poll with `search status <id>`, and cancel unfinished jobs with `search stop <id>`.
 See [search status](docs/commands.md#search-status) for how to interpret `parsed_query` in status output.
+For HTTP 400 rejections, use the redacted server diagnostics to correct the query; see the [search error contract](docs/design/v1.md#43-ng-siem-search-was-excluded-on-the-credential-scope-test-and-captain-exception-n1-reversed-it) for fallback behavior.
+Review completed-job warnings and `parsed_query` before relying on the results; the [output contract](docs/design/v1.md#102-default-schemas) explains the advisory comparison during `search start --wait`.
 
 ## Troubleshooting
 

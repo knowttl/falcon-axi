@@ -16,7 +16,7 @@ from falcon_axi.auth import Session
 from falcon_axi.command import CommandSpec, Invocation
 from falcon_axi.core import CliError
 from falcon_axi.domain import CommandOutput, body_of, rate_limit_note, text
-from falcon_axi.falcon_error import translate_falcon_error
+from falcon_axi.falcon_error import falcon_messages, translate_falcon_error
 from falcon_axi.fql import since_seconds
 from falcon_axi.render import raw
 from falcon_axi.transport.budget import BudgetExpired, deadline_after, remaining_seconds, request_budget
@@ -62,6 +62,9 @@ def _request(
             ),
         )
     if response.status not in accepted:
+        if id == "StartSearchV1" and response.status == 400:
+            messages = [message for message in falcon_messages(response) if isinstance(message, str)]
+            raise _rejected_query("; ".join(messages) or None)
         override = (overrides or {}).get(response.status)
         raise override if override is not None else translate_falcon_error(response, id, subject)
     return response
@@ -78,11 +81,11 @@ def _unknown_job() -> CliError:
     )
 
 
-def _rejected_query() -> CliError:
+def _rejected_query(message: str | None = None) -> CliError:
     """NG-SIEM speaks CQL, not FQL, so a rejected search must not be given FQL advice (§9.4)."""
     return CliError(
         "VALIDATION_ERROR",
-        "NG-SIEM rejected this search",
+        message or "NG-SIEM rejected this search",
         [
             "CQL is pipe-based and is neither FQL nor SQL: `#event_simpleName=ProcessRollup2 | head(5)`",
             "Check the repository name and the query, then run `falcon-axi search start --help`",
@@ -133,7 +136,7 @@ def start_search(
         "NG-SIEM searches",
         {"repository": repository},
         body={"queryString": query, "start": window_end - since_seconds(since) * 1000, "end": window_end},
-        overrides={400: _rejected_query(), 404: _rejected_query()},
+        overrides={404: _rejected_query()},
         deadline=deadline,
     )
     id = text(body_of(response).get("id"))
@@ -144,7 +147,7 @@ def start_search(
             ["Retry shortly", "Run `falcon-axi auth status` to re-check the credential"],
         )
     if wait:
-        return search_status(transport, session, id, repository, wait, deadline=deadline)
+        return search_status(transport, session, id, repository, wait, deadline=deadline, submitted_query=query)
     value: dict[str, Any] = {"search_id": id, "repository": repository, "query": query, "window": f"the last {since}"}
     return CommandOutput(
         value=_rate_limit(session, value),
@@ -164,6 +167,7 @@ def search_status(
     wait: int = 0,
     *,
     deadline: float | None = None,
+    submitted_query: str | None = None,
 ) -> CommandOutput:
     """`search status <search id>`: poll one job and render its events once it is done (§10.2)."""
     deadline = deadline if deadline is not None else deadline_after(wait)
@@ -232,10 +236,33 @@ def search_status(
     parsed = text(filter_query.get("queryString")) if isinstance(filter_query, Mapping) else None
     if parsed:
         done["parsed_query"] = parsed
+    warnings = body.get("warnings")
+    if isinstance(warnings, list):
+        rows = [
+            {"code": entry.get("code"), "message": entry["message"]}
+            for entry in warnings
+            if isinstance(entry, Mapping) and isinstance(entry.get("message"), str)
+        ]
+        if rows:
+            done["warnings"] = rows
+    hints: tuple[str, ...] = ()
+    if parsed and submitted_query is not None:
+        query = submitted_query.strip()
+        filter_text = parsed.strip()
+        # Match the returned filter at a stage boundary without splitting pipes inside literals.
+        same_filter = query == filter_text or (
+            query.startswith(filter_text) and query[len(filter_text) :].lstrip().startswith("|")
+        )
+        if not same_filter:
+            hints = (
+                "The normalized filter differs from the submitted filter; review parsed_query for words "
+                "treated as free text. Normalization can also change formatting; this is advisory",
+            )
     done["events"] = events if events else raw("0 events matched this search")
     return CommandOutput(
         value=_rate_limit(session, done),
         help=(
+            *hints,
             "parsed_query echoes the filter part only; stages after the first pipe are not echoed. "
             "Compare it with the filter you sent: NG-SIEM turns an unrecognised word into a "
             "free-text stage rather than an error",
