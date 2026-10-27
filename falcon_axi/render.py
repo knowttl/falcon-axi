@@ -48,9 +48,7 @@ def redact(value: Any) -> Any:
     if isinstance(value, (list, tuple)):
         return [redact(entry) for entry in value]
     if isinstance(value, str):
-        return _KEY_VALUE_PATTERN.sub(
-            lambda match: match[1] + "[redacted]", _SECRET_PATTERN.sub("[redacted]", redact_text(value))
-        )
+        return _SECRET_PATTERN.sub("[redacted]", redact_text(value))
     return value
 
 
@@ -58,22 +56,6 @@ _SECRET_PATTERN = re.compile(
     r"-----BEGIN [A-Z ]*PRIVATE KEY-----[\s\S]*?-----END [A-Z ]*PRIVATE KEY-----"
     r"|\beyJ[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+"
     r"|(?i:AccountKey=)[^;\s]+|(?i:sig=)[A-Za-z0-9%+/=]+"
-)
-
-_TRIVIA = r"(?:\s|/\*[\s\S]*?\*/|//[^\r\n]*(?:\r?\n|$))*"
-
-_KEY_VALUE_PATTERN = re.compile(
-    r'(?<![\w.#])("?(?:'
-    + "|".join(re.escape(key) for key in sorted(REDACTED_KEYS))
-    + r')"?'
-    + _TRIVIA
-    + r'(?:<=>|:=|!=|==|=~|<=|>=|=|<|>|:|\blike\b)'
-    + _TRIVIA
-    + r'(?:\('
-    + _TRIVIA
-    + r')*)'
-    r'(\[redacted\]|"(?:\\.|[^"\\\n])*(?:"|$)|Bearer[ \t]+[^\s|,;)\]}]+|[^\s|,;()\]}]+)',
-    re.IGNORECASE,
 )
 
 
@@ -98,17 +80,8 @@ def _escape(value: str) -> str:
 def _help_block(help: Sequence[str]) -> str:
     if not help:
         return ""
-    items = ",".join(f'"{_escape(_redact_help(item))}"' for item in help)
+    items = ",".join(f'"{_escape(redact_text(item))}"' for item in help)
     return f"help[{len(help)}]: {items}\n"
-
-
-def _redact_help(item: str) -> str:
-    excerpt, separator, caret = item.rpartition("\n")
-    if separator and caret.strip() == "^":
-        line_start = excerpt.rfind("\n") + 1
-        prefix = str(redact(excerpt[: line_start + caret.index("^")])).rsplit("\n", 1)[-1]
-        return f"{redact(excerpt)}\n{' ' * len(prefix)}^"
-    return str(redact(item))
 
 
 def render(value: Mapping[str, Any], help: Sequence[str] = ()) -> str:

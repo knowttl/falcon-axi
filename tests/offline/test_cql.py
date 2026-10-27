@@ -12,7 +12,10 @@ from tests.support.recorded import CREDENTIAL_ENV, RecordedTransport, fixture, s
 @pytest.mark.parametrize(
     ("query", "message", "line", "column", "expected"),
     [
-        ("*\n| groupBy([ComputerName], function=count()\n| head(5)", "'(' is never closed", 2, 10, ")"),
+        ("*\n| groupBy([ComputerName], function=count()\n| head(5)", "unclosed parenthesis", 2, 10, ")"),
+        (" \n ", "missing query", 1, 1, "a non-empty CQL query in --query"),
+        ("* | [count()", "unclosed square bracket", 1, 5, "]"),
+        ("* | case { *", "unclosed brace", 1, 10, "}"),
         ('ComputerName="host1 | head(5)', "unterminated string", 1, 14, '"'),
         ('message="first\nsecond" | head(5)', "unterminated string", 1, 9, '"'),
         ('message="first\\\nsecond" | head(5)', "unterminated string", 1, 9, '"'),
@@ -25,11 +28,11 @@ from tests.support.recorded import CREDENTIAL_ENV, RecordedTransport, fixture, s
         ("* || head(5)", "empty pipeline stage", 1, 4, "a filter or function before '|'"),
         ("| head(5)", "empty pipeline stage", 1, 1, "a filter or function before '|'"),
         ("* | /* ignored */ | head(5)", "empty pipeline stage", 1, 19, "a filter or function before '|'"),
-        ("* | x :=\n| head(5)", "':=' has no right-hand side", 1, 7, "an expression after ':='"),
-        ("* | x := /* comment */", "':=' has no right-hand side", 1, 7, "an expression after ':='"),
-        ("* | f(x:=)", "':=' has no right-hand side", 1, 8, "an expression after ':='"),
+        ("* | x :=\n| head(5)", "dangling assignment", 1, 7, "an expression after ':='"),
+        ("* | x := /* comment */", "dangling assignment", 1, 7, "an expression after ':='"),
+        ("* | f(x:=)", "dangling assignment", 1, 8, "an expression after ':='"),
         ("CommandLine=/invoke-expression | head(5)", "unterminated regex literal", 1, 13, "/"),
-        ('in(field=aid, values=["a","b"))', "unexpected ')'", 1, 30, "]"),
+        ('in(field=aid, values=["a","b"))', "unexpected closing parenthesis", 1, 30, "]"),
         ("* | /* comment", "unterminated block comment", 1, 5, "*/"),
         ("* | head(5)/* unfinished", "unterminated block comment", 1, 12, "*/"),
         ("* | [count()]/* unfinished", "unterminated block comment", 1, 14, "*/"),
@@ -37,7 +40,9 @@ from tests.support.recorded import CREDENTIAL_ENV, RecordedTransport, fixture, s
         ('message="x"/* unfinished', "unterminated block comment", 1, 12, "*/"),
         ("message=/x//* unfinished", "unterminated block comment", 1, 12, "*/"),
         ("message=/x/i/* unfinished", "unterminated block comment", 1, 13, "*/"),
-        ("* )", "unexpected ')'", 1, 3, None),
+        ("* )", "unexpected closing parenthesis", 1, 3, None),
+        ("* ]", "unexpected closing square bracket", 1, 3, None),
+        ("* }", "unexpected closing brace", 1, 3, None),
         ('* | x:="escaped\\"', "unterminated string", 1, 8, '"'),
     ],
 )
@@ -47,13 +52,19 @@ def test_structural_errors_have_actionable_diagnostics_before_authentication(
     with pytest.raises(CliError) as error:
         validate_query(query)
     assert error.value.details == {"diagnostics": [{"line": line, "column": column, "message": message, "expected": expected}]}
-    assert error.value.help[0] == query.split("\n")[line - 1] + "\n" + " " * (column - 1) + "^"
     recorded = RecordedTransport([])
     stdout, exit_code = run(["search", "start", "--query", query], recorded, dict(CREDENTIAL_ENV))
     assert exit_code == 2
-    assert "code: VALIDATION_ERROR" in stdout
-    assert f"CQL syntax error at line {line}, column {column}" in stdout
-    assert "CQL is pipe-based" in stdout
+    assert decode(stdout) == {
+        "error": f"CQL syntax error at line {line}, column {column}: {message}",
+        "code": "VALIDATION_ERROR",
+        "diagnostics": [{"line": line, "column": column, "message": message, "expected": expected}],
+        "help": [
+            f"Expected {expected}; correct the CQL structure before retrying"
+            if expected
+            else "Remove the unexpected closing delimiter",
+        ],
+    }
     assert recorded.requests == []
 
 
@@ -162,7 +173,7 @@ def test_comma_cannot_end_an_assignment_without_an_expression(query: str) -> Non
     recorded = RecordedTransport([])
     stdout, exit_code = run(["search", "start", "--query", query], recorded, {})
     assert exit_code == 2
-    assert "':=' has no right-hand side" in stdout
+    assert "dangling assignment" in stdout
     assert recorded.requests == []
 
 
@@ -171,6 +182,10 @@ def test_comma_cannot_end_an_assignment_without_an_expression(query: str) -> Non
     [
         "#repo.cid=synthetic-tenant | head(",
         "#repo.cid!=synthetic-tenant | head(",
+        "#repo.cid=/^(synthetic-tenant)$/ | head(",
+        "#repo.cid=/synthetic-tenant|other/ | head(",
+        "#repo.cid=/[synthetic-tenant, ]/ | head(",
+        "#repo.cid=/synthetic\\/tenant/ | head(",
         'cid := "synthetic-tenant" | head(',
         'test(cid == "synthetic-tenant") | head(',
         'cid /* note */ = "synthetic-tenant" | head(',
@@ -187,14 +202,46 @@ def test_comma_cannot_end_an_assignment_without_an_expression(query: str) -> Non
         'message="Bearer eyJzeW50aGV0aWM.payload.signature" | head(',
     ],
 )
-def test_pre_auth_excerpts_redact_sensitive_values_and_keep_the_caret_aligned(query: str) -> None:
+def test_pre_auth_errors_never_echo_submitted_query_text(query: str) -> None:
     recorded = RecordedTransport([])
     stdout, exit_code = run(["search", "start", "--query", query], recorded, {})
     assert exit_code == 2
     assert "synthetic-tenant" not in stdout
     assert "synthetic tenant" not in stdout
     assert "eyJzeW50aGV0aWM.payload.signature" not in stdout
-    excerpt, caret = decode(stdout)["help"][0].split("\n")
-    assert "[redacted]" in excerpt
-    assert caret == " " * excerpt.rindex("(") + "^"
+    assert "synthetic\\/tenant" not in stdout
+    assert "#repo.cid" not in stdout
+    assert "head(" not in stdout
+    assert "^" not in stdout
+    assert query not in stdout
+    assert decode(stdout)["help"] == ["Expected ); correct the CQL structure before retrying"]
+    assert recorded.requests == []
+
+
+@pytest.mark.parametrize(
+    "suffix",
+    [
+        "(",
+        "[",
+        "{",
+        ")",
+        "]",
+        "}",
+        'private_function("private_literal',
+        "private_field=/private_regex",
+        "/* private_comment",
+        "| private_function()",
+        "private_function() |",
+        "private_assignment:=",
+        "case { * || private_function() }",
+    ],
+)
+def test_every_structural_failure_omits_private_query_content(suffix: str) -> None:
+    query = f"private_query_field=private_query_value | {suffix}"
+    recorded = RecordedTransport([])
+    stdout, exit_code = run(["search", "start", "--query", query], recorded, {})
+    assert exit_code == 2
+    assert "private_" not in stdout
+    assert "^" not in stdout
+    assert set(decode(stdout)) == {"error", "code", "diagnostics", "help"}
     assert recorded.requests == []

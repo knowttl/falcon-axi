@@ -68,7 +68,9 @@ def skill_markdown() -> str:
             "Rejected searches preserve redacted server diagnostics; fix the reported CQL issue before retrying.",
             "Completed searches include server warnings when present, with code and message.",
             "search start --wait advises when the normalized filter differs; review it before trusting the results.",
-            "search start checks CQL structure before authentication: fix the reported line, column, and caret.",
+            "search start checks CQL structure before authentication: "
+            "use the reported code, line, column, token class, and fix hint.",
+            "Local CQL errors never echo submitted query text or caret excerpts, so query text cannot leak.",
             "This conservative check does not validate function names, fields, or query semantics; ambiguity passes.",
             "Start with `uvx falcon-axi search start --query '<cql> | head(5)' --wait 30`.",
             "If still running, use `uvx falcon-axi search status <id> --wait 30`; --wait accepts 1-50 seconds.",

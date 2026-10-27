@@ -303,7 +303,7 @@ def test_a_missing_or_blank_query_is_refused_before_the_job_is_started() -> None
     for argv in (["search", "start"], ["search", "start", "--query", "   "]):
         stdout, exit_code = run(argv, recorded, dict(CREDENTIAL_ENV))
         assert exit_code == 2
-        assert "search start requires a CQL query" in stdout
+        assert "missing query" in stdout
     assert recorded.requests == []
 
 
