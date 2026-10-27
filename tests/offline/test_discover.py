@@ -18,6 +18,99 @@ INVENTORY_ERROR_CASES = [
 ]
 
 
+def test_application_list_preserves_all_returned_fields_and_host_details() -> None:
+    answer = fixture("discover/applications-page.json")
+    recorded = RecordedTransport([serve("combined_applications", answer)])
+    stdout, code = run(["application", "list"], recorded, dict(CREDENTIAL_ENV))
+    assert code == 0
+    assert decode(stdout)["applications"] == answer.body["resources"]
+
+
+def test_application_fields_selects_columns_instead_of_adding_them() -> None:
+    recorded = RecordedTransport([serve("combined_applications", fixture("discover/applications-page.json"))])
+    stdout, code = run(["application", "list", "--fields", "name,host,name"], recorded, dict(CREDENTIAL_ENV))
+    assert code == 0
+    assert decode(stdout)["applications"] == [
+        {
+            "name": "Synthetic Browser",
+            "host": {
+                "id": "synthetic-asset-01",
+                "aid": "synthetic-device-01",
+                "hostname": "SYNTHETIC-HOST",
+                "platform_name": "Linux",
+                "last_seen_date": "2026-10-20T12:00:00Z",
+            },
+        }
+    ]
+
+
+def test_application_selected_optional_fields_remain_null_when_missing() -> None:
+    recorded = RecordedTransport(
+        [
+            serve(
+                "combined_applications",
+                response(
+                    200,
+                    {
+                        "resources": [{"id": "synthetic-application"}],
+                    },
+                ),
+            )
+        ]
+    )
+    stdout, code = run(["application", "list", "--fields", "id,host"], recorded, dict(CREDENTIAL_ENV))
+    assert code == 0
+    assert decode(stdout)["applications"] == [{"id": "synthetic-application", "host": None}]
+
+
+@pytest.mark.parametrize("full", [False, True])
+def test_application_raw_output_redacts_before_recursive_preview(full: bool) -> None:
+    record = {
+        "id": "synthetic-application",
+        "cid": "synthetic-cid",
+        "host": {"hostname": "SYNTHETIC-HOST", "token": "synthetic-token"},
+        "future_details": [False, 0, None, {"description": "x" * 501, "client_secret": "synthetic-secret"}],
+    }
+    recorded = RecordedTransport([serve("combined_applications", response(200, {"resources": [record]}))])
+    stdout, code = run(["application", "list", *(["--full"] if full else [])], recorded, dict(CREDENTIAL_ENV))
+    assert code == 0
+    row = decode(stdout)["applications"][0]
+    assert row["cid"] == "[redacted]"
+    assert row["host"]["token"] == "[redacted]"
+    assert row["future_details"][:3] == [False, 0, None]
+    assert row["future_details"][3]["client_secret"] == "[redacted]"
+    assert row["future_details"][3]["description"] == ("x" * 501 if full else "x" * 500 + "… (truncated, 501 chars total)")
+    assert ("--full" in stdout) is not full
+    assert "synthetic-cid" not in stdout
+    assert "synthetic-token" not in stdout
+    assert "synthetic-secret" not in stdout
+
+
+@pytest.mark.parametrize("fields", ["", "name,", "hostname", "not_a_field"])
+def test_invalid_application_fields_are_rejected_before_authentication(fields: str) -> None:
+    recorded = RecordedTransport([])
+    stdout, code = run(["application", "list", "--fields", fields], recorded, {})
+    assert code == 2
+    assert "VALIDATION_ERROR" in stdout
+    assert not recorded.requests
+
+
+@pytest.mark.parametrize(
+    ("argv", "operation"),
+    [
+        (["application", "list", "--filter", "name:'Node*'"], "combined_applications"),
+        (["vuln", "list", "--filter", "cve.id:'CVE-2026-0001'"], "combinedQueryVulnerabilities"),
+    ],
+)
+def test_empty_application_and_vulnerability_results_warn_against_absence_inference(argv: list[str], operation: str) -> None:
+    recorded = RecordedTransport([serve(operation, response(200, {"resources": []}))])
+    stdout, code = run(argv, recorded, dict(CREDENTIAL_ENV))
+    assert code == 0
+    assert "exact whole-value" in stdout
+    assert "wildcards and partial names are not supported" in stdout
+    assert "0 rows does not prove absence" in stdout
+
+
 @pytest.mark.parametrize(("argv", "operation", "noun", "example"), INVENTORY_ERROR_CASES)
 def test_inventory_filter_rejection_teaches_its_own_domain(argv: list[str], operation: str, noun: str, example: str) -> None:
     recorded = RecordedTransport(
@@ -53,19 +146,27 @@ def test_inventory_not_found_points_to_its_own_identifiers(argv: list[str], oper
 
 
 @pytest.mark.parametrize(
-    ("noun", "operation", "filename", "default_filter"),
+    ("noun", "operation", "filename", "default_filter", "facets"),
     [
-        ("asset", "combined_hosts", "assets-page", "id:'*'"),
-        ("application", "combined_applications", "applications-page", "name:'*'"),
+        ("asset", "combined_hosts", "assets-page", "id:'*'", {}),
+        (
+            "application",
+            "combined_applications",
+            "applications-page",
+            "name:'*'",
+            {
+                "facet": ("browser_extension", "host_info", "install_usage", "dev_package", "ide_extension", "llm", "mcp"),
+            },
+        ),
     ],
 )
 def test_default_inventory_filter_is_sent_and_bound_to_continuation(
-    noun: str, operation: str, filename: str, default_filter: str
+    noun: str, operation: str, filename: str, default_filter: str, facets: dict[str, tuple[str, ...]]
 ) -> None:
     recorded = RecordedTransport([serve(operation, fixture(f"discover/{filename}.json"))])
     stdout, code = run([noun, "list"], recorded, dict(CREDENTIAL_ENV))
     assert code == 0
-    assert recorded.operation_requests(operation)[0].query == {"limit": 20, "filter": default_filter}
+    assert recorded.operation_requests(operation)[0].query == {"limit": 20, "filter": default_filter, **facets}
     cursor = re.search(r"^continuation_cursor: (\S+)$", stdout, re.MULTILINE)
     assert cursor
     followed = RecordedTransport([serve(operation, response(200, {"resources": []}))])
@@ -83,14 +184,23 @@ def test_default_inventory_filter_is_sent_and_bound_to_continuation(
 
 
 @pytest.mark.parametrize(
-    ("noun", "operation", "filename", "limit", "next_position"),
+    ("noun", "operation", "filename", "limit", "next_position", "facets"),
     [
-        ("asset", "combined_hosts", "assets-page", "2", "synthetic-assets-next"),
-        ("application", "combined_applications", "applications-page", "1", "synthetic-applications-next"),
+        ("asset", "combined_hosts", "assets-page", "2", "synthetic-assets-next", {}),
+        (
+            "application",
+            "combined_applications",
+            "applications-page",
+            "1",
+            "synthetic-applications-next",
+            {
+                "facet": ("browser_extension", "host_info", "install_usage", "dev_package", "ide_extension", "llm", "mcp"),
+            },
+        ),
     ],
 )
 def test_combined_lists_continue_with_the_server_after_token(
-    noun: str, operation: str, filename: str, limit: str, next_position: str
+    noun: str, operation: str, filename: str, limit: str, next_position: str, facets: dict[str, tuple[str, ...]]
 ) -> None:
     recorded = RecordedTransport([serve(operation, fixture(f"discover/{filename}.json"))])
     argv = [noun, "list", "--limit", limit, "--filter", "hostname:'SYNTHETIC-*'"]
@@ -100,6 +210,7 @@ def test_combined_lists_continue_with_the_server_after_token(
     assert recorded.operation_requests(operation)[0].query == {
         "limit": int(limit),
         "filter": "hostname:'SYNTHETIC-*'",
+        **facets,
     }
     cursor = re.search(r"^continuation_cursor: (\S+)$", stdout, re.MULTILINE)
     assert cursor

@@ -1,5 +1,6 @@
 {
   "name": "help-application-list",
+  "comment": "TD-017 adds raw-resource output, field selection, full previews, exact matching and CVE-to-host guidance; see design section 1.7.",
   "argv": [
     "application",
     "list",

@@ -12,7 +12,17 @@ from falcon_axi.command import CommandSpec, Invocation, string
 from falcon_axi.core import CliError
 from falcon_axi.credentials import Credential
 from falcon_axi.cursor import CursorContext, Position, decode_after, encode_cursor
-from falcon_axi.domain import DEFAULT_LIMIT, CommandOutput, after_token, parse_fields, rate_limit_note, resources, text, total
+from falcon_axi.domain import (
+    DEFAULT_LIMIT,
+    EXACT_MATCH_HINT,
+    CommandOutput,
+    after_token,
+    parse_fields,
+    rate_limit_note,
+    resources,
+    text,
+    total,
+)
 from falcon_axi.falcon_error import translate_falcon_error
 from falcon_axi.fql import VULN_SEVERITIES, VULN_STATUSES, VulnQuery, describe_vuln_query, vuln_filter
 from falcon_axi.render import raw
@@ -204,10 +214,11 @@ def list_vulnerabilities(
 
     if not records:
         if after is not None:
-            return CommandOutput(value={"vulnerabilities": raw("no more vulnerabilities")}, help=())
+            return CommandOutput(value={"vulnerabilities": raw("no more vulnerabilities")}, help=(EXACT_MATCH_HINT,))
         return CommandOutput(
             value={"vulnerabilities": raw(f"0 vulnerabilities matching {describe}" if describe else "0 vulnerabilities")},
             help=(
+                EXACT_MATCH_HINT,
                 "Run `falcon-axi vuln list --status open` to see every open vulnerability",
                 "Run `falcon-axi host list` to find the host you meant",
             ),

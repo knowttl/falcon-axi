@@ -81,7 +81,12 @@ def test_empty_continuations_report_exhaustion_without_claiming_an_empty_invento
     exhausted = RecordedTransport([serve(operation, response(200, {"resources": []}))])
     stdout, exit_code = run([*argv, "--cursor", page["continuation_cursor"]], exhausted, dict(CREDENTIAL_ENV))
     assert exit_code == 0
-    assert decode(stdout) == {collection: f"no more {collection}"}
+    document = decode(stdout)
+    assert document[collection] == f"no more {collection}"
+    if noun == "vuln":
+        assert "0 rows does not prove absence" in document["help"][0]
+    else:
+        assert document == {collection: f"no more {collection}"}
     (request,) = exhausted.operation_requests(operation)
     position = "synthetic-next-page" if noun == "vuln" else 2
     assert request.query["after" if noun == "vuln" else "offset"] == position

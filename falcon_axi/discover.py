@@ -8,17 +8,93 @@ from falcon_axi.core import CliError
 from falcon_axi.cursor import CursorContext, decode_after, decode_offset, encode_cursor
 from falcon_axi.domain import (
     DEFAULT_LIMIT,
+    EXACT_MATCH_HINT,
     CommandOutput,
     after_token,
+    parse_fields,
     rate_limit_note,
     resources,
     text,
     total,
 )
 from falcon_axi.falcon_error import translate_falcon_error
-from falcon_axi.render import raw
+from falcon_axi.render import raw, redact, truncate
 from falcon_axi.transport.operations import OperationId
 from falcon_axi.transport.types import FalconResponse, RequestArgs
+
+# CrowdStrike's domain.DiscoverAPIApplication schema; unknown response fields still pass through by default.
+APPLICATION_FIELDS = (
+    "id",
+    "name",
+    "version",
+    "vendor",
+    "host",
+    "account_name",
+    "account_type",
+    "admin_privileges",
+    "architectures",
+    "browser_extension",
+    "category",
+    "cid",
+    "dev_package",
+    "discovery_methods",
+    "extension_id",
+    "first_seen_timestamp",
+    "groups",
+    "homepage",
+    "host_application",
+    "ide_extension",
+    "installation_paths",
+    "installation_timestamp",
+    "is_malicious",
+    "is_normalized",
+    "is_suspicious",
+    "last_published",
+    "last_updated_timestamp",
+    "last_used_file_hash",
+    "last_used_file_name",
+    "last_used_timestamp",
+    "last_used_user_name",
+    "last_used_user_sid",
+    "local_admin_privileges",
+    "malicious_indicators",
+    "name_vendor",
+    "name_vendor_version",
+    "registry_latest_version_available",
+    "software_type",
+    "store_listing",
+    "store_listing_status",
+    "suspicious_indicators",
+    "threat_level",
+    "versioning_scheme",
+)
+APPLICATION_FACETS = ("browser_extension", "host_info", "install_usage", "dev_package", "ide_extension", "llm", "mcp")
+
+
+def _application_rows(ctx: Invocation, entries: list[Any], help: list[str]) -> list[dict[str, Any]]:
+    fields = parse_fields(ctx.text("fields") or "", APPLICATION_FIELDS, ()) if "fields" in ctx.flags else ()
+    shortened = False
+
+    def preview(value: Any) -> Any:
+        nonlocal shortened
+        if isinstance(value, str) and not ctx.flags.get("full"):
+            result = truncate(value, 500)
+            shortened |= result.truncated
+            return result.text
+        if isinstance(value, Mapping):
+            return {key: preview(entry) for key, entry in value.items()}
+        if isinstance(value, list):
+            return [preview(entry) for entry in value]
+        return value
+
+    rows = [
+        preview(redact({name: entry.get(name) for name in fields} if fields else dict(entry)))
+        for entry in entries
+        if isinstance(entry, Mapping)
+    ]
+    if shortened:
+        help.append(f"Run `{ctx.suggestion} --full` for untruncated application fields")
+    return rows
 
 
 def _request(ctx: Invocation, operation: OperationId, query: Mapping[str, Any]) -> FalconResponse:
@@ -54,6 +130,8 @@ def _list(ctx: Invocation) -> CommandOutput:
         model="token" if token_model else "offset",
     )
     query: dict[str, Any] = {"limit": ctx.limit}
+    if noun == "application":
+        query["facet"] = APPLICATION_FACETS
     cursor = ctx.text("cursor")
     offset = 0
     if token_model:
@@ -81,19 +159,26 @@ def _list(ctx: Invocation) -> CommandOutput:
             entries = []
     columns = {
         "asset": ("id", "hostname", "entity_type", "platform_name"),
-        "application": ("id", "name", "version", "vendor"),
         "login": ("id", "username", "hostname", "login_timestamp"),
-    }[noun]
-    rows = [
-        {column: text(entry.get(column)) or "unknown" for column in columns} for entry in entries if isinstance(entry, Mapping)
-    ]
+    }.get(noun, ())
     key = f"{noun}s"
     help = ["Run `falcon-axi asset show <id>` for asset details"] if noun == "asset" else []
+    if noun == "application":
+        rows = _application_rows(ctx, entries, help)
+        if not rows:
+            help.append(EXACT_MATCH_HINT)
+    else:
+        rows = [
+            {column: text(entry.get(column)) or "unknown" for column in columns}
+            for entry in entries
+            if isinstance(entry, Mapping)
+        ]
     value: dict[str, Any] = {"count": raw(f"{len(rows)} of {count if count is not None else 'unknown'} total")}
     if position is not None:
         continuation = encode_cursor(position, context, ctx.credential.client_secret)
         value["continuation_cursor"] = continuation
-        help.append(f"Run `{ctx.suggestion} --cursor {continuation}` for the next page")
+        full = " --full" if ctx.flags.get("full") else ""
+        help.append(f"Run `{ctx.suggestion}{full} --cursor {continuation}` for the next page")
     value[key] = rows if rows else raw(f"0 {key} returned for this Discover query")
     note = rate_limit_note(ctx.session)
     if note:
@@ -250,16 +335,28 @@ COMMAND_SPECS: tuple[CommandSpec, ...] = (
         name="application list",
         help="\n".join(
             [
-                "falcon-axi application list [--filter <FQL>] [--limit N] [--cursor <token>]",
+                "falcon-axi application list [--filter <FQL>] [--limit N] [--cursor <token>] [--fields <names>] [--full]",
                 "",
-                "--filter     raw FQL on Discover application fields such as name, vendor, and host.hostname",
+                "Returns every available application field, including nested host and usage details.",
+                "--filter     raw FQL on name, vendor, version, and host.hostname",
                 "             default name:'*' (all named applications)",
                 f"--limit      rows in this call (default {DEFAULT_LIMIT}, ceiling 1000)",
                 "--cursor     opaque continuation token from a previous call",
+                "--fields     select comma-separated top-level response fields, e.g. id,name,version,host",
+                "             replaces the full row; missing selected fields are null",
+                "--full       print strings beyond the default 500-character preview",
+                "",
+                "Name/vendor/version matching is exact on the whole value and case-insensitive.",
+                "Wildcards and partial names are not supported for searches; 0 rows does not prove absence.",
+                "The default name:'*' is the broad inventory query, not a partial-name search.",
+                "Use + for AND and lists for alternatives: name:['Node.js','Python'].",
+                "Spotlight does not accept apps.* filters. For hosts affected by known CVEs, use:",
+                "  falcon-axi vuln list --filter \"cve.id:['CVE-2026-0001']\" --fields product --all",
                 "",
                 "Examples:",
-                "  falcon-axi application list --filter \"name:'Chrome'\"",
-                "  falcon-axi application list --filter \"vendor:'Microsoft Corporation'\"",
+                "  falcon-axi application list --filter \"name:'Node.js'+version:'24.18.0'\" --fields name,version,host",
+                "  falcon-axi application list --filter \"name:['Node.js','Python']\"",
+                "  falcon-axi application list --filter \"host.hostname:'<hostname>'\"",
                 "",
                 "Read-only; requires Assets:read (Falcon Discover or Exposure Management).",
             ]
@@ -267,8 +364,9 @@ COMMAND_SPECS: tuple[CommandSpec, ...] = (
         summary="  application list          list Discover applications",
         handler=_list,
         operations=("combined_applications",),
-        flags=("filter", "limit", "cursor"),
-        value_flags=("filter", "limit", "cursor"),
+        flags=("filter", "limit", "cursor", "fields", "full"),
+        value_flags=("filter", "limit", "cursor", "fields"),
+        extra_fields=APPLICATION_FIELDS,
         limit_ceiling=(1000, "Discover combined applications"),
     ),
     CommandSpec(

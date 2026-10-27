@@ -2,7 +2,7 @@
   "provenance": {
     "operation": "combined_applications",
     "reference": "https://developer.crowdstrike.com/api-reference/collections/discover/",
-    "schema_read": "2026-10-18",
+    "schema_read": "2026-10-26",
     "provenance": "synthetic"
   },
   "response": {
@@ -20,7 +20,18 @@
           "id": "synthetic-application-01",
           "name": "Synthetic Browser",
           "version": "1.0",
-          "vendor": "Synthetic Vendor"
+          "vendor": "Synthetic Vendor",
+          "host": {
+            "id": "synthetic-asset-01",
+            "aid": "synthetic-device-01",
+            "hostname": "SYNTHETIC-HOST",
+            "platform_name": "Linux",
+            "last_seen_date": "2026-10-20T12:00:00Z"
+          },
+          "architectures": ["x64"],
+          "installation_paths": ["/opt/synthetic/browser"],
+          "is_normalized": false,
+          "last_used_timestamp": "2026-10-20T11:00:00Z"
         }
       ]
     }

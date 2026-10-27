@@ -16,6 +16,11 @@ from falcon_axi.transport.types import FalconResponse
 #: Rows in one non-walking call, for every list command (docs/design/v1.md §7.3).
 DEFAULT_LIMIT = 20
 
+EXACT_MATCH_HINT = (
+    "Filters use exact whole-value matching; wildcards and partial names are not supported, "
+    "so 0 rows does not prove absence. Check the complete name, version, or CVE identifier."
+)
+
 
 @dataclass(frozen=True)
 class CommandOutput:
@@ -39,7 +44,7 @@ def parse_fields(value: str, allowed: Collection[str], defaults: Sequence[str]) 
             f"unknown --fields name {', '.join(unknown)}",
             [
                 f"valid --fields names: {', '.join(allowed)}",
-                f"default columns {', '.join(defaults)} are always included",
+                *([f"default columns {', '.join(defaults)} are always included"] if defaults else []),
             ],
         )
     return tuple(dict.fromkeys(names))
