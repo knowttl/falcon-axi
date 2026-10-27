@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.7.3](https://github.com/knowttl/falcon-axi/compare/v0.7.2...v0.7.3) (2026-10-27)
+
+
+### Bug Fixes
+
+* clarify parsed_query guidance in search status ([#72](https://github.com/knowttl/falcon-axi/issues/72)) ([5d1accd](https://github.com/knowttl/falcon-axi/commit/5d1accdd0c23819cbac15f218024d370b4ea9605))
+
 ## [0.7.2](https://github.com/knowttl/falcon-axi/compare/v0.7.1...v0.7.2) (2026-10-23)
 
 
