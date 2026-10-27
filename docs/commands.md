@@ -293,16 +293,28 @@ Read-only; requires Assets:read (Falcon Discover or Exposure Management).
 ## application list
 
 ```text
-falcon-axi application list [--filter <FQL>] [--limit N] [--cursor <token>]
+falcon-axi application list [--filter <FQL>] [--limit N] [--cursor <token>] [--fields <names>] [--full]
 
---filter     raw FQL on Discover application fields such as name, vendor, and host.hostname
+Returns every available application field, including nested host and usage details.
+--filter     raw FQL on name, vendor, version, and host.hostname
              default name:'*' (all named applications)
 --limit      rows in this call (default 20, ceiling 1000)
 --cursor     opaque continuation token from a previous call
+--fields     select comma-separated top-level response fields, e.g. id,name,version,host
+             replaces the full row; missing selected fields are null
+--full       print strings beyond the default 500-character preview
+
+Name/vendor/version matching is exact on the whole value and case-insensitive.
+Wildcards and partial names are not supported for searches; 0 rows does not prove absence.
+The default name:'*' is the broad inventory query, not a partial-name search.
+Use + for AND and lists for alternatives: name:['Node.js','Python'].
+Spotlight does not accept apps.* filters. For hosts affected by known CVEs, use:
+  falcon-axi vuln list --filter "cve.id:['CVE-2026-0001']" --fields product --all
 
 Examples:
-  falcon-axi application list --filter "name:'Chrome'"
-  falcon-axi application list --filter "vendor:'Microsoft Corporation'"
+  falcon-axi application list --filter "name:'Node.js'+version:'24.18.0'" --fields name,version,host
+  falcon-axi application list --filter "name:['Node.js','Python']"
+  falcon-axi application list --filter "host.hostname:'<hostname>'"
 
 Read-only; requires Assets:read (Falcon Discover or Exposure Management).
 ```

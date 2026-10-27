@@ -1,2 +1,2 @@
 vulnerabilities: 0 vulnerabilities matching critical severity status open
-help[2]: "Run `falcon-axi vuln list --status open` to see every open vulnerability","Run `falcon-axi host list` to find the host you meant"
+help[3]: "Filters use exact whole-value matching; wildcards and partial names are not supported, so 0 rows does not prove absence. Check the complete name, version, or CVE identifier.","Run `falcon-axi vuln list --status open` to see every open vulnerability","Run `falcon-axi host list` to find the host you meant"

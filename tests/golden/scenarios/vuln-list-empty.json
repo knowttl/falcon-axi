@@ -1,5 +1,6 @@
 {
   "name": "vuln-list-empty",
+  "comment": "TD-017 adds the exact-matching warning so an empty query is not treated as evidence of absence; see design section 1.7.",
   "argv": [
     "vuln",
     "list",

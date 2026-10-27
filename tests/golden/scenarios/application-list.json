@@ -1,5 +1,6 @@
 {
   "name": "application-list",
+  "comment": "TD-017 deliberately preserves all application resource fields, including the documented nested host, instead of projecting four columns; see design section 1.7.",
   "argv": [
     "application",
     "list",

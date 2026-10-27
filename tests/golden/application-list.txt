@@ -1,5 +1,18 @@
 count: 1 of 2 total
 continuation_cursor: eyJvcGVyYXRpb24iOiJjb21iaW5lZF9hcHBsaWNhdGlvbnMiLCJtb2RlbCI6InRva2VuIiwicG9zaXRpb24iOiJzeW50aGV0aWMtYXBwbGljYXRpb25zLW5leHQiLCJmaW5nZXJwcmludCI6IjMyMjYzMGE3YTE2YzY0ZGUyZjFmM2Y5MTEyZjZmNjNjOWQwYWFmZDk3MjIyM2YyYWE5NjNjZjE0ZWY1ODg3YzEifQ
-applications[1]{id,name,version,vendor}:
-  synthetic-application-01,Synthetic Browser,"1.0",Synthetic Vendor
+applications[1]:
+  - id: synthetic-application-01
+    name: Synthetic Browser
+    version: "1.0"
+    vendor: Synthetic Vendor
+    host:
+      id: synthetic-asset-01
+      aid: synthetic-device-01
+      hostname: SYNTHETIC-HOST
+      platform_name: Linux
+      last_seen_date: "2026-10-20T12:00:00Z"
+    architectures[1]: x64
+    installation_paths[1]: /opt/synthetic/browser
+    is_normalized: false
+    last_used_timestamp: "2026-10-20T11:00:00Z"
 help[1]: "Run `falcon-axi application list --limit 1 --cursor eyJvcGVyYXRpb24iOiJjb21iaW5lZF9hcHBsaWNhdGlvbnMiLCJtb2RlbCI6InRva2VuIiwicG9zaXRpb24iOiJzeW50aGV0aWMtYXBwbGljYXRpb25zLW5leHQiLCJmaW5nZXJwcmludCI6IjMyMjYzMGE3YTE2YzY0ZGUyZjFmM2Y5MTEyZjZmNjNjOWQwYWFmZDk3MjIyM2YyYWE5NjNjZjE0ZWY1ODg3YzEifQ` for the next page"
