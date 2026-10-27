@@ -33,7 +33,6 @@ What is shipped:
 - Falcon Shield SaaS posture checks: `shield list` and `shield show`, using `SaaS Security:read`;
 - NG-SIEM search: `search start`, `search status`, and `search stop`, the three operations captain
   exception N1 admits; see the [search contract](v1.md#43-ng-siem-search-was-excluded-on-the-credential-scope-test-and-captain-exception-n1-reversed-it) and [output contract](v1.md#102-default-schemas) for diagnostics;
-  `search start` checks certain CQL structural errors before authentication and reports the code, line, column, token class, and fix hint without echoing submitted query text or caret excerpts.
 - Falcon Intelligence: `actor list`, `actor show` (including `--mitre` for JSON ATT&CK mappings),
   `report list`, and `report show`, with FQL filters and cursor pagination on lists;
 - the Identity Protection directory and timeline: `identity list`, `identity show`, and
