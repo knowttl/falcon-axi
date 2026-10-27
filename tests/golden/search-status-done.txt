@@ -1,7 +1,7 @@
 state: done
 count: 2 of 2 matching events
 events_scanned: 148231
-parsed_query: "#event_simpleName=ProcessRollup2 | head(2)"
+parsed_query: "#event_simpleName=ProcessRollup2"
 events[2]{ComputerName,FileName,UserName,timestamp}:
   WIN-DC-01,powershell.exe,synthetic-user-a,"2026-07-28T09:14:02Z"
   WIN-WS-42,rundll32.exe,synthetic-user-b,"2026-07-28T09:15:44Z"

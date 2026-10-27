@@ -1,6 +1,6 @@
 {
   "name": "search-status-empty",
-  "comment": "Design section 10.2 clarifies that parsed_query echoes only the filter; the field name and value remain unchanged.",
+  "comment": "Design section 10.2 clarifies that parsed_query echoes only the filter; the synthetic response and expected value exclude pipeline stages, retaining the field name.",
   "argv": [
     "search",
     "status",
