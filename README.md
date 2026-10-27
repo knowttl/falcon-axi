@@ -365,9 +365,8 @@ Run any command with `--help` for its arguments and examples.
 ## Output and errors
 
 Data and structured errors use TOON on stdout; diagnostics use stderr.
-List results use compact columns, explicit empty states, and next-step hints.
-Detection, host, and vulnerability lists accept `--fields` to append selected columns; invalid field names are refused.
-Detail commands that support `--full` use it to expand truncated content.
+List results include explicit empty states and next-step hints.
+See the [command reference](docs/commands.md) for each command's returned fields, field selection, and preview controls.
 
 Exit status is `0` for success, `2` for `VALIDATION_ERROR`, `CONFIG_INVALID`, or `FQL_INVALID`, and `1` for other failures.
 Errors carry a stable `code` and actionable `help`.
