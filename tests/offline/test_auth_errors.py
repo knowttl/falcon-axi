@@ -171,3 +171,42 @@ def test_sensitive_values_are_redacted_after_complete_operators(key: str, operat
     text = f"{key}{operator}{value}"
     expected = f"{key}{operator}[redacted]"
     assert decode(render({"message": text}, [text])) == {"message": expected, "help": [expected]}
+
+
+@pytest.mark.parametrize("key", sorted(REDACTED_KEYS))
+@pytest.mark.parametrize("operator", [":", "=", ":=", "!=", "==", "=~", "<=>", "<", "<=", ">", ">=", " like "])
+@pytest.mark.parametrize("value", ["synthetic-tenant", '"synthetic tenant"'])
+@pytest.mark.parametrize(
+    ("before", "after"),
+    [
+        (" /* note */ ", ""),
+        ("", "/* note */"),
+        (" /* first */ ", " /* second */ ( /* third */ ( "),
+        (" // note\n", ""),
+        ("", " // note\n"),
+        (" /* first\nsecond */ ", "( /* third\nfourth */ ( "),
+    ],
+)
+def test_comments_and_parentheses_cannot_hide_sensitive_values(
+    key: str, operator: str, value: str, before: str, after: str
+) -> None:
+    text = f"{key}{before}{operator}{after}{value} )) | head(5)"
+    expected = f"{key}{before}{operator}{after}[redacted] )) | head(5)"
+    assert decode(render({"message": text}, [text])) == {"message": expected, "help": [expected]}
+
+
+@pytest.mark.parametrize(
+    ("excerpt", "expected"),
+    [
+        ('cid /* note */ = "synthetic-tenant" | head(', 'cid /* note */ = [redacted] | head('),
+        ('cid=/* note */"synthetic-tenant" | head(', 'cid=/* note */[redacted] | head('),
+        ('test(cid == ( "synthetic-tenant" )) | head(', 'test(cid == ( [redacted] )) | head('),
+        ('cid // note\n = "synthetic-tenant" | head(', 'cid // note\n = [redacted] | head('),
+        ('cid= // note\n"synthetic-tenant" | head(', 'cid= // note\n[redacted] | head('),
+        ('test(cid == (\n "synthetic-tenant" )) | head(', 'test(cid == (\n [redacted] )) | head('),
+    ],
+)
+def test_renderer_keeps_caret_alignment_after_redacting_multiline_context(excerpt: str, expected: str) -> None:
+    caret = " " * (len(excerpt.rsplit("\n", 1)[-1]) - 1) + "^"
+    redacted_caret = " " * (len(expected.rsplit("\n", 1)[-1]) - 1) + "^"
+    assert decode(render({}, [f"{excerpt}\n{caret}"])) == {"help": [f"{expected}\n{redacted_caret}"]}

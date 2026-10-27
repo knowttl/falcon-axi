@@ -1,6 +1,7 @@
 """Conservative CQL structure validation, without function or schema checks."""
 
 from falcon_axi.core import CliError
+from falcon_axi.render import redact
 
 _OPEN = {"(": ")", "[": "]", "{": "}"}
 
@@ -21,12 +22,14 @@ def validate_query(query: str) -> None:
         line_start = query.rfind("\n", 0, offset) + 1
         line = query.count("\n", 0, offset) + 1
         column = offset - line_start + 1
-        excerpt = query[line_start:].split("\n", 1)[0]
+        line_end = query.find("\n", offset)
+        excerpt = str(redact(query[: len(query) if line_end < 0 else line_end])).rsplit("\n", 1)[-1]
+        caret_column = len(str(redact(query[:offset])).rsplit("\n", 1)[-1])
         raise CliError(
             "VALIDATION_ERROR",
             f"CQL syntax error at line {line}, column {column}: {message}",
             [
-                f"{excerpt}\n{' ' * (column - 1)}^",
+                f"{excerpt}\n{' ' * caret_column}^",
                 "CQL is pipe-based and is neither FQL nor SQL: `#event_simpleName=ProcessRollup2 | head(5)`",
             ],
             details={"diagnostics": [{"line": line, "column": column, "message": message, "expected": expected}]},

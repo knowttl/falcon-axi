@@ -60,11 +60,19 @@ _SECRET_PATTERN = re.compile(
     r"|(?i:AccountKey=)[^;\s]+|(?i:sig=)[A-Za-z0-9%+/=]+"
 )
 
+_TRIVIA = r"(?:\s|/\*[\s\S]*?\*/|//[^\r\n]*(?:\r?\n|$))*"
+
 _KEY_VALUE_PATTERN = re.compile(
     r'(?<![\w.#])("?(?:'
     + "|".join(re.escape(key) for key in sorted(REDACTED_KEYS))
-    + r')"?\s*(?:<=>|:=|!=|==|=~|<=|>=|=|<|>|:|\blike\b)\s*)'
-    r'(\[redacted\]|"(?:\\.|[^"\\\n])*(?:"|$)|Bearer[ \t]+[^\s|,;)\]}]+|[^\s|,;)\]}]+)',
+    + r')"?'
+    + _TRIVIA
+    + r'(?:<=>|:=|!=|==|=~|<=|>=|=|<|>|:|\blike\b)'
+    + _TRIVIA
+    + r'(?:\('
+    + _TRIVIA
+    + r')*)'
+    r'(\[redacted\]|"(?:\\.|[^"\\\n])*(?:"|$)|Bearer[ \t]+[^\s|,;)\]}]+|[^\s|,;()\]}]+)',
     re.IGNORECASE,
 )
 
@@ -97,8 +105,9 @@ def _help_block(help: Sequence[str]) -> str:
 def _redact_help(item: str) -> str:
     excerpt, separator, caret = item.rpartition("\n")
     if separator and caret.strip() == "^":
-        prefix = excerpt.rsplit("\n", 1)[-1][: caret.index("^")]
-        return f"{redact(excerpt)}\n{' ' * len(redact(prefix))}^"
+        line_start = excerpt.rfind("\n") + 1
+        prefix = str(redact(excerpt[: line_start + caret.index("^")])).rsplit("\n", 1)[-1]
+        return f"{redact(excerpt)}\n{' ' * len(prefix)}^"
     return str(redact(item))
 
 
