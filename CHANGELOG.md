@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.8.0](https://github.com/knowttl/falcon-axi/compare/v0.7.5...v0.8.0) (2026-10-27)
+
+
+### Features
+
+* **cli:** validate CQL structure before starting searches ([#78](https://github.com/knowttl/falcon-axi/issues/78)) ([21163ad](https://github.com/knowttl/falcon-axi/commit/21163ad75b080ea573df6bdf618abe9281816033))
+
 ## [0.7.5](https://github.com/knowttl/falcon-axi/compare/v0.7.4...v0.7.5) (2026-10-27)
 
 
