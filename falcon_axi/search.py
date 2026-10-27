@@ -236,7 +236,8 @@ def search_status(
     return CommandOutput(
         value=_rate_limit(session, done),
         help=(
-            "Compare parsed_query with the query you sent: NG-SIEM turns an unrecognised word into a "
+            "parsed_query echoes the filter part only; stages after the first pipe are not echoed. "
+            "Compare it with the filter you sent: NG-SIEM turns an unrecognised word into a "
             "free-text stage rather than an error",
             "Bound a large result set in the query itself, with `| head(N)` or an aggregate such as "
             "`groupBy([...], function=count())`",
@@ -347,7 +348,8 @@ COMMAND_SPECS = (
                 "",
                 "Start a job with search start, then use status; --wait bounds polling without cancelling it.",
                 "It reports running, cancelled, or done, and carries the events once",
-                "the job is done. Compare parsed_query with the query you sent, because NG-SIEM turns an",
+                "the job is done. parsed_query echoes the filter part only; stages after the first pipe",
+                "are not echoed. Compare it with the filter you sent, because NG-SIEM turns an",
                 "unrecognised word into a free-text stage rather than an error.",
                 "",
                 "Example: falcon-axi search status abc123 --wait 30",

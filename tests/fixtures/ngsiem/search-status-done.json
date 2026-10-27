@@ -27,7 +27,7 @@
       ],
       "metaData": {
         "eventCount": 2,
-        "filterQuery": { "queryString": "#event_simpleName=ProcessRollup2 | head(2)" },
+        "filterQuery": { "queryString": "#event_simpleName=ProcessRollup2" },
         "isAggregate": false,
         "processedEvents": 148231,
         "queryEnd": 1785315600000,

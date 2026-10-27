@@ -92,7 +92,7 @@ class Handler(StreamRequestHandler):
                     "metaData": {
                         "eventCount": 1,
                         "processedEvents": 3,
-                        "filterQuery": {"queryString": "#event_simpleName=ProcessRollup2 | head(1)"},
+                        "filterQuery": {"queryString": "#event_simpleName=ProcessRollup2"},
                     },
                 }
             else:
