@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.7.5](https://github.com/knowttl/falcon-axi/compare/v0.7.4...v0.7.5) (2026-10-27)
+
+
+### Bug Fixes
+
+* improve NG-SIEM search diagnostics ([#76](https://github.com/knowttl/falcon-axi/issues/76)) ([5d0c1ba](https://github.com/knowttl/falcon-axi/commit/5d0c1ba1e95ce46161a549bcd019a90c714efeec))
+
 ## [0.7.4](https://github.com/knowttl/falcon-axi/compare/v0.7.3...v0.7.4) (2026-10-27)
 
 
