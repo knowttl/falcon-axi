@@ -41,6 +41,10 @@ def skill_markdown() -> str:
             "",
             "## Orientation",
             "",
+            "Start with the [compact investigation guide](references/agent-guide.md) "
+            "for exact commands, one-call forms, output bounds, safety and failure recovery.",
+            "Use help to repair a failed command or inspect an unfamiliar option, not to start an investigation.",
+            "",
             "Run `uvx falcon-axi` for recent detections, or invoke a known command directly.",
             "",
             *(f"- {line.replace('`falcon-axi', '`uvx falcon-axi')}" for line in HOME_GUIDANCE),
@@ -133,6 +137,7 @@ def skill_files() -> dict[str, str]:
 
     return {
         "SKILL.md": skill_markdown(),
+        "references/agent-guide.md": Path(__file__).with_name("agent-guide.md").read_text(encoding="utf-8"),
         **{
             f"references/{spec.name.replace(' ', '-')}.md": (
                 f"# {spec.name}\n\n"

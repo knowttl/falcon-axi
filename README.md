@@ -59,6 +59,8 @@ For on-demand guidance and the full command references, install the [agent skill
 npx skills add knowttl/falcon-axi --skill falcon-axi
 ```
 
+Start investigations with the [compact agent guide](skills/falcon-axi/references/agent-guide.md), including one-call forms, output controls, safety boundaries, and failure recovery.
+
 Choose either integration or both; neither grants Falcon permissions, and setup does not install the skill.
 See [agent integration](docs/agent-integration.md) for targets, durable-install requirements, and hook removal.
 
