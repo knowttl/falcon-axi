@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.8.2](https://github.com/knowttl/falcon-axi/compare/v0.8.1...v0.8.2) (2026-10-28)
+
+
+### Bug Fixes
+
+* align CLI descriptions and reorganize user documentation ([#82](https://github.com/knowttl/falcon-axi/issues/82)) ([62ad887](https://github.com/knowttl/falcon-axi/commit/62ad887b8d60166f23c6604a1ac1b83b6cf9740c))
+* guide agents directly into bounded investigations ([#85](https://github.com/knowttl/falcon-axi/issues/85)) ([a3e2500](https://github.com/knowttl/falcon-axi/commit/a3e2500c99a1563d2803144c9453317c49ed5f53))
+
 ## [0.8.1](https://github.com/knowttl/falcon-axi/compare/v0.8.0...v0.8.1) (2026-10-28)
 
 
