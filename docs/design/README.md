@@ -1,7 +1,7 @@
 # Design index
 
 Status: implemented in Python.
-The [README command table](../../README.md#commands) and [full reference](../commands.md) are generated from the shipped command registry and own delivery status.
+The [full command reference](../commands.md) is generated from the shipped command registry and owns delivery status; the [README](../../README.md#what-it-covers) summarizes command groups.
 This page preserves the domain rollout inventory formerly in the README; it is historical context, not a second command registry.
 
 - [v1 behavior and safety design](v1.md): command contracts, scopes, pagination, redaction, transport enforcement, and closed decisions in section 17.

@@ -7,7 +7,7 @@ This file is the project's committed home for project-intrinsic agent knowledge:
 ## v1 read-only invariant
 
 **`docs/design/v1.md` §0 owns the captain-confirmed, binding read-only invariant and its closed exceptions.**
-The README's generated command reference owns delivery status.
+The generated command reference in `docs/commands.md` owns delivery status.
 Relaxing the invariant further is a captain decision, never an agent's; its exceptions are not precedents to extend, and if a
 task seems to require any other mutation, stop and escalate.
 
@@ -69,7 +69,7 @@ The exclusion inventories (`exclusion list|show` with `--type`) and quarantined 
 (`quarantine list|show`) also ship as read-only commands.
 Malware family reads (`malware list`, `malware show`), Identity Protection policy-rule reads
 (`identity rule list`, `identity rule show`), and Discover IoT inventory (`iot list`) also ship.
-The README's generated command reference is the authoritative list of shipped commands, and
+The generated command reference in `docs/commands.md` is the authoritative list of shipped commands, and
 no help text, suggestion, or skill may advertise an unshipped command.
 `uv run scripts/verify.py` is the single local entry point for the complete offline required-check set
 (§14.5, §15.4); it runs ruff, `mypy --strict`, `scripts/architecture_check.py`, and the `tests/offline/` suite,
