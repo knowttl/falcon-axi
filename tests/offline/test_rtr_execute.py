@@ -66,7 +66,10 @@ def transport():
             serve("RTR_ExecuteCommand", response(201, {"resources": [{"cloud_request_id": "synthetic-command"}]})),
             serve(
                 "RTR_CheckCommandStatus",
-                response(200, {"resources": [{"stdout": "synthetic output", "complete": True, "sequence_id": 0}]}),
+                lambda args: response(
+                    200,
+                    {"resources": [{"stdout": "synthetic output" if args.query["sequence_id"] == 0 else "", "complete": True}]},
+                ),
             ),
             serve("RTR_DeleteSession", response(204, None)),
         ]
@@ -334,6 +337,7 @@ def test_profile_region_is_canonical_in_local_preview_and_core_execution(env, tr
         ORIGIN,
         ORIGIN,
         ORIGIN,
+        ORIGIN,
     ]
 
 
@@ -344,6 +348,7 @@ def test_success_deletes_the_returned_session_and_journals_without_output(env, t
     assert [request[1][0] for request in transport.requests if request[0] == "operation"] == [
         "RTR_InitSession",
         "RTR_ExecuteCommand",
+        "RTR_CheckCommandStatus",
         "RTR_CheckCommandStatus",
         "RTR_DeleteSession",
     ]
@@ -719,19 +724,34 @@ def test_output_chunk_cap_is_finite(env, transport, monkeypatch):
     assert (result.complete, result.truncated, result.cleanup) == (False, True, "deleted")
 
 
+def test_completed_output_chunk_cap_is_explicit(env, transport):
+    transport.responders.insert(
+        0,
+        serve(
+            "RTR_CheckCommandStatus",
+            lambda args: response(
+                200, {"resources": [{"stdout": "x", "complete": True, "sequence_id": args.query["sequence_id"]}]}
+            ),
+        ),
+    )
+    result = run(transport, env)
+    assert result.output == "x" * OUTPUT_CHUNKS
+    assert len(transport.operation_requests("RTR_CheckCommandStatus")) == OUTPUT_CHUNKS
+    assert (result.complete, result.truncated, result.cleanup) == (False, True, "deleted")
+
+
 def test_journal_and_output_are_redacted_before_truncation(env, transport):
     transport.responders.insert(
         0,
         serve(
             "RTR_CheckCommandStatus",
-            response(
+            lambda args: response(
                 200,
                 {
                     "resources": [
                         {
-                            "stdout": "synthetic-secret",
+                            "stdout": "synthetic-secret" if args.query["sequence_id"] == 0 else "",
                             "complete": True,
-                            "sequence_id": 0,
                         }
                     ]
                 },
@@ -881,12 +901,29 @@ def test_redaction_covers_a_secret_split_across_chunks(env, transport, monkeypat
     monkeypatch.setattr("falcon_axi.rtr_execute.time.sleep", lambda _: None)
     chunks = iter(
         [
-            response(200, {"resources": [{"stdout": "synthetic-", "complete": False, "sequence_id": 0}]}),
+            response(200, {"resources": [{"stdout": "synthetic-", "complete": True, "sequence_id": 0}]}),
             response(200, {"resources": [{"stdout": "secret", "complete": True, "sequence_id": 1}]}),
+            response(200, {"resources": [{"complete": True, "sequence_id": 2}]}),
         ]
     )
     transport.responders.insert(0, serve("RTR_CheckCommandStatus", lambda _: next(chunks)))
     assert run(transport, env).output == "[redacted]"
+
+
+def test_completed_command_collects_three_output_sequences(env, transport):
+    chunks = iter(
+        [
+            response(200, {"resources": [{"stdout": "first", "complete": True, "sequence_id": 0}]}),
+            response(200, {"resources": [{"stderr": "second", "complete": True, "sequence_id": 1}]}),
+            response(200, {"resources": [{"stdout": "third", "complete": True, "sequence_id": 2}]}),
+            response(200, {"resources": [{"stdout": "", "stderr": "", "complete": True, "sequence_id": 3}]}),
+        ]
+    )
+    transport.responders.insert(0, serve("RTR_CheckCommandStatus", lambda _: next(chunks)))
+    result = run(transport, env)
+    assert result.output == "firstsecondthird"
+    assert (result.complete, result.truncated, result.cleanup) == (True, False, "deleted")
+    assert [args.query["sequence_id"] for args in transport.operation_requests("RTR_CheckCommandStatus")] == [0, 1, 2, 3]
 
 
 def test_polling_carries_protocol_sequence_independently_of_attempt_count(env, transport, monkeypatch):
@@ -896,13 +933,14 @@ def test_polling_carries_protocol_sequence_independently_of_attempt_count(env, t
             response(200, {"resources": [{"stdout": "", "complete": False, "sequence_id": 0}]}),
             response(200, {"resources": [{"stdout": "first", "complete": False, "sequence_id": 71}]}),
             response(200, {"resources": [{"stdout": "second", "complete": True, "sequence_id": 72}]}),
+            response(200, {"resources": [{"complete": True, "sequence_id": 73}]}),
         ]
     )
     transport.responders.insert(0, serve("RTR_CheckCommandStatus", lambda _: next(chunks)))
     result = run(transport, env)
     assert result.output == "firstsecond"
     assert result.complete is True
-    assert [args.query["sequence_id"] for args in transport.operation_requests("RTR_CheckCommandStatus")] == [0, 0, 71]
+    assert [args.query["sequence_id"] for args in transport.operation_requests("RTR_CheckCommandStatus")] == [0, 0, 71, 73]
 
 
 @pytest.mark.parametrize("sequence_field", [{}, {"sequence_id": None}])
@@ -913,13 +951,14 @@ def test_completed_command_without_output_sequence_returns_its_output(env, trans
             response(200, {"resources": [{"stdout": "", "stderr": "", "complete": False, "sequence_id": 0}]}),
             response(200, {"resources": [{"stdout": "", "stderr": "", "complete": False, "sequence_id": 0}]}),
             response(200, {"resources": [{"stdout": "final output", "stderr": "", "complete": True, **sequence_field}]}),
+            response(200, {"resources": [{"complete": True, **sequence_field}]}),
         ]
     )
     transport.responders.insert(0, serve("RTR_CheckCommandStatus", lambda _: next(chunks)))
     result = run(transport, env)
     assert result.output == "final output"
     assert (result.complete, result.truncated, result.cleanup) == (True, False, "deleted")
-    assert [args.query["sequence_id"] for args in transport.operation_requests("RTR_CheckCommandStatus")] == [0, 0, 0]
+    assert [args.query["sequence_id"] for args in transport.operation_requests("RTR_CheckCommandStatus")] == [0, 0, 0, 1]
     assert len(transport.operation_requests("RTR_DeleteSession")) == 1
     assert records(env)[-1]["command_outcome"] == "complete"
 

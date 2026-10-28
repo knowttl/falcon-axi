@@ -185,7 +185,7 @@ def _execute_locked(
                 if not isinstance(stdout, str) or not isinstance(stderr, str) or type(chunk.get("complete")) is not bool:
                     raise CliError("UPSTREAM_ERROR", "RTR returned malformed command output")
                 returned_sequence = chunk.get("sequence_id")
-                # Falcon omits sequence_id from the final response of a completed command; no further request follows it.
+                # Completed responses may omit sequence_id; continue from the requested sequence.
                 if returned_sequence is None and chunk["complete"]:
                     returned_sequence = sequence
                 if type(returned_sequence) is not int or returned_sequence < sequence:
@@ -197,12 +197,15 @@ def _execute_locked(
                 if len(raw_output.encode()) > OUTPUT_BYTES or len(encoded) > OUTPUT_BYTES:
                     truncated = True
                     break
-                if chunk["complete"]:
+                if chunk["complete"] and not stdout and not stderr:
                     complete = True
                     break
                 if len(output.encode()) >= OUTPUT_BYTES:
                     truncated = True
                     break
+                if chunk["complete"]:
+                    sequence += 1
+                    continue
                 remaining = remaining_seconds()
                 time.sleep(min(0.1, remaining) if remaining is not None else 0.1)
             else:
