@@ -1,5 +1,6 @@
 {
   "name": "help-top",
+  "changes": "The shared description matches the README tagline and package metadata, retaining the audience phrase (design section 11.1).",
   "comment": "N4 section 4.6 adds search/status discovery and names the third optional write scope.",
   "argv": [
     "--help"

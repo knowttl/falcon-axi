@@ -32,10 +32,7 @@ from falcon_axi.shield import check_filters
 from falcon_axi.skill import HOME_GUIDANCE, skill_hint
 from falcon_axi.version import VERSION, version_output
 
-DESCRIPTION = (
-    "Read CrowdStrike Falcon detections, hosts, accounts, vulnerabilities, CVE intelligence, "
-    "indicators, identities, and NG-SIEM searches from the shell"
-)
+DESCRIPTION = "Read CrowdStrike Falcon from the shell with compact, structured results for agents and the humans running them."
 HOME_ROWS = 5
 
 GLOBAL_FLAGS = ("help", "region", "allow-unknown-origin", "member-cid", "no-member-cid", "config", "profile")

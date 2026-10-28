@@ -70,6 +70,15 @@ def test_readme_example_is_actual_offline_cli_output() -> None:
     assert stdout == expected
 
 
+def test_readme_fresh_install_excerpt_is_actual_offline_cli_output() -> None:
+    readme = (REPO / "README.md").read_text(encoding="utf-8")
+    expected = re.search(r"```console\n\$ falcon-axi\n(.*?)```", readme, re.DOTALL).group(1)
+    scenario = next(entry for entry in scenarios() if entry["name"] == "home-view-no-credential")
+    stdout, code = replay(scenario)
+    assert code == 1
+    assert expected in stdout
+
+
 @pytest.mark.parametrize(
     "name",
     [
@@ -102,3 +111,5 @@ def test_public_document_links_and_anchors_resolve(name: str) -> None:
 def test_package_description_matches_cli_description() -> None:
     package = tomllib.loads((REPO / "pyproject.toml").read_text(encoding="utf-8"))
     assert package["project"]["description"] == DESCRIPTION
+    readme = (REPO / "README.md").read_text(encoding="utf-8")
+    assert readme.splitlines()[2] == DESCRIPTION

@@ -16,12 +16,18 @@ Synthetic offline checks verify local behavior and safety constraints; they do n
 ## Quickstart
 
 Requires Python 3.11 or newer and [uv](https://docs.astral.sh/uv/getting-started/installation/).
-Install globally, then open the home view for recent detections:
+Install globally, or use `uvx falcon-axi` without a permanent install:
 
 ```sh
 uv tool install falcon-axi
-falcon-axi
-# Without a permanent install: uvx falcon-axi
+```
+
+Before credentials are configured, the home view reports (synthetic offline output excerpt):
+
+```console
+$ falcon-axi
+error: no Falcon profile configured
+code: PROFILE_REQUIRED
 ```
 
 Create a Falcon API client with the [required permissions](docs/commands.md#api-client-permissions).
@@ -29,10 +35,7 @@ Have your secret manager supply `FALCON_AXI_CLIENT_ID` and `FALCON_AXI_CLIENT_SE
 Keep credentials out of command arguments, shell history, and agent chat.
 For named profiles or secret files, see [configuration](docs/configuration.md).
 
-```sh
-falcon-axi setup
-falcon-axi auth status
-```
+Run `falcon-axi setup` for guidance, then `falcon-axi auth status` to check credentials.
 
 Read a severity count; this empty result is replayed from a synthetic offline fixture:
 
