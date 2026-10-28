@@ -267,7 +267,7 @@ Tests, fixtures, local configuration, and development automation are excluded fr
 
 **Install from PyPI.**
 
-The [README Quickstart](../../README.md#quickstart) owns PyPI installation through pip, uv tool install, and uvx.
+The [README Quickstart](../../README.md#quickstart) owns published-package installation instructions.
 See its [Configuration](../../README.md#configuration) section before running `falcon-axi auth status`.
 
 **Publishing.**

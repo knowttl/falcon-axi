@@ -61,7 +61,7 @@ What is shipped:
 - `--fields` on detection, host, and vuln lists to append selected columns to the default row.
 - container and serverless reads: `container list`, `image list`, `image vulnerabilities`, and `serverless list`.
   They match first-party API sources and are tested offline, without tenant validation.
-  See the [container and serverless contract](v1.md#25-container-and-serverless-reads) for filters, paging boundaries, and SARIF output, and [API client permissions](../../README.md#api-client-permissions) for provisioning.
+  See the [container and serverless contract](v1.md#25-container-and-serverless-reads) for filters, paging boundaries, and SARIF output, and [API client permissions](../commands.md#api-client-permissions) for provisioning.
 
 - custom IOC reads: `ioc list`, `ioc show`, `ioc hosts <type:value>`, and
   `ioc processes <type:value> --host <device_id>`;
