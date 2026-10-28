@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.8.1](https://github.com/knowttl/falcon-axi/compare/v0.8.0...v0.8.1) (2026-10-28)
+
+
+### Bug Fixes
+
+* collect remaining RTR output chunks ([#80](https://github.com/knowttl/falcon-axi/issues/80)) ([0d18970](https://github.com/knowttl/falcon-axi/commit/0d18970cb0a587c056fa68224278cc33fcc08299))
+
 ## [0.8.0](https://github.com/knowttl/falcon-axi/compare/v0.7.5...v0.8.0) (2026-10-27)
 
 
