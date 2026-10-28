@@ -199,7 +199,7 @@ The module names mirror stage 1's `src/` one for one, so a reviewer can diff the
 
 The port is a refactor across languages, and v1.md's contract is the test.
 
-- The command surface stays exactly what stage 1 ships **for the duration of the port**: home view, `detection list`, `detection show`, `auth status`; `--profile` still refused by name; nothing unshipped advertised (the [README command reference](../../README.md#commands) now owns delivery status).
+- The command surface stays exactly what stage 1 ships **for the duration of the port**: home view, `detection list`, `detection show`, `auth status`; `--profile` still refused by name; nothing unshipped advertised (the [generated command reference](../commands.md) now owns delivery status).
   Stage 2 widens it to the original three read domains plus `scopes`, and stage 3 adds the `search` noun captain exception N1 admits (v1.md §4.3); both are the design's own surface rather than port decisions.
 - Every flag name, error code, help line, and TOON schema stays identical.
 - **Parity gate.** Before any TypeScript is deleted, the ship task generates golden outputs from the TypeScript stage 1 for every offline test scenario (each fixture set plus argv), commits them under `tests/golden/`, and the Python port must reproduce them byte for byte.
@@ -267,7 +267,7 @@ Tests, fixtures, local configuration, and development automation are excluded fr
 
 **Install from PyPI.**
 
-The [README Quickstart](../../README.md#quickstart) owns PyPI installation through pip, uv tool install, and uvx.
+The [README Quickstart](../../README.md#quickstart) owns published-package installation instructions.
 See its [Configuration](../../README.md#configuration) section before running `falcon-axi auth status`.
 
 **Publishing.**
@@ -297,7 +297,7 @@ The empty-array encoder expectation becomes `key: []`; falcon-axi still renders 
 ## 9. Commissioning history
 
 The delivery surface is implemented.
-The stages below record the port and feature rollout; current command availability is owned by the [generated README reference](../../README.md#commands).
+The stages below record the port and feature rollout; current command availability is owned by the [generated command reference](../commands.md).
 
 **P0. Spike, one day, no product code.**
 Answer four questions with evidence and stop:
@@ -336,7 +336,7 @@ The golden set adds the identity scenarios as regression pins, and `tests/golden
 Setup and the hook are implemented under [v1.md §12.2](v1.md#122-session-hook-and-skill); the skill is installed separately.
 For the field-selection contract, see [v1.md §10.2](v1.md#102-default-schemas).
 Validation policy is owned by v1.md §15.
-For the pagination contract, see [v1.md §7.2](v1.md#72-what-the-cli-exposes); the [README's generated command reference](../../README.md#commands) owns delivery status.
+For the pagination contract, see [v1.md §7.2](v1.md#72-what-the-cli-exposes); the [generated command reference](../commands.md) owns delivery status.
 Profile configuration shipped separately under v1.md §5.2 and §12.1.
 Setup, field selection, bounded pagination, and the generated skill are implemented.
 The v1 design status is now "implemented"; release timing is independent of these historical stage names.

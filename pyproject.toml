@@ -5,7 +5,7 @@ build-backend = "hatchling.build"
 [project]
 name = "falcon-axi"
 version = "0.8.1"
-description = "Read CrowdStrike Falcon detections, hosts, accounts, vulnerabilities, CVE intelligence, indicators, identities, and NG-SIEM searches from the shell"
+description = "Read CrowdStrike Falcon from the shell with compact, structured results for agents and the humans running them."
 readme = "README.md"
 license = "MIT"
 license-files = ["LICENSE"]

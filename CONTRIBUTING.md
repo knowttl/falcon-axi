@@ -8,8 +8,7 @@ uv run scripts/verify.py
 ```
 
 The gate runs Ruff, strict mypy, architecture checks, generated skill and documentation drift checks, and the offline pytest suite.
-GitHub test CI is disabled; tests run locally before publication.
-The checked-in workflow describes the offline gate but is not an active publication check.
+GitHub CI runs the same offline gate on pull requests and pushes to `main`.
 The release workflow builds and publishes packages using PyPI Trusted Publishing.
 
 ## Tests and fixtures
@@ -33,9 +32,9 @@ uv run scripts/docs.py
 uv run scripts/verify.py
 ```
 
-Command declarations own the README table, full command reference, and generated skill references.
+Command declarations own the full command reference and generated skill references; the README summarizes command groups.
 Edit their sources rather than generated content.
-Every shipped command must appear in the README reference, and every advertised command must exist.
+Every shipped command must appear in `docs/commands.md`, and every advertised command must exist.
 
 ## Architecture and review
 
@@ -44,3 +43,9 @@ Preserve the [read-only boundary](docs/read-only.md), closed operation registry,
 Each new endpoint needs the documented scope and first-party corroborating evidence in its registry entry.
 Use conventional commit titles and keep pull requests focused on a reviewable behavior change.
 Do not hand-edit the generated changelog.
+
+## Releases
+
+The release workflow uses release-please to prepare version and changelog updates.
+Publishing a release builds the package and uploads it to PyPI using Trusted Publishing.
+Keep release mechanics in the workflow and package metadata; install examples should not pin release versions.

@@ -1,7 +1,7 @@
 # Read-only enforcement
 
 The shipped CLI reads Falcon data without changing hosts, detections, policies, or identities.
-Tenant-side effects are NG-SIEM search jobs, N3's explicitly authorized read-only RTR lifecycle, and N4's bounded MalQuery exact/fuzzy searches.
+Tenant-side effects are NG-SIEM search jobs, explicitly authorized read-only RTR sessions, and bounded MalQuery exact/fuzzy searches.
 Identity Protection's write-labelled GraphQL scope is used solely for registered read-only query documents.
 
 ## Closed transport boundary
@@ -18,7 +18,9 @@ These are closed ID allowlists; they do not authorize additional writes.
 The GraphQL sink accepts registered documents only, with caller inputs in variables, never caller-supplied query text.
 See [search lifecycle](design/v1.md#43-ng-siem-search-was-excluded-on-the-credential-scope-test-and-captain-exception-n1-reversed-it) and [Identity Protection](design/v1.md#44-the-identity-protection-directory-was-excluded-on-the-credential-scope-test-and-captain-exception-n2-reversed-it) for exception history and contracts.
 
-The [`FALCON_AXI_READ_ONLY` contract](design/v1.md#52-accepted-input-channels-in-precedence-order) defines which commands the switch blocks before authentication.
+`FALCON_AXI_READ_ONLY=1` blocks `search start`, `search stop`, `identity activity`, `host usb`, `malquery search`, and RTR execution before authentication.
+Search status, local RTR previews, and passive RTR history remain available.
+See the [switch contract](design/v1.md#52-accepted-input-channels-in-precedence-order) for accepted values.
 It does not change the fixed read-only GraphQL contract.
 There is no host containment, quarantine release, ingest, configuration write, or GraphQL mutation surface.
 RTR history reads session metadata and audit records without opening or executing a session, including under READ_ONLY.
@@ -27,7 +29,7 @@ RTR operation admission and execution guards are owned by [N3's design contract]
 ## RTR operator guidance
 
 Use `falcon-axi rtr run <device_id> --command '<complete command>' --profile triage` for a local preview.
-Before executing, check [API client permissions](../README.md#api-client-permissions) and Falcon product entitlement.
+Before executing, check [API client permissions](commands.md#api-client-permissions) and Falcon product entitlement.
 The selected profile must explicitly set `"rtr": {"enabled": true}` before execution; its optional `commands` array can only narrow the fixed read-only set.
 Add `--execute --confirm '<device_id>:<complete command>'` to execute exactly that host and command, including all arguments.
 The preview is flushed before any session creation, including for confirmed execution.

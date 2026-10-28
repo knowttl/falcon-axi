@@ -1,1 +1,1 @@
-Read CrowdStrike Falcon detections, hosts, accounts, vulnerabilities, CVE intelligence, indicators, identities, and NG-SIEM searches from the shell
+Read CrowdStrike Falcon from the shell with compact, structured results for agents and the humans running them.
