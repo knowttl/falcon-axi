@@ -54,18 +54,19 @@ class RunAuthority:
                 raise _deny()
             expected_body, expected_query = {"device_id": self.host, "queue_offline": False}, {}
         elif id == "RTR_ExecuteCommand":
-            if not self.session or self.deleted:
+            if not self.session or self.deleted or self.executed:
                 raise _deny()
             command = self.command
-            if self.executed:
-                listing = cat_size_command(self.command, self.allowed)
-                if self.size_checked or listing is None:
-                    raise _deny()
+            listing = cat_size_command(self.command, self.allowed)
+            if listing is not None and not self.size_checked:
                 base, command = "ls", listing
             expected_body = {"base_command": base, "command_string": command, "session_id": self.session}
             expected_query = {}
         elif id == "RTR_CheckCommandStatus":
-            if not self.request_id or not self.executed or self.deleted or self.status_requests >= OUTPUT_CHUNKS:
+            if (
+                not self.request_id or not (self.executed or self.size_checked)
+                or self.deleted or self.status_requests >= OUTPUT_CHUNKS
+            ):
                 raise _deny()
             sequence = query.get("sequence_id")
             if type(sequence) is not int or sequence < 0:
@@ -83,9 +84,10 @@ class RunAuthority:
         if id == "RTR_InitSession":
             self.initialized = True
         elif id == "RTR_ExecuteCommand":
-            if self.executed:
+            if listing is not None and not self.size_checked:
                 self.size_checked = True
-            self.executed = True
+            else:
+                self.executed = True
         elif id == "RTR_DeleteSession":
             self.deleted = True
         elif id == "RTR_CheckCommandStatus":

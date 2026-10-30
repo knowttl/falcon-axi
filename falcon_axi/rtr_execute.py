@@ -38,13 +38,20 @@ class RunResult:
 def _file_size(output: str, command: str) -> int | None:
     path = shlex.split(command, posix=False)[1].strip("\"'")
     names = {path, path.replace("\\", "/").rsplit("/", 1)[-1]}
-    lines = [re.split(r"\s{2,}|\t", line.strip()) for line in output.splitlines() if line.strip()]
-    if len(lines) != 2 or lines[0][:3] != ["Name", "Type", "Size (bytes)"]:
+    lines = [line.strip() for line in output.splitlines() if line.strip()]
+    headers = [index for index, line in enumerate(lines) if re.match(r"Name\s+Type\s+Size \(bytes\)", line)]
+    if len(headers) != 1:
         return None
-    row = lines[1]
-    if len(row) < 3 or row[0] not in names or row[1].lower() != "file" or re.fullmatch(r"[0-9]+", row[2]) is None:
+    name_pattern = "|".join(re.escape(name) for name in sorted(names, key=len, reverse=True))
+    rows = [
+        match.group(1)
+        for line in lines[headers[0] + 1:]
+        if (match := re.fullmatch(r"(?:" + name_pattern + r")\s+(.+)", line))
+    ]
+    if len(rows) != 1:
         return None
-    return int(row[2])
+    row = re.fullmatch(r"\.[^\s]+\s+([0-9]+)(?:\s+.*)?", rows[0])
+    return int(row.group(1)) if row else None
 
 
 @contextmanager
@@ -165,6 +172,7 @@ def _execute_locked(
     size_unverified = base == "cat"
     stdout_bytes = 0
     has_stderr = False
+    size: int | None = None
     failure: BaseException | None = None
 
     def request(id: OperationId, body: Any = None, query: Mapping[str, Any] | None = None) -> Any:
@@ -201,6 +209,26 @@ def _execute_locked(
             authority.session = _identifier(initialized, "session_id")
             record.update(phase="execute", session=authority.session, cleanup="pending")
             journal.append(record)
+            listing = cat_size_command(command, credential.rtr.commands) if base == "cat" else None
+            if listing is not None:
+                try:
+                    listed = _resource(request("RTR_ExecuteCommand", {
+                        "base_command": "ls", "command_string": listing, "session_id": authority.session,
+                    }))
+                    authority.request_id = _identifier(listed, "cloud_request_id")
+                    listing_output = ""
+                    for text, stderr, ended in _command_chunks(request, authority):
+                        if stderr:
+                            break
+                        listing_output += text
+                        if len(listing_output.encode()) > OUTPUT_BYTES:
+                            break
+                        if ended and not text:
+                            size = _file_size(listing_output, command)
+                            break
+                except CliError:
+                    pass
+                size_unverified = size is None
             executed = _resource(
                 request(
                     "RTR_ExecuteCommand",
@@ -230,42 +258,19 @@ def _execute_locked(
                     break
             else:
                 truncated = True
-            if base == "cat":
-                stream_complete = complete
-                complete = False
-                listing = cat_size_command(command, credential.rtr.commands)
-                size = None
-                if listing is not None and authority.status_requests < OUTPUT_CHUNKS:
-                    try:
-                        listed = _resource(request("RTR_ExecuteCommand", {
-                            "base_command": "ls", "command_string": listing, "session_id": authority.session,
-                        }))
-                        authority.request_id = _identifier(listed, "cloud_request_id")
-                        listing_output = ""
-                        for text, stderr, ended in _command_chunks(request, authority):
-                            if stderr:
-                                break
-                            listing_output += text
-                            if len(listing_output.encode()) > OUTPUT_BYTES:
-                                break
-                            if ended and not text:
-                                size = _file_size(listing_output, command)
-                                break
-                    except CliError:
-                        pass
-                size_unverified = size is None
-                if size is not None:
-                    returned_bytes = min(stdout_bytes, len(output.encode()))
-                    truncated |= returned_bytes < size or size >= OUTPUT_BYTES
-                    complete = (
-                        stream_complete and not truncated and not has_stderr
-                        and len(output.encode()) == size and stdout_bytes == size
-                    )
-            record["command_outcome"] = "complete" if complete else "incomplete"
     except BaseException as error:
         failure = error
         record["command_outcome"] = "unknown" if authority.executed else "not_started"
     finally:
+        if base == "cat":
+            if size is not None:
+                truncated |= min(stdout_bytes, len(output.encode())) < size or size >= OUTPUT_BYTES
+            complete = (
+                complete and size is not None and not truncated and not has_stderr
+                and len(output.encode()) == size and stdout_bytes == size
+            )
+        if failure is None:
+            record["command_outcome"] = "complete" if complete else "incomplete"
         if authority.session:
             try:
                 with _defer_interrupt(), rtr_cleanup_budget():
