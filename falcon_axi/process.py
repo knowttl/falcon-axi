@@ -11,6 +11,7 @@ from falcon_axi.cursor import CursorContext, decode_after, encode_cursor
 from falcon_axi.domain import CommandOutput, body_of, rate_limit_note
 from falcon_axi.falcon_error import translate_falcon_error
 from falcon_axi.render import raw, redact, truncate
+from falcon_axi.response_diagnostics import upstream_invalid
 from falcon_axi.transport.operations import OperationId
 from falcon_axi.transport.types import QueryValue, RequestArgs
 
@@ -51,10 +52,10 @@ def _show(ctx: Invocation) -> CommandOutput:
     if response.status != 200:
         raise translate_falcon_error(response, "entities_processes", "process details")
     if not isinstance(response.body, list) or any(not isinstance(entry, Mapping) for entry in response.body):
-        raise CliError("UPSTREAM_ERROR", "Falcon returned malformed process details")
+        raise upstream_invalid("Falcon returned malformed process details")
     record = next((entry for entry in response.body if entry.get("process_id") == id), None)
     if record is None:
-        raise CliError("UPSTREAM_ERROR", "Falcon returned process details without the requested identifier")
+        raise upstream_invalid("Falcon returned process details without the requested identifier")
     value = {field: record.get(field) if record.get(field) is not None else "unknown" for field in _FIELDS}
     value["command_line"] = redact(value["command_line"])
     shortened = False
@@ -82,7 +83,7 @@ def _tree_read(ctx: Invocation, operation: OperationId, query: dict[str, QueryVa
     body = body_of(answer)
     records = body.get("resources")
     if body.get("errors") or not isinstance(records, list) or any(not isinstance(row, Mapping) for row in records):
-        raise CliError("UPSTREAM_ERROR", "Falcon returned an invalid process graph response")
+        raise upstream_invalid("Falcon returned an invalid process graph response")
     return body
 
 
@@ -93,26 +94,26 @@ def _tree_summary(ctx: Invocation, identifier: str) -> Mapping[str, Any]:
     for record in records:
         if record.get("id") == identifier:
             return record  # type: ignore[no-any-return]
-    raise CliError("UPSTREAM_ERROR", "Falcon returned a different process graph identifier")
+    raise upstream_invalid("Falcon returned a different process graph identifier")
 
 
 def _tree_parent(record: Mapping[str, Any]) -> str | None:
     edges = record.get("edges", {})
     parents = edges.get("parent_process", []) if isinstance(edges, Mapping) else None
     if not isinstance(parents, list) or len(parents) > 1:
-        raise CliError("UPSTREAM_ERROR", "Falcon returned ambiguous process parent edges")
+        raise upstream_invalid("Falcon returned ambiguous process parent edges")
     if not parents:
         return None
     identifier = parents[0].get("id") if isinstance(parents[0], Mapping) else None
     if not isinstance(identifier, str) or not identifier:
-        raise CliError("UPSTREAM_ERROR", "Falcon returned a process parent without an identifier")
+        raise upstream_invalid("Falcon returned a process parent without an identifier")
     return identifier
 
 
 def _tree_row(record: Mapping[str, Any], relation: str, full: bool) -> tuple[dict[str, Any], bool]:
     props = record.get("properties", {})
     if not isinstance(props, Mapping):
-        raise CliError("UPSTREAM_ERROR", "Falcon returned invalid process properties")
+        raise upstream_invalid("Falcon returned invalid process properties")
     row = {"relation": relation, "id": record.get("id")}
     for key, source in (
         ("filename", "ImageFileName"),
@@ -170,7 +171,7 @@ def _tree(ctx: Invocation) -> CommandOutput:
     children = []
     for child in body["resources"]:
         if not isinstance(child.get("id"), str) or not child["id"]:
-            raise CliError("UPSTREAM_ERROR", "Falcon returned a process child without an identifier")
+            raise upstream_invalid("Falcon returned a process child without an identifier")
         row, cut = _tree_row(child, "child", full)
         children.append(row)
         shortened |= cut
@@ -186,7 +187,7 @@ def _tree(ctx: Invocation) -> CommandOutput:
     next_page = pagination.get("next_page") if isinstance(pagination, Mapping) else None
     if children and isinstance(next_page, str) and next_page:
         if next_page == offset:
-            raise CliError("UPSTREAM_ERROR", "Falcon returned a non-advancing child cursor")
+            raise upstream_invalid("Falcon returned a non-advancing child cursor")
         token = encode_cursor(next_page, context, ctx.credential.client_secret)
         value["continuation_cursor"] = token
         suggestion = ctx.suggestion + (" --full" if full else "")

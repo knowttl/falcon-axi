@@ -10,6 +10,7 @@ from typing import Any
 
 from falcon_axi.cli import run
 from falcon_axi.cursor import CursorContext, encode_cursor
+from falcon_axi.response_diagnostics import record_response
 from falcon_axi.transport.graphql import request_body
 from falcon_axi.transport.operations import operation, path_arguments
 from falcon_axi.transport.types import FalconResponse, RequestArgs
@@ -132,11 +133,14 @@ class _GoldenTransport:
         for responder in self.responders:
             answer = responder(id, args)
             if answer is not None:
+                record_response(answer.status, answer.headers, answer.body)
                 return answer
         raise AssertionError(f"no recorded response for {id}")
 
     def request_oauth_token(self, args: Any) -> FalconResponse:
-        return self.oauth.pop(0) if len(self.oauth) > 1 else self.oauth[0]
+        answer = self.oauth.pop(0) if len(self.oauth) > 1 else self.oauth[0]
+        record_response(answer.status, answer.headers, answer.body)
+        return answer
 
 
 def replay(scenario: Mapping[str, Any]) -> tuple[str, int]:

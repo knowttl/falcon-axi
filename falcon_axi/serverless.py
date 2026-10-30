@@ -3,11 +3,11 @@
 from collections.abc import Mapping
 
 from falcon_axi.command import CommandSpec, Invocation
-from falcon_axi.core import CliError
 from falcon_axi.cursor import CursorContext, decode_offset, encode_cursor
 from falcon_axi.domain import CommandOutput, body_of
 from falcon_axi.falcon_error import translate_falcon_error
 from falcon_axi.render import raw
+from falcon_axi.response_diagnostics import upstream_invalid
 from falcon_axi.transport.types import RequestArgs
 
 
@@ -41,7 +41,7 @@ def _list(ctx: Invocation) -> CommandOutput:
     sarif = body.get("resources", body)
     runs = sarif.get("runs") if isinstance(sarif, Mapping) else None
     if not isinstance(runs, list) or any(not isinstance(run, Mapping) for run in runs):
-        raise CliError("UPSTREAM_ERROR", "Falcon returned an invalid serverless SARIF document")
+        raise upstream_invalid("Falcon returned an invalid serverless SARIF document")
     if not runs:
         return CommandOutput(value={"runs": raw("0 serverless SARIF runs matching the supplied query")}, help=())
     # A SARIF run can aggregate many vulnerabilities. Neither its count nor its rule count

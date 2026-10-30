@@ -10,6 +10,7 @@ from collections.abc import Callable, Mapping, Sequence
 from pathlib import Path
 from typing import Any
 
+from falcon_axi.response_diagnostics import record_response
 from falcon_axi.transport.graphql import request_body
 from falcon_axi.transport.operations import operation, path_arguments
 from falcon_axi.transport.rtr import prepare_grant
@@ -51,6 +52,7 @@ class RecordedTransport:
         for responder in self.responders:
             answer = responder(id, args)
             if answer is not None:
+                record_response(answer.status, answer.headers, answer.body)
                 return answer
         raise AssertionError(f"no recorded response for {id}")
 
@@ -59,6 +61,7 @@ class RecordedTransport:
         next_response = self.oauth.pop(0) if len(self.oauth) > 1 else (self.oauth[0] if self.oauth else None)
         if next_response is None:
             raise AssertionError("no recorded token response")
+        record_response(next_response.status, next_response.headers, next_response.body)
         return next_response
 
     def operation_requests(self, id: str) -> list[RequestArgs]:

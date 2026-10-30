@@ -17,6 +17,7 @@ from falcon_axi.credentials import Credential, read_only, resolve_credential, to
 from falcon_axi.falcon_error import falcon_messages, translate_falcon_error
 from falcon_axi.origin import assert_trusted_origin, resolve_base_url
 from falcon_axi.redaction import redact_text, redaction_scope, register_secret
+from falcon_axi.response_diagnostics import upstream_invalid
 from falcon_axi.rtr_journal import Journal
 from falcon_axi.rtr_policy import EXECUTION_SECONDS, OUTPUT_BYTES, OUTPUT_CHUNKS, cat_size_command, parse_command, validate_host
 from falcon_axi.transport.budget import BudgetExpired, remaining_seconds, request_budget, rtr_cleanup_budget
@@ -70,14 +71,14 @@ def _defer_interrupt() -> Iterator[None]:
 def _resource(body: Any) -> dict[str, Any]:
     resources = body.get("resources") if isinstance(body, dict) else None
     if not isinstance(resources, list) or len(resources) != 1 or not isinstance(resources[0], dict):
-        raise CliError("UPSTREAM_ERROR", "RTR response did not identify one resource")
+        raise upstream_invalid("RTR response did not identify one resource")
     return resources[0]
 
 
 def _identifier(resource: Mapping[str, Any], key: str) -> str:
     value = resource.get(key)
     if not isinstance(value, str) or not value or len(value) > 256 or any(ord(char) < 33 for char in value):
-        raise CliError("UPSTREAM_ERROR", "RTR response omitted a valid lifecycle identifier")
+        raise upstream_invalid("RTR response omitted a valid lifecycle identifier")
     return value
 
 
@@ -99,12 +100,12 @@ def _command_chunks(
         )
         stdout, stderr = chunk.get("stdout", ""), chunk.get("stderr", "")
         if not isinstance(stdout, str) or not isinstance(stderr, str) or type(chunk.get("complete")) is not bool:
-            raise CliError("UPSTREAM_ERROR", "RTR returned malformed command output")
+            raise upstream_invalid("RTR returned malformed command output")
         cursor = chunk.get("sequence_id")
         if cursor is None and chunk["complete"]:
             cursor = sequence
         if type(cursor) is not int or cursor < sequence:
-            raise CliError("UPSTREAM_ERROR", "RTR returned an invalid output sequence")
+            raise upstream_invalid("RTR returned an invalid output sequence")
         sequence = max(sequence + 1, cursor) if chunk["complete"] else cursor
         yield stdout, stderr, chunk["complete"]
         if chunk["complete"] and not stdout and not stderr:

@@ -1,5 +1,6 @@
 {
   "name": "identity-list-graphql-error",
+  "changes": "The expected document deliberately adds response-invalid diagnostics under docs/design/v1.md section 9.4: status and bounded shape metadata for the GraphQL error on HTTP 200. The fixture has no Content-Type, so its null contentType is omitted by the renderer. The error code, trace_id and help remain unchanged.",
   "argv": [
     "identity",
     "list"

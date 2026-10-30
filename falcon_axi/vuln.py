@@ -26,6 +26,7 @@ from falcon_axi.domain import (
 from falcon_axi.falcon_error import translate_falcon_error
 from falcon_axi.fql import VULN_SEVERITIES, VULN_STATUSES, VulnQuery, describe_vuln_query, vuln_filter
 from falcon_axi.render import raw
+from falcon_axi.response_diagnostics import upstream_invalid
 from falcon_axi.transport.types import FalconResponse, QueryValue, RequestArgs, Transport
 from falcon_axi.walk import Page, max_rows_of, walk
 
@@ -290,7 +291,7 @@ def show_vulnerability(ctx: Invocation) -> CommandOutput:
         )
     records = [entry for entry in entries if isinstance(entry, Mapping) and entry.get("id") == requested]
     if not records:
-        raise CliError("UPSTREAM_ERROR", "Falcon returned a vulnerability resource without the requested identifier")
+        raise upstream_invalid("Falcon returned a vulnerability resource without the requested identifier")
     record = records[0]
     detail = {
         "id": requested,

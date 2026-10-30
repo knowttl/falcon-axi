@@ -16,6 +16,7 @@ from falcon_axi.fql import PRODUCTS, SEVERITIES, STATUSES, DetectionQuery, descr
 from falcon_axi.identity import is_account_subject
 from falcon_axi.process import PROCESS_ID
 from falcon_axi.render import raw, redact, truncate
+from falcon_axi.response_diagnostics import upstream_invalid
 from falcon_axi.transport.types import RequestArgs, Transport
 from falcon_axi.walk import Page, max_rows_of, offset_page, walk
 
@@ -336,8 +337,7 @@ def summarize_detections(transport: Transport, session: Session, query: Detectio
     )
     if response.status != 200:
         raise translate_falcon_error(response, "PostAggregatesAlertsV2", "detection summary")
-    invalid = CliError(
-        "UPSTREAM_ERROR",
+    invalid = upstream_invalid(
         "Falcon returned an incomplete detection summary",
         ["Retry shortly; report this command if the problem persists"],
     )

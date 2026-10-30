@@ -9,6 +9,7 @@ from falcon_axi.credentials import Credential
 from falcon_axi.falcon_error import translate_falcon_error
 from falcon_axi.origin import REGIONS, region_of
 from falcon_axi.redaction import register_secret
+from falcon_axi.response_diagnostics import upstream_invalid
 from falcon_axi.transport.types import FalconResponse, OAuthTokenArgs, Transport
 
 
@@ -53,8 +54,7 @@ def _token_of(response: FalconResponse) -> str:
     body: Any = response.body
     token = body.get("access_token") if isinstance(body, Mapping) else None
     if not isinstance(token, str) or not token:
-        raise CliError(
-            "UPSTREAM_ERROR",
+        raise upstream_invalid(
             "the Falcon token response carried no access token",
             ["Retry shortly", "Run `falcon-axi auth status` to re-check the credential"],
         )

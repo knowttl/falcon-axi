@@ -9,6 +9,7 @@ from falcon_axi.cursor import CursorContext, decode_offset, encode_cursor
 from falcon_axi.domain import DEFAULT_LIMIT, CommandOutput, rate_limit_note, resources, total
 from falcon_axi.falcon_error import translate_falcon_error
 from falcon_axi.render import raw, redact, truncate
+from falcon_axi.response_diagnostics import upstream_invalid
 from falcon_axi.transport.operations import OperationId
 from falcon_axi.transport.types import FalconResponse, RequestArgs
 
@@ -49,7 +50,7 @@ def _list(ctx: Invocation) -> CommandOutput:
         raise translate_falcon_error(response, operation, f"{noun}s")
     entries = resources(response)
     if not all(isinstance(entry, Mapping) and "id" in entry for entry in entries):
-        raise CliError("UPSTREAM_ERROR", f"Falcon returned an invalid {noun} resource")
+        raise upstream_invalid(f"Falcon returned an invalid {noun} resource")
     if not entries:
         message = f"no more {noun}s" if offset else f"0 {noun}s matching the supplied filter" if filter else f"0 {noun}s"
         return CommandOutput(value={f"{noun}s": raw(message)}, help=())
@@ -89,7 +90,7 @@ def _show(ctx: Invocation) -> CommandOutput:
         )
     matched = [entry for entry in entries if isinstance(entry, Mapping) and str(entry.get("id")) == requested]
     if not matched:
-        raise CliError("UPSTREAM_ERROR", f"Falcon returned a {noun} resource without the requested identifier")
+        raise upstream_invalid(f"Falcon returned a {noun} resource without the requested identifier")
     detail = redact(matched[0])
     help: list[str] = []
     if not ctx.flags.get("full"):
@@ -110,7 +111,7 @@ def _show(ctx: Invocation) -> CommandOutput:
         if mappings is not None and (
             not isinstance(mappings, list) or not all(isinstance(entry, Mapping) for entry in mappings)
         ):
-            raise CliError("UPSTREAM_ERROR", "Falcon returned an invalid JSON ATT&CK report")
+            raise upstream_invalid("Falcon returned an invalid JSON ATT&CK report")
         value["mitre"] = mappings if mappings else raw("0 ATT&CK mappings for this actor")
     return CommandOutput(value=value, help=tuple(help))
 

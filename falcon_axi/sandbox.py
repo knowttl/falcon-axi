@@ -11,6 +11,7 @@ from falcon_axi.cursor import CursorContext, decode_offset, encode_cursor
 from falcon_axi.domain import CommandOutput, body_of, total
 from falcon_axi.falcon_error import translate_falcon_error
 from falcon_axi.render import raw
+from falcon_axi.response_diagnostics import upstream_invalid
 from falcon_axi.transport.operations import OperationId
 from falcon_axi.transport.types import QueryValue, RequestArgs
 
@@ -47,24 +48,24 @@ def _read(ctx: Invocation, operation: OperationId, query: Mapping[str, QueryValu
     body = body_of(answer)
     records = body.get("resources")
     if body.get("errors") or not isinstance(records, list):
-        raise CliError("UPSTREAM_ERROR", "Falcon returned an invalid sandbox report response")
+        raise upstream_invalid("Falcon returned an invalid sandbox report response")
     return records
 
 
 def _summaries(ctx: Invocation, ids: Sequence[str]) -> list[Mapping[str, Any]]:
     records = _read(ctx, "GetSummaryReports", {"ids": tuple(ids)})
     if any(not isinstance(record, Mapping) or not isinstance(record.get("id"), str) for record in records):
-        raise CliError("UPSTREAM_ERROR", "Falcon returned an invalid sandbox report summary")
+        raise upstream_invalid("Falcon returned an invalid sandbox report summary")
     by_id = {record["id"]: record for record in records}
     if any(id not in by_id for id in ids):
-        raise CliError("UPSTREAM_ERROR", "Falcon omitted a requested sandbox report summary")
+        raise upstream_invalid("Falcon omitted a requested sandbox report summary")
     return [by_id[id] for id in ids]
 
 
 def _environments(record: Mapping[str, Any], fields: tuple[str, ...]) -> list[dict[str, Any]]:
     environments = record.get("sandbox", [])
     if not isinstance(environments, list) or any(not isinstance(env, Mapping) for env in environments):
-        raise CliError("UPSTREAM_ERROR", "Falcon returned invalid sandbox environments")
+        raise upstream_invalid("Falcon returned invalid sandbox environments")
     return [{field: env.get(field, "unknown") for field in fields} for env in environments]
 
 
@@ -93,7 +94,7 @@ def _list(ctx: Invocation) -> CommandOutput:
     body = body_of(answer)
     ids = body.get("resources")
     if body.get("errors") or not isinstance(ids, list) or any(not isinstance(id, str) or not id for id in ids):
-        raise CliError("UPSTREAM_ERROR", "Falcon returned invalid sandbox report identifiers")
+        raise upstream_invalid("Falcon returned invalid sandbox report identifiers")
     if not ids:
         return CommandOutput(
             {
@@ -140,7 +141,7 @@ def _show(ctx: Invocation) -> CommandOutput:
         raise CliError("NOT_FOUND", "no sandbox report matched that identifier", [_USAGE])
     record = next((row for row in records if isinstance(row, Mapping) and row.get("id") == id), None)
     if record is None:
-        raise CliError("UPSTREAM_ERROR", "Falcon omitted the requested sandbox report summary")
+        raise upstream_invalid("Falcon omitted the requested sandbox report summary")
     return CommandOutput(
         {
             "sandbox_report": {

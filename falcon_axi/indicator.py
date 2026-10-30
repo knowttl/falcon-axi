@@ -9,6 +9,7 @@ from falcon_axi.cursor import CursorContext, decode_after, encode_cursor
 from falcon_axi.domain import DEFAULT_LIMIT, CommandOutput, resources, text, total
 from falcon_axi.falcon_error import translate_falcon_error
 from falcon_axi.render import raw
+from falcon_axi.response_diagnostics import upstream_invalid
 from falcon_axi.transport.types import RequestArgs
 
 SORT = "_marker.asc"
@@ -57,7 +58,7 @@ def _list(ctx: Invocation) -> CommandOutput:
             help=(),
         )
     if any(not isinstance(record, Mapping) or not text(record.get("id")) for record in records):
-        raise CliError("UPSTREAM_ERROR", "Falcon returned an indicator without an identifier")
+        raise upstream_invalid("Falcon returned an indicator without an identifier")
     rows = [
         {name: record.get(name, "unknown") for name in ("id", "indicator", "type", "malicious_confidence")}
         for record in records
@@ -69,7 +70,7 @@ def _list(ctx: Invocation) -> CommandOutput:
     if more:
         next_marker = text(records[-1].get("_marker"))
         if next_marker is None or (marker is not None and next_marker <= marker):
-            raise CliError("UPSTREAM_ERROR", "Falcon returned no advancing indicator marker")
+            raise upstream_invalid("Falcon returned no advancing indicator marker")
         continuation = encode_cursor(next_marker, context, ctx.credential.client_secret)
         value["continuation_cursor"] = continuation
         help.append(f"Run `{ctx.suggestion} --cursor {continuation}` for the next page")
@@ -94,7 +95,7 @@ def _show(ctx: Invocation) -> CommandOutput:
         raise translate_falcon_error(response, "GetIntelIndicatorEntities", "intelligence indicators")
     matched = [record for record in resources(response) if isinstance(record, Mapping) and record.get("id") == id]
     if not matched:
-        raise CliError("UPSTREAM_ERROR", "Falcon returned an indicator without the requested identifier")
+        raise upstream_invalid("Falcon returned an indicator without the requested identifier")
     detail = {key: value for key, value in matched[0].items() if key != "_marker"}
     return CommandOutput(value={"indicator": detail}, help=())
 
