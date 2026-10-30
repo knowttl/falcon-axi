@@ -84,7 +84,8 @@ def list_cves(ctx: Invocation) -> CommandOutput:
     )
     if hydrated.status not in (200, 404):
         raise translate_falcon_error(hydrated, "GetVulnerabilities", "CVE intelligence")
-    by_id = {entry.get("cve"): entry for entry in resources(hydrated) if isinstance(entry, Mapping)}
+    entries = resources(hydrated) if hydrated.status == 200 else []
+    by_id = {entry.get("cve"): entry for entry in entries if isinstance(entry, Mapping)}
     rows = [
         {
             "cve": id,

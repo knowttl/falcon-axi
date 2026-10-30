@@ -279,8 +279,8 @@ def show_vulnerability(ctx: Invocation) -> CommandOutput:
     )
     if response.status not in (200, 404):
         raise translate_falcon_error(response, "getVulnerabilities", "vulnerabilities")
-    records = [entry for entry in resources(response) if isinstance(entry, Mapping) and entry.get("id") == requested]
-    if response.status == 404 or not resources(response):
+    entries = resources(response) if response.status == 200 else []
+    if not entries:
         raise CliError(
             "NOT_FOUND",
             "no vulnerability matched that identifier",
@@ -288,6 +288,7 @@ def show_vulnerability(ctx: Invocation) -> CommandOutput:
                 "Run `falcon-axi vuln list --status open` to find Spotlight record identifiers",
             ],
         )
+    records = [entry for entry in entries if isinstance(entry, Mapping) and entry.get("id") == requested]
     if not records:
         raise CliError("UPSTREAM_ERROR", "Falcon returned a vulnerability resource without the requested identifier")
     record = records[0]

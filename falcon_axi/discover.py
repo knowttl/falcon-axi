@@ -265,7 +265,8 @@ def _iot_list(ctx: Invocation) -> CommandOutput:
     )
     if details.status not in (200, 404):
         raise translate_falcon_error(details, "get_iot_hosts", "IoT assets")
-    by_id = {entry["id"]: entry for entry in resources(details) if isinstance(entry, Mapping) and entry.get("id")}
+    entries = resources(details) if details.status == 200 else []
+    by_id = {entry["id"]: entry for entry in entries if isinstance(entry, Mapping) and entry.get("id")}
     rows = [
         {
             "id": id,
