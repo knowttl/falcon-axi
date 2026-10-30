@@ -926,6 +926,36 @@ def test_completed_command_collects_three_output_sequences(env, transport):
     assert [args.query["sequence_id"] for args in transport.operation_requests("RTR_CheckCommandStatus")] == [0, 1, 2, 3]
 
 
+@pytest.mark.parametrize("size,complete,truncated", [(28_370, True, False), (70_000, False, True)])
+def test_cat_collects_continuation_sequences_up_to_the_byte_cap(env, transport, size, complete, truncated):
+    content = ("0123456789abcdef" * 4375)[:size]
+
+    def status(args):
+        sequence = args.query["sequence_id"]
+        return response(
+            200,
+            {
+                "resources": [
+                    {
+                        "session_id": "synthetic-session",
+                        "task_id": "synthetic-command",
+                        "base_command": "cat",
+                        "stdout": content[sequence * 10_000 : (sequence + 1) * 10_000],
+                        "stderr": "",
+                        "complete": True,
+                        "sequence_id": sequence + 1,
+                    }
+                ]
+            },
+        )
+
+    transport.responders.insert(0, serve("RTR_CheckCommandStatus", status))
+    result = run(transport, env, 'cat "synthetic.txt"')
+    assert result.output == content[:OUTPUT_BYTES]
+    assert len(result.output.encode()) == min(size, OUTPUT_BYTES)
+    assert (result.complete, result.truncated, result.cleanup) == (complete, truncated, "deleted")
+
+
 def test_polling_carries_protocol_sequence_independently_of_attempt_count(env, transport, monkeypatch):
     monkeypatch.setattr("falcon_axi.rtr_execute.time.sleep", lambda _: None)
     chunks = iter(
@@ -940,7 +970,7 @@ def test_polling_carries_protocol_sequence_independently_of_attempt_count(env, t
     result = run(transport, env)
     assert result.output == "firstsecond"
     assert result.complete is True
-    assert [args.query["sequence_id"] for args in transport.operation_requests("RTR_CheckCommandStatus")] == [0, 0, 71, 73]
+    assert [args.query["sequence_id"] for args in transport.operation_requests("RTR_CheckCommandStatus")] == [0, 0, 71, 72]
 
 
 @pytest.mark.parametrize("sequence_field", [{}, {"sequence_id": None}])

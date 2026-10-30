@@ -190,6 +190,7 @@ def _execute_locked(
                     returned_sequence = sequence
                 if type(returned_sequence) is not int or returned_sequence < sequence:
                     raise CliError("UPSTREAM_ERROR", "RTR returned an invalid output sequence")
+                next_sequence = max(sequence + 1, returned_sequence)
                 sequence = returned_sequence
                 raw_output += stdout + stderr
                 encoded = redact_text(raw_output).encode()
@@ -204,7 +205,9 @@ def _execute_locked(
                     truncated = True
                     break
                 if chunk["complete"]:
-                    sequence += 1
+                    # Falcon can return the continuation cursor, rather than echoing this request.
+                    # Increment only an echoed/missing sequence, or the next chunk would be skipped.
+                    sequence = next_sequence
                     continue
                 remaining = remaining_seconds()
                 time.sleep(min(0.1, remaining) if remaining is not None else 0.1)
