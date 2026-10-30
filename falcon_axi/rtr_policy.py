@@ -103,3 +103,15 @@ def parse_command(command: str, allowed: frozenset[str] = COMMANDS) -> str:
 def validate_host(host: str) -> None:
     if re.fullmatch(r"[a-fA-F0-9]{32}", host) is None:
         raise CliError("VALIDATION_ERROR", "RTR requires one 32-character device id")
+
+
+def cat_size_command(command: str, allowed: frozenset[str]) -> str | None:
+    tokens = shlex.split(command, posix=False)
+    if len(tokens) != 2 or tokens[0] != "cat" or "ls" not in allowed:
+        return None
+    path = tokens[1].strip("\"'")
+    if not path or path.startswith("-") or any(char in path for char in "*?[]"):
+        return None
+    listing = "ls " + tokens[1]
+    parse_command(listing, allowed)
+    return listing

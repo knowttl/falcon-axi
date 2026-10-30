@@ -1,10 +1,12 @@
 """N3 execute core with bounded execution and unconditional session cleanup."""
 
 import os
+import re
+import shlex
 import signal
 import time
 import uuid
-from collections.abc import Iterator, Mapping
+from collections.abc import Callable, Iterator, Mapping
 from contextlib import contextmanager
 from dataclasses import dataclass, replace
 from typing import Any
@@ -16,7 +18,7 @@ from falcon_axi.falcon_error import falcon_messages, translate_falcon_error
 from falcon_axi.origin import assert_trusted_origin, resolve_base_url
 from falcon_axi.redaction import redact_text, redaction_scope, register_secret
 from falcon_axi.rtr_journal import Journal
-from falcon_axi.rtr_policy import EXECUTION_SECONDS, OUTPUT_BYTES, OUTPUT_CHUNKS, parse_command, validate_host
+from falcon_axi.rtr_policy import EXECUTION_SECONDS, OUTPUT_BYTES, OUTPUT_CHUNKS, cat_size_command, parse_command, validate_host
 from falcon_axi.transport.budget import BudgetExpired, remaining_seconds, request_budget, rtr_cleanup_budget
 from falcon_axi.transport.operations import OperationId
 from falcon_axi.transport.rtr import _AUTHORITY, RunAuthority
@@ -30,6 +32,19 @@ class RunResult:
     complete: bool
     truncated: bool
     cleanup: str
+    size_unverified: bool = False
+
+
+def _file_size(output: str, command: str) -> int | None:
+    path = shlex.split(command, posix=False)[1].strip("\"'")
+    names = {path, path.replace("\\", "/").rsplit("/", 1)[-1]}
+    lines = [re.split(r"\s{2,}|\t", line.strip()) for line in output.splitlines() if line.strip()]
+    if len(lines) != 2 or lines[0][:3] != ["Name", "Type", "Size (bytes)"]:
+        return None
+    row = lines[1]
+    if len(row) < 3 or row[0] not in names or row[1].lower() != "file" or re.fullmatch(r"[0-9]+", row[2]) is None:
+        return None
+    return int(row[2])
 
 
 @contextmanager
@@ -54,6 +69,31 @@ def _identifier(resource: Mapping[str, Any], key: str) -> str:
     if not isinstance(value, str) or not value or len(value) > 256 or any(ord(char) < 33 for char in value):
         raise CliError("UPSTREAM_ERROR", "RTR response omitted a valid lifecycle identifier")
     return value
+
+
+def _command_chunks(
+    request: Callable[[OperationId, Any, Mapping[str, Any] | None], Any], authority: RunAuthority,
+) -> Iterator[tuple[str, str, bool]]:
+    sequence = 0
+    for _ in range(OUTPUT_CHUNKS - authority.status_requests):
+        chunk = _resource(request("RTR_CheckCommandStatus", None, {
+            "cloud_request_id": authority.request_id, "sequence_id": sequence,
+        }))
+        stdout, stderr = chunk.get("stdout", ""), chunk.get("stderr", "")
+        if not isinstance(stdout, str) or not isinstance(stderr, str) or type(chunk.get("complete")) is not bool:
+            raise CliError("UPSTREAM_ERROR", "RTR returned malformed command output")
+        cursor = chunk.get("sequence_id")
+        if cursor is None and chunk["complete"]:
+            cursor = sequence
+        if type(cursor) is not int or cursor < sequence:
+            raise CliError("UPSTREAM_ERROR", "RTR returned an invalid output sequence")
+        sequence = max(sequence + 1, cursor) if chunk["complete"] else cursor
+        yield stdout, stderr, chunk["complete"]
+        if chunk["complete"] and not stdout and not stderr:
+            return
+        if not chunk["complete"]:
+            remaining = remaining_seconds()
+            time.sleep(min(0.1, remaining) if remaining is not None else 0.1)
 
 
 @redaction_scope(inherit=True)
@@ -122,6 +162,9 @@ def _execute_locked(
     raw_output = ""
     truncated = False
     complete = False
+    size_unverified = base == "cat"
+    stdout_bytes = 0
+    has_stderr = False
     failure: BaseException | None = None
 
     def request(id: OperationId, body: Any = None, query: Mapping[str, Any] | None = None) -> Any:
@@ -170,49 +213,54 @@ def _execute_locked(
             )
             authority.request_id = _identifier(executed, "cloud_request_id")
             record.update(phase="status", command_outcome="unknown")
-            sequence = 0
-            for _ in range(OUTPUT_CHUNKS):
-                chunk = _resource(
-                    request(
-                        "RTR_CheckCommandStatus",
-                        query={
-                            "cloud_request_id": authority.request_id,
-                            "sequence_id": sequence,
-                        },
-                    )
-                )
-                stdout, stderr = chunk.get("stdout", ""), chunk.get("stderr", "")
-                if not isinstance(stdout, str) or not isinstance(stderr, str) or type(chunk.get("complete")) is not bool:
-                    raise CliError("UPSTREAM_ERROR", "RTR returned malformed command output")
-                returned_sequence = chunk.get("sequence_id")
-                # Completed responses may omit sequence_id; continue from the requested sequence.
-                if returned_sequence is None and chunk["complete"]:
-                    returned_sequence = sequence
-                if type(returned_sequence) is not int or returned_sequence < sequence:
-                    raise CliError("UPSTREAM_ERROR", "RTR returned an invalid output sequence")
-                next_sequence = max(sequence + 1, returned_sequence)
-                sequence = returned_sequence
+            for stdout, stderr, ended in _command_chunks(request, authority):
                 raw_output += stdout + stderr
+                stdout_bytes += len(stdout.encode())
+                has_stderr |= bool(stderr)
                 encoded = redact_text(raw_output).encode()
                 output = encoded[:OUTPUT_BYTES].decode("utf-8", errors="ignore")
                 if len(raw_output.encode()) > OUTPUT_BYTES or len(encoded) > OUTPUT_BYTES:
                     truncated = True
                     break
-                if chunk["complete"] and not stdout and not stderr:
+                if ended and not stdout and not stderr:
                     complete = True
                     break
                 if len(output.encode()) >= OUTPUT_BYTES:
                     truncated = True
                     break
-                if chunk["complete"]:
-                    # Falcon can return the continuation cursor, rather than echoing this request.
-                    # Increment only an echoed/missing sequence, or the next chunk would be skipped.
-                    sequence = next_sequence
-                    continue
-                remaining = remaining_seconds()
-                time.sleep(min(0.1, remaining) if remaining is not None else 0.1)
             else:
                 truncated = True
+            if base == "cat":
+                stream_complete = complete
+                complete = False
+                listing = cat_size_command(command, credential.rtr.commands)
+                size = None
+                if listing is not None and authority.status_requests < OUTPUT_CHUNKS:
+                    try:
+                        listed = _resource(request("RTR_ExecuteCommand", {
+                            "base_command": "ls", "command_string": listing, "session_id": authority.session,
+                        }))
+                        authority.request_id = _identifier(listed, "cloud_request_id")
+                        listing_output = ""
+                        for text, stderr, ended in _command_chunks(request, authority):
+                            if stderr:
+                                break
+                            listing_output += text
+                            if len(listing_output.encode()) > OUTPUT_BYTES:
+                                break
+                            if ended and not text:
+                                size = _file_size(listing_output, command)
+                                break
+                    except CliError:
+                        pass
+                size_unverified = size is None
+                if size is not None:
+                    returned_bytes = min(stdout_bytes, len(output.encode()))
+                    truncated |= returned_bytes < size or size >= OUTPUT_BYTES
+                    complete = (
+                        stream_complete and not truncated and not has_stderr
+                        and len(output.encode()) == size and stdout_bytes == size
+                    )
             record["command_outcome"] = "complete" if complete else "incomplete"
     except BaseException as error:
         failure = error
@@ -262,5 +310,7 @@ def _execute_locked(
                 truncated=truncated,
                 cleanup=record["cleanup"],
             )
+            if base == "cat":
+                failure.details["size_unverified"] = size_unverified
         raise failure
-    return RunResult(run_id, output, complete, truncated, str(record["cleanup"]))
+    return RunResult(run_id, output, complete, truncated, str(record["cleanup"]), size_unverified)

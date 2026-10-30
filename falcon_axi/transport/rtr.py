@@ -11,7 +11,7 @@ from typing import Any
 
 from falcon_axi.core import CliError
 from falcon_axi.credentials import read_only
-from falcon_axi.rtr_policy import OUTPUT_CHUNKS, parse_command, validate_host
+from falcon_axi.rtr_policy import OUTPUT_CHUNKS, cat_size_command, parse_command, validate_host
 from falcon_axi.transport.operations import RTR_EXECUTION_IDS
 
 _PROCESS_KEY = os.urandom(32)
@@ -38,6 +38,7 @@ class RunAuthority:
     executed: bool = False
     deleted: bool = False
     status_requests: int = 0
+    size_checked: bool = False
 
     def grant(self, id: str, origin: str, token: str, body: Any, query: Mapping[str, Any]) -> dict[str, Any]:
         if self.receipt is not _AUTHORITY or origin != self.origin or token != self.token:
@@ -53,9 +54,15 @@ class RunAuthority:
                 raise _deny()
             expected_body, expected_query = {"device_id": self.host, "queue_offline": False}, {}
         elif id == "RTR_ExecuteCommand":
-            if not self.session or self.executed or self.deleted:
+            if not self.session or self.deleted:
                 raise _deny()
-            expected_body = {"base_command": base, "command_string": self.command, "session_id": self.session}
+            command = self.command
+            if self.executed:
+                listing = cat_size_command(self.command, self.allowed)
+                if self.size_checked or listing is None:
+                    raise _deny()
+                base, command = "ls", listing
+            expected_body = {"base_command": base, "command_string": command, "session_id": self.session}
             expected_query = {}
         elif id == "RTR_CheckCommandStatus":
             if not self.request_id or not self.executed or self.deleted or self.status_requests >= OUTPUT_CHUNKS:
@@ -76,6 +83,8 @@ class RunAuthority:
         if id == "RTR_InitSession":
             self.initialized = True
         elif id == "RTR_ExecuteCommand":
+            if self.executed:
+                self.size_checked = True
             self.executed = True
         elif id == "RTR_DeleteSession":
             self.deleted = True
