@@ -11,7 +11,7 @@ from falcon_axi.credentials import read_only, resolve_credential, write_log_path
 from falcon_axi.domain import CommandOutput
 from falcon_axi.origin import assert_trusted_origin, resolve_base_url
 from falcon_axi.redaction import register_secret
-from falcon_axi.rtr_execute import execute_run
+from falcon_axi.rtr_execute import RunInterrupted, execute_run
 from falcon_axi.rtr_policy import (
     CLEANUP_SECONDS,
     EXECUTION_SECONDS,
@@ -72,7 +72,7 @@ def preview(ctx: Invocation) -> CommandOutput:
 
 def execute(ctx: Invocation) -> CommandOutput:
     def interrupted(signum: int, frame: FrameType | None) -> None:
-        raise CliError("UPSTREAM_ERROR", "RTR execution interrupted")
+        raise RunInterrupted()
 
     # Turn catchable terminal signals into core failures so its finally block owns deletion.
     previous = {number: signal.getsignal(number) for number in (signal.SIGINT, signal.SIGTERM)}
