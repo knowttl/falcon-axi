@@ -10,6 +10,7 @@ from falcon_axi.cursor import CursorContext, decode_offset, encode_cursor
 from falcon_axi.domain import DEFAULT_LIMIT, CommandOutput, body_of, rate_limit_note, resources, total
 from falcon_axi.falcon_error import translate_falcon_error
 from falcon_axi.render import raw
+from falcon_axi.response_diagnostics import upstream_invalid
 from falcon_axi.transport.operations import OperationId
 from falcon_axi.transport.types import RequestArgs
 
@@ -50,7 +51,7 @@ def _device_control_policies(ctx: Invocation, ids: Sequence[str]) -> list[Mappin
         or not isinstance(entries, list)
         or any(not isinstance(entry, Mapping) or not isinstance(entry.get("id"), str) for entry in entries)
     ):
-        raise CliError("UPSTREAM_ERROR", "Falcon returned invalid device-control policies")
+        raise upstream_invalid("Falcon returned invalid device-control policies")
     return entries
 
 
@@ -65,7 +66,7 @@ def _show(ctx: Invocation) -> CommandOutput:
         )
     record = next((entry for entry in entries if entry["id"] == id), None)
     if record is None:
-        raise CliError("UPSTREAM_ERROR", "Falcon omitted the requested device-control policy")
+        raise upstream_invalid("Falcon omitted the requested device-control policy")
     detail = {field: record.get(field, "unknown") for field in ("id", "name", "platform_name", "enabled", "description")}
     detail["usb_settings"] = record.get("usb_settings", raw("no USB settings recorded"))
     return CommandOutput(
@@ -132,7 +133,7 @@ def _list(ctx: Invocation) -> CommandOutput:
             or not isinstance(body_of(response).get("resources"), list)
             or any(not isinstance(id, str) or not id for id in entries)
         ):
-            raise CliError("UPSTREAM_ERROR", "Falcon returned invalid device-control policy identifiers")
+            raise upstream_invalid("Falcon returned invalid device-control policy identifiers")
     key = "members" if members else "policies"
     subject = f"{policy_type} policy members" if members else f"{policy_type} policies"
     help = (
@@ -156,7 +157,7 @@ def _list(ctx: Invocation) -> CommandOutput:
         hydrated = _device_control_policies(ctx, entries)
         by_id = {record["id"]: record for record in hydrated}
         if any(id not in by_id for id in entries):
-            raise CliError("UPSTREAM_ERROR", "Falcon omitted a requested device-control policy")
+            raise upstream_invalid("Falcon omitted a requested device-control policy")
         records = [by_id[id] for id in entries]
     rows = [{field: entry.get(field, "unknown") for field in fields} for entry in records if isinstance(entry, Mapping)]
     count = total(response)

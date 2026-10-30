@@ -9,6 +9,7 @@ from falcon_axi.cursor import CursorContext, decode_after, encode_cursor
 from falcon_axi.domain import CommandOutput, after_token, body_of, rate_limit_note, total
 from falcon_axi.falcon_error import translate_falcon_error
 from falcon_axi.render import raw
+from falcon_axi.response_diagnostics import upstream_invalid
 from falcon_axi.transport.operations import OperationId
 from falcon_axi.transport.types import FalconResponse, QueryValue, RequestArgs
 
@@ -43,7 +44,7 @@ def _resources(answer: FalconResponse) -> list[Any]:
     # The reference renders resources as arrays; SDK responses retain the Falcon envelope.
     listed = answer.body if isinstance(answer.body, list) else body_of(answer).get("resources")
     if not isinstance(listed, list) or body_of(answer).get("errors"):
-        raise CliError("UPSTREAM_ERROR", "Falcon returned malformed file changes")
+        raise upstream_invalid("Falcon returned malformed file changes")
     return listed
 
 
@@ -53,12 +54,12 @@ def _hydrate(ctx: Invocation, ids: Sequence[str], *, allow_empty: bool = False) 
         answer = _request(ctx, "getChanges", {"ids": tuple(ids[start : start + 500])})
         for record in _resources(answer):
             if not isinstance(record, Mapping) or not isinstance(record.get("id"), str):
-                raise CliError("UPSTREAM_ERROR", "Falcon returned a file change without an identifier")
+                raise upstream_invalid("Falcon returned a file change without an identifier")
             by_id[record["id"]] = record
     if allow_empty and not by_id:
         return []
     if any(id not in by_id for id in ids):
-        raise CliError("UPSTREAM_ERROR", "Falcon omitted requested file change identifiers")
+        raise upstream_invalid("Falcon omitted requested file change identifiers")
     return [by_id[id] for id in ids]
 
 
@@ -92,7 +93,7 @@ def _list(ctx: Invocation) -> CommandOutput:
     answer = _request(ctx, "highVolumeQueryChanges", query)
     ids = _resources(answer)
     if any(not isinstance(id, str) or not id for id in ids):
-        raise CliError("UPSTREAM_ERROR", "Falcon returned invalid file change identifiers")
+        raise upstream_invalid("Falcon returned invalid file change identifiers")
     records = _hydrate(ctx, ids)
     rows = [_project(record) for record in records]
     count = total(answer)

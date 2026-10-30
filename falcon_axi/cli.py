@@ -494,7 +494,9 @@ def run(
     version = version_output(argv)
     if version is not None:
         return version, 0
-    with redaction_scope():
+    from falcon_axi.response_diagnostics import diagnostics_scope
+
+    with redaction_scope(), diagnostics_scope():
         stdout, exit_code = _run(argv, transport, env, bin, emit_preview)
         return redact_text(stdout), exit_code
 

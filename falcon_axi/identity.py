@@ -24,6 +24,7 @@ from falcon_axi.domain import DEFAULT_LIMIT, CommandOutput, body_of, rate_limit_
 from falcon_axi.falcon_error import trace_id, translate_falcon_error
 from falcon_axi.fql import since_seconds
 from falcon_axi.render import raw
+from falcon_axi.response_diagnostics import upstream_invalid
 from falcon_axi.search import DEFAULT_REPOSITORY, start_search
 from falcon_axi.search import DEFAULT_SINCE as SEARCH_DEFAULT_SINCE
 from falcon_axi.transport.operations import OperationId
@@ -130,8 +131,7 @@ def _query(transport: Transport, session: Session, document: str, variables: Map
     data = body.get("data")
     if body.get("errors") or not isinstance(data, Mapping):
         trace = trace_id(response)
-        raise CliError(
-            "UPSTREAM_ERROR",
+        raise upstream_invalid(
             f"Falcon reported an error while answering the Identity Protection query for {subject}",
             ["Retry shortly", "Quote the trace_id when opening a CrowdStrike support case"],
             {"trace_id": trace} if trace else {},

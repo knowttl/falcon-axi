@@ -19,6 +19,7 @@ from falcon_axi.domain import CommandOutput, body_of, rate_limit_note, text
 from falcon_axi.falcon_error import falcon_messages, translate_falcon_error
 from falcon_axi.fql import since_seconds
 from falcon_axi.render import raw
+from falcon_axi.response_diagnostics import upstream_invalid
 from falcon_axi.transport.budget import BudgetExpired, deadline_after, remaining_seconds, request_budget
 from falcon_axi.transport.operations import OperationId
 from falcon_axi.transport.types import FalconResponse, RequestArgs, Transport
@@ -132,8 +133,7 @@ def start_search(
     )
     id = text(body_of(response).get("id"))
     if not id:
-        raise CliError(
-            "UPSTREAM_ERROR",
+        raise upstream_invalid(
             "the NG-SIEM search started but returned no job identifier",
             ["Retry shortly", "Run `falcon-axi auth status` to re-check the credential"],
         )

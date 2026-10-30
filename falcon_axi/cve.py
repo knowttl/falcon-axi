@@ -12,6 +12,7 @@ from falcon_axi.domain import CommandOutput, rate_limit_note, resources, text, t
 from falcon_axi.falcon_error import translate_falcon_error
 from falcon_axi.fql import window
 from falcon_axi.render import raw
+from falcon_axi.response_diagnostics import upstream_invalid
 from falcon_axi.transport.types import RequestArgs, Transport
 
 #: MITRE's CVE id shape. Rejecting anything else also keeps the value out of a later FQL filter.
@@ -188,7 +189,7 @@ def show_cve(transport: Transport, session: Session, cve_id: str) -> CommandOutp
         return _empty(requested)
     matched = [entry for entry in listed if isinstance(entry, Mapping) and entry.get("cve") == requested]
     if not matched:
-        raise CliError("UPSTREAM_ERROR", "Falcon returned a CVE intelligence resource without the requested CVE")
+        raise upstream_invalid("Falcon returned a CVE intelligence resource without the requested CVE")
     record = matched[0]
     return CommandOutput(
         value={

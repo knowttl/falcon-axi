@@ -11,6 +11,7 @@ from typing import Any
 
 from falcon_axi.auth import Session
 from falcon_axi.core import CliError
+from falcon_axi.response_diagnostics import upstream_invalid
 from falcon_axi.transport.types import FalconResponse
 
 #: Rows in one non-walking call, for every list command (docs/design/v1.md §7.3).
@@ -57,7 +58,7 @@ def body_of(response: FalconResponse) -> Mapping[str, Any]:
 def resources(response: FalconResponse) -> list[Any]:
     listed = body_of(response).get("resources")
     if not isinstance(listed, list):
-        raise CliError("UPSTREAM_ERROR", "Falcon returned a malformed resources array")
+        raise upstream_invalid("Falcon returned a malformed resources array")
     return list(listed)
 
 

@@ -10,6 +10,7 @@ from falcon_axi.cursor import CursorContext, decode_offset, encode_cursor
 from falcon_axi.domain import CommandOutput, rate_limit_note
 from falcon_axi.falcon_error import translate_falcon_error
 from falcon_axi.render import raw, redact, truncate
+from falcon_axi.response_diagnostics import upstream_invalid
 from falcon_axi.transport.types import RequestArgs
 
 # The API documents no maximum. This is a local page-size cap, not a server claim.
@@ -34,9 +35,9 @@ def _checks(ctx: Invocation, query: Mapping[str, str | int]) -> list[Mapping[str
         raise translate_falcon_error(response, "GetSecurityChecksV3", "Shield checks")
     listed = response.body
     if not isinstance(listed, list):
-        raise CliError("UPSTREAM_ERROR", "Falcon returned an invalid Shield check array")
+        raise upstream_invalid("Falcon returned an invalid Shield check array")
     if any(not isinstance(entry, Mapping) or not isinstance(entry.get("id"), str) or not entry["id"] for entry in listed):
-        raise CliError("UPSTREAM_ERROR", "Falcon returned a Shield check without an identifier")
+        raise upstream_invalid("Falcon returned a Shield check without an identifier")
     return listed
 
 
@@ -91,7 +92,7 @@ def _show(ctx: Invocation) -> CommandOutput:
         raise CliError("NOT_FOUND", "no Shield check matched that identifier", ["Run `falcon-axi shield list` for check IDs"])
     matched = next((check for check in checks if check["id"] == requested), None)
     if matched is None:
-        raise CliError("UPSTREAM_ERROR", "Falcon returned Shield checks without the requested identifier")
+        raise upstream_invalid("Falcon returned Shield checks without the requested identifier")
     truncated = False
 
     def detail(value: Any) -> Any:

@@ -22,6 +22,7 @@ from falconpy import APIHarnessV2
 from urllib3.util import Timeout
 
 from falcon_axi.core import CliError
+from falcon_axi.response_diagnostics import record_response
 from falcon_axi.rtr_policy import RESPONSE_BYTES
 from falcon_axi.transport.budget import BudgetExpired, deadline_after, remaining_seconds, request_budget
 from falcon_axi.transport.graphql import is_registered_query
@@ -82,7 +83,9 @@ def _send_with_deadline(prepared: PreparedOperation | PreparedToken, permit: Per
     if "error" in answer:
         failure = answer["error"]
         raise CliError(failure["code"], failure["message"], failure["help"], failure["details"])
-    return FalconResponse(**answer["response"])
+    response = FalconResponse(**answer["response"])
+    record_response(response.status, response.headers, response.body)
+    return response
 
 
 def _worker_reply(payload: dict[str, Any]) -> dict[str, Any]:
@@ -158,7 +161,8 @@ def _json_body(answer: requests.Response) -> Any:
     try:
         return answer.json()
     except ValueError:
-        return None
+        # Preserve the received type for diagnostics, never its value in output.
+        return ""
 
 
 def _normalize(status: Any, headers: Any, body: Any, *, refuse_redirect: bool) -> FalconResponse:
@@ -166,6 +170,7 @@ def _normalize(status: Any, headers: Any, body: Any, *, refuse_redirect: bool) -
     code = int(status) if isinstance(status, (int, str)) and str(status).isdigit() else 0
     if refuse_redirect and 300 <= code < 400:
         raise _refuse_redirect()
+    record_response(code, lowered, body)
     return FalconResponse(status=code, headers=lowered, body=body)
 
 

@@ -9,6 +9,7 @@ from falcon_axi.core import CliError
 from falcon_axi.domain import CommandOutput, body_of, total
 from falcon_axi.falcon_error import translate_falcon_error
 from falcon_axi.render import raw
+from falcon_axi.response_diagnostics import upstream_invalid
 from falcon_axi.transport.malquery import search_body
 from falcon_axi.transport.operations import OperationId
 from falcon_axi.transport.types import RequestArgs
@@ -64,7 +65,7 @@ def _search(ctx: Invocation) -> CommandOutput:
             )
         raise translate_falcon_error(answer, operation, "MalQuery search", not_found_command="malquery quota")
     body = body_of(answer)
-    invalid = CliError("UPSTREAM_ERROR", "Falcon returned an invalid MalQuery search response")
+    invalid = upstream_invalid("Falcon returned an invalid MalQuery search response")
     if body.get("errors"):
         raise invalid
     meta = body.get("meta")
@@ -136,7 +137,7 @@ def _read(ctx: Invocation) -> CommandOutput:
             answer, operation, "MalQuery metadata" if metadata else "MalQuery quota", not_found_command="malquery quota"
         )
     body = body_of(answer)
-    invalid = CliError("UPSTREAM_ERROR", "Falcon returned an invalid MalQuery response")
+    invalid = upstream_invalid("Falcon returned an invalid MalQuery response")
     if body.get("errors"):
         raise invalid
     fields: tuple[str, ...]

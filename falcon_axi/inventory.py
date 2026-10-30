@@ -9,6 +9,7 @@ from falcon_axi.cursor import CursorContext, decode_offset, encode_cursor
 from falcon_axi.domain import CommandOutput, body_of, rate_limit_note, resources, total
 from falcon_axi.falcon_error import translate_falcon_error
 from falcon_axi.render import raw
+from falcon_axi.response_diagnostics import upstream_invalid
 from falcon_axi.transport.operations import OperationId
 from falcon_axi.transport.types import RequestArgs
 
@@ -50,7 +51,7 @@ def read_page(ctx: Invocation, key: str, columns: tuple[str, ...], sort: str) ->
     if not isinstance(records, list) or any(
         not isinstance(record, Mapping) or not record.get(columns[0]) for record in records
     ):
-        raise CliError("UPSTREAM_ERROR", "Falcon returned an invalid inventory page")
+        raise upstream_invalid("Falcon returned an invalid inventory page")
     if not records:
         return CommandOutput(value={key: raw(f"no more {key}" if cursor else f"0 {key} matching the supplied query")}, help=())
     count = total(response)
