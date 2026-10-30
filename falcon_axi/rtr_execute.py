@@ -49,9 +49,7 @@ def _file_size(output: str, command: str) -> int | None:
         return None
     name_pattern = "|".join(re.escape(name) for name in sorted(names, key=len, reverse=True))
     rows = [
-        match.group(1)
-        for line in lines[headers[0] + 1:]
-        if (match := re.fullmatch(r"(?:" + name_pattern + r")\s+(.+)", line))
+        match.group(1) for line in lines[headers[0] + 1 :] if (match := re.fullmatch(r"(?:" + name_pattern + r")\s+(.+)", line))
     ]
     if len(rows) != 1:
         return None
@@ -84,13 +82,21 @@ def _identifier(resource: Mapping[str, Any], key: str) -> str:
 
 
 def _command_chunks(
-    request: Callable[[OperationId, Any, Mapping[str, Any] | None], Any], authority: RunAuthority,
+    request: Callable[[OperationId, Any, Mapping[str, Any] | None], Any],
+    authority: RunAuthority,
 ) -> Iterator[tuple[str, str, bool]]:
     sequence = 0
     for _ in range(OUTPUT_CHUNKS - authority.status_requests):
-        chunk = _resource(request("RTR_CheckCommandStatus", None, {
-            "cloud_request_id": authority.request_id, "sequence_id": sequence,
-        }))
+        chunk = _resource(
+            request(
+                "RTR_CheckCommandStatus",
+                None,
+                {
+                    "cloud_request_id": authority.request_id,
+                    "sequence_id": sequence,
+                },
+            )
+        )
         stdout, stderr = chunk.get("stdout", ""), chunk.get("stderr", "")
         if not isinstance(stdout, str) or not isinstance(stderr, str) or type(chunk.get("complete")) is not bool:
             raise CliError("UPSTREAM_ERROR", "RTR returned malformed command output")
@@ -122,7 +128,7 @@ def execute_run(
     member_cid: str | None = None,
     no_member_cid: bool = False,
 ) -> RunResult:
-    """Authorize before authentication, execute once, and clean up within a separate budget.
+    """Authorize before authentication, execute without replay, and clean up within a separate budget.
 
     The CLI emits its preview before calling this core.
     A lost init response leaves the session id unknown; recovery is manual in Falcon, never a replay.
@@ -217,9 +223,16 @@ def _execute_locked(
             listing = cat_size_command(command, credential.rtr.commands) if base == "cat" else None
             if listing is not None:
                 try:
-                    listed = _resource(request("RTR_ExecuteCommand", {
-                        "base_command": "ls", "command_string": listing, "session_id": authority.session,
-                    }))
+                    listed = _resource(
+                        request(
+                            "RTR_ExecuteCommand",
+                            {
+                                "base_command": "ls",
+                                "command_string": listing,
+                                "session_id": authority.session,
+                            },
+                        )
+                    )
                     authority.request_id = _identifier(listed, "cloud_request_id")
                     listing_output = ""
                     for text, stderr, ended in _command_chunks(request, authority):
@@ -273,8 +286,12 @@ def _execute_locked(
             if size is not None:
                 truncated |= min(stdout_bytes, len(output.encode())) < size or size >= OUTPUT_BYTES
             complete = (
-                complete and size is not None and not truncated and not has_stderr
-                and len(output.encode()) == size and stdout_bytes == size
+                complete
+                and size is not None
+                and not truncated
+                and not has_stderr
+                and len(output.encode()) == size
+                and stdout_bytes == size
             )
         if failure is None:
             record["command_outcome"] = "complete" if complete else "incomplete"

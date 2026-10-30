@@ -971,7 +971,13 @@ def test_completed_command_collects_three_output_sequences(env, transport):
     ],
 )
 def test_cat_verifies_collected_bytes_against_same_session_listing(
-    env, transport, size, returned, verified, complete, truncated,
+    env,
+    transport,
+    size,
+    returned,
+    verified,
+    complete,
+    truncated,
 ):
     content = ("0123456789abcdef" * 4375)[:returned]
 
@@ -983,11 +989,15 @@ def test_cat_verifies_collected_bytes_against_same_session_listing(
         sequence = args.query["sequence_id"]
         if args.query["cloud_request_id"] == "synthetic-listing":
             text = (
-                "Directory listing for C:\\ -\n\n"
-                "Name Type Size (bytes) Size (MB) Last Modified (UTC+9) Created (UTC+9)\n"
-                "---- ---- ------------ --------- --------------------- ---------------\n"
-                f"synthetic.txt .txt {size} 0.03 2026/10/01 00:00:00 2026/10/01 00:00:00\n"
-            ) if verified else "Size unavailable"
+                (
+                    "Directory listing for C:\\ -\n\n"
+                    "Name Type Size (bytes) Size (MB) Last Modified (UTC+9) Created (UTC+9)\n"
+                    "---- ---- ------------ --------- --------------------- ---------------\n"
+                    f"synthetic.txt .txt {size} 0.03 2026/10/01 00:00:00 2026/10/01 00:00:00\n"
+                )
+                if verified
+                else "Size unavailable"
+            )
             return response(200, {"resources": [{"stdout": text if sequence == 0 else "", "complete": True}]})
         return response(
             200,
@@ -1012,11 +1022,18 @@ def test_cat_verifies_collected_bytes_against_same_session_listing(
     assert len(result.output.encode()) == min(returned, OUTPUT_BYTES)
     assert (result.complete, result.truncated, result.cleanup) == (complete, truncated, "deleted")
     assert result.size_unverified is not verified
-    assert [args.body for args in transport.operation_requests("RTR_ExecuteCommand")] == [{
-        "base_command": "ls", "command_string": 'ls "synthetic.txt"', "session_id": "synthetic-session",
-    }, {
-        "base_command": "cat", "command_string": 'cat "synthetic.txt"', "session_id": "synthetic-session",
-    }]
+    assert [args.body for args in transport.operation_requests("RTR_ExecuteCommand")] == [
+        {
+            "base_command": "ls",
+            "command_string": 'ls "synthetic.txt"',
+            "session_id": "synthetic-session",
+        },
+        {
+            "base_command": "cat",
+            "command_string": 'cat "synthetic.txt"',
+            "session_id": "synthetic-session",
+        },
+    ]
 
 
 @pytest.mark.parametrize("command", ['ls "other.txt"', 'cat "synthetic.txt"'])
@@ -1024,28 +1041,68 @@ def test_cat_size_authority_requires_the_exact_listing_first(command):
     authority = RunAuthority(HOST, 'cat "synthetic.txt"', COMMANDS, {}, _AUTHORITY, ORIGIN, TOKEN)
     authority.session = "synthetic-session"
     with pytest.raises(CliError, match="execution authority"):
-        authority.grant("RTR_ExecuteCommand", ORIGIN, TOKEN, {
-            "base_command": command.split()[0], "command_string": command, "session_id": authority.session,
-        }, {})
+        authority.grant(
+            "RTR_ExecuteCommand",
+            ORIGIN,
+            TOKEN,
+            {
+                "base_command": command.split()[0],
+                "command_string": command,
+                "session_id": authority.session,
+            },
+            {},
+        )
 
 
 def test_cat_size_authority_consumes_listing_and_cat_once():
     authority = RunAuthority(HOST, 'cat "synthetic.txt"', COMMANDS, {}, _AUTHORITY, ORIGIN, TOKEN)
     authority.session = "synthetic-session"
-    authority.grant("RTR_ExecuteCommand", ORIGIN, TOKEN, {
-        "base_command": "ls", "command_string": 'ls "synthetic.txt"', "session_id": authority.session,
-    }, {})
+    authority.grant(
+        "RTR_ExecuteCommand",
+        ORIGIN,
+        TOKEN,
+        {
+            "base_command": "ls",
+            "command_string": 'ls "synthetic.txt"',
+            "session_id": authority.session,
+        },
+        {},
+    )
     with pytest.raises(CliError, match="execution authority"):
-        authority.grant("RTR_ExecuteCommand", ORIGIN, TOKEN, {
-            "base_command": "ls", "command_string": 'ls "synthetic.txt"', "session_id": authority.session,
-        }, {})
-    authority.grant("RTR_ExecuteCommand", ORIGIN, TOKEN, {
-        "base_command": "cat", "command_string": authority.command, "session_id": authority.session,
-    }, {})
+        authority.grant(
+            "RTR_ExecuteCommand",
+            ORIGIN,
+            TOKEN,
+            {
+                "base_command": "ls",
+                "command_string": 'ls "synthetic.txt"',
+                "session_id": authority.session,
+            },
+            {},
+        )
+    authority.grant(
+        "RTR_ExecuteCommand",
+        ORIGIN,
+        TOKEN,
+        {
+            "base_command": "cat",
+            "command_string": authority.command,
+            "session_id": authority.session,
+        },
+        {},
+    )
     with pytest.raises(CliError, match="execution authority"):
-        authority.grant("RTR_ExecuteCommand", ORIGIN, TOKEN, {
-            "base_command": "cat", "command_string": authority.command, "session_id": authority.session,
-        }, {})
+        authority.grant(
+            "RTR_ExecuteCommand",
+            ORIGIN,
+            TOKEN,
+            {
+                "base_command": "cat",
+                "command_string": authority.command,
+                "session_id": authority.session,
+            },
+            {},
+        )
 
 
 @pytest.mark.parametrize("command", ["cat *.txt", "cat one.txt two.txt", "cat -help", "cat"])
@@ -1100,9 +1157,17 @@ def test_cat_listing_requires_one_exact_file_match(env, transport, rows, verifie
                 "Name Type Size (bytes) Size (MB) Last Modified (UTC)\n"
                 "---- ---- ------------ --------- -------------------\n" + rows + "\n"
             )
-        return response(200, {"resources": [{
-            "stdout": text if args.query["sequence_id"] == 0 else "", "complete": True,
-        }]})
+        return response(
+            200,
+            {
+                "resources": [
+                    {
+                        "stdout": text if args.query["sequence_id"] == 0 else "",
+                        "complete": True,
+                    }
+                ]
+            },
+        )
 
     transport.responders[:0] = [serve("RTR_ExecuteCommand", execute), serve("RTR_CheckCommandStatus", status)]
     result = run(transport, env, r'cat "C:\Program Files (x86)\synthetic notes.txt"')
@@ -1122,9 +1187,17 @@ def test_cat_retains_verified_size_when_it_exhausts_the_shared_status_budget(env
     def status(args):
         if args.query["cloud_request_id"] == "synthetic-listing":
             text = "Name Type Size (bytes) Size (MB)\n---- ---- ------------ ---------\nsynthetic.txt .txt 100 0.001\n"
-            return response(200, {"resources": [{
-                "stdout": text if args.query["sequence_id"] == 0 else "", "complete": True,
-            }]})
+            return response(
+                200,
+                {
+                    "resources": [
+                        {
+                            "stdout": text if args.query["sequence_id"] == 0 else "",
+                            "complete": True,
+                        }
+                    ]
+                },
+            )
         return response(200, {"resources": [{"stdout": "x", "complete": False, "sequence_id": 0}]})
 
     transport.responders[:0] = [serve("RTR_ExecuteCommand", execute), serve("RTR_CheckCommandStatus", status)]
@@ -1143,9 +1216,17 @@ def test_cat_status_failure_reports_known_short_read(env, transport):
         if args.query["cloud_request_id"] == "synthetic-command":
             raise CliError("NETWORK_UNREACHABLE", "synthetic failure")
         text = "Name Type Size (bytes) Size (MB)\n---- ---- ------------ ---------\nsynthetic.txt .txt 100 0.001\n"
-        return response(200, {"resources": [{
-            "stdout": text if args.query["sequence_id"] == 0 else "", "complete": True,
-        }]})
+        return response(
+            200,
+            {
+                "resources": [
+                    {
+                        "stdout": text if args.query["sequence_id"] == 0 else "",
+                        "complete": True,
+                    }
+                ]
+            },
+        )
 
     transport.responders[:0] = [serve("RTR_ExecuteCommand", execute), serve("RTR_CheckCommandStatus", status)]
     with pytest.raises(CliError, match="synthetic failure") as error:

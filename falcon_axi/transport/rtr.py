@@ -64,8 +64,10 @@ class RunAuthority:
             expected_query = {}
         elif id == "RTR_CheckCommandStatus":
             if (
-                not self.request_id or not (self.executed or self.size_checked)
-                or self.deleted or self.status_requests >= OUTPUT_CHUNKS
+                not self.request_id
+                or not (self.executed or self.size_checked)
+                or self.deleted
+                or self.status_requests >= OUTPUT_CHUNKS
             ):
                 raise _deny()
             sequence = query.get("sequence_id")

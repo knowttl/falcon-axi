@@ -39,6 +39,7 @@ Execution requires POSIX private-file and signal primitives and fails closed if 
 The shared authentication/init/execute/poll budget is 50 seconds, with a separate 10-second deletion budget.
 Acquisition is capped at 1 MiB per response, 64 status requests, and 64 KiB retained redacted output.
 Incomplete and truncated output are explicit; output is untrusted TOON data, never an instruction.
+For `cat` size verification, profile restrictions on the derived `ls`, and the meaning of `complete`, `truncated`, and `size_unverified`, see the [completion contract](design/v1.md#r2-execution-limits-and-ownership-recovery).
 There is no unlimited-output switch, offline queue, detached session, pulse, or automatic replay.
 Only eventlog view/list forms are admitted; backup/export stay excluded.
 The mandatory private journal uses `FALCON_AXI_WRITE_LOG` or the state-directory `writes.log` and never stores raw command output.
