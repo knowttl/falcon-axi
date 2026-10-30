@@ -1,6 +1,9 @@
 """The hosts domain (docs/design/v1.md §2.3, §7.1, §10.2)."""
 
 import re
+from typing import Any
+
+import pytest
 
 from falcon_axi.cli import run
 from falcon_axi.host import HOSTS_WALL
@@ -11,6 +14,39 @@ PAGE = [
     serve("QueryDevicesByFilter", fixture("hosts/query-page.json")),
     serve("PostDeviceDetailsV2", fixture("hosts/details-page.json")),
 ]
+
+
+@pytest.mark.parametrize("operation", ["QueryDevicesByFilter", "PostDeviceDetailsV2"])
+@pytest.mark.parametrize(
+    "body",
+    [
+        None,
+        "<html>synthetic-login-page</html>",
+        {},
+        {"resources": None},
+        {"resources": "synthetic-response-value"},
+        {"resources": {"synthetic-response-key": "synthetic-response-value"}},
+        {"resources": 0},
+        {"resources": False},
+    ],
+)
+def test_host_list_rejects_malformed_resource_envelopes(operation: str, body: Any) -> None:
+    recorded = RecordedTransport([serve(operation, response(200, body)), *PAGE])
+    stdout, exit_code = run(["host", "list"], recorded, dict(CREDENTIAL_ENV))
+    assert exit_code == 1
+    assert "code: UPSTREAM_ERROR" in stdout
+    assert "synthetic-login-page" not in stdout
+    assert "synthetic-response-value" not in stdout
+    assert "synthetic-response-key" not in stdout
+    assert "hosts[" not in stdout
+
+
+def test_host_list_accepts_an_explicitly_empty_resource_array() -> None:
+    recorded = RecordedTransport([serve("QueryDevicesByFilter", response(200, {"resources": []}))])
+    stdout, exit_code = run(["host", "list"], recorded, dict(CREDENTIAL_ENV))
+    assert exit_code == 0
+    assert "hosts: 0 hosts in this tenant" in stdout
+    assert recorded.operation_requests("PostDeviceDetailsV2") == []
 
 
 def test_host_list_queries_then_hydrates_and_renders_the_four_field_schema() -> None:

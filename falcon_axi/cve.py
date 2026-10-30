@@ -84,7 +84,8 @@ def list_cves(ctx: Invocation) -> CommandOutput:
     )
     if hydrated.status not in (200, 404):
         raise translate_falcon_error(hydrated, "GetVulnerabilities", "CVE intelligence")
-    by_id = {entry.get("cve"): entry for entry in resources(hydrated) if isinstance(entry, Mapping)}
+    entries = resources(hydrated) if hydrated.status == 200 else []
+    by_id = {entry.get("cve"): entry for entry in entries if isinstance(entry, Mapping)}
     rows = [
         {
             "cve": id,
@@ -165,8 +166,7 @@ def show_cve(transport: Transport, session: Session, cve_id: str) -> CommandOutp
             body={"ids": [requested]},
         ),
     )
-    listed = resources(response)
-    if response.status == 404 or (response.status == 200 and not listed):
+    if response.status == 404:
         return _empty(requested)
     if response.status != 200:
         error = translate_falcon_error(response, "GetVulnerabilities", "CVE intelligence")
@@ -183,6 +183,9 @@ def show_cve(transport: Transport, session: Session, cve_id: str) -> CommandOutp
                 error.details,
             )
         raise error
+    listed = resources(response)
+    if not listed:
+        return _empty(requested)
     matched = [entry for entry in listed if isinstance(entry, Mapping) and entry.get("cve") == requested]
     if not matched:
         raise CliError("UPSTREAM_ERROR", "Falcon returned a CVE intelligence resource without the requested CVE")

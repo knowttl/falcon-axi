@@ -56,7 +56,9 @@ def body_of(response: FalconResponse) -> Mapping[str, Any]:
 
 def resources(response: FalconResponse) -> list[Any]:
     listed = body_of(response).get("resources")
-    return list(listed) if isinstance(listed, list) else []
+    if not isinstance(listed, list):
+        raise CliError("UPSTREAM_ERROR", "Falcon returned a malformed resources array")
+    return list(listed)
 
 
 def _pagination(response: FalconResponse) -> Mapping[str, Any] | None:

@@ -78,15 +78,15 @@ def _show(ctx: Invocation) -> CommandOutput:
     requested = ctx.positionals[0]
     operation = ctx.spec.operations[0]
     response = _request(ctx, operation, {"ids": (requested,), "fields": ("__full__",)})
-    entries = resources(response)
-    if response.status == 404 or (response.status == 200 and not entries):
+    if response.status not in (200, 404):
+        raise translate_falcon_error(response, operation, f"{noun}s")
+    entries = resources(response) if response.status == 200 else []
+    if not entries:
         raise CliError(
             "NOT_FOUND",
             f"no {noun} matched that identifier",
             [f"Run `falcon-axi {noun} list` to see current {noun} identifiers"],
         )
-    if response.status != 200:
-        raise translate_falcon_error(response, operation, f"{noun}s")
     matched = [entry for entry in entries if isinstance(entry, Mapping) and str(entry.get("id")) == requested]
     if not matched:
         raise CliError("UPSTREAM_ERROR", f"Falcon returned a {noun} resource without the requested identifier")
