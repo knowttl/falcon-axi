@@ -1,4 +1,27 @@
 error: Falcon reported an error while answering the Identity Protection query for identities
 code: UPSTREAM_ERROR
+status: 200
+shape[9]:
+  - path: $
+    type: object
+  - path: "$[\"data\"]"
+    type: "null"
+  - path: "$[\"errors\"]"
+    type: array
+    count: 1
+  - path: "$[\"errors\"][*]"
+    type: object
+  - path: "$[\"errors\"][*][\"message\"]"
+    type: string
+  - path: "$[\"errors\"][*][\"path\"]"
+    type: array
+    count: 1
+  - path: "$[\"errors\"][*][\"path\"][*]"
+    type: string
+  - path: "$[\"meta\"]"
+    type: object
+  - path: "$[\"meta\"][\"trace_id\"]"
+    type: string
+shapeTruncated: false
 trace_id: synthetic-trace-graphql
 help[2]: "Retry shortly","Quote the trace_id when opening a CrowdStrike support case"

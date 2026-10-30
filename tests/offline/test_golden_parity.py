@@ -3,12 +3,40 @@
 import re
 
 import pytest
+from toon_format import decode
 
 from falcon_axi.commands import COMMANDS
 from falcon_axi.version import VERSION
 from tests.support.golden import GOLDEN, command_references, expected_stdout, replay, scenarios
 
 SCENARIOS = scenarios()
+
+
+def test_golden_replay_reports_invalid_token_response_diagnostics() -> None:
+    stdout, exit_code = replay(
+        {
+            "argv": ["host", "list"],
+            "oauth": [
+                {
+                    "response": {
+                        "status": 200,
+                        "headers": {"Content-Type": "application/json"},
+                        "body": {"access_token": False},
+                    }
+                }
+            ],
+        }
+    )
+    document = decode(stdout)
+    assert exit_code == 1
+    assert document["code"] == "UPSTREAM_ERROR"
+    assert document["status"] == 200
+    assert document["contentType"] == "application/json"
+    assert document["shape"] == [
+        {"path": "$", "type": "object"},
+        {"path": '$["access_token"]', "type": "boolean"},
+    ]
+    assert document["shapeTruncated"] is False
 
 
 def test_every_generated_scenario_has_an_expected_document() -> None:
