@@ -232,6 +232,38 @@ def test_cli_interrupt_deletes_and_restores_signal_handler(env, transport, numbe
     assert len(transport.operation_requests("RTR_DeleteSession")) == 1
 
 
+@pytest.mark.parametrize("number", [signal.SIGINT, signal.SIGTERM])
+@pytest.mark.parametrize("operation", ["RTR_ExecuteCommand", "RTR_CheckCommandStatus"])
+def test_cli_size_lookup_interrupt_deletes_without_submitting_cat(env, transport, number, operation):
+    previous = signal.getsignal(number)
+
+    def interrupt(args):
+        signal.raise_signal(number)
+
+    transport.responders.insert(0, serve(operation, interrupt))
+    command = "cat synthetic.txt"
+    output, code = cli(transport, env, "--execute", "--confirm", f"{HOST}:{command}", command=command)
+    assert code == 1
+    assert "RTR execution interrupted" in output
+    assert "complete: false" in output
+    assert "cleanup: deleted" in output
+    assert [args.body["base_command"] for args in transport.operation_requests("RTR_ExecuteCommand")] == ["ls"]
+    assert len(transport.operation_requests("RTR_DeleteSession")) == 1
+    assert records(env)[-1]["command_outcome"] == "not_started"
+    assert signal.getsignal(number) == previous
+
+
+@pytest.mark.parametrize("operation", ["RTR_ExecuteCommand", "RTR_CheckCommandStatus"])
+def test_size_lookup_deadline_expiry_deletes_without_submitting_cat(env, transport, operation):
+    transport.responders.insert(0, serve(operation, fail(BudgetExpired())))
+    with pytest.raises(BudgetExpired) as error:
+        run(transport, env, "cat synthetic.txt")
+    assert error.value.details["complete"] is False
+    assert error.value.details["cleanup"] == "deleted"
+    assert [args.body["base_command"] for args in transport.operation_requests("RTR_ExecuteCommand")] == ["ls"]
+    assert len(transport.operation_requests("RTR_DeleteSession")) == 1
+
+
 def test_cli_ambiguous_init_requires_manual_recovery_without_replay(env, transport):
     transport.responders.insert(0, serve("RTR_InitSession", fail(BudgetExpired())))
     output, code = cli(transport, env, "--execute", "--confirm", f"{HOST}:ps")

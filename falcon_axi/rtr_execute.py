@@ -25,6 +25,11 @@ from falcon_axi.transport.rtr import _AUTHORITY, RunAuthority
 from falcon_axi.transport.types import RequestArgs, Transport
 
 
+class RunInterrupted(CliError):
+    def __init__(self) -> None:
+        super().__init__("UPSTREAM_ERROR", "RTR execution interrupted")
+
+
 @dataclass(frozen=True)
 class RunResult:
     run_id: str
@@ -226,6 +231,8 @@ def _execute_locked(
                         if ended and not text:
                             size = _file_size(listing_output, command)
                             break
+                except (RunInterrupted, BudgetExpired):
+                    raise
                 except CliError:
                     pass
                 size_unverified = size is None
