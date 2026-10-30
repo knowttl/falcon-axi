@@ -139,7 +139,8 @@ See [configuration](docs/configuration.md) for profiles, precedence, regions, Se
 
 ## Output and exit codes
 
-Data and structured errors use [TOON](https://toonformat.dev/) on stdout; diagnostics use stderr.
+Data and structured errors use [TOON](https://toonformat.dev/) on stdout; debug logging and progress use stderr.
+Response-invalid errors include bounded diagnostics under the [error translation contract](docs/design/v1.md#94-translation-never-passthrough).
 Lists have explicit empty states, small default schemas, and next-step hints.
 Supported detail commands preview long fields; use their `--full` flag for complete content.
 One invocation reads one page by default; pass emitted `continuation_cursor` values to `--cursor` where supported.

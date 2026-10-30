@@ -79,8 +79,8 @@ def translate_falcon_error(
 ) -> CliError:
     """Maps a Falcon failure onto falcon-axi's own envelope.
 
-    Raw Falcon bodies, HTTP status numbers, and endpoint paths never reach stdout. `document` names
-    the GraphQL document a graphql-query operation sent, so a scope failure names its read scope too.
+    Output restrictions are owned by docs/design/v1.md §9.4.
+    `document` names the GraphQL document a graphql-query operation sent, so a scope failure names its read scope too.
     """
     messages = falcon_messages(response)
     trace = trace_id(response)
