@@ -1,5 +1,18 @@
 # Changelog
 
+## [0.8.4](https://github.com/knowttl/falcon-axi/compare/v0.8.3...v0.8.4) (2026-10-30)
+
+
+### Bug Fixes
+
+* preserve diagnostics for invalid Falcon responses ([#91](https://github.com/knowttl/falcon-axi/issues/91)) ([41354ab](https://github.com/knowttl/falcon-axi/commit/41354abe45f8ff0e03b823ccc0b4aaf033b6062e))
+* reject malformed Falcon resource envelopes ([#89](https://github.com/knowttl/falcon-axi/issues/89)) ([2a9aaac](https://github.com/knowttl/falcon-axi/commit/2a9aaac0610cf224726921639592448372f67392))
+
+
+### Documentation
+
+* enforce canonical test quality rules ([#92](https://github.com/knowttl/falcon-axi/issues/92)) ([58760e8](https://github.com/knowttl/falcon-axi/commit/58760e8ae39c87d980a43527e68f9ba504e2d31e))
+
 ## [0.8.3](https://github.com/knowttl/falcon-axi/compare/v0.8.2...v0.8.3) (2026-10-30)
 
 
