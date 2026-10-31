@@ -24,7 +24,7 @@ from urllib3.util import Timeout
 from falcon_axi.core import CliError
 from falcon_axi.response_diagnostics import record_response
 from falcon_axi.rtr_policy import RESPONSE_BYTES
-from falcon_axi.transport.budget import BudgetExpired, deadline_after, remaining_seconds, request_budget
+from falcon_axi.transport.budget import TIMEOUT_SECONDS, BudgetExpired, deadline_after, remaining_seconds, request_budget
 from falcon_axi.transport.graphql import is_registered_query
 from falcon_axi.transport.malquery import validate_search_body
 from falcon_axi.transport.operations import GRAPHQL_QUERY_IDS, operation
@@ -32,7 +32,6 @@ from falcon_axi.transport.rtr import _signing_key, validate_grant
 from falcon_axi.transport.types import FalconResponse, PreparedOperation, PreparedToken
 from falcon_axi.version import user_agent
 
-TIMEOUT_SECONDS = 30
 OAUTH_PATH = "/oauth2/token"
 
 

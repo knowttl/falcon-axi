@@ -9,6 +9,8 @@ from falcon_axi.core import CliError
 from falcon_axi.rtr_policy import CLEANUP_SECONDS
 
 _deadline: ContextVar[float | None] = ContextVar("request_deadline", default=None)
+TIMEOUT_SECONDS = 30
+HOST_HISTORY_SECONDS = 2 * TIMEOUT_SECONDS
 
 
 class BudgetExpired(CliError):

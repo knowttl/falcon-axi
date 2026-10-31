@@ -1,11 +1,16 @@
 falcon-axi host logins <device id> [--since <window>] [--limit N]
+falcon-axi host logins --hostname <pattern> [--since <window>] [--limit N]
 
 The device id is the agent id Falcon calls the AID, as printed by `falcon-axi host list`.
+--hostname   match a hostname (wildcards allowed), instead of a device id; requires exactly one match
 --since      window to read, such as 24h or 7d (default 7d, Falcon's own default)
 --limit      logins per host in this call (default 20, ceiling 100)
 
 Reports recent interactive logins from the Host Timeline as device_id, user_name, and
 login_time. It is a window, not a full audit trail: a host that returns its limit may have more.
 Example: falcon-axi host logins abc123 --since 24h
+Example: falcon-axi host logins --hostname 'synthetic-host-*' --since 24h --limit 2
+Hostname form: one lookup capped at 2 IDs, then one history read; 60s total deadline.
+Ambiguous or incomplete lookups fail without reading history; upstream partial errors are disclosed.
 
 This command is read-only and requires only Hosts:read.

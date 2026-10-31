@@ -34,8 +34,13 @@ Use bounded CQL for `NetworkConnectIP4`, `DnsRequest`, or raw `ProcessRollup2` /
 
 Detection and host lists already query and hydrate records; avoid showing every ID merely to obtain the default fields.
 Use `detection process` for alert-recorded lineage and `process tree` for a graph pivot instead of fetching ancestors by hand.
-Host lookup and history remain separate calls: use the returned AID for the history command.
-A combined hostname lookup and history read is a possible future feature, not a shipped one-call form.
+Use `host network --hostname 'synthetic-host-*'` or `host logins --hostname 'synthetic-host-*' --since 24h --limit 2` to look up a hostname and read its history in one invocation.
+Use either `--hostname <pattern>` or a positional AID, never both.
+The hostname form makes one lookup capped at two IDs and reads history only when exactly one match is proven; ambiguous or incomplete lookups fail without a history read.
+Use `host list --hostname '<pattern>' --limit 2` to inspect ambiguous matches, then pass the selected AID to the history command.
+The combined form has a 60-second total deadline including authentication and retries; each request retains its 30-second timeout.
+Expiry is `WAIT_TIMEOUT`; failures after resolution disclose `device_id`, `partial: true`, and `stop_reason: history_failed` rather than reporting empty history.
+Upstream partial errors fail explicitly; history schemas, login limits, and passive `Hosts:read` permissions are unchanged.
 
 Detection and host lists default to 20 rows, with ceilings of 10000 and 5000 respectively.
 `--fields` adds columns to their compact defaults; the examples select alert status/technique/time and host containment status/OS/sensor version.

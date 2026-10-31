@@ -2,11 +2,12 @@
 
 `host list` is the documented two-step read (§2.3): `QueryDevicesByFilter` returns device ids and
 `PostDeviceDetailsV2` hydrates them, with the query-step order reapplied afterwards because an
-entity endpoint may answer in any order. `host show` is the hydrate step alone. `host logins` is
-one request: `QueryDeviceLoginHistoryV2` takes the device id in its body.
+entity endpoint may answer in any order. `host show` is the hydrate step alone.
+History hostname resolution follows docs/design/v1.md §1.8.
 """
 
 from collections.abc import Mapping, Sequence
+from dataclasses import replace
 from typing import Any
 
 from falcon_axi.auth import Session
@@ -18,6 +19,8 @@ from falcon_axi.domain import DEFAULT_LIMIT, CommandOutput, parse_fields, rate_l
 from falcon_axi.falcon_error import falcon_messages, translate_falcon_error
 from falcon_axi.fql import HOST_STATUSES, PLATFORMS, HostQuery, describe_host_query, host_filter, window
 from falcon_axi.render import raw
+from falcon_axi.response_diagnostics import upstream_invalid
+from falcon_axi.transport.budget import HOST_HISTORY_SECONDS, remaining_seconds
 from falcon_axi.transport.types import RequestArgs, Transport
 from falcon_axi.walk import Page, max_rows_of, offset_page, walk
 
@@ -246,6 +249,8 @@ def host_logins(transport: Transport, session: Session, id: str, limit: int, sin
         )
     if response.status != 200:
         raise translate_falcon_error(response, "QueryDeviceLoginHistoryV2", "host login history")
+    if isinstance(response.body, Mapping) and response.body.get("errors"):
+        raise upstream_invalid("Falcon returned partial host login history", details={"partial": True})
     for entry in resources(response):
         if not isinstance(entry, Mapping):
             continue
@@ -296,6 +301,8 @@ def _host_network(ctx: Invocation) -> CommandOutput:
     )
     if response.status != 200:
         raise translate_falcon_error(response, "QueryGetNetworkAddressHistoryV1", "hosts")
+    if isinstance(response.body, Mapping) and response.body.get("errors"):
+        raise upstream_invalid("Falcon returned partial host network history", details={"partial": True})
     # The official response schema is an array of device_id/history objects.
     entries = response.body if isinstance(response.body, list) else resources(response)
     history = [
@@ -338,6 +345,49 @@ def _host_logins(ctx: Invocation) -> CommandOutput:
         limit=ctx.limit,
         since=ctx.text("since"),
     )
+
+
+def _host_history(ctx: Invocation) -> CommandOutput:
+    handler = _host_network if ctx.spec.name == "host network" else _host_logins
+    hostname = ctx.text("hostname")
+    if hostname is None:
+        return handler(ctx)
+    remaining_seconds()
+    response = ctx.transport.request(
+        "QueryDevicesByFilter",
+        RequestArgs(
+            base_url=ctx.session.base_url,
+            token=ctx.session.token,
+            allow_unknown_origin=ctx.session.allow_unknown_origin,
+            query={"filter": host_filter(HostQuery(hostname=hostname)) or "", "limit": 2, "offset": 0},
+        ),
+    )
+    remaining_seconds()
+    if response.status != 200:
+        raise translate_falcon_error(response, "QueryDevicesByFilter", "hosts")
+    if isinstance(response.body, Mapping) and response.body.get("errors"):
+        raise upstream_invalid("Falcon returned a partial hostname lookup; history was not read", details={"partial": True})
+    ids, count = resources(response), total(response)
+    remedy = ("Run `falcon-axi host list --hostname '<pattern>' --limit 2` and select a device identifier",)
+    if any(not isinstance(id, str) or not id for id in ids):
+        raise upstream_invalid("Falcon returned malformed host identifiers; history was not read")
+    if len(ids) > 1 or (count is not None and count > 1):
+        raise CliError("VALIDATION_ERROR", "hostname matches more than one host; history was not read", remedy)
+    if count is None or count != len(ids):
+        raise upstream_invalid(
+            "the bounded hostname lookup could not prove a complete match; history was not read",
+            remedy,
+            {"partial": True, "stop_reason": "incomplete_lookup"},
+        )
+    if not ids:
+        raise CliError("NOT_FOUND", "no host matched that hostname; history was not read", remedy)
+    try:
+        output = handler(replace(ctx, positionals=(ids[0],)))
+        remaining_seconds()
+        return output
+    except CliError as error:
+        error.details.update(device_id=ids[0], partial=True, stop_reason="history_failed")
+        raise
 
 
 def _host_query_of(flags: Mapping[str, str | bool]) -> HostQuery:
@@ -411,23 +461,28 @@ COMMAND_SPECS = (
         help="\n".join(
             [
                 "falcon-axi host logins <device id> [--since <window>] [--limit N]",
+                "falcon-axi host logins --hostname <pattern> [--since <window>] [--limit N]",
                 "",
                 "The device id is the agent id Falcon calls the AID, as printed by `falcon-axi host list`.",
+                "--hostname   match a hostname (wildcards allowed), instead of a device id; requires exactly one match",
                 f"--since      window to read, such as 24h or 7d (default {LOGIN_DEFAULT_SINCE}, Falcon's own default)",
                 f"--limit      logins per host in this call (default {DEFAULT_LIMIT}, ceiling {LOGIN_CEILING})",
                 "",
                 "Reports recent interactive logins from the Host Timeline as device_id, user_name, and",
                 "login_time. It is a window, not a full audit trail: a host that returns its limit may have more.",
                 "Example: falcon-axi host logins abc123 --since 24h",
+                "Example: falcon-axi host logins --hostname 'synthetic-host-*' --since 24h --limit 2",
+                f"Hostname form: one lookup capped at 2 IDs, then one history read; {HOST_HISTORY_SECONDS}s total deadline.",
+                "Ambiguous or incomplete lookups fail without reading history; upstream partial errors are disclosed.",
                 "",
                 "This command is read-only and requires only Hosts:read.",
             ]
         ),
         summary="  host logins <device id>   recent interactive logins on one host",
-        handler=_host_logins,
-        operations=("QueryDeviceLoginHistoryV2",),
-        flags=("since", "limit"),
-        value_flags=("since", "limit"),
+        handler=_host_history,
+        operations=("QueryDeviceLoginHistoryV2", "QueryDevicesByFilter"),
+        flags=("since", "limit", "hostname"),
+        value_flags=("since", "limit", "hostname"),
         limit_ceiling=(LOGIN_CEILING, "Hosts login history"),
         positional=("device identifier", "Run `falcon-axi host list` to see current device identifiers"),
     ),
@@ -436,16 +491,23 @@ COMMAND_SPECS = (
         help="\n".join(
             [
                 "falcon-axi host network <device id>",
+                "falcon-axi host network --hostname <pattern>",
                 "",
                 "Retrieves the IP and MAC address history Falcon retains for one sensor host.",
                 "The device id is the AID printed by `falcon-axi host list`.",
+                "--hostname   match a hostname (wildcards allowed), instead of a device id; requires exactly one match",
                 "Example: falcon-axi host network abc123",
+                "Example: falcon-axi host network --hostname 'synthetic-host-*'",
+                f"Hostname form: one lookup capped at 2 IDs, then one history read; {HOST_HISTORY_SECONDS}s total deadline.",
+                "Ambiguous or incomplete lookups fail without reading history; upstream partial errors are disclosed.",
                 "Read-only; requires Hosts:read. This endpoint has no pagination parameters.",
             ]
         ),
         summary="  host network <device id>  IP and MAC address history for one host",
-        handler=_host_network,
-        operations=("QueryGetNetworkAddressHistoryV1",),
+        handler=_host_history,
+        operations=("QueryGetNetworkAddressHistoryV1", "QueryDevicesByFilter"),
+        flags=("hostname",),
+        value_flags=("hostname",),
         positional=("device identifier", "Run `falcon-axi host list` to see current device identifiers"),
     ),
 )
