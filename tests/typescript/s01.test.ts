@@ -110,6 +110,13 @@ async function run(
         headers: hosted.headers,
       })
     ).json()) as { revision: number };
+    // Credential replacement performs its own real health read in this fixture.
+    // Faults and wire assertions below describe only the requested invocation.
+    const tokenResponse = respondToken;
+    const requestedVariant = queryVariant;
+    respondToken = (_request, response) =>
+      json(response, { access_token: "synthetic-s01-token", expires_in: 1800 });
+    queryVariant = "normal";
     const credential = await fetch(
       `${hosted.url}/v1/admin/tools/falcon-axi/credential`,
       {
@@ -130,6 +137,10 @@ async function run(
       },
     );
     assert.equal(credential.status, 200, await credential.text());
+    wire.length = 0;
+    tokenAttempt = 0;
+    respondToken = tokenResponse;
+    queryVariant = requestedVariant;
     invocation = invocation.filter(
       (_arg, index) =>
         ![
