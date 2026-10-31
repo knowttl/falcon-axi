@@ -10,9 +10,10 @@
     "noUnusedParameters": true,
     "noEmitOnError": true,
     "verbatimModuleSyntax": true,
-    "rootDir": "scripts/typescript",
+    "resolveJsonModule": true,
+    "rootDir": ".",
     "outDir": ".typescript-build",
     "types": ["node"]
   },
-  "include": ["scripts/typescript/*.ts"]
+  "include": ["src/**/*.ts", "scripts/typescript/*.ts", "tests/typescript/*.ts"]
 }

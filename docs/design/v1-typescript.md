@@ -1,33 +1,70 @@
-# TypeScript S01 feasibility status
+# TypeScript S01 candidate
 
-The migration branch preserves the Python implementation while evaluating a Node 24 TypeScript replacement.
-This initial increment is a failed feasibility probe, not an installed replacement CLI.
-The npm scaffold is private and has no executable entry point.
-No runtime dependency or native adapter has been selected.
+S01 is blocked at the transport STOP gate.
+The installed candidate prints WAIT_TIMEOUT within a one-second inherited OAuth budget, but an OS DNS lookup keeps the process alive until the resolver's three-second timeout.
+The isolated native reproduction observed output at 1.081 seconds and process settlement at 3.093 seconds, with two synthetic local DNS queries and no scoped or tenant request.
+Request destruction therefore does not prove the approved DNS/connect/TLS settlement contract.
+The slice check includes this failing installed-artifact case and must not be approved as passing.
+No backend replacement, weaker deadline or workaround has been adopted.
+The remaining Artium delta is partial local evidence, not a fixture adoption request.
 
-The TypeScript checks use Node 24.14.0, npm 11.9.0 and exact locked development dependencies.
-Run `npm ci --ignore-scripts` and `npm run verify` for strict compilation and formatting.
-On Linux with user namespaces enabled, run `npm run check:slice -- --slice S01 --paths native --offline` to reproduce the primitive STOP under a process-level network namespace with no external interfaces.
-That command exits 1 deliberately when the rejected Node-only approach follows the replaced ancestor.
-It is not a passing S01 gate.
-Other selectors and platforms fail with exit 2 rather than silently claiming coverage.
+The migration branch preserves the released Python implementation while evaluating a Node 24 TypeScript replacement.
+The private npm candidate is `@knowttl/falcon-axi@0.0.0-s01.0` with the executable name `falcon-axi`.
+Only `detection list` is delivered here, with limit, FQL and opaque continuation support.
+The rest of the Python command surface remains the behaviour origin for later slices.
+No npm publication, Python release change, workflow edit or host deployment is included.
 
-The probe retains a directory descriptor, checks its ownership and permissions, then deterministically replaces its pathname with a symlink before opening the journal with `O_NOFOLLOW`.
-The append reaches the replacement directory even though the final file passes ownership, link-count and mode checks.
-The original retained directory remains unchanged.
-The final-symlink negative control is refused, and file/directory fsync succeeds.
-These observations show why ordinary path opens cannot replace descriptor-relative traversal in the existing RTR journal.
-They do not show that a future native adapter is impossible.
+## Build and offline verification
 
-The inspected `fs-ext@2.1.1` API supplies flock but no descriptor-relative open.
-The inspected `fs-native-extensions@1.5.3` API supplies locking but no descriptor-relative open either.
-Its Linux lock implementation uses OFD fcntl locking; interoperability with the existing flock journal has not been proved.
-Neither package was adopted or executed.
-Node's public filesystem API does not supply the missing complete primitive interface.
-Sources: [Node filesystem API](https://nodejs.org/download/release/v24.14.0/docs/api/fs.html), [fs-ext](https://github.com/baudehlo/node-fs-ext), and [fs-native-extensions](https://github.com/holepunchto/fs-native-extensions).
+Development pins Node 24.14.0, npm 11.9.0 and exact locked dependencies.
+The runtime floor is Node 24.11.0; native Windows and other Node versions remain unproved in this slice.
+Run `npm ci --offline --ignore-scripts`, `npm run verify` and `npm run check:slice -- --slice S01 --paths native --offline`.
+The installed check packs an explicit compiled-source allowlist, installs outside the checkout and executes the npm bin from a directory containing spaces.
+Linux user/network/mount namespaces and iproute2 are required for that check.
+Only loopback is enabled; an actual external connect is required to fail with ENETUNREACH.
+Synthetic TLS delivery is injected only by the unpackaged test launcher after production origin and operation checks.
+The CLI contains no fake-origin flag, config field, environment selector or recorded transport.
 
-The required compiled narrow primitive adapter remains unproved, including retained-inode locking and interrupted durable append.
-S01 therefore remains blocked at its primitive STOP gate.
-Transport, output, packaging, credential injection and real local Artium journeys remain unrun.
-No live tenant request, host deployment, release action or workflow change is included.
-Resumption requires a reviewed narrow native adapter candidate with descriptor-relative traversal and compatible locking, followed by the actual primitive proof and the remaining S01 checks.
+The optional hosted path requires a separately built frozen local Artium fixture containing the reviewed S01 host delta.
+Set `S01_ARTIUM_ROOT` to that fixture and run `npm run check:slice -- --slice S01 --paths native,artium --offline`.
+Missing fixtures and unknown or empty selections fail.
+The host delta launches the candidate with its Node runtime rather than either Python launch condition, retaining Node heap limits and the existing termination grace.
+The real client, server, public credential API, private profile writer and runner execute the same installed artifact.
+The configured no-mistakes test deliberately requires only the native offline path.
+Final hosted evidence is bound separately to the frozen fixture and final candidate revision.
+
+## Authority and output
+
+The registry retains all 114 canonical operation tuples and their official scope and corroboration citations.
+A pinned canonical digest, own-key checks and recursive freezing seal the registry before networking.
+This slice enables only GetQueriesAlertsV2 and PostEntitiesAlertsV2 after body validation.
+The remaining reads and every exception tier are unreachable until their owning slices supply their authority checks.
+OAuth has its own fixed POST/form route and no persistent token cache.
+Only the private HTTPS sink accepts invocation-local frozen request permits.
+Lexical origin checks precede URL normalization, so explicit ports, dot segments, userinfo and other unsafe syntax cannot disappear before validation.
+No redirect Location is followed.
+One verified-region re-mint is separate from each mint's three-attempt response policy.
+Transport exceptions are terminal, and acquisition includes response bytes within a 30-second total cap.
+Response buffers are capped at 16 MiB for this read path.
+Signals and inherited token budgets cancel acquisition and retry waits.
+Proxy configuration uses FALCON_AXI_PROXY_URL and CONNECT, preserving target TLS verification.
+
+The public TOON encoder is pinned to 4.1.1 and the public AXI fast-version subpath to 0.1.13.
+Falcon retains raw lines, omission and always-quoted help entries at its rendering boundary.
+Response JSON integer lexemes beyond Number's exact domain become bigint before rounding can occur.
+The encoder emits those values as exact quoted decimal strings, its documented lossless representation.
+Other numeric lexemes beyond that domain retain their exact decimal or exponent text as strings.
+IDs remain strings, and truncation counts Unicode scalar values.
+The S01 list omits the Python suggestion for the undelivered detection-show command.
+No existing Python golden document is rewritten.
+
+## Primitive negative evidence
+
+The [approved S01 amendment](s01-primitive-amendment.md) moves the RTR primitive proof to a separate native-addon slice before S11.
+Transport and output feasibility remain STOP gates.
+The retained `npm run probe:primitive -- --slice S01 --paths native --offline` is negative evidence and exits 1 deliberately.
+It does not participate in the S01 passing check.
+The probe demonstrates that path-based O_NOFOLLOW cannot preserve a retained ancestor descriptor after pathname replacement.
+Neither fs-ext nor fs-native-extensions was adopted.
+A compiled descriptor-relative adapter, retained-inode flock and interrupted durable append remain unproved.
+A Linux-only /proc workaround is excluded, and no existing RTR safety guarantee is weakened.

@@ -3,19 +3,42 @@
   "version": "0.0.0-s01.0",
   "private": true,
   "type": "module",
+  "license": "MIT",
+  "description": "Read Falcon detections through a sealed transport (TypeScript migration candidate)",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/knowttl/falcon-axi.git"
+  },
+  "homepage": "https://github.com/knowttl/falcon-axi/tree/migration/typescript#readme",
+  "bugs": {
+    "url": "https://github.com/knowttl/falcon-axi/issues"
+  },
+  "bin": {
+    "falcon-axi": ".typescript-build/src/bin.js"
+  },
+  "files": [
+    ".typescript-build/src",
+    "LICENSE"
+  ],
   "engines": {
     "node": ">=24.11.0 <25"
   },
   "packageManager": "npm@11.9.0",
   "scripts": {
     "build": "tsc -p tsconfig.json",
-    "lint": "prettier --check package.json tsconfig.json scripts/typescript/*.ts",
-    "verify": "npm run build && npm run lint",
-    "check:slice": "npm run build && unshare --user --map-root-user --net node .typescript-build/primitive-probe.js"
+    "lint": "prettier --check package.json tsconfig.json 'src/**/*.ts' src/axi-credential.schema.json 'scripts/typescript/*.ts' 'tests/typescript/*.ts'",
+    "verify": "npm run build && npm run lint && node .typescript-build/scripts/typescript/architecture.js",
+    "check:slice": "npm run build && unshare --user --map-root-user --net --mount node .typescript-build/scripts/typescript/check-slice.js",
+    "probe:primitive": "npm run build && unshare --user --map-root-user --net node .typescript-build/scripts/typescript/primitive-probe.js"
   },
   "devDependencies": {
     "@types/node": "24.10.1",
     "prettier": "3.6.2",
     "typescript": "5.9.3"
+  },
+  "dependencies": {
+    "@toon-format/toon": "4.1.1",
+    "ajv": "8.20.0",
+    "axi-sdk-js": "0.1.13"
   }
 }

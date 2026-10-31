@@ -52,7 +52,8 @@ cites every source, so a claim can be re-verified rather than trusted.
 `crowdstrike-falconpy`: language and runtime, falconpy confinement, packaging with uv, and the pytest layout.
 Read both before changing implementation structure; v1.md still owns behavior, v1-python.md owns how it is
 built.
-There is no Node runtime, no MCP process, and no `falcon-mcp` dependency anywhere in the tree.
+The Python implementation has no Node runtime, MCP process, or `falcon-mcp` dependency.
+The migration branch also carries a separate TypeScript S01 candidate under `src/`.
 
 The implemented surface includes the package foundation, the sealed transport and its closed registry,
 AXI credential profiles with `auth status`, `profile list`, and `config path`, the read domains (`detection list`, `detection show`,
