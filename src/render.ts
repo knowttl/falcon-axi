@@ -2,12 +2,24 @@ import { encode } from "@toon-format/toon";
 import { object } from "./core.js";
 
 const secrets = new Set<string>();
+const memberCids = new Set<string>();
+export function registerMemberCid(value: string): void {
+  if (value) memberCids.add(value);
+}
 export function registerSecret(value: string): void {
   if (value) secrets.add(value);
 }
 export function redactText(value: string): string {
   for (const secret of [...secrets].sort((a, b) => b.length - a.length))
     value = value.replaceAll(secret, "[redacted]");
+  for (const cid of memberCids)
+    value = value.replaceAll(cid, (match, offset: number) =>
+      /^:(?:ind|automated-lead):[^\s"'`,]+/.test(
+        value.slice(offset + cid.length),
+      )
+        ? match
+        : "[redacted]",
+    );
   return value;
 }
 const secretKeys = new Set([

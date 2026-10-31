@@ -5,7 +5,7 @@ import { isAbsolute, join } from "node:path";
 import { Ajv2020 } from "ajv/dist/2020.js";
 import schema from "./axi-credential.schema.json" with { type: "json" };
 import { CliError, object } from "./core.js";
-import { registerSecret } from "./render.js";
+import { registerSecret, registerMemberCid } from "./render.js";
 
 export interface Credential {
   clientId: string;
@@ -159,6 +159,6 @@ export async function resolveCredential(
   }
   registerSecret(credential.clientId);
   registerSecret(credential.clientSecret);
-  if (credential.memberCid) registerSecret(credential.memberCid);
+  if (credential.memberCid) registerMemberCid(credential.memberCid);
   return credential;
 }

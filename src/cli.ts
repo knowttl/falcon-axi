@@ -3,7 +3,7 @@ import { resolveCredential } from "./credentials.js";
 import { authenticate } from "./auth.js";
 import { resolveOrigin } from "./origin.js";
 import { listDetections } from "./detection.js";
-import { render, registerSecret } from "./render.js";
+import { render, registerMemberCid } from "./render.js";
 import { valueFlags, boolFlags, commandNames } from "./metadata.js";
 export async function main(argv: string[]): Promise<number> {
   const controller = new AbortController();
@@ -77,6 +77,14 @@ export async function main(argv: string[]): Promise<number> {
     const signal = searchSubset
       ? AbortSignal.any([controller.signal, AbortSignal.timeout(1000)])
       : controller.signal;
+    if (
+      flags.has("--member-cid") &&
+      (!flags.get("--member-cid")!.trim() || flags.has("--no-member-cid"))
+    )
+      throw new CliError(
+        "VALIDATION_ERROR",
+        "--member-cid requires a nonempty value and cannot be combined with --no-member-cid",
+      );
     const credential = await resolveCredential(
       flags.get("--config"),
       flags.get("--profile"),
@@ -84,7 +92,7 @@ export async function main(argv: string[]): Promise<number> {
     if (flags.has("--no-member-cid")) delete credential.memberCid;
     else if (flags.has("--member-cid")) {
       credential.memberCid = flags.get("--member-cid")!;
-      registerSecret(credential.memberCid);
+      registerMemberCid(credential.memberCid);
     }
     const allowUnknown = flags.has("--allow-unknown-origin");
     const base = resolveOrigin(

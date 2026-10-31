@@ -248,12 +248,15 @@ export function requestToken(
   allowUnknown: boolean,
   signal: AbortSignal,
 ): Promise<Response> {
+  if (credential.memberCid !== undefined && !credential.memberCid.trim())
+    throw new CliError("VALIDATION_ERROR", "member CID must not be empty");
   const destination = origin(base, allowUnknown);
   const form = new URLSearchParams({
     client_id: credential.clientId,
     client_secret: credential.clientSecret,
   });
-  if (credential.memberCid) form.set("member_cid", credential.memberCid);
+  if (credential.memberCid !== undefined)
+    form.set("member_cid", credential.memberCid);
   const body = form.toString();
   return acquire(
     {

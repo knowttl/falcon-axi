@@ -168,9 +168,14 @@ export async function listDetections(
       /^[\w@%+=:,./-]+$/.test(text)
         ? text
         : `'${text.replaceAll("'", `'"'"'`)}'`;
+    const cidFilter = filter && /\b(?:cid|member_cid)\s*:/i.test(filter);
     help.push(
-      `Run \`falcon-axi detection list --limit ${limit}${filter ? ` --filter ${quote(filter)}` : ""} --cursor ${continuation}\` for the next page`,
+      `Run \`falcon-axi detection list --limit ${limit}${filter ? ` --filter ${quote(cidFilter ? "<original-filter>" : filter)}` : ""} --cursor ${continuation}\` for the next page`,
     );
+    if (cidFilter)
+      help.push(
+        "Replace <original-filter> with your original --filter value when continuing; CID filters are not echoed",
+      );
   }
   value.detections = rows;
   return { value, help };

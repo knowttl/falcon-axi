@@ -19,10 +19,10 @@ import { fileURLToPath } from "node:url";
 import { createHash } from "node:crypto";
 import type { IncomingMessage, ServerResponse } from "node:http";
 import type { Duplex } from "node:stream";
-import { render, Raw, truncate } from "../../src/render.js";
+import { render, Raw, truncate, registerMemberCid } from "../../src/render.js";
 import { parseResponse } from "../../src/core.js";
 import { operation, operationIds } from "../../src/transport/operations.js";
-import { requestRead } from "../../src/transport/https.js";
+import { requestRead, requestToken } from "../../src/transport/https.js";
 import { decode } from "@toon-format/toon";
 import { spawnSync } from "node:child_process";
 
@@ -304,7 +304,13 @@ before(async () => {
           meta: { pagination: { total: queryVariant === "empty" ? 0 : 3 } },
           errors: [],
           resources:
-            queryVariant === "empty" ? [] : offset === "0" ? [D2, D1] : [D3],
+            queryVariant === "member"
+              ? alerts.map((alert) => alert.composite_id)
+              : queryVariant === "empty"
+                ? []
+                : offset === "0"
+                  ? [D2, D1]
+                  : [D3],
         });
         return;
       }
@@ -531,6 +537,160 @@ test("H06 installed package preserves query order, columns, total and returned c
     `count: 1 of 3 total\ndetections[1]{id,severity,tactic,hostname}:\n  "${D3}",Low,Discovery,WIN-WS-43\n`,
   );
 });
+if (process.env.S01_ACTIVE_PATH !== "artium") {
+  for (const selection of [
+    ["--member-cid", ""],
+    ["--member-cid="],
+    ["--member-cid", "   "],
+    ["--member-cid", "synthetic-member", "--no-member-cid"],
+  ])
+    test(`tenant selector ${JSON.stringify(selection)} fails before credentials`, async () => {
+      reset();
+      const result = await run(["detection", "list", ...selection], {
+        FALCON_AXI_CONFIG: join(directory, "missing.json"),
+      });
+      assert.equal(result.code, 2);
+      assert.match(result.stdout, /VALIDATION_ERROR/);
+      assert.equal(result.stderr, "");
+      assert.equal(wire.length, 0);
+    });
+
+  for (const source of ["flag", "environment", "profile"])
+    test(`composite IDs survive ${source} member selection without exposing secrets`, async () => {
+      reset();
+      queryVariant = "member";
+      const member = "synthetic-member";
+      const ids = [
+        `${member}:ind:agent:alert`,
+        `${member}:automated-lead:alert`,
+      ];
+      const original = alerts;
+      alerts = ids.map((composite_id) => ({
+        composite_id,
+        severity_name: "High",
+        tactic: "synthetic-s01-secret synthetic-s01-client synthetic-s01-token",
+        hostname: member,
+      }));
+      const extra: NodeJS.ProcessEnv = {};
+      const args = ["detection", "list", "--limit", "2"];
+      if (source === "flag") args.push("--member-cid", member);
+      if (source === "environment") {
+        extra.FALCON_AXI_PROFILE = "";
+        extra.FALCON_AXI_CLIENT_ID = "synthetic-s01-client";
+        extra.FALCON_AXI_CLIENT_SECRET = "synthetic-s01-secret";
+        extra.FALCON_AXI_MEMBER_CID = member;
+      }
+      if (source === "profile") {
+        const profile = JSON.parse(await readFile(config, "utf8"));
+        profile.profiles.artium.memberCid = member;
+        extra.FALCON_AXI_CONFIG = join(directory, "member-config.json");
+        await writeFile(extra.FALCON_AXI_CONFIG, JSON.stringify(profile), {
+          mode: 0o600,
+        });
+      }
+      try {
+        const result = await run(args, extra);
+        assert.equal(result.code, 0, result.stdout);
+        const data = decode(result.stdout) as {
+          detections: { id: string; hostname: string; tactic: string }[];
+        };
+        assert.deepEqual(
+          data.detections.map((row) => row.id),
+          ids,
+        );
+        for (const row of data.detections) {
+          assert.equal(row.hostname, "[redacted]");
+          assert.equal(row.tactic, "[redacted] [redacted] [redacted]");
+        }
+        assert.equal(result.stderr, "");
+        assert.equal(
+          new URLSearchParams(wire[0]!.body).get("member_cid"),
+          member,
+        );
+      } finally {
+        alerts = original;
+      }
+    });
+}
+
+test("OAuth refuses an explicitly empty member selection before sending", () => {
+  reset();
+  assert.throws(
+    () =>
+      requestToken(
+        "https://api.crowdstrike.com",
+        {
+          clientId: "synthetic-client",
+          clientSecret: "synthetic-secret",
+          memberCid: "",
+        },
+        false,
+        new AbortController().signal,
+      ),
+    { code: "VALIDATION_ERROR" },
+  );
+  assert.equal(wire.length, 0);
+});
+
+test("CID redaction preserves composite IDs across structured, raw and help output", () => {
+  const cid = "synthetic-render-member";
+  const id = `${cid}:ind:agent:alert`;
+  registerMemberCid(cid);
+  const output = render(
+    {
+      detections: [{ id, cid, hostname: cid }],
+      note: new Raw(`${id} ${cid}`),
+    },
+    [`Run detection show ${id}; tenant ${cid}; https://example.test/${cid}`],
+  );
+  const data = decode(output) as {
+    detections: { id: string; cid: string; hostname: string }[];
+    note: string;
+    help: string[];
+  };
+  assert.deepEqual(data.detections, [
+    { id, cid: "[redacted]", hostname: "[redacted]" },
+  ]);
+  assert.equal(data.note, `${id} [redacted]`);
+  assert.deepEqual(data.help, [
+    `Run detection show ${id}; tenant [redacted]; https://example.test/[redacted]`,
+  ]);
+});
+
+for (const field of [
+  "cid",
+  "member_cid",
+  "device.cid",
+  "tenant.member_cid",
+  "CID",
+])
+  test(`continuation conceals the ${field} filter while sending it unchanged`, async () => {
+    reset();
+    const filter = `${field}:'synthetic-unregistered-tenant'`;
+    const result = await run([
+      "detection",
+      "list",
+      "--limit",
+      "2",
+      "--filter",
+      filter,
+    ]);
+    assert.equal(result.code, 0, result.stdout);
+    assert.match(result.stdout, /--filter '<original-filter>'/);
+    assert.match(
+      result.stdout,
+      /Replace <original-filter> with your original --filter/,
+    );
+    assert.ok(!result.stdout.includes("synthetic-unregistered-tenant"));
+    assert.equal(
+      new URL(wire[1]!.url, "https://api.crowdstrike.com").searchParams.get(
+        "filter",
+      ),
+      filter,
+    );
+    assert.equal(result.stderr, "");
+  });
+
 for (const variant of ["empty", "malformed", "denied"])
   test(`H07 installed ${variant} response is distinct`, async () => {
     reset();
