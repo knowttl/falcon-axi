@@ -1,0 +1,21 @@
+{
+  "name": "@knowttl/falcon-axi",
+  "version": "0.0.0-s01.0",
+  "private": true,
+  "type": "module",
+  "engines": {
+    "node": ">=24.11.0 <25"
+  },
+  "packageManager": "npm@11.9.0",
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "lint": "prettier --check package.json tsconfig.json scripts/typescript/*.ts",
+    "verify": "npm run build && npm run lint",
+    "check:slice": "npm run build && unshare --user --map-root-user --net node .typescript-build/primitive-probe.js"
+  },
+  "devDependencies": {
+    "@types/node": "24.10.1",
+    "prettier": "3.6.2",
+    "typescript": "5.9.3"
+  }
+}
