@@ -13,7 +13,7 @@ _deadline: ContextVar[float | None] = ContextVar("request_deadline", default=Non
 
 class BudgetExpired(CliError):
     def __init__(self) -> None:
-        super().__init__("NETWORK_UNREACHABLE", "the search invocation reached its --wait deadline")
+        super().__init__("WAIT_TIMEOUT", "the search invocation reached its --wait deadline")
 
 
 def deadline_after(wait: int) -> float | None:

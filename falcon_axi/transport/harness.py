@@ -82,6 +82,8 @@ def _send_with_deadline(prepared: PreparedOperation | PreparedToken, permit: Per
     answer = json.loads(result.stdout)
     if "error" in answer:
         failure = answer["error"]
+        if failure["code"] == "WAIT_TIMEOUT":
+            raise BudgetExpired()
         raise CliError(failure["code"], failure["message"], failure["help"], failure["details"])
     response = FalconResponse(**answer["response"])
     record_response(response.status, response.headers, response.body)

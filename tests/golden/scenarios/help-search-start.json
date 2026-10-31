@@ -1,6 +1,6 @@
 {
   "name": "help-search-start",
-  "comment": "Design section 4.3 adds optional bounded waiting, lifecycle follow-up, result bounds and readable CQL timestamp guidance.",
+  "comment": "Design section 4.3 adds optional bounded waiting, lifecycle follow-up, result bounds and readable CQL timestamp guidance. TD-057 clarifies that expiry after creation succeeds with the running state and job id.",
   "argv": [
     "search",
     "start",

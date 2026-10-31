@@ -870,7 +870,8 @@ Examples:
 
 This command starts a job on the tenant and requires NGSIEM:write.
 Using --wait also requires NGSIEM:read to poll status.
-Poll it with `falcon-axi search status <id> --wait 30`; a timeout leaves the job running.
+When --wait expires after start, it returns state: running and the job id successfully.
+Poll it with `falcon-axi search status <id> --wait 30`; the job keeps running.
 For readable epoch-millisecond @timestamp values, append this CQL stage:
 | formatTime("%Y-%m-%dT%H:%M:%SZ", field=@timestamp, as=time, timezone="UTC")
 ```

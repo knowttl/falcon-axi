@@ -124,7 +124,7 @@ def test_worker_ignores_dependencies_in_the_callers_directory(
     monkeypatch.setattr(harness.subprocess, "run", expired_worker)
     with request_budget(time.monotonic() + 10), pytest.raises(CliError) as expired:
         deadline_request()
-    assert expired.value.code == "NETWORK_UNREACHABLE"
+    assert expired.value.code == "WAIT_TIMEOUT"
     assert expired.value.message == "the search invocation reached its --wait deadline"
 
 
