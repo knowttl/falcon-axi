@@ -2,8 +2,8 @@
 
 `host list` is the documented two-step read (§2.3): `QueryDevicesByFilter` returns device ids and
 `PostDeviceDetailsV2` hydrates them, with the query-step order reapplied afterwards because an
-entity endpoint may answer in any order. `host show` is the hydrate step alone. `host logins` is
-one request: `QueryDeviceLoginHistoryV2` takes the device id in its body.
+entity endpoint may answer in any order. `host show` is the hydrate step alone.
+History hostname resolution follows docs/design/v1.md §1.8.
 """
 
 from collections.abc import Mapping, Sequence
