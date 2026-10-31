@@ -94,7 +94,7 @@ async function run(
   if (hosted) {
     await new Promise<void>((resolve, reject) => {
       host!.once("message", () => resolve());
-      host!.send({ port: extra.S01_DELIVERY_PORT ?? port }, (error) => {
+      host!.send({ port }, (error) => {
         if (error) reject(error);
       });
     });
@@ -141,6 +141,13 @@ async function run(
     tokenAttempt = 0;
     respondToken = tokenResponse;
     queryVariant = requestedVariant;
+    if (extra.S01_DELIVERY_PORT)
+      await new Promise<void>((resolve, reject) => {
+        host!.once("message", () => resolve());
+        host!.send({ port: extra.S01_DELIVERY_PORT }, (error) => {
+          if (error) reject(error);
+        });
+      });
     invocation = invocation.filter(
       (_arg, index) =>
         ![
@@ -867,7 +874,10 @@ test("TCP/TLS stall respects inherited budget and settles", async () => {
       { S01_DELIVERY_PORT: String(address.port) },
     );
     assert.match(result.stdout, /code: WAIT_TIMEOUT/);
-    assert.ok(result.elapsed < 1600);
+    assert.ok(
+      result.elapsed < 1600,
+      `invocation settled at ${result.elapsed} ms`,
+    );
     assert.equal(wire.length, 0);
   } finally {
     for (const socket of sockets) socket.destroy();
