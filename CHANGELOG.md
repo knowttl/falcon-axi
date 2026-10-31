@@ -1,5 +1,17 @@
 # Changelog
 
+## [0.9.0](https://github.com/knowttl/falcon-axi/compare/v0.8.4...v0.9.0) (2026-10-31)
+
+
+### Features
+
+* add bounded hostname lookup for host history ([#97](https://github.com/knowttl/falcon-axi/issues/97)) ([eae2ba8](https://github.com/knowttl/falcon-axi/commit/eae2ba801a3bcf39b2b13b4fc3799e1ee3e05e44))
+
+
+### Bug Fixes
+
+* preserve running search IDs when wait deadlines expire ([#93](https://github.com/knowttl/falcon-axi/issues/93)) ([5a4f626](https://github.com/knowttl/falcon-axi/commit/5a4f626e580687e943b698d648bb6991b1644f5b))
+
 ## [0.8.4](https://github.com/knowttl/falcon-axi/compare/v0.8.3...v0.8.4) (2026-10-30)
 
 
