@@ -7,6 +7,7 @@ import { CliError, object, parseResponse } from "../core.js";
 import { origin } from "../origin.js";
 import { operation } from "./operations.js";
 import { VERSION } from "../version.js";
+import { createLookup } from "./resolver.js";
 
 export interface Response {
   status: number;
@@ -55,6 +56,7 @@ async function send(
     throw new CliError("READ_ONLY_VIOLATION", "request authority was refused");
   const signal = AbortSignal.any([inherited, AbortSignal.timeout(30_000)]);
   signal.throwIfAborted();
+  const resolver = createLookup(inherited, signal);
   let tunnel: Duplex | undefined;
   let proxyRequest: http.ClientRequest | undefined;
   let request: http.ClientRequest | undefined;
@@ -82,6 +84,7 @@ async function send(
           proxy,
           {
             method: "CONNECT",
+            lookup: resolver.lookup,
             path: `${target.hostname}:443`,
             agent: false,
             headers: {
@@ -128,6 +131,7 @@ async function send(
       request = https.request(
         {
           hostname: target.hostname,
+          lookup: resolver.lookup,
           port: 443,
           method: prepared.method,
           path: prepared.path,
@@ -197,6 +201,7 @@ async function send(
     proxyRequest?.destroy();
     tunnelAgent?.destroy();
     tunnel?.destroy();
+    await resolver.close();
   }
 }
 

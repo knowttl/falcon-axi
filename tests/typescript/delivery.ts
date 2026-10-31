@@ -22,8 +22,8 @@ https.request = ((
       headers: { ...options.headers, host: options.hostname },
       port: Number(process.env.S01_DELIVERY_PORT),
       servername: options.hostname,
-      lookup: (_host, _options, done) =>
-        done(null, [{ address: "127.0.0.1", family: 4 }]),
+      lookup: (_host, lookupOptions, done) =>
+        options.lookup!("localhost", lookupOptions, done),
     },
     callback,
   );

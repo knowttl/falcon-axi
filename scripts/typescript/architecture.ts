@@ -37,6 +37,7 @@ const sink = new Set([
   "node:tls",
   "node:stream",
   "node:timers/promises",
+  "./resolver.js",
 ]);
 export function violations(source: string, name: string): string[] {
   const file = ts.createSourceFile(name, source, ts.ScriptTarget.Latest, true);
@@ -49,7 +50,16 @@ export function violations(source: string, name: string): string[] {
         (!ts.isStringLiteral(specifier) ||
           !(
             allowed.has(specifier.text) ||
-            (name === "transport/https.ts" && sink.has(specifier.text))
+            (name === "transport/https.ts" && sink.has(specifier.text)) ||
+            (name === "transport/resolver.ts" &&
+              [
+                "node:child_process",
+                "node:net",
+                "node:dns",
+                "node:url",
+              ].includes(specifier.text)) ||
+            (name === "transport/dns-worker.ts" &&
+              specifier.text === "node:dns/promises")
           ))
       )
         errors.push("unauthorized dependency");
