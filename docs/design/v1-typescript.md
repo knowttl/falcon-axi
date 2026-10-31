@@ -1,17 +1,12 @@
 # TypeScript S01 candidate
 
-The [approved settlement amendment](s01-primitive-amendment.md#dns-deadline-settlement) requires explicit process termination after flushing the safe result.
-System name resolution runs in a killable child using the unchanged OS getaddrinfo resolver.
-The HTTPS lookup callback consumes its validated addresses, cached per invocation, host and resolver options.
-The child receives no credentials or inherited Node options and is killed and reaped on cancellation or deadline.
-Node joins pending libuv resolver threads at exit, so stdout flush and process.exit alone were insufficient.
+The [approved settlement amendment](s01-primitive-amendment.md#dns-deadline-settlement) owns the DNS resolver and process settlement contract.
 The installed-artifact regression uses a three-second local DNS blackhole and requires WAIT_TIMEOUT and process settlement within the inherited one-second budget plus startup allowance.
-The system resolver retains files+dns NSS and hosts-file behaviour.
-Transport and output feasibility remain STOP gates.
 
 The migration branch preserves the released Python implementation while evaluating a Node 24 TypeScript replacement.
 The private npm candidate is `@knowttl/falcon-axi@0.0.0-s01.0` with the executable name `falcon-axi`.
 Only `detection list` is delivered here, with limit, FQL and opaque continuation support.
+The supported `search status synthetic-job --wait 1` acceptance path exercises OAuth under an inherited one-second budget without sending a search request; successful authentication ends with `VALIDATION_ERROR` because the search lifecycle is not delivered here.
 The rest of the Python command surface remains the behaviour origin for later slices.
 No npm publication, Python release change, workflow edit or host deployment is included.
 
@@ -61,11 +56,8 @@ No existing Python golden document is rewritten.
 
 ## Primitive negative evidence
 
-The [approved S01 amendment](s01-primitive-amendment.md) moves the RTR primitive proof to a separate native-addon slice before S11.
-Transport and output feasibility remain STOP gates.
+The [approved S01 amendment](s01-primitive-amendment.md) owns the deferred primitive proof, required native-addon guarantees, and remaining STOP gates.
 The retained `npm run probe:primitive -- --slice S01 --paths native --offline` is negative evidence and exits 1 deliberately.
 It does not participate in the S01 passing check.
 The probe demonstrates that path-based O_NOFOLLOW cannot preserve a retained ancestor descriptor after pathname replacement.
 Neither fs-ext nor fs-native-extensions was adopted.
-A compiled descriptor-relative adapter, retained-inode flock and interrupted durable append remain unproved.
-A Linux-only /proc workaround is excluded, and no existing RTR safety guarantee is weakened.

@@ -1,6 +1,6 @@
 # Contributing
 
-Install [uv](https://docs.astral.sh/uv/), then run the complete local verification gate:
+For the released Python baseline, install [uv](https://docs.astral.sh/uv/), then run the complete local verification gate:
 
 ```sh
 uv sync
@@ -10,6 +10,7 @@ uv run scripts/verify.py
 The gate runs Ruff, strict mypy, architecture checks, generated skill and documentation drift checks, and the offline pytest suite.
 GitHub CI runs the same offline gate on pull requests and pushes to `main`.
 The release workflow builds and publishes packages using PyPI Trusted Publishing.
+For the TypeScript migration candidate, use the [S01 build and offline verification instructions](docs/design/v1-typescript.md#build-and-offline-verification).
 
 ## Tests and fixtures
 
