@@ -1,5 +1,6 @@
 {
   "name": "help-host-network",
+  "change_reason": "Design section 1.8 adds the bounded --hostname history form, ambiguity refusal, deadline, and partial-failure disclosure.",
   "argv": [
     "host",
     "network",

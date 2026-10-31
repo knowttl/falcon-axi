@@ -21,6 +21,8 @@ from falcon_axi.credentials import (
 from falcon_axi.data_protection import validate_sort as validate_data_protection_sort
 from falcon_axi.fql import (
     DetectionQuery,
+    HostQuery,
+    host_filter,
     since_seconds,
     window,
 )
@@ -167,7 +169,12 @@ def parse(argv: Sequence[str]) -> Parsed:
             ["Use `--member-cid <cid>` to select a child tenant or `--no-member-cid` to clear an inherited selection"],
         )
     spec = COMMAND_SPECS.get(command)
-    if spec and spec.positional and len(positionals) != 1:
+    hostname_history = command in ("host network", "host logins") and "hostname" in flags
+    if hostname_history:
+        if positionals:
+            raise CliError("VALIDATION_ERROR", "--hostname cannot be combined with a device identifier")
+        host_filter(HostQuery(hostname=_str(flags.get("hostname"))))
+    if spec and spec.positional and not hostname_history and len(positionals) != 1:
         subject, remedy = spec.positional
         raise CliError(
             "VALIDATION_ERROR",
@@ -420,7 +427,7 @@ def _run(
     """Returns the stdout document and the exit code. The transport is the only substitution point (§14.2)."""
     started = time.monotonic()
     from falcon_axi.commands import COMMAND_SPECS
-    from falcon_axi.transport.budget import request_budget
+    from falcon_axi.transport.budget import HOST_HISTORY_SECONDS, BudgetExpired, request_budget
 
     values = os.environ if env is None else env
     if transport is None:
@@ -447,6 +454,9 @@ def _run(
             return _home_view(transport, parsed.flags, values, bin or "falcon-axi", skill_hint(values) if not argv else ())
         spec = COMMAND_SPECS[parsed.command]
         deadline = started + int(str(flags["wait"])) if "wait" in flags else None
+        hostname_history = parsed.command in ("host network", "host logins") and "hostname" in flags
+        if hostname_history:
+            deadline = started + HOST_HISTORY_SECONDS
         with request_budget(deadline):
             resolved = None
             if spec.authentication != "none":
@@ -473,6 +483,13 @@ def _run(
         return preview + render(output.value, _followup_help(output.help, flags, member_cid)), 0
     except Exception as error:
         known = error if isinstance(error, CliError) else CliError("UNKNOWN", "an unexpected error occurred")
+        if isinstance(error, BudgetExpired) and "hostname" in flags:
+            known = CliError(
+                "WAIT_TIMEOUT",
+                f"the hostname lookup and history read reached its {HOST_HISTORY_SECONDS}-second total deadline",
+                ["Retry with a device identifier to read history without a hostname lookup"],
+                error.details,
+            )
         return (
             preview
             + render(
