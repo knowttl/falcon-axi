@@ -6,6 +6,7 @@ import subprocess
 from typing import Any
 
 import pytest
+import requests
 import requests_mock
 
 from falcon_axi import search
@@ -215,17 +216,25 @@ def test_retry_after_cannot_extend_wait_budget(phase: str, clock: list[float]) -
     assert len([request for request in mock.request_history if request.url == url]) == 1
     assert exit_code == (0 if phase == "poll" else 1)
     assert ("state: running" if phase == "poll" else "reached its --wait deadline") in stdout
+    assert ("code: WAIT_TIMEOUT" in stdout) == (phase != "poll")
+    assert "NETWORK_UNREACHABLE" not in stdout
 
 
 @pytest.mark.parametrize("verb", ["start", "status"])
+@pytest.mark.parametrize("expiry", ["parent", "worker"])
 def test_worker_deadline_returns_recoverable_running_job(
-    verb: str, clock: list[float], monkeypatch: pytest.MonkeyPatch
+    verb: str, expiry: str, clock: list[float], monkeypatch: pytest.MonkeyPatch
 ) -> None:
     def run_worker(args: list[str], **kwargs: Any) -> subprocess.CompletedProcess[str]:
         payload = json.loads(kwargs["input"])
         if payload["request"].get("operation_id") == "GetSearchStatusV1":
             clock[0] += kwargs["timeout"]
-            raise subprocess.TimeoutExpired(args, kwargs["timeout"])
+            if expiry == "parent":
+                raise subprocess.TimeoutExpired(args, kwargs["timeout"])
+            reply = harness._worker_reply(payload)
+            # The parent must recognize the worker's failure independently of its own clock check.
+            clock[0] -= 0.001
+            return subprocess.CompletedProcess(args, 0, stdout=json.dumps(reply))
         return subprocess.CompletedProcess(args, 0, stdout=json.dumps(harness._worker_reply(payload)))
 
     monkeypatch.setattr(harness.subprocess, "run", run_worker)
@@ -238,8 +247,24 @@ def test_worker_deadline_returns_recoverable_running_job(
     assert exit_code == 0
     assert "state: running" in stdout
     assert "search_id: synthetic-job" in stdout
+    assert "search status synthetic-job --wait 30" in stdout
     assert "search stop synthetic-job" in stdout
-    assert clock == [5.0]
+    assert "error:" not in stdout
+
+
+@pytest.mark.parametrize("verb", ["start", "status"])
+def test_worker_network_failure_remains_an_error(verb: str, clock: list[float]) -> None:
+    url = "https://api.crowdstrike.com/humio/api/v1/repositories/search-all/queryjobs"
+    with requests_mock.Mocker() as mock:
+        mock.post("https://api.crowdstrike.com/oauth2/token", json={"access_token": "synthetic-token"})
+        mock.post(url, json={"id": "synthetic-job"})
+        mock.get(f"{url}/synthetic-job", exc=requests.exceptions.ConnectionError("synthetic connection refused"))
+        args = ["--query", QUERY] if verb == "start" else ["synthetic-job"]
+        stdout, exit_code = run(["search", verb, *args, "--wait", "5"], HttpTransport(), dict(CREDENTIAL_ENV))
+    assert exit_code == 1
+    assert "code: NETWORK_UNREACHABLE" in stdout
+    assert "search_id: synthetic-job" in stdout
+    assert "search status synthetic-job" in stdout
 
 
 @pytest.mark.parametrize("verb", ["start", "status"])

@@ -51,7 +51,7 @@ falcon-axi search start --query '#event_simpleName=DnsRequest | head(5)' --since
 ```
 
 `--wait` combines start and polling in one invocation, accepts 1-50 seconds, and requires both `NGSIEM:write` and `NGSIEM:read`.
-A timeout leaves the job running; resume with `search status`, retaining the repository.
+When the wait expires after creation, start succeeds with `state: running` and `search_id`; resume with `search status`, retaining the repository.
 Without `--wait`, start returns immediately and status polls once.
 Search has no `--fields`, `--limit` or `--cursor`: bound events with CQL `head(N)` or aggregates.
 Review `parsed_query` (filter only) and warnings before trusting results.
