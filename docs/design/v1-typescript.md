@@ -1,7 +1,9 @@
 # TypeScript S01 candidate
 
-The [approved settlement amendment](s01-primitive-amendment.md#dns-deadline-settlement) resolves the DNS deadline STOP through explicit process termination after flushing the safe result.
-Request destruction alone leaves an OS DNS lookup pending, so the one-shot CLI and hosted worker terminate after the invocation result is flushed.
+The [approved settlement amendment](s01-primitive-amendment.md#dns-deadline-settlement) requires explicit process termination after flushing the safe result.
+S01 remains blocked at the transport STOP gate: the attempted stdout flush followed by process.exit still settles at the synthetic resolver's three-second timeout under a one-second inherited budget.
+The latest isolated installed-artifact observation printed WAIT_TIMEOUT at 1.087 seconds and settled at 3.101 seconds.
+The configured slice check remains failing, with 73 of 74 tests passing, and must not be approved as passing.
 The installed-artifact regression uses a three-second local DNS blackhole and requires WAIT_TIMEOUT and process settlement within the inherited one-second budget plus startup allowance.
 The system resolver retains files+dns NSS and hosts-file behaviour.
 Transport and output feasibility remain STOP gates.
