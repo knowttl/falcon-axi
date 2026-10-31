@@ -1,12 +1,10 @@
 # TypeScript S01 candidate
 
-S01 is blocked at the transport STOP gate.
-The installed candidate prints WAIT_TIMEOUT within a one-second inherited OAuth budget, but an OS DNS lookup keeps the process alive until the resolver's three-second timeout.
-The isolated native reproduction observed output at 1.081 seconds and process settlement at 3.093 seconds, with two synthetic local DNS queries and no scoped or tenant request.
-Request destruction therefore does not prove the approved DNS/connect/TLS settlement contract.
-The slice check includes this failing installed-artifact case and must not be approved as passing.
-No backend replacement, weaker deadline or workaround has been adopted.
-The remaining Artium delta is partial local evidence, not a fixture adoption request.
+The [approved settlement amendment](s01-primitive-amendment.md#dns-deadline-settlement) resolves the DNS deadline STOP through explicit process termination after flushing the safe result.
+Request destruction alone leaves an OS DNS lookup pending, so the one-shot CLI and hosted worker terminate after the invocation result is flushed.
+The installed-artifact regression uses a three-second local DNS blackhole and requires WAIT_TIMEOUT and process settlement within the inherited one-second budget plus startup allowance.
+The system resolver retains files+dns NSS and hosts-file behaviour.
+Transport and output feasibility remain STOP gates.
 
 The migration branch preserves the released Python implementation while evaluating a Node 24 TypeScript replacement.
 The private npm candidate is `@knowttl/falcon-axi@0.0.0-s01.0` with the executable name `falcon-axi`.

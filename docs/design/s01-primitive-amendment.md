@@ -9,3 +9,11 @@ Before S11, a separate native-addon slice must provide descriptor-relative opena
 The addon must be prebuilt for Linux and Windows.
 Reads, preview and Windows loading must not depend on POSIX-only binaries.
 No Python RTR safety guarantee is loosened, and a Linux-only /proc workaround is excluded.
+
+## DNS deadline settlement
+
+The one-shot CLI and the hosted worker flush the safe result and terminate their process when the invocation completes, including at the invocation deadline.
+This settles the process inside the budget even when an OS getaddrinfo call remains pending after request cancellation.
+The system resolver retains files+dns NSS and hosts-file behaviour, matching Python.
+A c-ares resolver and a relaxed budget are excluded.
+Transport and output feasibility remain STOP gates.

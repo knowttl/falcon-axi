@@ -4,5 +4,7 @@ import { VERSION } from "./version.js";
 
 if (!tryFastPath(process.argv.slice(2), { version: VERSION })) {
   const { main } = await import("./cli.js");
-  process.exitCode = await main(process.argv.slice(2));
+  const exitCode = await main(process.argv.slice(2));
+  // Flush the safe result before terminating pending OS resolver work.
+  process.stdout.write("", () => process.exit(exitCode));
 }
