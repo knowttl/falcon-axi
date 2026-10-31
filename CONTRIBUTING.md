@@ -19,6 +19,7 @@ Never commit credentials, tenant identifiers, captured responses, or personal da
 Commands accept a recorded transport only through the code-level test interface.
 
 Run a focused check with `uv run pytest tests/offline/<test_file>.py -q`.
+The opt-in installed-artifact suite in `tests/packaged/` has separate prerequisites and commands in the [catalog verification record](docs/catalog-verification.md#repeat-the-artifact-checks).
 The recorded-invocation gate in `tests/golden/` preserves the output contract described in [the Python design](docs/design/v1-python.md#5-behavior-that-must-not-change-during-the-port).
 Do not regenerate expected output to make a failure disappear.
 Intentional behavior changes need a design explanation and a comment in the affected scenario.
