@@ -219,14 +219,20 @@ async function acquire(
       if (attempt >= 3 || ![429, 500, 502, 503, 504].includes(response.status))
         return response;
       const hint = Number(response.headers["x-ratelimit-retryafter"]);
+      const retryAt = Math.ceil(hint * 1000);
       const wait =
-        response.status === 429 &&
-        Number.isFinite(hint) &&
-        hint * 1000 > Date.now()
-          ? hint * 1000 - Date.now()
+        response.status === 429 && Number.isFinite(hint) && retryAt > Date.now()
+          ? retryAt - Date.now()
           : Math.round(500 * 2 ** (attempt - 1) * (1 + Math.random()));
       try {
         await delay(wait, undefined, { signal });
+        // Timers can wake before the wall-clock epoch supplied by Falcon.
+        while (
+          response.status === 429 &&
+          Number.isFinite(retryAt) &&
+          Date.now() < retryAt
+        )
+          await delay(Math.max(1, retryAt - Date.now()), undefined, { signal });
       } catch {
         throw timeout();
       }

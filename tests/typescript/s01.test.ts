@@ -639,7 +639,10 @@ test("epoch-only 429 hint bounds the next send", async () => {
     } else json(response, { access_token: "synthetic-s01-token" });
   };
   assertRead(await run());
-  assert.ok(wire[1]!.epoch >= epoch && wire[1]!.epoch <= epoch + 250);
+  assert.ok(
+    wire[1]!.epoch >= epoch && wire[1]!.epoch <= epoch + 250,
+    `retry arrived ${wire[1]!.epoch - epoch} ms from the supplied epoch`,
+  );
 });
 for (const hint of ["0", "invalid", "NaN", "Infinity", "-Infinity"])
   test(`invalid epoch hint ${hint} falls back to backoff`, async () => {
