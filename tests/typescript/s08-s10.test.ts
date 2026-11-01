@@ -82,7 +82,16 @@ for (const [slice, names] of [
         assert.equal(
           result.stdout,
           managed
-            ? reference.replaceAll("falcon-axi ", "artium-axi falcon-axi ")
+            ? [s08, s09, s10]
+                .flatMap((contract) => contract.commandNames)
+                .reduce(
+                  (text, command) =>
+                    text.replaceAll(
+                      `falcon-axi ${command}`,
+                      `artium-axi falcon-axi ${command}`,
+                    ),
+                  reference,
+                )
             : reference,
         );
       else {
@@ -369,14 +378,18 @@ test("S08 repeat stop returns NOT_FOUND without creating a job", async () => {
   reset();
   recordedResponse("StopSearchV1", 204, null);
   assert.equal((await run(["search", "stop", "synthetic-job"])).code, 0);
+  assert.deepEqual(
+    scoped().map((request) => request.method),
+    ["DELETE"],
+  );
+  reset();
   recordedResponse("StopSearchV1", 404, {});
-  // Replace the first recording rather than depending on a fixture queue.
-  dynamicResponse("StopSearchV1", () => ({ status: 404, body: {} }));
   const result = await run(["search", "stop", "synthetic-job"]);
+  assert.equal(result.code, 1, result.stdout);
   assert.equal(value(result.stdout).code, "NOT_FOUND");
   assert.deepEqual(
     scoped().map((request) => request.method),
-    ["DELETE", "DELETE"],
+    ["DELETE"],
   );
 });
 test("S08 wait acquisition settles while response bytes keep arriving", async () => {
