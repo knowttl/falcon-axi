@@ -456,8 +456,9 @@ export async function inventory(
         ? Number(position) + listed.length
         : undefined,
   );
-  output.value[key] = rows.length
-    ? rows
-    : new Raw(`0 ${key} returned for this Discover query`);
+  output.value[key] =
+    rows.length || (noun === "iot" && listed.length)
+      ? rows
+      : new Raw(`0 ${key} returned for this Discover query`);
   return output;
 }

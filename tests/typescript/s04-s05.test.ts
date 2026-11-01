@@ -28,6 +28,99 @@ const scenario = async (name: string): Promise<Scenario> =>
 const dataRequests = () =>
   wire.filter((request) => request.url !== "/oauth2/token");
 
+for (const entry of [
+  {
+    args: ["rtr", "session", "list"],
+    query: "RTR_ListAllSessions",
+    hydrate: "RTR_ListSessions",
+    key: "sessions",
+    empty: "0 sessions matching this query",
+    next: 1,
+  },
+  {
+    args: ["ioc", "list"],
+    query: "indicator_search_v1",
+    hydrate: "indicator_get_v1",
+    key: "iocs",
+    empty: "0 custom IOCs matching this query",
+    next: "synthetic-next",
+  },
+  {
+    args: ["iot", "list"],
+    query: "query_iot_hostsV2",
+    hydrate: "get_iot_hosts",
+    key: "iot",
+    empty: "0 IoT assets matching this query",
+    next: "synthetic-next",
+  },
+]) {
+  test(`review R2 ${entry.key} preserves an array after complete hydration loss`, async () => {
+    reset();
+    recordedResponse(entry.query, 200, {
+      resources: ["synthetic-deleted"],
+      meta: { pagination: { total: 2, after: "synthetic-next" } },
+    });
+    recordedResponse(entry.hydrate, 200, { resources: [] });
+    const result = await run([...entry.args, "--limit", "1"]);
+    assert.equal(result.code, 0, result.stdout);
+    const value = document(result.stdout);
+    assert.deepEqual(value[entry.key], []);
+    assert.equal(value.count, "0 of 2 total");
+    assert.equal(
+      (
+        JSON.parse(
+          Buffer.from(
+            String(value.continuation_cursor),
+            "base64url",
+          ).toString(),
+        ) as { position: string | number }
+      ).position,
+      entry.next,
+    );
+  });
+
+  test(`review R2 ${entry.key} retains definitive empty-query output`, async () => {
+    reset();
+    recordedResponse(entry.query, 200, { resources: [] });
+    const result = await run(entry.args);
+    assert.equal(result.code, 0, result.stdout);
+    assert.equal(document(result.stdout)[entry.key], entry.empty);
+  });
+}
+
+for (const replay of [false, true])
+  test(`review R1 empty FileVantage page terminates continuation with replay=${replay}`, async () => {
+    reset();
+    recordedResponse("highVolumeQueryChanges", 200, {
+      resources: ["synthetic-change"],
+      meta: { pagination: { after: "synthetic-next" } },
+    });
+    recordedResponse("getChanges", 200, {
+      resources: [{ id: "synthetic-change" }],
+    });
+    const first = await run(["file-change", "list"]);
+    assert.equal(first.code, 0, first.stdout);
+    const cursor = String(document(first.stdout).continuation_cursor);
+    reset();
+    recordedResponse("highVolumeQueryChanges", 200, {
+      resources: [],
+      meta: { pagination: { after: "synthetic-next" } },
+    });
+    const result = await run([
+      "file-change",
+      "list",
+      ...(replay ? ["--cursor", cursor] : []),
+    ]);
+    assert.equal(result.code, 0, result.stdout);
+    const value = document(result.stdout);
+    assert.equal(value.continuation_cursor, undefined);
+    assert.equal(
+      value.file_changes,
+      "no file changes; this can mean no matching data or a tenant without Falcon FileVantage licensing",
+    );
+    assert.deepEqual(value.help, undefined);
+  });
+
 if (process.env.S01_ACTIVE_PATH === "artium")
   for (const name of [
     ...s04.goldenScenarioIds,

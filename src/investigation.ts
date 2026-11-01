@@ -7,6 +7,7 @@ import { requestRead } from "./transport/https.js";
 import { responseFailure } from "./auth.js";
 import type { Session } from "./auth.js";
 import { malformed } from "./response.js";
+import { text, quote, project } from "./domain.js";
 
 type RecordValue = Record<string, unknown>;
 type Query = Record<string, string | number | readonly string[]>;
@@ -14,16 +15,6 @@ interface Output {
   value: RecordValue;
   help: string[];
 }
-const text = (value: unknown): string | undefined =>
-  typeof value === "string" && value ? value : undefined;
-const quote = (value: string): string =>
-  /^[\w@%+=:,./-]+$/.test(value)
-    ? value
-    : `'${value.replaceAll("'", `'"'"'`)}'`;
-const project = (record: RecordValue, fields: readonly string[]): RecordValue =>
-  Object.fromEntries(
-    fields.map((field) => [field, record[field] ?? "unknown"]),
-  );
 const invalid = (message: string, details: RecordValue = {}): never => {
   throw new CliError("UPSTREAM_ERROR", message, [], details);
 };
@@ -370,6 +361,10 @@ export async function investigate(
         ? "Run `falcon-axi host show <device_id>` for full host details"
         : "Run `falcon-axi detection show <id>` for the full detection",
     ];
+    if (hosts)
+      help.push(
+        "Run `falcon-axi vuln list --host <device_id>` for its open vulnerabilities",
+      );
     if (flags.has("--all") && more) {
       value.partial = true;
       value.stop_reason = remaining <= 0 ? "max_rows" : "pagination_limit";
@@ -632,6 +627,7 @@ export async function investigate(
       return {
         value: { host: detail },
         help: [
+          `Run \`falcon-axi vuln list --host ${quote(id)}\` for this host's open vulnerabilities`,
           `Run \`falcon-axi detection list --filter "device.hostname:'${String(detail.hostname)}'"\` for its detections`,
         ],
       };
@@ -1076,13 +1072,14 @@ export async function investigate(
         ? String(rows.length)
         : `${rows.length} of ${result!.total ?? "unknown"} total`,
     ),
-    [key]: rows.length
-      ? rows
-      : new Raw(
-          file
-            ? "no file changes; this can mean no matching data or a tenant without Falcon FileVantage licensing"
-            : "0 custom IOCs matching this query",
-        ),
+    [key]:
+      rows.length || ids.length
+        ? rows
+        : new Raw(
+            file
+              ? "no file changes; this can mean no matching data or a tenant without Falcon FileVantage licensing"
+              : "0 custom IOCs matching this query",
+          ),
   };
   const help: string[] =
     file && rows.length
@@ -1098,7 +1095,9 @@ export async function investigate(
     value.change_ids = records.map((record) => record.id);
   const next: string | number | undefined =
     file || ioc
-      ? text(result!.pagination.after)
+      ? file && !ids.length
+        ? undefined
+        : text(result!.pagination.after)
       : typeof position === "number" &&
           listed.length &&
           (result!.total === undefined

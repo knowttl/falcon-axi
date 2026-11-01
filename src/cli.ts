@@ -13,7 +13,7 @@ import { commands } from "./metadata.js";
 import { operation } from "./transport/operations.js";
 import { parse, filterOf } from "./parser.js";
 import { investigate } from "./investigation.js";
-import { Domain } from "./domain.js";
+import { Domain, quote } from "./domain.js";
 import { inventory } from "./inventory.js";
 import { exposure } from "./exposure.js";
 import { homedir } from "node:os";
@@ -23,10 +23,6 @@ import { VERSION } from "./version.js";
 
 const description =
   "Read CrowdStrike Falcon from the shell with compact, structured results for agents and the humans running them.";
-const shellQuote = (value: string): string =>
-  /^[\w@%+=:,./-]+$/.test(value)
-    ? value
-    : `'${value.replaceAll("'", `'"'"'`)}'`;
 
 export async function main(argv: string[], bin?: string): Promise<number> {
   const started = performance.now();
@@ -54,7 +50,7 @@ export async function main(argv: string[], bin?: string): Promise<number> {
       ["region", "config", "profile"]
         .flatMap((name) =>
           activeFlags.has(`--${name}`)
-            ? [` --${name} ${shellQuote(activeFlags.get(`--${name}`)!)}`]
+            ? [` --${name} ${quote(activeFlags.get(`--${name}`)!)}`]
             : [],
         )
         .join("") +
@@ -295,6 +291,7 @@ export async function main(argv: string[], bin?: string): Promise<number> {
         "Run `falcon-axi detection list` to see more detections",
         "Run `falcon-axi detection list --product idp` for Identity Protection detections",
         "Run `falcon-axi host list --filter \"hostname:'WIN-*'\"` to search hosts",
+        "Run `falcon-axi cve show <CVE-ID>` for Falcon Intelligence on one CVE",
         "Run `falcon-axi scopes` to see what this API client needs",
       );
     }
