@@ -3,7 +3,7 @@
 identity list             list Identity Protection users and endpoints with their risk
 
 ```text
-uvx falcon-axi identity list [--name <pattern>] [--email <pattern>] [--domain <name>] [--type <kind>] [--limit N] [--cursor <token>]
+npx -y @knowttl/falcon-axi@next identity list [--name <pattern>] [--email <pattern>] [--domain <name>] [--type <kind>] [--limit N] [--cursor <token>]
 
 --name       display name pattern; `*` is a wildcard, so `Admin*` works
 --email      UPN or email pattern, for example `*@example.com`
@@ -15,10 +15,10 @@ uvx falcon-axi identity list [--name <pattern>] [--email <pattern>] [--domain <n
 Lists the Falcon Identity Protection directory: users and endpoints with their risk. Filters
 combine with AND. Archived identities are excluded, and a bare `*` is refused.
 Examples:
-  uvx falcon-axi identity list --name 'Admin*' --type user
-  uvx falcon-axi identity list --email '*@example.com'
+  npx -y @knowttl/falcon-axi@next identity list --name 'Admin*' --type user
+  npx -y @knowttl/falcon-axi@next identity list --email '*@example.com'
 
 This command sends only a fixed read-only Identity Protection query. It requires Identity Protection
 Entities:read and Identity Protection GraphQL:write; the GraphQL scope is labelled write because
-Falcon requires it even for reads (captain exception N2), and uvx falcon-axi cannot change any identity.
+Falcon requires it even for reads (captain exception N2), and npx -y @knowttl/falcon-axi@next cannot change any identity.
 ```

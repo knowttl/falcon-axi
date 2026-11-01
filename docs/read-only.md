@@ -62,7 +62,7 @@ See [redaction](design/v1.md#55-redaction) for the precise contract.
 
 Operations and response shapes follow CrowdStrike's official API reference, FalconPy, and the official [falcon-mcp](https://github.com/CrowdStrike/falcon-mcp) source where available.
 Where falcon-mcp lacks an area, registry entries identify the official API reference and FalconPy plus PSFalcon corroboration.
-Per-operation citations live in `falcon_axi/transport/operations.py`; fixed query evidence lives in `falcon_axi/transport/graphql.py`.
+Per-operation citations live in `src/transport/descriptors.json`; fixed query documents live in `src/transport/documents.json`.
 The CLI does not depend on or run falcon-mcp.
 
 Synthetic fixtures, golden invocations, and network-denied offline checks establish local behavior and transport constraints.

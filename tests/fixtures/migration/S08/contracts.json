@@ -1,0 +1,61 @@
+{
+  "slice": "S08",
+  "operationIds": [
+    "StartSearchV1",
+    "GetSearchStatusV1",
+    "StopSearchV1"
+  ],
+  "caseIds": [
+    "AC-SEARCH",
+    "AC-SEARCH-ONCE",
+    "AC-OP-111",
+    "AC-OP-112",
+    "AC-OP-113"
+  ],
+  "commandNames": [
+    "host usb",
+    "identity activity",
+    "search start",
+    "search status",
+    "search stop"
+  ],
+  "goldenScenarioIds": [
+    "help-identity-activity",
+    "help-search-start",
+    "help-search-status",
+    "help-search-stop",
+    "host-usb-start",
+    "identity-activity-scope-denied",
+    "identity-activity-start",
+    "identity-activity-unsafe-account",
+    "identity-activity-without-account",
+    "search-start-scope-denied",
+    "search-start-unsafe-repository",
+    "search-start-without-query",
+    "search-start",
+    "search-status-done",
+    "search-status-empty",
+    "search-status-not-found",
+    "search-status-running",
+    "search-stop-without-id",
+    "search-stop"
+  ],
+  "safetyRequirementIds": [
+    "SR-025",
+    "SR-030",
+    "SR-036",
+    "SR-050",
+    "SR-051",
+    "SR-093",
+    "SR-097",
+    "SR-108",
+    "SR-110",
+    "SR-147",
+    "SR-178",
+    "SR-179",
+    "SR-180",
+    "SR-181",
+    "SR-182",
+    "SR-209"
+  ]
+}

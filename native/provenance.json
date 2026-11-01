@@ -1,0 +1,41 @@
+{
+  "napi": 8,
+  "headers": {
+    "node_api.h": "2d4560831e525b47b060ec8a0864ab73993df9e20215ce9f0fe7b24cd31af32a",
+    "node_api_types.h": "088766b3cf1f0cd9b292c361ad30f7a04e7cc6db35a20ca52c572c1adf9635e7",
+    "js_native_api.h": "eb03b6c850a1cfb593fd03e9e4251db8c82e9a6d9705bca91ac8d1a01fd7037c",
+    "js_native_api_types.h": "7dd3663630849ada3a30d39abf42a192c9b6e7de63017cd32c41f5371a475b34"
+  },
+  "targets": [
+    {
+      "name": "linux-x64.node",
+      "compiler": "/usr/bin/gcc",
+      "version": "gcc (Ubuntu 13.3.0-6ubuntu2~24.04.1) 13.3.0",
+      "flags": [
+        "-B/usr/bin/",
+        "-shared",
+        "-fPIC"
+      ]
+    },
+    {
+      "name": "win32-x64.node",
+      "compiler": "/usr/bin/x86_64-w64-mingw32-gcc",
+      "version": "x86_64-w64-mingw32-gcc (GCC) 13-win32",
+      "flags": [
+        "-shared",
+        "-static-libgcc",
+        "-Wl,--no-insert-timestamp"
+      ]
+    }
+  ],
+  "binutils": {
+    "/usr/bin/ld": "GNU ld (GNU Binutils for Ubuntu) 2.42",
+    "/usr/bin/as": "GNU assembler (GNU Binutils for Ubuntu) 2.42",
+    "/usr/bin/x86_64-w64-mingw32-ld": "GNU ld (GNU Binutils) 2.41.90.20240122",
+    "/usr/bin/x86_64-w64-mingw32-as": "GNU assembler (GNU Binutils) 2.41.90.20240122"
+  },
+  "inputs": {
+    "native/rtr_fs.c": "bed7bc5247712444d715c3b55a5f955ef25475c84f9eeacbd2f28f7d12fa0015",
+    "scripts/typescript/build-native.ts": "dae27538d78d982dfef8e9f1dc174b4cd2edabdf38b8d8ff114465d3bce868c8"
+  }
+}

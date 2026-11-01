@@ -1,0 +1,40 @@
+{
+  "slice": "S10",
+  "operationIds": [
+    "GetMalQueryMetadataV1",
+    "GetMalQueryRequestV1",
+    "PostMalQueryExactSearchV1",
+    "PostMalQueryFuzzySearchV1",
+    "GetMalQueryQuotasV1"
+  ],
+  "caseIds": [
+    "AC-MALQUERY",
+    "H18",
+    "AC-OP-013",
+    "AC-OP-014",
+    "AC-OP-015",
+    "AC-OP-016",
+    "AC-OP-017"
+  ],
+  "commandNames": [
+    "malquery quota",
+    "malquery search",
+    "malquery show",
+    "malquery status"
+  ],
+  "goldenScenarioIds": [
+    "malquery-quota",
+    "malquery-search-exact",
+    "malquery-search-fuzzy",
+    "malquery-show",
+    "malquery-status"
+  ],
+  "safetyRequirementIds": [
+    "SR-127",
+    "SR-128",
+    "SR-129",
+    "SR-130",
+    "SR-131",
+    "SR-132"
+  ]
+}

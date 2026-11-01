@@ -1,0 +1,1274 @@
+{
+  "sourceRevision": "75efc7e546c5ad9bae9084a610129fec22628c18",
+  "groups": [
+    {
+      "id": "SR-010",
+      "slice": "S02",
+      "source": "tests/offline/test_cli.py",
+      "sourceSha256": "3d13ba00c98ddba72d67b0e2e0c434a53db8f95ff86c46157512ffb1301977f7",
+      "members": [
+        {
+          "symbol": "test_a_secret_shaped_flag_cannot_be_registered",
+          "parameterSelection": "all"
+        }
+      ]
+    },
+    {
+      "id": "SR-011",
+      "slice": "S03",
+      "source": "tests/offline/test_cli.py",
+      "sourceSha256": "3d13ba00c98ddba72d67b0e2e0c434a53db8f95ff86c46157512ffb1301977f7",
+      "members": [
+        {
+          "symbol": "test_continuation_arguments_survive_shell_parsing_and_expansion",
+          "parameterSelection": {
+            "P1": [
+              0,
+              1
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "SR-015",
+      "slice": "S02",
+      "source": "tests/offline/test_cli.py",
+      "sourceSha256": "3d13ba00c98ddba72d67b0e2e0c434a53db8f95ff86c46157512ffb1301977f7",
+      "members": [
+        {
+          "symbol": "test_member_cid_and_no_member_cid_cannot_be_combined",
+          "parameterSelection": "all"
+        }
+      ]
+    },
+    {
+      "id": "SR-019",
+      "slice": "S03",
+      "source": "tests/offline/test_cli_continuations.py",
+      "sourceSha256": "e3b58af30b65778c7e589488ffba911ab5777dc7ee51975059e7d798f731d803",
+      "members": [
+        {
+          "symbol": "test_emitted_continuations_execute_with_the_same_filter_and_tenant_context",
+          "parameterSelection": {
+            "P1": [
+              1,
+              2,
+              4,
+              5,
+              6
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "SR-022",
+      "slice": "S03",
+      "source": "tests/offline/test_cli_input_validation.py",
+      "sourceSha256": "9d60033c35d3cf94c94c437ed3c414682dd1ba20794660bc75d079af2d87a01f",
+      "members": [
+        {
+          "symbol": "test_invalid_values_fail_before_credentials_or_any_request",
+          "parameterSelection": {
+            "P1": [
+              0,
+              1,
+              4,
+              5,
+              6
+            ]
+          }
+        },
+        {
+          "symbol": "test_invalid_inline_values_fail_before_any_request",
+          "parameterSelection": {
+            "P1": [
+              0,
+              1
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "SR-027",
+      "slice": "S03",
+      "source": "tests/offline/test_cli_input_validation.py",
+      "sourceSha256": "9d60033c35d3cf94c94c437ed3c414682dd1ba20794660bc75d079af2d87a01f",
+      "members": [
+        {
+          "symbol": "test_help_bypasses_value_validation",
+          "parameterSelection": {
+            "P1": [
+              0,
+              1,
+              4,
+              5,
+              6
+            ]
+          }
+        },
+        {
+          "symbol": "test_valid_values_are_preserved",
+          "parameterSelection": {
+            "P1": [
+              0,
+              1,
+              4,
+              5,
+              6
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "SR-032",
+      "slice": "S02",
+      "source": "tests/offline/test_cli_pivots.py",
+      "sourceSha256": "3a021d84281d1ba451db4333f712269199932fb7fb16c6ee3ba984f29cb0de39",
+      "members": [
+        {
+          "symbol": "test_emitted_pivots_preserve_global_context_without_copying_source_filters",
+          "parameterSelection": {
+            "P1": [
+              13
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "SR-033",
+      "slice": "S03",
+      "source": "tests/offline/test_cli_pivots.py",
+      "sourceSha256": "3a021d84281d1ba451db4333f712269199932fb7fb16c6ee3ba984f29cb0de39",
+      "members": [
+        {
+          "symbol": "test_emitted_pivots_preserve_global_context_without_copying_source_filters",
+          "parameterSelection": {
+            "P1": [
+              4,
+              5,
+              6,
+              9,
+              14
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "SR-052",
+      "slice": "S02",
+      "source": "tests/offline/test_credentials.py",
+      "sourceSha256": "7e732ebe47fccfa69885fde79b07ab441e507269ac39e717bebdadc3dab568a0",
+      "members": [
+        {
+          "symbol": "test_both_environment_variables_resolve_as_one_atomic_pair",
+          "parameterSelection": "all"
+        },
+        {
+          "symbol": "test_half_an_environment_credential_stops_resolution_and_names_the_missing_half",
+          "parameterSelection": "all"
+        },
+        {
+          "symbol": "test_no_credential_anywhere_requires_a_profile",
+          "parameterSelection": "all"
+        }
+      ]
+    },
+    {
+      "id": "SR-053",
+      "slice": "S02",
+      "source": "tests/offline/test_credentials.py",
+      "sourceSha256": "7e732ebe47fccfa69885fde79b07ab441e507269ac39e717bebdadc3dab568a0",
+      "members": [
+        {
+          "symbol": "test_a_protected_credentials_file_is_read_and_a_loose_one_is_refused_unread",
+          "parameterSelection": "all"
+        }
+      ]
+    },
+    {
+      "id": "SR-054",
+      "slice": "S03",
+      "source": "tests/offline/test_cursor_retry.py",
+      "sourceSha256": "814cb5aaf1cda407f5d2c0451011ddd81852516872e59daf279503c334950ff5",
+      "members": [
+        {
+          "symbol": "test_a_cursor_round_trips_its_position",
+          "parameterSelection": "all"
+        },
+        {
+          "symbol": "test_a_cursor_carries_no_credential_or_tenant_value",
+          "parameterSelection": "all"
+        },
+        {
+          "symbol": "test_any_changed_context_element_rejects_the_cursor_before_a_request",
+          "parameterSelection": "all"
+        },
+        {
+          "symbol": "test_a_tampered_position_or_malformed_token_is_rejected",
+          "parameterSelection": "all"
+        }
+      ]
+    },
+    {
+      "id": "SR-062",
+      "slice": "S03",
+      "source": "tests/offline/test_detection.py",
+      "sourceSha256": "4c6d22d375bf864f80f2e80bd0d42787e10ddad5c7f17f1d50c2168e8565becc",
+      "members": [
+        {
+          "symbol": "test_process_view_renders_recorded_lineage_without_another_operation",
+          "parameterSelection": "all"
+        },
+        {
+          "symbol": "test_process_view_states_missing_process_context",
+          "parameterSelection": "all"
+        },
+        {
+          "symbol": "test_process_view_preserves_ancestors_without_triggering_fields",
+          "parameterSelection": "all"
+        },
+        {
+          "symbol": "test_process_command_lines_preview_or_expand_each_generation",
+          "parameterSelection": "all"
+        },
+        {
+          "symbol": "test_process_view_missing_detection_is_not_an_empty_lineage",
+          "parameterSelection": "all"
+        }
+      ]
+    },
+    {
+      "id": "SR-063",
+      "slice": "S03",
+      "source": "tests/offline/test_detection.py",
+      "sourceSha256": "4c6d22d375bf864f80f2e80bd0d42787e10ddad5c7f17f1d50c2168e8565becc",
+      "members": [
+        {
+          "symbol": "test_shorthand_flags_compose_one_fql_filter_and_reach_the_query_step",
+          "parameterSelection": "all"
+        },
+        {
+          "symbol": "test_the_hydrate_step_is_chunked_at_the_documented_cap_and_the_query_order_survives",
+          "parameterSelection": "all"
+        },
+        {
+          "symbol": "test_a_cursor_continues_the_same_query_and_the_wall_withholds_an_unreachable_cursor",
+          "parameterSelection": "all"
+        }
+      ]
+    },
+    {
+      "id": "SR-064",
+      "slice": "S03",
+      "source": "tests/offline/test_detection_summary.py",
+      "sourceSha256": "0b0338f1cc1ca510879e76cd283b4bb1f29d3c9ac0fc101d055ac19ab14cab09",
+      "members": [
+        {
+          "symbol": "test_summary_counts_alerts_without_the_list_result_window",
+          "parameterSelection": "all"
+        },
+        {
+          "symbol": "test_summary_uses_the_list_shorthand_and_raw_filter_contract",
+          "parameterSelection": "all"
+        },
+        {
+          "symbol": "test_invalid_aggregate_results_do_not_claim_zero_detections",
+          "parameterSelection": "all"
+        },
+        {
+          "symbol": "test_omitted_buckets_are_disclosed",
+          "parameterSelection": "all"
+        }
+      ]
+    },
+    {
+      "id": "SR-065",
+      "slice": "S03",
+      "source": "tests/offline/test_detection_summary.py",
+      "sourceSha256": "0b0338f1cc1ca510879e76cd283b4bb1f29d3c9ac0fc101d055ac19ab14cab09",
+      "members": [
+        {
+          "symbol": "test_invalid_summary_flags_make_no_aggregate_request",
+          "parameterSelection": "all"
+        },
+        {
+          "symbol": "test_summary_translates_upstream_failures",
+          "parameterSelection": "all"
+        }
+      ]
+    },
+    {
+      "id": "SR-068",
+      "slice": "S03",
+      "source": "tests/offline/test_discover.py",
+      "sourceSha256": "40b417f87a1e329f42295c46c2a912c4f84fe41c202d503275dc6ef36ecba9b5",
+      "members": [
+        {
+          "symbol": "test_inventory_filter_rejection_teaches_its_own_domain",
+          "parameterSelection": {
+            "P1": [
+              5
+            ]
+          }
+        },
+        {
+          "symbol": "test_inventory_not_found_points_to_its_own_identifiers",
+          "parameterSelection": {
+            "P1": [
+              5
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "SR-071",
+      "slice": "S03",
+      "source": "tests/offline/test_discover.py",
+      "sourceSha256": "40b417f87a1e329f42295c46c2a912c4f84fe41c202d503275dc6ef36ecba9b5",
+      "members": [
+        {
+          "symbol": "test_scope_denied_is_structured",
+          "parameterSelection": {
+            "P1": [
+              4
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "SR-072",
+      "slice": "S03",
+      "source": "tests/offline/test_discover.py",
+      "sourceSha256": "40b417f87a1e329f42295c46c2a912c4f84fe41c202d503275dc6ef36ecba9b5",
+      "members": [
+        {
+          "symbol": "test_network_history_posts_one_id_and_omits_tenant_cid",
+          "parameterSelection": "all"
+        },
+        {
+          "symbol": "test_network_history_empty_is_definitive",
+          "parameterSelection": "all"
+        }
+      ]
+    },
+    {
+      "id": "SR-079",
+      "slice": "S03",
+      "source": "tests/offline/test_fields.py",
+      "sourceSha256": "12df655bf1fdcd22eaab54215eff6f639a93a6e0d083f290c984311d84cdec93",
+      "members": [
+        {
+          "symbol": "test_fields_append_in_requested_order_and_ignore_duplicates",
+          "parameterSelection": {
+            "P1": [
+              0,
+              1
+            ]
+          }
+        },
+        {
+          "symbol": "test_unknown_fields_list_valid_names_before_a_domain_request",
+          "parameterSelection": {
+            "P1": [
+              0,
+              1
+            ]
+          }
+        },
+        {
+          "symbol": "test_empty_field_names_are_rejected",
+          "parameterSelection": {
+            "P1": [
+              0,
+              1
+            ]
+          }
+        },
+        {
+          "symbol": "test_extra_fields_follow_the_identity_columns",
+          "parameterSelection": "all"
+        }
+      ]
+    },
+    {
+      "id": "SR-081",
+      "slice": "S03",
+      "source": "tests/offline/test_file_change.py",
+      "sourceSha256": "07b367a3a60f63b829db07cce432d97b2fee08ce2a4c921b87848432a341fddc",
+      "members": [
+        {
+          "symbol": "test_two_pages_preserve_order_and_after_token",
+          "parameterSelection": "all"
+        },
+        {
+          "symbol": "test_cursor_rejects_changed_query_or_credential_before_data_request",
+          "parameterSelection": "all"
+        },
+        {
+          "symbol": "test_hydration_caps_batches_at_500_and_restores_order",
+          "parameterSelection": "all"
+        },
+        {
+          "symbol": "test_incomplete_list_hydration_fails_without_results_or_continuation",
+          "parameterSelection": "all"
+        },
+        {
+          "symbol": "test_mismatched_detail_hydration_is_upstream_error",
+          "parameterSelection": "all"
+        }
+      ]
+    },
+    {
+      "id": "SR-082",
+      "slice": "S03",
+      "source": "tests/offline/test_file_change.py",
+      "sourceSha256": "07b367a3a60f63b829db07cce432d97b2fee08ce2a4c921b87848432a341fddc",
+      "members": [
+        {
+          "symbol": "test_show_includes_process_fields_and_diff_without_content_request",
+          "parameterSelection": "all"
+        },
+        {
+          "symbol": "test_empty_list_explains_data_and_licensing_without_hydration",
+          "parameterSelection": "all"
+        },
+        {
+          "symbol": "test_scope_denied_explains_filevantage_license",
+          "parameterSelection": "all"
+        },
+        {
+          "symbol": "test_rejected_fql_names_filevantage_host_filter",
+          "parameterSelection": "all"
+        },
+        {
+          "symbol": "test_missing_change_suggests_list",
+          "parameterSelection": "all"
+        },
+        {
+          "symbol": "test_malformed_query_is_not_reported_as_no_data",
+          "parameterSelection": "all"
+        }
+      ]
+    },
+    {
+      "id": "SR-083",
+      "slice": "S03",
+      "source": "tests/offline/test_fql.py",
+      "sourceSha256": "36dfee00596a999b37726ace4042c71e0bee529260545f118f505d28f650608a",
+      "members": [
+        {
+          "symbol": "test_every_shorthand_constrains_the_entire_raw_disjunction",
+          "parameterSelection": {
+            "P1": [
+              0,
+              1,
+              2,
+              3,
+              4,
+              5,
+              6,
+              7
+            ]
+          }
+        },
+        {
+          "symbol": "test_a_raw_filter_without_shorthands_is_sent_unchanged",
+          "parameterSelection": {
+            "P1": [
+              0,
+              1
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "SR-085",
+      "slice": "S03",
+      "source": "tests/offline/test_fql_remedies.py",
+      "sourceSha256": "4c1a3a5122d7960ea37034a228929c904f9f8a408187ab242b50568ff9905bcf",
+      "members": [
+        {
+          "symbol": "test_query_and_entity_filter_rejections_teach_the_failed_domains_fields",
+          "parameterSelection": {
+            "P1": [
+              1,
+              2
+            ]
+          }
+        },
+        {
+          "symbol": "test_combined_reads_use_their_own_fql_remedy",
+          "parameterSelection": {
+            "P1": [
+              0
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "SR-094",
+      "slice": "S03",
+      "source": "tests/offline/test_harness.py",
+      "sourceSha256": "5f45191785381efb29d46d670c5f953809ff64a45c3ccca8d6efa461d4ad47f4",
+      "members": [
+        {
+          "symbol": "test_the_query_step_issues_the_registered_get_with_its_parameters",
+          "parameterSelection": "all"
+        },
+        {
+          "symbol": "test_threatgraph_summary_interpolates_the_fixed_process_path",
+          "parameterSelection": "all"
+        },
+        {
+          "symbol": "test_the_hydrate_step_issues_the_registered_post_with_its_body",
+          "parameterSelection": "all"
+        }
+      ]
+    },
+    {
+      "id": "SR-100",
+      "slice": "S03",
+      "source": "tests/offline/test_host.py",
+      "sourceSha256": "dc68fbcda4f8fdbfa926ac6ee0d4edf2c3c62d6aca3f64aa4b5078da8bd3bade",
+      "members": [
+        {
+          "symbol": "test_host_list_rejects_malformed_resource_envelopes",
+          "parameterSelection": "all"
+        },
+        {
+          "symbol": "test_host_list_accepts_an_explicitly_empty_resource_array",
+          "parameterSelection": "all"
+        },
+        {
+          "symbol": "test_host_list_queries_then_hydrates_and_renders_the_four_field_schema",
+          "parameterSelection": "all"
+        },
+        {
+          "symbol": "test_the_hydrate_step_cannot_reorder_the_rows_the_query_step_ranked",
+          "parameterSelection": "all"
+        },
+        {
+          "symbol": "test_the_shorthands_compose_one_fql_string_and_hostname_keeps_its_wildcard",
+          "parameterSelection": "all"
+        },
+        {
+          "symbol": "test_an_unknown_status_is_rejected_before_any_request",
+          "parameterSelection": "all"
+        },
+        {
+          "symbol": "test_containment_state_is_reported_as_data_and_no_command_can_change_it",
+          "parameterSelection": "all"
+        },
+        {
+          "symbol": "test_a_page_is_requested_at_the_wall_headroom_rather_than_overshooting_it",
+          "parameterSelection": "all"
+        },
+        {
+          "symbol": "test_a_continuation_that_would_cross_the_wall_fails_with_pagination_limit",
+          "parameterSelection": "all"
+        },
+        {
+          "symbol": "test_a_detection_cursor_does_not_continue_a_host_read",
+          "parameterSelection": "all"
+        }
+      ]
+    },
+    {
+      "id": "SR-101",
+      "slice": "S03",
+      "source": "tests/offline/test_host.py",
+      "sourceSha256": "dc68fbcda4f8fdbfa926ac6ee0d4edf2c3c62d6aca3f64aa4b5078da8bd3bade",
+      "members": [
+        {
+          "symbol": "test_host_logins_renders_one_row_per_login_and_sends_the_documented_request",
+          "parameterSelection": "all"
+        },
+        {
+          "symbol": "test_host_logins_without_since_leaves_falcons_own_window_in_force",
+          "parameterSelection": "all"
+        },
+        {
+          "symbol": "test_host_logins_rejects_multiple_ids_including_duplicates_before_authentication",
+          "parameterSelection": "all"
+        },
+        {
+          "symbol": "test_a_host_that_returns_its_limit_says_more_may_exist",
+          "parameterSelection": "all"
+        },
+        {
+          "symbol": "test_host_logins_is_refused_before_any_request_without_an_id_or_with_a_bad_window_or_limit",
+          "parameterSelection": "all"
+        }
+      ]
+    },
+    {
+      "id": "SR-109",
+      "slice": "S03",
+      "source": "tests/offline/test_identity.py",
+      "sourceSha256": "46b15c6eefea11d258fec69f6316b60abb15d70ff56806c68c307de7a6cbe7ea",
+      "members": [
+        {
+          "symbol": "test_detection_list_composes_a_product_filter",
+          "parameterSelection": "all"
+        },
+        {
+          "symbol": "test_an_unknown_product_is_refused_with_the_valid_values",
+          "parameterSelection": "all"
+        },
+        {
+          "symbol": "test_detection_show_for_an_identity_alert_with_no_endpoint_omits_hostname",
+          "parameterSelection": "all"
+        },
+        {
+          "symbol": "test_mixed_identity_pages_keep_identifiers_for_both_products",
+          "parameterSelection": {
+            "P1": [
+              0,
+              1
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "SR-123",
+      "slice": "S03",
+      "source": "tests/offline/test_ioc_host_group.py",
+      "sourceSha256": "564974533b1b835c495b4338d43b7955cecae53f164dcc317897a26c4e2acb41",
+      "members": [
+        {
+          "symbol": "test_ioc_list_restores_query_order_and_uses_after_cursor",
+          "parameterSelection": "all"
+        },
+        {
+          "symbol": "test_ioc_show_preserves_configuration_fields",
+          "parameterSelection": "all"
+        },
+        {
+          "symbol": "test_ioc_show_not_found",
+          "parameterSelection": "all"
+        },
+        {
+          "symbol": "test_empty_reads_are_definitive",
+          "parameterSelection": {
+            "P1": [
+              0,
+              1,
+              2
+            ]
+          }
+        },
+        {
+          "symbol": "test_read_scope_failures_name_the_required_permission",
+          "parameterSelection": {
+            "P1": [
+              0,
+              1,
+              2
+            ]
+          }
+        },
+        {
+          "symbol": "test_offset_continuation_replays_the_original_query",
+          "parameterSelection": {
+            "P1": [
+              0,
+              1
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "SR-125",
+      "slice": "S03",
+      "source": "tests/offline/test_ioc_host_group.py",
+      "sourceSha256": "564974533b1b835c495b4338d43b7955cecae53f164dcc317897a26c4e2acb41",
+      "members": [
+        {
+          "symbol": "test_invalid_input_fails_before_authentication",
+          "parameterSelection": {
+            "P1": [
+              0,
+              1,
+              2,
+              3,
+              4,
+              5,
+              7,
+              8,
+              10
+            ]
+          }
+        },
+        {
+          "symbol": "test_ipv6_indicator_and_required_host_reach_only_query_parameters",
+          "parameterSelection": "all"
+        },
+        {
+          "symbol": "test_invalid_fql_suggests_the_correct_domain",
+          "parameterSelection": {
+            "P1": [
+              0
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "SR-134",
+      "slice": "S03",
+      "source": "tests/offline/test_pagination_advance.py",
+      "sourceSha256": "1f326e309568c14e037676a1b5bef2b7a046ece5395c17d4a2c7cd5fb3a0a3db",
+      "members": [
+        {
+          "symbol": "test_total_known_a_short_hydrate_advances_the_cursor_past_the_whole_page",
+          "parameterSelection": "all"
+        }
+      ]
+    },
+    {
+      "id": "SR-135",
+      "slice": "S03",
+      "source": "tests/offline/test_pagination_empty.py",
+      "sourceSha256": "f2e5b59d4004b1b834b4add25b4369e43cd116aca9c427308ea6248142e115ee",
+      "members": [
+        {
+          "symbol": "test_empty_continuations_report_exhaustion_without_claiming_an_empty_inventory",
+          "parameterSelection": {
+            "P1": [
+              1,
+              2
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "SR-140",
+      "slice": "S03",
+      "source": "tests/offline/test_process.py",
+      "sourceSha256": "99d793195116dc94f7bde815e649571ef7b74e58fc7a2eaa31b98982de5d1076",
+      "members": [
+        {
+          "symbol": "test_show_renders_the_documented_nine_fields",
+          "parameterSelection": "all"
+        },
+        {
+          "symbol": "test_unknown_process_points_to_ioc_processes",
+          "parameterSelection": "all"
+        },
+        {
+          "symbol": "test_denied_process_names_scope_and_subscription_or_permission_limit",
+          "parameterSelection": "all"
+        },
+        {
+          "symbol": "test_invalid_id_is_refused_before_authentication",
+          "parameterSelection": "all"
+        },
+        {
+          "symbol": "test_malformed_or_mismatched_details_never_claim_not_found",
+          "parameterSelection": "all"
+        },
+        {
+          "symbol": "test_command_line_redaction_precedes_preview",
+          "parameterSelection": "all"
+        },
+        {
+          "symbol": "test_missing_fields_remain_unknown",
+          "parameterSelection": "all"
+        },
+        {
+          "symbol": "test_ioc_processes_suggests_process_show",
+          "parameterSelection": "all"
+        },
+        {
+          "symbol": "test_detection_lineage_suggests_details_for_matching_ids_only",
+          "parameterSelection": "all"
+        }
+      ]
+    },
+    {
+      "id": "SR-141",
+      "slice": "S03",
+      "source": "tests/offline/test_process_tree.py",
+      "sourceSha256": "5843aa85a93480a012d4120ea40da37f02f66f5cb27c1904008cdf56a45cfdb3",
+      "members": [
+        {
+          "symbol": "test_three_generations_render_process_then_ancestors_then_children",
+          "parameterSelection": "all"
+        },
+        {
+          "symbol": "test_vertex_without_parent_stops_after_one_summary",
+          "parameterSelection": "all"
+        },
+        {
+          "symbol": "test_depth_bound_stops_at_five_ancestors",
+          "parameterSelection": "all"
+        },
+        {
+          "symbol": "test_child_cursor_resumes_offset_and_binds_process",
+          "parameterSelection": "all"
+        },
+        {
+          "symbol": "test_permission_denial_names_scope_and_subscription",
+          "parameterSelection": "all"
+        },
+        {
+          "symbol": "test_summary_path_requires_fixed_process_vertex_type",
+          "parameterSelection": "all"
+        },
+        {
+          "symbol": "test_cycle_stops_without_refetching_the_process",
+          "parameterSelection": "all"
+        }
+      ]
+    },
+    {
+      "id": "SR-142",
+      "slice": "S03",
+      "source": "tests/offline/test_process_tree.py",
+      "sourceSha256": "5843aa85a93480a012d4120ea40da37f02f66f5cb27c1904008cdf56a45cfdb3",
+      "members": [
+        {
+          "symbol": "test_long_command_preview_expands_and_full_continuation_preserves_full",
+          "parameterSelection": "all"
+        },
+        {
+          "symbol": "test_help_discloses_sdk_sample_shape_source_without_authentication",
+          "parameterSelection": "all"
+        },
+        {
+          "symbol": "test_invalid_summary_fails_instead_of_inventing_an_empty_tree",
+          "parameterSelection": "all"
+        }
+      ]
+    },
+    {
+      "id": "SR-143",
+      "slice": "S02",
+      "source": "tests/offline/test_profiles.py",
+      "sourceSha256": "a2b1194e48cc9f514544e247c4ae6baf43c2343954f69d09c272e759826db446",
+      "members": [
+        {
+          "symbol": "test_paths_follow_each_call_and_ignore_relative_xdg",
+          "parameterSelection": "all"
+        },
+        {
+          "symbol": "test_windows_paths_use_appdata_and_ignore_xdg",
+          "parameterSelection": "all"
+        },
+        {
+          "symbol": "test_explicit_profile_ignores_env_fields_and_partial_env",
+          "parameterSelection": "all"
+        },
+        {
+          "symbol": "test_complete_env_precedes_file_default",
+          "parameterSelection": "all"
+        },
+        {
+          "symbol": "test_setup_guidance_preserves_explicit_config_path",
+          "parameterSelection": "all"
+        },
+        {
+          "symbol": "test_env_auth_ignores_malformed_unused_config",
+          "parameterSelection": "all"
+        }
+      ]
+    },
+    {
+      "id": "SR-144",
+      "slice": "S02",
+      "source": "tests/offline/test_profiles.py",
+      "sourceSha256": "a2b1194e48cc9f514544e247c4ae6baf43c2343954f69d09c272e759826db446",
+      "members": [
+        {
+          "symbol": "test_fixed_legacy_path_requires_migration",
+          "parameterSelection": "all"
+        },
+        {
+          "symbol": "test_default_profile_selects_among_multiple_profiles",
+          "parameterSelection": "all"
+        },
+        {
+          "symbol": "test_env_aliases_warn_and_new_name_wins",
+          "parameterSelection": "all"
+        },
+        {
+          "symbol": "test_deprecated_base_url_alias_uses_region_precedence",
+          "parameterSelection": "all"
+        },
+        {
+          "symbol": "test_secret_ref_can_name_an_alias_explicitly",
+          "parameterSelection": "all"
+        },
+        {
+          "symbol": "test_missing_referenced_secret_is_auth_required",
+          "parameterSelection": "all"
+        }
+      ]
+    },
+    {
+      "id": "SR-145",
+      "slice": "S02",
+      "source": "tests/offline/test_profiles.py",
+      "sourceSha256": "a2b1194e48cc9f514544e247c4ae6baf43c2343954f69d09c272e759826db446",
+      "members": [
+        {
+          "symbol": "test_profile_region_and_tenant_reach_token_request_and_flags_override",
+          "parameterSelection": "all"
+        },
+        {
+          "symbol": "test_auth_status_ignores_environment_tenant_guidance_for_file_profile",
+          "parameterSelection": "all"
+        },
+        {
+          "symbol": "test_resolved_secret_and_its_encoded_forms_are_redacted_in_errors",
+          "parameterSelection": "all"
+        },
+        {
+          "symbol": "test_multiple_profiles_require_selection",
+          "parameterSelection": "all"
+        },
+        {
+          "symbol": "test_invalid_secret_refs_are_rejected_on_load",
+          "parameterSelection": "all"
+        },
+        {
+          "symbol": "test_profile_list_never_resolves_secrets",
+          "parameterSelection": "all"
+        }
+      ]
+    },
+    {
+      "id": "SR-146",
+      "slice": "S02",
+      "source": "tests/offline/test_profiles.py",
+      "sourceSha256": "a2b1194e48cc9f514544e247c4ae6baf43c2343954f69d09c272e759826db446",
+      "members": [
+        {
+          "symbol": "test_posix_accepts_protected_files",
+          "parameterSelection": "all"
+        },
+        {
+          "symbol": "test_posix_refuses_unprotected_files",
+          "parameterSelection": "all"
+        },
+        {
+          "symbol": "test_posix_refuses_a_different_owner",
+          "parameterSelection": "all"
+        },
+        {
+          "symbol": "test_windows_reads_ignore_synthetic_modes_and_only_diagnostics_check_acl",
+          "parameterSelection": "all"
+        },
+        {
+          "symbol": "test_windows_reparse_points_are_refused_before_acl_or_read",
+          "parameterSelection": "all"
+        },
+        {
+          "symbol": "test_acl_process_passes_path_as_data_and_fails_closed",
+          "parameterSelection": "all"
+        }
+      ]
+    },
+    {
+      "id": "SR-148",
+      "slice": "S02",
+      "source": "tests/offline/test_profiles.py",
+      "sourceSha256": "a2b1194e48cc9f514544e247c4ae6baf43c2343954f69d09c272e759826db446",
+      "members": [
+        {
+          "symbol": "test_invalid_read_only_fails_closed",
+          "parameterSelection": "all"
+        }
+      ]
+    },
+    {
+      "id": "SR-149",
+      "slice": "S02",
+      "source": "tests/offline/test_profiles.py",
+      "sourceSha256": "a2b1194e48cc9f514544e247c4ae6baf43c2343954f69d09c272e759826db446",
+      "members": [
+        {
+          "symbol": "test_package_ships_profile_schema",
+          "parameterSelection": "all"
+        },
+        {
+          "symbol": "test_windows_rejects_nonlocal_or_relative_secret_paths_on_load",
+          "parameterSelection": "all"
+        },
+        {
+          "symbol": "test_windows_accepts_absolute_drive_secret_paths_on_load",
+          "parameterSelection": "all"
+        }
+      ]
+    },
+    {
+      "id": "SR-173",
+      "slice": "S03",
+      "source": "tests/offline/test_rtr_history.py",
+      "sourceSha256": "e94d382097f60026e7cfe7e9fc93ec7e7d9e3e98707d7f78256f4133553d5a92",
+      "members": [
+        {
+          "symbol": "test_session_list_preserves_query_order_total_and_post_hydration",
+          "parameterSelection": "all"
+        },
+        {
+          "symbol": "test_hydration_is_chunked_and_missing_entities_do_not_change_cursor_position",
+          "parameterSelection": "all"
+        },
+        {
+          "symbol": "test_bounded_continuation_and_cursor_binding",
+          "parameterSelection": "all"
+        },
+        {
+          "symbol": "test_audit_reads_combined_records_without_hydration",
+          "parameterSelection": "all"
+        },
+        {
+          "symbol": "test_empty_history_skips_hydration",
+          "parameterSelection": "all"
+        },
+        {
+          "symbol": "test_limit_ceiling_fails_before_auth",
+          "parameterSelection": "all"
+        },
+        {
+          "symbol": "test_denied_history_names_scope_and_licence_remedies",
+          "parameterSelection": "all"
+        },
+        {
+          "symbol": "test_session_detail_redacts_before_truncation",
+          "parameterSelection": "all"
+        }
+      ]
+    },
+    {
+      "id": "SR-174",
+      "slice": "S03",
+      "source": "tests/offline/test_rtr_history.py",
+      "sourceSha256": "e94d382097f60026e7cfe7e9fc93ec7e7d9e3e98707d7f78256f4133553d5a92",
+      "members": [
+        {
+          "symbol": "test_non_history_operations_are_refused_before_send",
+          "parameterSelection": "all"
+        },
+        {
+          "symbol": "test_registry_rejects_non_history_routes_even_under_a_read_id",
+          "parameterSelection": "all"
+        },
+        {
+          "symbol": "test_history_route_admission_binds_method",
+          "parameterSelection": "all"
+        },
+        {
+          "symbol": "test_history_route_admission_binds_id_and_scope",
+          "parameterSelection": "all"
+        },
+        {
+          "symbol": "test_bad_filters_suggest_a_valid_history_filter",
+          "parameterSelection": "all"
+        },
+        {
+          "symbol": "test_history_transport_sends_only_its_registered_route",
+          "parameterSelection": "all"
+        }
+      ]
+    },
+    {
+      "id": "SR-190",
+      "slice": "S02",
+      "source": "tests/offline/test_suggestion_context.py",
+      "sourceSha256": "63958515eca09418a23878d2d63cc62d6f2d1cbe9a244dc792efde47ad09452a",
+      "members": [
+        {
+          "symbol": "test_discovery_empty_states_and_continuations_preserve_context_once",
+          "parameterSelection": {
+            "P1": [
+              9
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "SR-191",
+      "slice": "S03",
+      "source": "tests/offline/test_suggestion_context.py",
+      "sourceSha256": "63958515eca09418a23878d2d63cc62d6f2d1cbe9a244dc792efde47ad09452a",
+      "members": [
+        {
+          "symbol": "test_discovery_empty_states_and_continuations_preserve_context_once",
+          "parameterSelection": {
+            "P1": [
+              0,
+              1,
+              2,
+              3,
+              4,
+              5,
+              6
+            ]
+          }
+        },
+        {
+          "symbol": "test_replayed_query_values_survive_shell_parsing_and_reach_the_next_request",
+          "parameterSelection": {
+            "P1": [
+              0,
+              1,
+              2,
+              3,
+              4,
+              5,
+              6,
+              7,
+              8,
+              10,
+              11,
+              12,
+              13,
+              14,
+              15,
+              16,
+              17
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "SR-197",
+      "slice": "S03",
+      "source": "tests/offline/test_walk.py",
+      "sourceSha256": "35775d29193ad8e7e9530f059ea872048ff89dfeb95c142054d03afb822d393c",
+      "members": [
+        {
+          "symbol": "test_budget_wall_reachability_and_request_cost",
+          "parameterSelection": {
+            "P1": [
+              0,
+              1,
+              2,
+              3,
+              4,
+              5
+            ]
+          }
+        },
+        {
+          "symbol": "test_default_budget_ignores_single_page_limit",
+          "parameterSelection": {
+            "P1": [
+              0,
+              1
+            ]
+          }
+        },
+        {
+          "symbol": "test_partial_cursor_resumes_at_the_next_unseen_row",
+          "parameterSelection": {
+            "P1": [
+              0,
+              1
+            ]
+          }
+        },
+        {
+          "symbol": "test_short_final_page_retains_earlier_pages_without_partial_marker",
+          "parameterSelection": {
+            "P1": [
+              0,
+              1
+            ]
+          }
+        },
+        {
+          "symbol": "test_starting_at_wall_fails_without_data_requests",
+          "parameterSelection": {
+            "P1": [
+              0,
+              1
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "SR-201",
+      "slice": "S03",
+      "source": "tests/offline/test_walk.py",
+      "sourceSha256": "35775d29193ad8e7e9530f059ea872048ff89dfeb95c142054d03afb822d393c",
+      "members": [
+        {
+          "symbol": "test_invalid_budget_fails_before_authentication",
+          "parameterSelection": {
+            "P1": [
+              0,
+              1,
+              2,
+              3,
+              4
+            ]
+          }
+        },
+        {
+          "symbol": "test_wall_with_all_hydrated_rows_gone_is_an_error",
+          "parameterSelection": {
+            "P1": [
+              0,
+              1
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "SR-206",
+      "slice": "S03",
+      "source": "tests/packaged/test_catalog.py",
+      "sourceSha256": "43bcbf0bf2a00600e39f3e6fcb16343296943b70a6391ca34d4aae52b8d12ad5",
+      "members": [
+        {
+          "symbol": "test_installed_partial_hydration_retains_total_and_cursor",
+          "parameterSelection": "all"
+        },
+        {
+          "symbol": "test_installed_detail_truncation_can_be_recovered_with_full",
+          "parameterSelection": "all"
+        }
+      ]
+    }
+  ],
+  "reassignments": [
+    {
+      "requirement": "SR-125",
+      "symbol": "test_host_group_member_cursor_rejects_a_different_group",
+      "from": "S03",
+      "to": "S04",
+      "reason": "Plan S04 owns host-group endpoint inventory",
+      "status": "pending",
+      "requiredAgainIn": "S13"
+    },
+    {
+      "requirement": "SR-206",
+      "symbol": "test_installed_setup_is_opt_in_repeatable_and_repairs_relocation",
+      "from": "S03",
+      "to": "S12",
+      "reason": "Plan S12 owns installation and hooks",
+      "status": "pending",
+      "requiredAgainIn": "S13"
+    }
+  ]
+}

@@ -24,13 +24,13 @@ Three consequences that catch people out:
   The transport's operation registry carries that evidence as a required field and the local required-check
   set asserts it, per tier as defined in `docs/design/v1.md` §2.2.
 - **The exceptions are closed by id allowlists, not by discipline.**
-  `SEARCH_LIFECYCLE_IDS` in `falcon_axi/transport/operations.py` is exactly `StartSearchV1` and `StopSearchV1`,
+  The `search-lifecycle` allowlist in `src/transport/operations.ts` is exactly `StartSearchV1` and `StopSearchV1`,
   and registry sealing rejects any other descriptor claiming `effect: "search-lifecycle"`, any scope other than
   `NGSIEM:write` on one, and any `:write` scope on a `read` descriptor.
-  `GRAPHQL_QUERY_IDS` is exactly `api_preempt_proxy_post_graphql`, sealed the same way to
+  The `graphql-query` allowlist is exactly `api_preempt_proxy_post_graphql`, sealed the same way to
   `Identity Protection GraphQL:write`, and GraphQL text reaches it only as a registered document from
-  `falcon_axi/transport/graphql.py`, never as caller input.
-  N4 seals `MALQUERY_SEARCH_IDS` to exactly `PostMalQueryExactSearchV1` and `PostMalQueryFuzzySearchV1`,
+  `src/transport/documents.json`, never as caller input.
+  N4 seals `malquery-search` to exactly `PostMalQueryExactSearchV1` and `PostMalQueryFuzzySearchV1`,
   with `MalQuery:write`, canonical POST routes, validated literal patterns, and bounded results rechecked at the sink.
   N3 separately seals its guarded RTR lifecycle (§4.5); N4 admits no hunt, multidownload, or sample download.
   Admitting a further state-changing operation requires editing its closed allowlist (§3.3), which is the reviewable diff §1.6 demands.
@@ -48,11 +48,10 @@ Read it before adding or changing any command surface, and update it in the same
 Its §17 records closed decisions; check there before re-deriving a decision that was already argued, and its §18
 cites every source, so a claim can be re-verified rather than trusted.
 
-`docs/design/v1-python.md` is the committed amendment that made falcon-axi a pure Python CLI on
-`crowdstrike-falconpy`: language and runtime, falconpy confinement, packaging with uv, and the pytest layout.
-Read both before changing implementation structure; v1.md still owns behavior, v1-python.md owns how it is
-built.
-There is no Node runtime, no MCP process, and no `falcon-mcp` dependency anywhere in the tree.
+`docs/design/v1-typescript.md` owns the current Node 24 TypeScript implementation under `src/`, sealed transport, npm packaging, and offline verification.
+Read it and v1.md before changing implementation structure; v1.md still owns behavior.
+`docs/design/v1-python.md` preserves the Python v0.9.0 implementation and golden-comparison history.
+The current package has no Python runtime, MCP process, falconpy, or `falcon-mcp` dependency.
 
 The implemented surface includes the package foundation, the sealed transport and its closed registry,
 AXI credential profiles with `auth status`, `profile list`, and `config path`, the read domains (`detection list`, `detection show`,
@@ -71,9 +70,9 @@ Malware family reads (`malware list`, `malware show`), Identity Protection polic
 (`identity rule list`, `identity rule show`), and Discover IoT inventory (`iot list`) also ship.
 The generated command reference in `docs/commands.md` is the authoritative list of shipped commands, and
 no help text, suggestion, or skill may advertise an unshipped command.
-`uv run scripts/verify.py` is the single local entry point for the complete offline required-check set
-(§14.5, §15.4); it runs ruff, `mypy --strict`, `scripts/architecture_check.py`, and the `tests/offline/` suite,
-and it must stay offline: a pytest fixture refuses every socket.
+`npm run verify` is the single local entry point for the complete offline required-check set.
+It runs TypeScript compilation, formatting, architecture and generated checks, clean package installation, and the cumulative native suite with network isolation.
+The Python test files remain frozen safety-ledger provenance and are read as bytes, never executed by this gate.
 `tests/golden/` is the recorded-invocation gate; `docs/design/v1-python.md` §5 owns its comparison contract and release-version exception.
 Its stage 1 scenarios are also the cross-language parity gate, because the TypeScript stage 1 this port
 replaced generated their expected documents.
@@ -82,38 +81,13 @@ be argued in the design first, as stage 2's four changed stage 1 documents and s
 `tests/golden/history.json` preserves the historical document-change explanations; new explanations belong in
 the affected `tests/golden/scenarios/<name>.json`.
 
-Two seams are worth knowing before changing them:
+The implementation seams are documented in `docs/design/v1-typescript.md`:
 
-- Commands are pure functions over a `Transport`, and `falcon_axi/cli.py`'s `run()` defaults to the sealed
-  `http_transport`.
-  Offline tests pass `RecordedTransport` from `tests/support/recorded.py` as an argument.
-  That is the only substitution point, and it is code-level only: no flag, environment variable, or config key
-  can reach the recorded transport in a released build (§14.2).
-- Falcon's list endpoints are two requests, not one: a query step returns ids and an entity step hydrates
-  them, losing both the sort order and the pagination metadata, so `detection.py` and `host.py` capture the
-  total before hydrating and reapply the query order after (§2.3).
-  `vuln.py` is the exception, a single combined request paginated by an opaque `after` token rather than an
-  offset; `cursor.py` carries the models in `docs/design/v1.md` §7.1 behind one `--cursor` vocabulary.
-  `search.py` is a third shape again: an NG-SIEM query job carries no pagination metadata at all, so it has
-  neither `--limit` nor `--cursor`; start and status optionally poll with a bounded `--wait` of 1-50 seconds.
-  Its three routes and the ThreatGraph process-summary route have `{path}` variables, which `path_arguments()` validates against
-  separators and dot segments before a request is prepared; `RecordedTransport` runs the same check so the
-  test seam is never more permissive than the sealed transport.
-  ThreatGraph's `vertex_type` is fixed to `processes` at that boundary.
-- `falcon_axi/transport/harness.py` is the one file allowed to touch the network and the one file allowed to
-  import `falconpy`, from which only `APIHarnessV2` may be named; `send_permitted_request` is the one function
-  in it allowed to reach the network.
-  falconpy's `command()` accepts every Falcon operation id, mutating ones included, so the closed registry is
-  checked before falconpy is ever constructed.
-  falcon-axi also mints the OAuth token itself with `allow_redirects=False` (decision D2) rather than letting
-  falconpy log in, because falconpy allows redirects on the token path and `requests` replays a POST body on a
-  307 or 308.
-  `scripts/architecture_check.py` enforces all of that and the automated boundary in `docs/design/v1.md` §15.4.
-- falconpy folds transport exceptions into a synthetic 500 and returns raw bytes for a body-less redirect, so
-  the sink reads status, headers, and body from the `requests.Response` it recorded rather than from falconpy's
-  container.
-  Keep that seam if you touch `harness.py`, or TLS_UNTRUSTED, NETWORK_UNREACHABLE, and the redirect refusal
-  silently become UPSTREAM_ERROR.
+- `src/transport/https.ts` owns HTTPS acquisition and consumes invocation-local sealed permits.
+  `scripts/typescript/architecture.ts` checks network authority and bypass seeds.
+  Synthetic delivery is supplied only by unpackaged test launchers after production origin and operation validation.
+- Query/hydrate reads retain totals and query order in `src/investigation.ts` and `src/inventory.ts`; `src/cursor.ts` retains one cursor vocabulary across pagination models.
+  `src/search.ts` owns bounded query-job waits and fixed repository paths; ThreatGraph fixes its vertex type to `processes` at the transport boundary.
 
 ## Credential rules
 
@@ -134,8 +108,8 @@ Two seams are worth knowing before changing them:
   Every fixture under `tests/fixtures/` is wholly synthetic and carries a provenance header that an offline test
   asserts.
 
-The automation is `.github/workflows/ci.yml`, which runs `uv run scripts/verify.py` with no secrets, and `.github/workflows/release-please.yml`, which publishes releases to PyPI using Trusted Publishing.
-The architecture check allows exactly those two workflows, rejects other CI configurations, and rejects `FALCON_AXI_LIVE`, both credential environment names, and their deprecated aliases in either workflow.
+The automation is `.github/workflows/ci.yml`, which runs `npm run verify` with no secrets, and `.github/workflows/release-please.yml`, whose release and publish jobs are disabled during cutover.
+The final-coverage check allows exactly those two workflow files and rejects `FALCON_AXI_LIVE`, both credential environment names, and their deprecated aliases in decoded workflow settings.
 
 ## Build to the AXI skill
 
@@ -146,8 +120,8 @@ reviewing any CLI behavior here.
 `azure-axi` and `awx-axi` are the sibling references for these patterns; `docs/design/v1.md` §18 lists where
 their assumptions do **not** transfer to Falcon.
 `skills/falcon-axi/SKILL.md` and its per-command `references/` are this repo's generated agent-facing skill;
-regenerate them with `uv run scripts/skill.py`.
-Its drift check runs in `scripts/verify.py`, and it must never name a command the CLI does not ship (`docs/design/v1.md` §12.2).
+regenerate them with `npm run generate`.
+Its drift check runs in `npm run verify`, and it must never name a command the CLI does not ship (`docs/design/v1.md` §12.2).
 
 ## Maintaining this file
 

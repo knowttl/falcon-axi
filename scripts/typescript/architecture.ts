@@ -1,0 +1,271 @@
+import ts from "typescript";
+import { readFileSync, readdirSync } from "node:fs";
+import { resolve, relative, join } from "node:path";
+
+const root = resolve("src");
+const allowed = new Set([
+  "node:fs",
+  "node:fs/promises",
+  "node:path",
+  "node:os",
+  "node:crypto",
+  "./core.js",
+  "./credentials.js",
+  "./auth.js",
+  "./origin.js",
+  "./render.js",
+  "./response.js",
+  "./metadata.js",
+  "./investigation.js",
+  "./domain.js",
+  "./inventory.js",
+  "./exposure.js",
+  "./inspection.js",
+  "./inspection-commands.json",
+  "./search.js",
+  "./identity.js",
+  "./malquery.js",
+  "./cql.js",
+  "./search-commands.json",
+  "./search-help.json",
+  "./documents.json",
+  "./search-authority.js",
+  "./transport/search-authority.js",
+  "./parser.js",
+  "./cursor.js",
+  "./windows-acl.js",
+  "./help.json",
+  "./version.js",
+  "./cli.js",
+  "./executable.js",
+  "./skill.js",
+  "./transport/https.js",
+  "./operations.js",
+  "./descriptors.json",
+  "./axi-credential.schema.json",
+  "../core.js",
+  "../origin.js",
+  "../version.js",
+  "./transport/operations.js",
+  "@toon-format/toon",
+  "axi-sdk-js/fast-path",
+  "ajv/dist/2020.js",
+]);
+const sink = new Set([
+  "node:https",
+  "node:http",
+  "node:tls",
+  "node:stream",
+  "node:timers/promises",
+  "./resolver.js",
+]);
+export function violations(source: string, name: string): string[] {
+  const file = ts.createSourceFile(name, source, ts.ScriptTarget.Latest, true);
+  const errors: string[] = [];
+  const readonlyFiles = new Set([
+    "accessSync",
+    "constants",
+    "lstat",
+    "readFileSync",
+    "realpathSync",
+    "statSync",
+  ]);
+  const scripts = new Set(
+    file.statements.flatMap((statement) =>
+      ts.isVariableStatement(statement) &&
+      statement.declarationList.flags & ts.NodeFlags.Const
+        ? statement.declarationList.declarations.flatMap((declaration) =>
+            ts.isIdentifier(declaration.name) &&
+            declaration.initializer &&
+            (ts.isStringLiteral(declaration.initializer) ||
+              ts.isNoSubstitutionTemplateLiteral(declaration.initializer))
+              ? [declaration.name.text]
+              : [],
+          )
+        : [],
+    ),
+  );
+  const fixedScript = (node: ts.Node): boolean =>
+    ts.isStringLiteral(node) ||
+    ts.isNoSubstitutionTemplateLiteral(node) ||
+    (ts.isIdentifier(node) && scripts.has(node.text)) ||
+    (ts.isBinaryExpression(node) &&
+      node.operatorToken.kind === ts.SyntaxKind.PlusToken &&
+      fixedScript(node.left) &&
+      fixedScript(node.right)) ||
+    (ts.isConditionalExpression(node) &&
+      ts.isIdentifier(node.condition) &&
+      node.condition.text === "diagnostic" &&
+      fixedScript(node.whenTrue) &&
+      fixedScript(node.whenFalse));
+  const visit = (node: ts.Node): void => {
+    if (ts.isImportDeclaration(node) || ts.isExportDeclaration(node)) {
+      const specifier = node.moduleSpecifier;
+      if (
+        specifier &&
+        (!ts.isStringLiteral(specifier) ||
+          !(
+            allowed.has(specifier.text) ||
+            (name === "cli.ts" && specifier.text === "./setup.js") ||
+            (name === "setup.ts" && specifier.text === "toml-eslint-parser") ||
+            (name === "setup.ts" && specifier.text === "node:util") ||
+            (name === "cli.ts" && specifier.text === "./rtr.js") ||
+            (name === "transport/https.ts" && specifier.text === "../rtr.js") ||
+            (["credentials.ts", "rtr.ts", "cli.ts"].includes(name) &&
+              specifier.text === "./rtr-policy.js") ||
+            (name === "rtr.ts" && specifier.text === "./rtr-filesystem.js") ||
+            (name === "rtr.ts" && specifier.text === "node:timers/promises") ||
+            (name === "transport/https.ts" && sink.has(specifier.text)) ||
+            (name === "search.ts" &&
+              specifier.text === "node:timers/promises") ||
+            (name === "transport/resolver.ts" &&
+              [
+                "node:child_process",
+                "node:net",
+                "node:dns",
+                "node:url",
+              ].includes(specifier.text)) ||
+            (name === "transport/dns-worker.ts" &&
+              specifier.text === "node:dns/promises") ||
+            (name === "windows-acl.ts" &&
+              specifier.text === "node:child_process") ||
+            (name === "rtr-filesystem.ts" &&
+              ["node:module", "node:url", "../native/checksums.json"].includes(
+                specifier.text,
+              ))
+          ))
+      )
+        errors.push("unauthorized dependency");
+      if (
+        ts.isImportDeclaration(node) &&
+        ts.isStringLiteral(node.moduleSpecifier)
+      ) {
+        const dependency = node.moduleSpecifier.text;
+        if (
+          ["node:fs", "node:fs/promises"].includes(dependency) &&
+          name !== "setup.ts"
+        ) {
+          const bindings = node.importClause?.namedBindings;
+          if (
+            !bindings ||
+            !ts.isNamedImports(bindings) ||
+            node.importClause?.name ||
+            bindings.elements.some((binding) => {
+              const imported = (binding.propertyName ?? binding.name).text;
+              return (
+                !readonlyFiles.has(imported) &&
+                !(
+                  name === "credentials.ts" &&
+                  imported === "open" &&
+                  binding.name.text === "open"
+                )
+              );
+            })
+          )
+            errors.push("filesystem mutation authority");
+        }
+        if (name === "windows-acl.ts" && dependency === "node:child_process") {
+          const bindings = node.importClause?.namedBindings;
+          if (
+            !bindings ||
+            !ts.isNamedImports(bindings) ||
+            bindings.elements.some(
+              (binding) =>
+                binding.name.text !== "execFile" ||
+                binding.propertyName !== undefined,
+            )
+          )
+            errors.push("ACL process authority");
+        }
+      }
+    }
+    if (ts.isCallExpression(node)) {
+      const expression = node.expression;
+      const nameText = expression.getText(file);
+      if (name === "windows-acl.ts" && nameText === "execFile") {
+        const [executable, args] = node.arguments;
+        if (
+          !executable ||
+          !ts.isStringLiteral(executable) ||
+          executable.text !== "powershell.exe" ||
+          !args ||
+          !ts.isArrayLiteralExpression(args) ||
+          args.elements.length !== 4 ||
+          !fixedScript(args.elements[3]!)
+        )
+          errors.push("dynamic ACL command");
+      }
+      if (expression.kind === ts.SyntaxKind.ImportKeyword) {
+        if (
+          name !== "bin.ts" ||
+          node.arguments.length !== 1 ||
+          !ts.isStringLiteral(node.arguments[0]!) ||
+          node.arguments[0]!.text !== "./cli.js"
+        )
+          errors.push("dynamic import authority");
+      } else if (
+        /require|eval|Function|fetch|constructor|process\.(?:binding|dlopen|getBuiltinModule)|importScripts/.test(
+          nameText,
+        )
+      )
+        errors.push("indirect authority");
+    }
+    if (
+      ts.isIdentifier(node) &&
+      [
+        "globalThis",
+        "global",
+        "WebSocket",
+        "XMLHttpRequest",
+        "Worker",
+        "Deno",
+        "Bun",
+        "module",
+        "require",
+        "eval",
+        "Function",
+        "constructor",
+        "getBuiltinModule",
+        "binding",
+        "dlopen",
+      ].includes(node.text)
+    )
+      errors.push("ambient authority");
+    ts.forEachChild(node, visit);
+  };
+  visit(file);
+  return errors;
+}
+function walk(directory: string): void {
+  for (const entry of readdirSync(directory, { withFileTypes: true })) {
+    const path = join(directory, entry.name);
+    if (entry.isDirectory()) walk(path);
+    else if (entry.name.endsWith(".ts")) {
+      const problems = violations(
+        readFileSync(path, "utf8"),
+        relative(root, path),
+      );
+      if (problems.length) throw new Error(`${path}: ${problems.join(", ")}`);
+    }
+  }
+}
+walk(root);
+// Compile representative bypass seeds through the same checker.
+for (const source of [
+  "import https from 'node:https'",
+  "import x from 'undici'",
+  "import {spawn} from 'node:child_process'",
+  "import fs from 'node:fs'; fs.constructor.constructor('return process')()",
+  "const x = globalThis['fetch']; x('url')",
+  "await import('node:http')",
+  "process.getBuiltinModule('net')",
+  "import {rtrRun} from './rtr.js'",
+  "import {openRetainedFile} from './rtr-filesystem.js'",
+  "import {writeFile as save} from 'node:fs/promises'",
+  "import fs from 'node:fs'",
+  "import {installHooks} from './setup.js'",
+]) {
+  if (!violations(source, "seed.ts").length)
+    throw new Error("Architecture checker accepted a bypass seed");
+}
+console.log("TypeScript architecture boundary and bypass seeds passed");

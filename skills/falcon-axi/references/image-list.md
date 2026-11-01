@@ -3,7 +3,7 @@
 image list                list container image assessments
 
 ```text
-uvx falcon-axi image list [--filter <FQL>] [--limit N] [--cursor <token>]
+npx -y @knowttl/falcon-axi@next image list [--filter <FQL>] [--limit N] [--cursor <token>]
 
 Lists container image assessments in fixed image_id.asc order.
 --filter     FQL fields include image_id, image_digest, registry, repository, tag
@@ -11,8 +11,8 @@ Lists container image assessments in fixed image_id.asc order.
 --cursor     opaque continuation token; keep the same filter and credential
 Falcon exposes at most 10000 records per query; narrow --filter at that boundary.
 Examples:
-  uvx falcon-axi image list --filter "repository:'example/service'"
-  uvx falcon-axi image list --limit 100
+  npx -y @knowttl/falcon-axi@next image list --filter "repository:'example/service'"
+  npx -y @knowttl/falcon-axi@next image list --limit 100
 
 Read-only; requires Falcon Container Image:read and the corresponding license.
 ```

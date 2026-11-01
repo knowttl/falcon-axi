@@ -3,7 +3,7 @@
 rtr run                   preview or execute one read-only RTR command on one host
 
 ```text
-uvx falcon-axi rtr run <device_id> --command '<complete command>' [--execute --confirm '<device_id>:<complete command>']
+npx -y @knowttl/falcon-axi@next rtr run <device_id> --command '<complete command>' [--execute --confirm '<device_id>:<complete command>']
 
 Default: local preview, no network request. Requires one 32-hex device id.
 Execution requires profile rtr.enabled=true and exact host:command confirmation.
@@ -19,6 +19,6 @@ Accepted on neither Windows nor Linux, because it is a macOS command and macOS w
 eventlog permits only view and list; help, clear and history exist only in the interactive console.
 No shell syntax; eventlog backup/export, scripts, and file transfers are excluded.
 Examples:
-  uvx falcon-axi rtr run aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa --command ps --profile triage
-  uvx falcon-axi rtr run aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa --command ps --profile triage --execute --confirm 'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa:ps'
+  npx -y @knowttl/falcon-axi@next rtr run aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa --command ps --profile triage
+  npx -y @knowttl/falcon-axi@next rtr run aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa --command ps --profile triage --execute --confirm 'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa:ps'
 ```

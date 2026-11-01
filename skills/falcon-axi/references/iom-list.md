@@ -3,7 +3,7 @@
 iom list              list cloud Indicators of Misconfiguration
 
 ```text
-uvx falcon-axi iom list [--filter <FQL>] [--sort <field.direction>] [--limit N] [--cursor <token>]
+npx -y @knowttl/falcon-axi@next iom list [--filter <FQL>] [--sort <field.direction>] [--limit N] [--cursor <token>]
 
 list cloud Indicators of Misconfiguration.
 --filter   raw FQL; + is AND, `,` is OR, values are single-quoted
@@ -14,6 +14,6 @@ list cloud Indicators of Misconfiguration.
 Read-only; requires Cloud Security API Detections:read.
 
 Examples:
-  uvx falcon-axi iom list --filter "severity:'critical'+status:'non-compliant'"
-  uvx falcon-axi iom list --limit 100
+  npx -y @knowttl/falcon-axi@next iom list --filter "severity:'critical'+status:'non-compliant'"
+  npx -y @knowttl/falcon-axi@next iom list --limit 100
 ```

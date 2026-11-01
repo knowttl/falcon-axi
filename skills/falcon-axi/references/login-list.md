@@ -3,7 +3,7 @@
 login list                list Discover-observed logins across assets
 
 ```text
-uvx falcon-axi login list [--filter <FQL>] [--limit N] [--cursor <token>]
+npx -y @knowttl/falcon-axi@next login list [--filter <FQL>] [--limit N] [--cursor <token>]
 
 Lists Discover-observed logins across assets; host logins reads one sensor host's timeline.
 --filter     raw FQL, including username, hostname, login_status, and login_timestamp
@@ -11,8 +11,8 @@ Lists Discover-observed logins across assets; host logins reads one sensor host'
 --cursor     opaque continuation token from a previous call
 
 Examples:
-  uvx falcon-axi login list --filter "login_type:'Interactive'"
-  uvx falcon-axi login list --filter "login_status:'Failed'"
+  npx -y @knowttl/falcon-axi@next login list --filter "login_type:'Interactive'"
+  npx -y @knowttl/falcon-axi@next login list --filter "login_status:'Failed'"
 
 Read-only; requires Assets:read (Falcon Discover or Exposure Management).
 ```

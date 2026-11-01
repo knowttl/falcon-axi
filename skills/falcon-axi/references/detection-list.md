@@ -3,7 +3,7 @@
 detection list            list detections from the Falcon Alerts collection
 
 ```text
-uvx falcon-axi detection list [--severity <name>] [--status <name>] [--product <name>] [--since <window>] [--filter <FQL>] [--limit N] [--cursor <token>] [--all] [--max-rows N] [--fields <names>]
+npx -y @knowttl/falcon-axi@next detection list [--severity <name>] [--status <name>] [--product <name>] [--since <window>] [--filter <FQL>] [--limit N] [--cursor <token>] [--all] [--max-rows N] [--fields <names>]
 
 --severity   one of informational, low, medium, high, critical
 --status     one of new, in_progress, closed, reopened
@@ -21,9 +21,9 @@ and device.hostname.
 Identity Protection alerts have no device: their rows show the endpoint they came from as hostname
 (or `n/a`) and add account, account_id, device_id, and product columns when the page holds any.
 Examples:
-  uvx falcon-axi detection list --severity high --since 24h
-  uvx falcon-axi detection list --product idp --since 7d
-  uvx falcon-axi detection list --filter "severity_name:'Critical'+status:'new'"
+  npx -y @knowttl/falcon-axi@next detection list --severity high --since 24h
+  npx -y @knowttl/falcon-axi@next detection list --product idp --since 7d
+  npx -y @knowttl/falcon-axi@next detection list --filter "severity_name:'Critical'+status:'new'"
 
 This command is read-only and requires only Alerts:read.
 ```
