@@ -66,6 +66,8 @@ The host delta launches the candidate with its Node runtime rather than either P
 The real client, server, public credential API, private profile writer and runner execute the same installed artifact.
 The configured no-mistakes test deliberately requires only the native offline path.
 Final hosted evidence is bound separately to the frozen fixture and final candidate revision.
+Artium hosted proof and the package switch fold once per release candidate rather than per slice.
+The recorded source-only `artium-delta` is held for the next release-candidate fold; this carrier makes no hosted acceptance claim.
 
 ## Authority and output
 
@@ -95,7 +97,7 @@ The [S02/S03 verification amendment](s02-s03-plan-amendment.md) owns the deferre
 Subcommand help is seeded from the frozen Python origin in `src/help.json` and `src/search-help.json`.
 Errors use the Python origin's top-level error and code fields rather than S01's nested envelope.
 Opaque cursors retain the origin's signed context and exact serialization.
-The S12/S13 amendment below owns the one deliberate golden output change.
+S12/S13 retain the original golden output contract without a scope-label change.
 
 ## Native primitive proof
 
@@ -169,10 +171,8 @@ Run either executable from `<prefix>/node_modules/.bin`, or use the installed No
 This private candidate is not an npm publication or a main-branch cutover.
 
 S13 restores complete discovery comparisons against the retained command references and all 350 golden scenarios, removing temporary discovery filtering.
-The `scopes` posture first line deliberately uses neutral N1-N4 exception labels as an approved output change, preserving every effect disclosure, including guarded RTR host execution.
-Its scope rows, provisioning guidance, and exit code retain exact origin parity.
-The affected scenario records this change and the expected document changes only on that first line.
-All other golden comparisons retain the existing release-version substitutions and byte-for-byte output contract.
+The `scopes` posture, scope rows, provisioning guidance, and exit code retain exact origin parity, including all four original exception labels and guarded RTR host execution disclosure.
+All golden comparisons retain the existing release-version substitutions and byte-for-byte output contract.
 The corpus provenance includes the already merged bounded hostname-history amendment from `eae2ba801a3bcf39b2b13b4fc3799e1ee3e05e44` and §1.8 of `v1.md`.
 Its two host-history help documents precede this carrier and remain unchanged here.
 Native Windows evidence remains pending.

@@ -234,7 +234,7 @@ export async function main(argv: string[], bin?: string): Promise<number> {
         render(
           {
             posture: new Raw(
-              "read-only except three write-labelled scopes: NGSIEM:write for NG-SIEM search start and stop and identity activity (exception N1), and Identity Protection GraphQL:write for fixed read-only identity queries (exception N2); Real time response:read also permits guarded host execution with profile opt-in and exact confirmation (exception N3); MalQuery:write permits bounded exact/fuzzy pattern searches (exception N4)",
+              "read-only except three write-labelled scopes: NGSIEM:write for NG-SIEM search start and stop and identity activity (captain exception N1), and Identity Protection GraphQL:write for fixed read-only identity queries (captain exception N2); Real time response:read also permits guarded host execution with profile opt-in and exact confirmation (captain exception N3); MalQuery:write permits bounded exact/fuzzy pattern searches (captain exception N4)",
             ),
             scopes: [...groups].map(([scope, names]) => ({
               scope,

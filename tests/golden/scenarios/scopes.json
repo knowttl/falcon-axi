@@ -1,8 +1,9 @@
 {
   "name": "scopes",
   "comment": "N4 section 4.6 deliberately adds bounded MalQuery search and passive status to discovery and scopes, plus N4 provisioning guidance.",
-  "changes": "S12/S13 use neutral N1-N4 exception labels on the posture first line as the approved output delta documented in docs/design/v1-typescript.md. All effect disclosures, scope rows, provisioning guidance, and exit code retain exact origin parity.",
-  "argv": ["scopes"],
+  "argv": [
+    "scopes"
+  ],
   "env": "none",
   "exit_code": 0
 }
