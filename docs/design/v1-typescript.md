@@ -1,4 +1,4 @@
-# TypeScript S02-S10 candidate
+# TypeScript S02-S11 candidate
 
 The [approved settlement amendment](s01-primitive-amendment.md#dns-deadline-settlement) owns the DNS resolver and process settlement contract.
 The installed-artifact regression uses a three-second local DNS blackhole and requires WAIT_TIMEOUT and process settlement within the inherited one-second budget plus startup allowance.
@@ -39,20 +39,19 @@ No npm publication, Python release change, workflow edit or host deployment is i
 ## Build and offline verification
 
 Development pins Node 24.14.0, npm 11.9.0 and exact locked dependencies.
-The runtime floor is Node 24.11.0; native Windows and other Node versions remain unproved in this slice.
+The runtime floor is Node 24.11.0; native Windows controller refusal, preview and reads, and other Node versions remain unproved in this slice.
 Run `npm ci --offline --ignore-scripts` and `npm run verify`.
-The latter includes the full native offline carrier suite and the frozen safety ownership check.
+The latter repeats the S10 native carrier, the native S11 lifecycle, compiled filesystem primitives, and frozen safety ownership checks.
 The S06/S07 carrier repeats the S01-S05 native checks and adds enrichment/configuration golden parity, selector-specific scope and malformed-response refusals, continuation replay, ordered batch hydration, and redaction before detail previews.
 Native S06/S07 retained scenarios compare exact output bytes and exit codes, including signed cursors and suggestions.
 S06 restores the original detection-process sandbox suggestions, and S07 restores Identity rule navigation in the existing discovery scenarios.
 Managed comparisons retain data and exits while the host owns command prefixes and connection-specific cursor encodings.
-The frozen slice contracts in `tests/fixtures/migration/S02/contracts.json` through `S10/contracts.json` retain the owned operation, case, command and golden scenario identities.
+The frozen slice contracts in `tests/fixtures/migration/S02/contracts.json` through `S11/contracts.json` retain the owned operation, case, command and golden scenario identities.
 `tests/migration/coverage-s06-s07.json` retains source identities and parameter selections for the additional safety groups.
 `tests/migration/coverage-s08-s10.json` adds search, GraphQL and MalQuery ownership with executable replacement bindings.
 The S08-S10 carrier repeats the earlier suites and adds retained output comparisons, CQL vectors from the Python origin, non-replay response/failure matrices, bounded waits, shell continuation and authority-boundary refusals.
 The GraphQL parser is a development dependency used to verify the fixed documents' operation, root and variable contracts; it is excluded from the runtime package.
 The response-diagnostic replacements exercise bounded shapes at the candidate's validation boundary; Python validator-library issue annotations have no runtime producer in the hand-validated candidate.
-Native Windows evidence remains pending.
 The installed check packs an explicit compiled-source allowlist, installs outside the checkout and executes the npm bin from a directory containing spaces.
 Linux user/network/mount namespaces and iproute2 are required for that check.
 Only loopback is enabled; an actual external connect is required to fail with ENETUNREACH.
@@ -75,7 +74,7 @@ A pinned canonical digest, own-key checks and recursive freezing seal the regist
 This carrier enables the 110 operations owned by S03-S10 after method, registry and body validation.
 ThreatGraph summaries always use the fixed `processes` path component.
 RTR session metadata and audit reads cannot reach session initialization, command execution, status polling or deletion.
-The four active RTR operations remain unreachable until S11 supplies its lifecycle authority checks.
+S11 separately admits its four guarded RTR operations through one-use sink grants.
 OAuth has its own fixed POST/form route and no persistent token cache.
 Only the private HTTPS sink accepts invocation-local frozen request permits.
 Lexical origin checks precede URL normalization, so explicit ports, dot segments, userinfo and other unsafe syntax cannot disappear before validation.
@@ -110,8 +109,7 @@ The approved DNS settlement boundary remains unchanged.
 `src/rtr-filesystem.ts` loads it only when opening an execution journal or lock, verifies its SHA-256, and rejects unsupported controllers before loading any binary.
 Current prebuilds target Linux x64 with glibc 2.33 or newer and Windows x64.
 The Windows prebuild has no POSIX entry points; controller execution refuses while ordinary reads remain independent of native loading.
-Native Windows loading and execution evidence remains pending.
-Preview integration remains part of S11, which must preserve this loading boundary.
+S11 preview does not load the native adapter.
 
 The adapter exposes open, append and close over opaque retained handles.
 It traverses absolute paths using openat with O_NOFOLLOW and directory descriptors, retaining the Python origin's ownership, sticky-ancestor, permission, regular-file and single-link policy.
@@ -121,7 +119,33 @@ Lock handles take nonblocking flock on the retained inode, stay empty and are ne
 Journal appends recheck the retained file, finish short writes, retry EINTR, and flush the file and directory before returning success.
 An unsuccessful write or flush poisons that handle and reports CONFIG_INSECURE without replaying the record.
 Close releases descriptors deterministically; garbage collection is only a fallback.
-Serialization, redaction, bounded records and all lifecycle authority remain S11 responsibilities.
+S11 owns serialization, redaction, bounded records and lifecycle authority.
+
+## Guarded RTR candidate
+
+`rtr run` restores local preview and the N3 execution surface without changing its four canonical operation descriptors.
+The selected file profile must opt in, and exact host/command confirmation remains mandatory.
+The state-local retained lock is acquired before authentication and held through final journaling.
+The journal durably records intent, cleanup-unknown before init, and the returned session before either derived listing or selected execution.
+Opaque invocation-local grants are consumed at the HTTPS sink and bind method, route, token and serialized body.
+Only this lifecycle can mint grants; passive request entry points continue to refuse these operations.
+Every lifecycle request is sent once, with a 1 MiB acquisition cap, 64 shared status requests and 64 KiB retained output.
+The shared authentication/execution budget is 50 seconds; known-session deletion has its own 10-second budget and ignores repeated catchable interrupts.
+Unknown init outcomes require manual reconciliation; a failed final journal write preserves command and deletion outcomes while failing the invocation.
+The command grammar and conservative same-session `cat` size comparison retain the Python origin's behavior.
+Discovery and scope output deliberately gain `rtr run`; the Python goldens remain unchanged.
+Top-level help restores the retained N3 authorization sentence alongside the delivered search and MalQuery guidance.
+Unsupported controllers refuse execution before authentication while preview stays local.
+The S11 installed checks preserve real filesystem ownership under the inherited process-level socket deny and deliver synthetic HTTPS over a test-owned Unix socket.
+`tests/migration/coverage-s11.json` pins the twelve retained safety groups and their public source symbols.
+`npm run check:slice -- --slice S11 --paths native --offline` requires no host fixture.
+The additional `native,artium` path requires a frozen local fixture containing the reviewed host delta.
+The hosted fixture applies the same socket-deny launcher to the actual Falcon child while its public API remains on loopback.
+Its stable host-owned lock is keyed only by the normalized device ID, spans isolated call directories and users, and remains held through final journaling and process-group settlement.
+Region retargeting, tenant selection, profile identity and client identity cannot partition that lock.
+The hosted disconnect check measures the separate ten-second cleanup inside the unchanged twelve-second termination grace and verifies retained recovery evidence and released custody.
+The host delta remains a separate local review artifact and does not authorize deployment.
+Redaction also covers unfinished PEM material when bounded acquisition ends before its closing marker.
 
 Both prebuilds ship inside the package with checksums; no install script, compiler download or runtime compilation is used.
 `npm run build:native` is a maintainer-only rebuild using pinned GCC versions and SHA-256-pinned Node 24.14.0 headers.

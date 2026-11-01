@@ -38,6 +38,7 @@ try {
     [
       process.execPath,
       "--test",
+      "--test-reporter=tap",
       fileURLToPath(
         new URL(
           "../../tests/typescript/native-filesystem.test.js",

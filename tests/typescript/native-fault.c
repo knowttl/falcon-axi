@@ -47,9 +47,15 @@ ssize_t write(int fd, const void *data, size_t size) {
 
 int fsync(int fd) {
     static int count;
+    static int phase_count;
     static int directory_count;
     int (*real_fsync)(int) = dlsym(RTLD_NEXT, "fsync");
     const char *fault = getenv("FALCON_TEST_FAULT");
+    const char *phase = getenv("FALCON_TEST_FLUSH_NUMBER");
+    if (phase && selected(fd)) {
+        if (++phase_count == atoi(phase)) { errno = EIO; return -1; }
+        return real_fsync(fd);
+    }
     const char *directory = getenv("FALCON_TEST_DIRECTORY");
     struct stat actual, expected;
     if (directory && fstat(fd, &actual) == 0 && stat(directory, &expected) == 0 &&

@@ -1,0 +1,397 @@
+{
+  "sourceRevision": "75efc7e546c5ad9bae9084a610129fec22628c18",
+  "groups": [
+    {
+      "id": "SR-162",
+      "slice": "S11",
+      "source": "tests/offline/test_rtr_execute.py",
+      "sourceSha256": "e882421f90b0924b1d4f187cac9d1be70ff6f2d2ae7d939cf1ab729c8c6dd2c1",
+      "members": [
+        {
+          "symbol": "test_cli_preview_is_local_and_shows_effective_limits",
+          "parameterSelection": "all"
+        },
+        {
+          "symbol": "test_cli_emits_preview_before_initialization_and_deletes_on_success",
+          "parameterSelection": "all"
+        },
+        {
+          "symbol": "test_cli_requires_both_execution_flags_and_exact_confirmation",
+          "parameterSelection": "all"
+        },
+        {
+          "symbol": "test_cli_disallowed_commands_never_authenticate",
+          "parameterSelection": "all"
+        },
+        {
+          "symbol": "test_cli_profile_refusal_precedes_all_requests",
+          "parameterSelection": "all"
+        },
+        {
+          "symbol": "test_cli_read_only_wins_over_opt_in_and_confirmation",
+          "parameterSelection": "all"
+        },
+        {
+          "symbol": "test_cli_lifecycle_error_deletes_before_returning",
+          "parameterSelection": "all"
+        },
+        {
+          "symbol": "test_rejected_command_is_named_without_echoing_arguments",
+          "parameterSelection": "all"
+        },
+        {
+          "symbol": "test_other_rejections_keep_the_generic_lifecycle_error",
+          "parameterSelection": "all"
+        },
+        {
+          "symbol": "test_cli_interrupt_deletes_and_restores_signal_handler",
+          "parameterSelection": "all"
+        },
+        {
+          "symbol": "test_cli_size_lookup_interrupt_deletes_without_submitting_cat",
+          "parameterSelection": "all"
+        },
+        {
+          "symbol": "test_size_lookup_deadline_expiry_deletes_without_submitting_cat",
+          "parameterSelection": "all"
+        }
+      ]
+    },
+    {
+      "id": "SR-163",
+      "slice": "S11",
+      "source": "tests/offline/test_rtr_execute.py",
+      "sourceSha256": "e882421f90b0924b1d4f187cac9d1be70ff6f2d2ae7d939cf1ab729c8c6dd2c1",
+      "members": [
+        {
+          "symbol": "test_cli_ambiguous_init_requires_manual_recovery_without_replay",
+          "parameterSelection": "all"
+        },
+        {
+          "symbol": "test_cli_output_cap_is_explicit_and_session_is_deleted",
+          "parameterSelection": "all"
+        },
+        {
+          "symbol": "test_cli_failed_cleanup_is_never_success",
+          "parameterSelection": "all"
+        },
+        {
+          "symbol": "test_cli_preview_redacts_sensitive_command_arguments",
+          "parameterSelection": "all"
+        },
+        {
+          "symbol": "test_cli_region_and_tenant_flags_apply_to_whole_lifecycle",
+          "parameterSelection": "all"
+        },
+        {
+          "symbol": "test_profile_region_is_canonical_in_local_preview_and_core_execution",
+          "parameterSelection": "all"
+        }
+      ]
+    },
+    {
+      "id": "SR-164",
+      "slice": "S11",
+      "source": "tests/offline/test_rtr_execute.py",
+      "sourceSha256": "e882421f90b0924b1d4f187cac9d1be70ff6f2d2ae7d939cf1ab729c8c6dd2c1",
+      "members": [
+        {
+          "symbol": "test_success_deletes_the_returned_session_and_journals_without_output",
+          "parameterSelection": "all"
+        },
+        {
+          "symbol": "test_profile_refuses_before_authentication",
+          "parameterSelection": "all"
+        },
+        {
+          "symbol": "test_read_only_defeats_opt_in_and_confirmation",
+          "parameterSelection": "all"
+        },
+        {
+          "symbol": "test_environment_credentials_never_opt_in",
+          "parameterSelection": "all"
+        },
+        {
+          "symbol": "test_file_profile_named_env_can_opt_in",
+          "parameterSelection": "all"
+        },
+        {
+          "symbol": "test_overlapping_host_run_is_refused_before_requests",
+          "parameterSelection": "all"
+        },
+        {
+          "symbol": "test_confirmation_must_match_byte_for_byte",
+          "parameterSelection": "all"
+        }
+      ]
+    },
+    {
+      "id": "SR-165",
+      "slice": "S11",
+      "source": "tests/offline/test_rtr_execute.py",
+      "sourceSha256": "e882421f90b0924b1d4f187cac9d1be70ff6f2d2ae7d939cf1ab729c8c6dd2c1",
+      "members": [
+        {
+          "symbol": "test_bad_command_is_refused_before_authentication",
+          "parameterSelection": "all"
+        },
+        {
+          "symbol": "test_standard_command_tokens_are_admitted",
+          "parameterSelection": "all"
+        },
+        {
+          "symbol": "test_platform_summary_lists_every_allowed_command_exactly_once",
+          "parameterSelection": "all"
+        },
+        {
+          "symbol": "test_credential_schema_accepts_exactly_the_allowed_commands",
+          "parameterSelection": "all"
+        },
+        {
+          "symbol": "test_command_help_states_where_each_command_was_verified",
+          "parameterSelection": "all"
+        },
+        {
+          "symbol": "test_quoted_parenthesized_path_is_sent_unchanged",
+          "parameterSelection": "all"
+        },
+        {
+          "symbol": "test_profile_schema_rejects_widening_and_invalid_types",
+          "parameterSelection": "all"
+        }
+      ]
+    },
+    {
+      "id": "SR-166",
+      "slice": "S11",
+      "source": "tests/offline/test_rtr_execute.py",
+      "sourceSha256": "e882421f90b0924b1d4f187cac9d1be70ff6f2d2ae7d939cf1ab729c8c6dd2c1",
+      "members": [
+        {
+          "symbol": "test_failure_after_init_always_deletes",
+          "parameterSelection": "all"
+        },
+        {
+          "symbol": "test_cleanup_has_a_fresh_budget_after_execution_timeout",
+          "parameterSelection": "all"
+        },
+        {
+          "symbol": "test_delete_failure_is_an_explicit_failed_outcome",
+          "parameterSelection": "all"
+        },
+        {
+          "symbol": "test_lost_init_is_unknown_owned_work_and_is_never_replayed",
+          "parameterSelection": "all"
+        },
+        {
+          "symbol": "test_init_refusal_preserves_actionable_error_and_recovery",
+          "parameterSelection": "all"
+        },
+        {
+          "symbol": "test_init_scope_refusal_retains_required_scopes_when_outcome_write_fails",
+          "parameterSelection": "all"
+        },
+        {
+          "symbol": "test_intent_failure_prevents_authentication",
+          "parameterSelection": "all"
+        },
+        {
+          "symbol": "test_outcome_failure_still_deletes_the_session",
+          "parameterSelection": "all"
+        },
+        {
+          "symbol": "test_outcome_failure_preserves_lifecycle_recovery",
+          "parameterSelection": "all"
+        }
+      ]
+    },
+    {
+      "id": "SR-167",
+      "slice": "S11",
+      "source": "tests/offline/test_rtr_execute.py",
+      "sourceSha256": "e882421f90b0924b1d4f187cac9d1be70ff6f2d2ae7d939cf1ab729c8c6dd2c1",
+      "members": [
+        {
+          "symbol": "test_output_byte_cap_returns_incomplete_and_deletes",
+          "parameterSelection": "all"
+        },
+        {
+          "symbol": "test_output_chunk_cap_is_finite",
+          "parameterSelection": "all"
+        },
+        {
+          "symbol": "test_completed_output_chunk_cap_is_explicit",
+          "parameterSelection": "all"
+        },
+        {
+          "symbol": "test_journal_and_output_are_redacted_before_truncation",
+          "parameterSelection": "all"
+        },
+        {
+          "symbol": "test_replaceable_ancestors_refuse_before_requests",
+          "parameterSelection": "all"
+        },
+        {
+          "symbol": "test_trusted_ancestors_allow_journaling_and_host_locking",
+          "parameterSelection": "all"
+        },
+        {
+          "symbol": "test_journal_refuses_unsafe_targets",
+          "parameterSelection": "all"
+        }
+      ]
+    },
+    {
+      "id": "SR-168",
+      "slice": "S11",
+      "source": "tests/offline/test_rtr_execute.py",
+      "sourceSha256": "e882421f90b0924b1d4f187cac9d1be70ff6f2d2ae7d939cf1ab729c8c6dd2c1",
+      "members": [
+        {
+          "symbol": "test_every_execution_operation_refuses_unchecked_requests",
+          "parameterSelection": "all"
+        },
+        {
+          "symbol": "test_sink_refuses_a_forged_prepared_request_even_with_a_transport_permit",
+          "parameterSelection": "all"
+        },
+        {
+          "symbol": "test_sink_rechecks_body_against_signed_authority",
+          "parameterSelection": "all"
+        },
+        {
+          "symbol": "test_init_authority_is_consumed_before_a_send_can_be_replayed",
+          "parameterSelection": "all"
+        },
+        {
+          "symbol": "test_n3_registry_admits_only_the_exact_tuples",
+          "parameterSelection": "all"
+        },
+        {
+          "symbol": "test_read_only_enabled_after_init_still_allows_owned_cleanup",
+          "parameterSelection": "all"
+        },
+        {
+          "symbol": "test_known_session_journal_failure_still_deletes",
+          "parameterSelection": "all"
+        }
+      ]
+    },
+    {
+      "id": "SR-169",
+      "slice": "S11",
+      "source": "tests/offline/test_rtr_execute.py",
+      "sourceSha256": "e882421f90b0924b1d4f187cac9d1be70ff6f2d2ae7d939cf1ab729c8c6dd2c1",
+      "members": [
+        {
+          "symbol": "test_redaction_covers_a_secret_split_across_chunks",
+          "parameterSelection": "all"
+        },
+        {
+          "symbol": "test_completed_command_collects_three_output_sequences",
+          "parameterSelection": "all"
+        },
+        {
+          "symbol": "test_cat_verifies_collected_bytes_against_same_session_listing",
+          "parameterSelection": "all"
+        }
+      ]
+    },
+    {
+      "id": "SR-170",
+      "slice": "S11",
+      "source": "tests/offline/test_rtr_execute.py",
+      "sourceSha256": "e882421f90b0924b1d4f187cac9d1be70ff6f2d2ae7d939cf1ab729c8c6dd2c1",
+      "members": [
+        {
+          "symbol": "test_cat_size_authority_requires_the_exact_listing_first",
+          "parameterSelection": "all"
+        },
+        {
+          "symbol": "test_cat_size_authority_consumes_listing_and_cat_once",
+          "parameterSelection": "all"
+        },
+        {
+          "symbol": "test_cat_without_one_literal_path_never_claims_completeness",
+          "parameterSelection": "all"
+        },
+        {
+          "symbol": "test_cat_size_check_respects_profile_command_restrictions",
+          "parameterSelection": "all"
+        },
+        {
+          "symbol": "test_cat_size_check_failure_preserves_output_and_deletes",
+          "parameterSelection": "all"
+        },
+        {
+          "symbol": "test_cat_listing_requires_one_exact_file_match",
+          "parameterSelection": "all"
+        },
+        {
+          "symbol": "test_cat_retains_verified_size_when_it_exhausts_the_shared_status_budget",
+          "parameterSelection": "all"
+        }
+      ]
+    },
+    {
+      "id": "SR-171",
+      "slice": "S11",
+      "source": "tests/offline/test_rtr_execute.py",
+      "sourceSha256": "e882421f90b0924b1d4f187cac9d1be70ff6f2d2ae7d939cf1ab729c8c6dd2c1",
+      "members": [
+        {
+          "symbol": "test_cat_status_failure_reports_known_short_read",
+          "parameterSelection": "all"
+        },
+        {
+          "symbol": "test_polling_carries_protocol_sequence_independently_of_attempt_count",
+          "parameterSelection": "all"
+        },
+        {
+          "symbol": "test_completed_command_without_output_sequence_returns_its_output",
+          "parameterSelection": "all"
+        },
+        {
+          "symbol": "test_invalid_or_regressing_output_sequence_fails_and_deletes",
+          "parameterSelection": "all"
+        },
+        {
+          "symbol": "test_missing_output_sequence_on_an_incomplete_response_fails_and_deletes",
+          "parameterSelection": "all"
+        },
+        {
+          "symbol": "test_execution_tier_does_not_replay_a_rate_limited_send",
+          "parameterSelection": "all"
+        }
+      ]
+    },
+    {
+      "id": "SR-172",
+      "slice": "S11",
+      "source": "tests/offline/test_rtr_execute.py",
+      "sourceSha256": "e882421f90b0924b1d4f187cac9d1be70ff6f2d2ae7d939cf1ab729c8c6dd2c1",
+      "members": [
+        {
+          "symbol": "test_sink_caps_response_acquisition_before_json_parsing",
+          "parameterSelection": "all"
+        },
+        {
+          "symbol": "test_bounded_worker_preserves_and_verifies_the_signed_execution_grant",
+          "parameterSelection": "all"
+        }
+      ]
+    },
+    {
+      "id": "SR-208",
+      "slice": "S11",
+      "source": "tests/packaged/test_catalog.py",
+      "sourceSha256": "43bcbf0bf2a00600e39f3e6fcb16343296943b70a6391ca34d4aae52b8d12ad5",
+      "members": [
+        {
+          "symbol": "test_installed_rtr_preview_and_gates_never_authenticate",
+          "parameterSelection": "all"
+        }
+      ]
+    }
+  ]
+}

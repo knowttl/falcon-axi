@@ -1,7 +1,7 @@
 # S02/S03 verification amendments
 
-The carrier retains the approved S02 credential/parser and S03 passive investigation boundaries.
-It adds no setup, hook-writing, RTR execution or live-tenant capability.
+The S02/S03 slices retain the approved credential/parser and passive investigation boundaries.
+Those slices add no setup, hook-writing, RTR execution or live-tenant capability.
 The S01 primitive and DNS settlement amendments remain binding.
 
 ## Installed setup ownership
@@ -35,7 +35,7 @@ The remaining exceptions are:
 | Affected scenarios | Temporary difference | Restore when |
 | --- | --- | --- |
 | `home-view-skill-hint` | Omit installation guidance for the full Python skill. | S12 delivers the candidate's generated skill. |
-| `help-top`, `unknown-command`, `scopes` | Restrict command names, summaries and the scope matrix to frozen delivered commands; omit later RTR execution guidance. | Each additional command ships. |
+| `help-top`, `unknown-command`, `scopes` | Restrict command names, summaries and the scope matrix to frozen delivered commands. | Each additional command ships. |
 
 Restore each original discovery entry when its target ships and remove its temporary annotation.
 S13 must compare the complete original documents with no TypeScript discovery exceptions.

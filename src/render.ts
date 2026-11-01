@@ -47,7 +47,7 @@ const secretKeys = new Set([
 export function redact(value: unknown): unknown {
   if (typeof value === "string")
     return redactText(value).replace(
-      /-----BEGIN [A-Z ]*PRIVATE KEY-----[\s\S]*?-----END [A-Z ]*PRIVATE KEY-----|\beyJ[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+|AccountKey=[^;\s]+|sig=[A-Za-z0-9%+/=]+/gi,
+      /-----BEGIN [A-Z ]*PRIVATE KEY-----[\s\S]*?(?:-----END [A-Z ]*PRIVATE KEY-----|$)|\beyJ[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+|AccountKey=[^;\s]+|sig=[A-Za-z0-9%+/=]+/gi,
       "[redacted]",
     );
   if (Array.isArray(value)) return value.map(redact);

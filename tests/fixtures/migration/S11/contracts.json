@@ -1,0 +1,58 @@
+{
+  "slice": "S11",
+  "operationIds": [
+    "RTR_InitSession",
+    "RTR_ExecuteCommand",
+    "RTR_CheckCommandStatus",
+    "RTR_DeleteSession"
+  ],
+  "commandNames": ["rtr run"],
+  "goldenScenarioIds": ["rtr-run-confirmation"],
+  "acceptanceCaseIds": [
+    "AC-RTR",
+    "AC-RTR-FS",
+    "AC-RTR-INTENT",
+    "AC-RTR-LOST-INIT",
+    "AC-RTR-KNOWN-SESSION",
+    "AC-RTR-READONLY-CHANGE",
+    "AC-RTR-FINAL",
+    "AC-RTR-LOCK",
+    "AC-READONLY",
+    "AC-ORIGIN",
+    "AC-ARTIUM-RTR-LOCK",
+    "C20",
+    "C23",
+    "H15",
+    "H16",
+    "H17",
+    "AC-OP-008",
+    "AC-OP-009",
+    "AC-OP-010",
+    "AC-OP-011"
+  ],
+  "safetyRequirementIds": [
+    "SR-162",
+    "SR-163",
+    "SR-164",
+    "SR-165",
+    "SR-166",
+    "SR-167",
+    "SR-168",
+    "SR-169",
+    "SR-170",
+    "SR-171",
+    "SR-172",
+    "SR-208"
+  ],
+  "nativeWindows": "pending",
+  "hostedObservations": [
+    "S11 hosted installed preview remains local",
+    "S11 hosted authorized execution deletes its session",
+    "S11 hosted independent capability refuses default-off before OAuth",
+    "S11 hosted independent capability refuses malquery-only before OAuth",
+    "S11 hosted device lock crosses users and region/tenant/profile aliases before OAuth",
+    "S11 hosted different devices remain independent and retained locks release",
+    "S11 hosted disconnect retains ten-second cleanup inside twelve-second grace and settles custody",
+    "S11 hosted mutation detector alias-partition"
+  ]
+}

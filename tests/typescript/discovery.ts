@@ -9,6 +9,7 @@ import s07 from "../fixtures/migration/S07/contracts.json" with { type: "json" }
 import s08 from "../fixtures/migration/S08/contracts.json" with { type: "json" };
 import s09 from "../fixtures/migration/S09/contracts.json" with { type: "json" };
 import s10 from "../fixtures/migration/S10/contracts.json" with { type: "json" };
+import s11 from "../fixtures/migration/S11/contracts.json" with { type: "json" };
 import { VERSION } from "../../src/version.js";
 
 export interface DiscoveryDelta {
@@ -53,6 +54,7 @@ export async function expectedDocument(
     ...s08.commandNames,
     ...s09.commandNames,
     ...s10.commandNames,
+    ...s11.commandNames,
   ]);
   const selected = references.filter((reference) => owned.has(reference.name));
   const names = selected.map((reference) => reference.name).join(", ");
@@ -68,7 +70,12 @@ export async function expectedDocument(
       "{{command_summaries}}",
       selected.map((reference) => reference.summary).join("\n"),
     );
-    expected = expected.slice(0, expected.indexOf("\nRTR execution"));
+    const authorization = expected.match(/^RTR execution.*?\(N3\)\./m)?.[0];
+    if (!authorization)
+      throw new Error("Retained N3 authorization guidance is missing");
+    expected =
+      expected.slice(0, expected.indexOf("\nRTR execution")) +
+      `\n${authorization}\n`;
     expected = expected.replace(
       /^falcon-axi \S+ - /,
       `falcon-axi ${VERSION} - `,
