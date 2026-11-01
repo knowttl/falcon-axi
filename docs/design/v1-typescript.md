@@ -59,9 +59,7 @@ Response JSON integer lexemes beyond Number's exact domain become bigint before 
 The encoder emits those values as exact quoted decimal strings, its documented lossless representation.
 Other numeric lexemes beyond that domain retain their exact decimal or exponent text as strings.
 IDs remain strings, and truncation counts Unicode scalar values.
-The detection-show suggestion is restored now that the command is delivered.
-Discovery, scope listings and suggestions omit commands owned by later slices, including vulnerability, identity activity, sandbox and CVE pivots.
-These are temporary migration discovery differences, not changes to the final v1 surface.
+The [S02/S03 verification amendment](s02-s03-plan-amendment.md) owns the deferred test assignments and temporary discovery differences, including their restoration requirements.
 Subcommand help is seeded from the frozen Python origin in `src/help.json`.
 Errors use the Python origin's top-level error and code fields rather than S01's nested envelope.
 Opaque cursors retain the origin's signed context and exact serialization.
