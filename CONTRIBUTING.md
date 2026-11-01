@@ -14,10 +14,10 @@ For the TypeScript migration candidate, use the [build and offline verification 
 
 ## Tests and fixtures
 
-All automated fixtures are wholly synthetic and carry provenance headers.
-A pytest fixture refuses sockets, so the suite cannot contact Falcon.
+Response fixtures are wholly synthetic and carry provenance headers.
+A pytest fixture refuses sockets, so the Python offline suite cannot contact Falcon.
 Never commit credentials, tenant identifiers, captured responses, or personal data.
-Commands accept a recorded transport only through the code-level test interface.
+Python commands accept a recorded transport only through the code-level test interface.
 
 Run a focused check with `uv run pytest tests/offline/<test_file>.py -q`.
 The opt-in installed-artifact suite in `tests/packaged/` has separate prerequisites and commands in the [catalog verification record](docs/catalog-verification.md#repeat-the-artifact-checks).
@@ -51,9 +51,9 @@ uv run scripts/docs.py
 uv run scripts/verify.py
 ```
 
-Command declarations own the full command reference and generated skill references; the README summarizes command groups.
+Python command declarations own the full command reference and generated skill references; the README summarizes command groups.
 Edit their sources rather than generated content.
-Every shipped command must appear in `docs/commands.md`, and every advertised command must exist.
+Every released Python command must appear in `docs/commands.md`, and every advertised command must exist.
 
 ## Architecture and review
 

@@ -6,7 +6,7 @@ This page preserves the domain rollout inventory formerly in the README; it is h
 
 - [v1 behavior and safety design](v1.md): command contracts, scopes, pagination, redaction, transport enforcement, and closed decisions in section 17.
 - [Python implementation amendment](v1-python.md): package structure, SDK confinement, golden comparisons, packaging, and commissioning history.
-- [TypeScript migration candidate](v1-typescript.md): S02/S03 scope, packaging, offline verification, and approved amendments.
+- [TypeScript migration candidate](v1-typescript.md): scope, packaging, offline verification, and approved amendments.
 - [Read-only enforcement](../read-only.md): shipped transport enforcement and source-parity validation limits.
 - [Contributor workflow](../../CONTRIBUTING.md): offline verification and documentation generation.
 
