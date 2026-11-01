@@ -1,6 +1,6 @@
 # Contributing
 
-For the released Python baseline, install [uv](https://docs.astral.sh/uv/), then run the complete local verification gate:
+On the released Python baseline branch (`main` until cutover), install [uv](https://docs.astral.sh/uv/), then run the complete local verification gate:
 
 ```sh
 uv sync
@@ -45,7 +45,7 @@ Exempt: validation-boundary tests, contract tests against an agreed schema or re
 
 ## Generated documentation
 
-For the released Python baseline:
+On the released Python baseline branch:
 
 ```sh
 uv run scripts/skill.py

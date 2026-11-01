@@ -72,7 +72,7 @@ Malware family reads (`malware list`, `malware show`), Identity Protection polic
 (`identity rule list`, `identity rule show`), and Discover IoT inventory (`iot list`) also ship.
 The generated command reference in `docs/commands.md` is the authoritative list of shipped commands, and
 no help text, suggestion, or skill may advertise an unshipped command.
-`uv run scripts/verify.py` is the single local entry point for the complete offline required-check set
+For the released Python baseline, `uv run scripts/verify.py` is the single local entry point for its complete offline required-check set
 (§14.5, §15.4); it runs ruff, `mypy --strict`, `scripts/architecture_check.py`, and the `tests/offline/` suite,
 and it must stay offline: a pytest fixture refuses every socket.
 `tests/golden/` is the recorded-invocation gate; `docs/design/v1-python.md` §5 owns its comparison contract and release-version exception.

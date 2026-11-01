@@ -16,6 +16,8 @@ At session start, they provide local profile status, region, version, and a comm
 Ordinary reads and `falcon-axi setup` do not install hooks.
 Repeated installation with the same configuration is a no-op.
 Setup preserves unrelated hooks and refuses malformed configuration or an unmanaged file at its plugin target.
+All four managed configuration files must be valid UTF-8.
+Invalid encoding returns `CONFIG_INVALID` before any configuration is written; repair the affected file and rerun setup.
 
 Hook targets must resolve to a durable CLI installation.
 Temporary installations and git worktrees are refused, including temporary executables created by one-shot runners.
@@ -43,6 +45,7 @@ Add `-g` for a user-wide skill.
 Choose either integration or use both; hook setup does not install the skill.
 The skill grants no permissions.
 Follow its generated invocation examples to run without a global CLI install.
+The migration branch's generated references describe the unpublished candidate; use its [artifact installation instructions](design/v1-typescript.md#installation-and-full-parity-candidate) until npm publication.
 
 ## Remove session integrations
 

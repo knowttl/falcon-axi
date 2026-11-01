@@ -172,6 +172,7 @@ Ordinary commands do not install integrations, capture transcripts, or update so
 Build and pack with `npm run build` and `npm pack --pack-destination <directory>`.
 Install that tarball into a durable prefix with `npm install --offline --ignore-scripts --prefix <prefix> <tarball>` after acquiring the pinned dependencies during setup.
 Run either executable from `<prefix>/node_modules/.bin`, or use the installed Node runtime with its compiled entry point on Windows.
+The generated skill's `npx -y @knowttl/falcon-axi` examples target the future npm release; until publication, substitute the executable from this installed tarball.
 This private candidate is not an npm publication or a main-branch cutover.
 
 S13 restores complete discovery comparisons against the retained command references and all 350 golden scenarios, removing temporary discovery filtering.

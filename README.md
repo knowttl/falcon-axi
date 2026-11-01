@@ -182,14 +182,7 @@ Errors include a stable `code` and actionable `help`; unknown commands and flags
 
 ## Development
 
-Run the complete offline gate for the released Python package:
-
-```sh
-uv sync
-uv run scripts/verify.py
-```
-
-For the TypeScript candidate, run `npm ci --offline --ignore-scripts` and `npm run verify`; see its [build and verification notes](docs/design/v1-typescript.md#build-and-offline-verification).
+Use the [contribution instructions](CONTRIBUTING.md) for the released Python baseline and the [candidate build and verification notes](docs/design/v1-typescript.md#build-and-offline-verification) for this TypeScript migration branch.
 See [CONTRIBUTING.md](CONTRIBUTING.md) for tests, fixtures, documentation generation, and releases, and [AGENTS.md](AGENTS.md) for repository constraints.
 
 ## Security
