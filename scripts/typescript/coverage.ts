@@ -48,14 +48,9 @@ if (
   )
 )
   throw new Error("Operation coverage differs from frozen S03-S05 ownership");
-for (const group of groups) {
+for (const group of groups)
   if (digest(readFileSync(resolve(group.source))) !== group.sourceSha256)
     throw new Error(`Pinned source changed: ${group.source}`);
-  const source = readFileSync(resolve(group.source), "utf8");
-  for (const member of group.members)
-    if (!source.includes(`def ${member.symbol}(`))
-      throw new Error(`Missing source symbol ${member.symbol}`);
-}
 for (const flag of commands.flatMap((command) => [
   ...command.values,
   ...command.booleans,

@@ -125,7 +125,8 @@ writeFileSync(
       command: process.argv,
       results,
       nativeWindows: "pending",
-      primitiveProof: "deferred before S11 by approved amendment",
+      primitiveProof:
+        "separate compiled gate: npm run probe:primitive; S11 acceptance pending",
     },
     null,
     2,
