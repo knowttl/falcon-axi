@@ -6,5 +6,9 @@
     "synthetic-risk-01"
   ],
   "exit_code": 2,
-  "comment": "Cloud reads (design section 1.2.1) add cloud-asset list/show, iom list/show, and cloud-risk list. Five new read operations deliberately change help-top, unknown-command, and scopes. Risk show stays absent because no official detail endpoint or risk-id filter exists. Cloud fixtures are wholly synthetic; no tenant validation is claimed."
+  "comment": "Cloud reads (design section 1.2.1) add cloud-asset list/show, iom list/show, and cloud-risk list. Five new read operations deliberately change help-top, unknown-command, and scopes. Risk show stays absent because no official detail endpoint or risk-id filter exists. Cloud fixtures are wholly synthetic; no tenant validation is claimed.",
+  "typescriptMigration": {
+    "unavailableGroup": "cloud-risk",
+    "restore": "Restore each omitted navigation or original group when its commands ship; S13 compares the original documents with no TypeScript discovery exceptions."
+  }
 }

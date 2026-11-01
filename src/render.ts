@@ -7,7 +7,12 @@ export function registerMemberCid(value: string): void {
   if (value) memberCids.add(value);
 }
 export function registerSecret(value: string): void {
-  if (value) secrets.add(value);
+  if (value) {
+    secrets.add(value);
+    secrets.add(JSON.stringify(value).slice(1, -1));
+    secrets.add(encodeURIComponent(value));
+    secrets.add(new URLSearchParams({ value }).toString().slice(6));
+  }
 }
 export function redactText(value: string): string {
   for (const secret of [...secrets].sort((a, b) => b.length - a.length))

@@ -1,120 +1,269 @@
 import { CliError } from "./core.js";
-import { resolveCredential } from "./credentials.js";
+import {
+  configPath,
+  writeLogPath,
+  loadProfiles,
+  normalizeEnvironment,
+  resolveCredential,
+} from "./credentials.js";
 import { authenticate } from "./auth.js";
-import { resolveOrigin } from "./origin.js";
-import { listDetections } from "./detection.js";
-import { render, registerMemberCid } from "./render.js";
-import { valueFlags, boolFlags, commandNames } from "./metadata.js";
-export async function main(argv: string[]): Promise<number> {
+import { resolveOrigin, REGIONS } from "./origin.js";
+import { render, Raw, registerMemberCid } from "./render.js";
+import { commands } from "./metadata.js";
+import { operation } from "./transport/operations.js";
+import { parse, filterOf } from "./parser.js";
+import { investigate } from "./investigation.js";
+import { homedir } from "node:os";
+import { resolve } from "node:path";
+import helpText from "./help.json" with { type: "json" };
+import { VERSION } from "./version.js";
+
+const description =
+  "Read CrowdStrike Falcon from the shell with compact, structured results for agents and the humans running them.";
+const shellQuote = (value: string): string =>
+  /^[\w@%+=:,./-]+$/.test(value)
+    ? value
+    : `'${value.replaceAll("'", `'"'"'`)}'`;
+
+export async function main(argv: string[], bin?: string): Promise<number> {
+  const started = performance.now();
   const controller = new AbortController();
   const cancel = (): void => controller.abort();
   process.once("SIGTERM", cancel);
   process.once("SIGINT", cancel);
-  try {
-    const searchSubset =
-      argv[0] === "search" &&
-      argv[1] === "status" &&
-      argv[2] === "synthetic-job";
-    const words = argv.slice(
-      0,
-      argv[0]?.startsWith("-") ? 0 : searchSubset ? 3 : 2,
+  let activeFlags = new Map<string, string>();
+  let memberCid: string | undefined;
+  let home = false;
+  const homeHead = (): Record<string, unknown> => {
+    const executable = resolve(process.argv[1] ?? "falcon-axi");
+    return {
+      bin:
+        bin ??
+        (executable.startsWith(`${homedir()}/`)
+          ? `~/${executable.slice(homedir().length + 1)}`
+          : executable),
+      description,
+    };
+  };
+  const contextualHelp = (help: readonly string[]): string[] => {
+    const suffix =
+      ["region", "config", "profile"]
+        .flatMap((name) =>
+          activeFlags.has(`--${name}`)
+            ? [` --${name} ${shellQuote(activeFlags.get(`--${name}`)!)}`]
+            : [],
+        )
+        .join("") +
+      ["allow-unknown-origin", "no-member-cid"]
+        .filter((name) => activeFlags.has(`--${name}`))
+        .map((name) => ` --${name}`)
+        .join("");
+    const result = help.map((item) =>
+      item.replace(
+        /`(falcon-axi .*)`/s,
+        (_, command: string) => `\`${command}${suffix}\``,
+      ),
     );
-    const flags = new Map<string, string>();
-    const allowed = searchSubset ? [...valueFlags, "--wait"] : valueFlags;
-    for (let index = words.length; index < argv.length; index++) {
-      const arg = argv[index]!;
-      const [key, ...inline] = arg.split("=");
-      if (boolFlags.includes(key!)) {
-        if (inline.length)
-          throw new CliError(
-            "VALIDATION_ERROR",
-            `${key} does not accept a value`,
-          );
-        flags.set(key!, "true");
-      } else if (allowed.includes(key!)) {
-        const value = inline.length ? inline.join("=") : argv[++index];
-        if (value === undefined || value.startsWith("--"))
-          throw new CliError("VALIDATION_ERROR", `${key} requires a value`);
-        flags.set(key!, value);
-      } else
-        throw new CliError("VALIDATION_ERROR", `unknown flag ${key}`, [
-          `valid flags for detection list: ${[...valueFlags, ...boolFlags].join(", ")}`,
-        ]);
+    if (memberCid && help.some((item) => /`falcon-axi /.test(item)))
+      result.push(
+        "Supply the same tenant selection used for this invocation when following these suggestions",
+      );
+    return result;
+  };
+  try {
+    const budgetArgs = ["search", "status", "synthetic-job", "--wait", "1"];
+    const searchSubset =
+      argv.length === budgetArgs.length &&
+      argv.every((value, index) => value === budgetArgs[index]);
+    const invocation = parse(searchSubset ? ["detection", "list"] : argv);
+    const { command, flags } = invocation;
+    activeFlags = flags;
+    home = command.name === "home";
+    memberCid = flags.get("--member-cid");
+    if (flags.has("--help")) {
+      if (Object.hasOwn(helpText, command.name)) {
+        process.stdout.write(
+          helpText[command.name as keyof typeof helpText] + "\n",
+        );
+        return 0;
+      }
+      process.stdout.write(
+        [
+          `falcon-axi ${command.name === "home" ? `${VERSION} - ${description}` : command.name}`,
+          "",
+          "Commands:",
+          ...commands
+            .filter(
+              (spec) =>
+                command.name === "home" ||
+                spec.name.startsWith(`${command.name} `),
+            )
+            .map((spec) => spec.summary),
+          "",
+          "Global flags:",
+          "  --help, --region <name|url>, --allow-unknown-origin, --member-cid <cid>, --no-member-cid",
+          "  --config <path>, --profile <name>",
+          "",
+          `Regions: ${Object.keys(REGIONS).join(", ")}`,
+        ].join("\n") + "\n",
+      );
+      return 0;
     }
-    if (argv.includes("--help") || !argv.length) {
+    const filter = filterOf(invocation);
+    if (flags.has("--region"))
+      resolveOrigin(flags.get("--region"), flags.has("--allow-unknown-origin"));
+    normalizeEnvironment();
+    if (command.name === "config path") {
+      process.stdout.write(
+        render({
+          config: configPath(flags.get("--config")),
+          write_log: writeLogPath(),
+        }),
+      );
+      return 0;
+    }
+    if (command.name === "profile list") {
+      const document = await loadProfiles(flags.get("--config"));
+      process.stdout.write(
+        render({
+          profiles: Object.keys(document.profiles),
+          default_profile: document.defaultProfile,
+        }),
+      );
+      return 0;
+    }
+    if (command.name === "scopes") {
+      const groups = new Map<string, string[]>();
+      for (const spec of commands)
+        for (const scope of new Set(
+          spec.operations.flatMap((id) => operation(id).scopes),
+        )) {
+          const names = groups.get(scope) ?? [];
+          names.push(spec.name);
+          groups.set(scope, names);
+        }
       process.stdout.write(
         render(
           {
-            description: "Read Falcon detections (TypeScript S01 candidate)",
-            command: "falcon-axi detection list",
-            flags:
-              "--limit 50 (1-10000), --cursor <token>, --filter <fql>, --config <path>, --profile <name>, --region <region>, --member-cid <cid>, --no-member-cid, --allow-unknown-origin, --help",
+            posture: new Raw("read-only"),
+            scopes: [...groups].map(([scope, names]) => ({
+              scope,
+              access: "read",
+              commands: names.join(", "),
+              required: "yes",
+            })),
+            member_cid_token_scope: new Raw(
+              "unresolved (Flight Control read may be required; see design section 17.7)",
+            ),
           },
           [
-            "falcon-axi detection list --limit 2",
-            "falcon-axi detection list --filter \"severity_name:'High'\"",
+            "Grant these scopes in the Falcon console under Support and resources > API clients and keys",
+            "Grant read access only; falcon-axi needs no write scope",
           ],
         ),
       );
       return 0;
     }
-    if (!searchSubset && !commandNames.includes(words.join(" ")))
-      throw new CliError("VALIDATION_ERROR", "unknown command", [
-        "Run `falcon-axi detection list --help`",
-      ]);
-    const limit = Number(flags.get("--limit") ?? "50");
-    if (!Number.isSafeInteger(limit) || limit < 1 || limit > 10_000)
-      throw new CliError(
-        "VALIDATION_ERROR",
-        "--limit must be an integer from 1 to 10000",
-      );
-    const wait = flags.get("--wait");
-    if (searchSubset && wait !== "1")
-      throw new CliError(
-        "VALIDATION_ERROR",
-        "the S01 token-budget subset requires --wait 1",
-      );
-    const signal = searchSubset
-      ? AbortSignal.any([controller.signal, AbortSignal.timeout(1000)])
-      : controller.signal;
-    if (
-      flags.has("--member-cid") &&
-      (!flags.get("--member-cid")!.trim() || flags.has("--no-member-cid"))
-    )
-      throw new CliError(
-        "VALIDATION_ERROR",
-        "--member-cid requires a nonempty value and cannot be combined with --no-member-cid",
-      );
     const credential = await resolveCredential(
       flags.get("--config"),
       flags.get("--profile"),
+      command.name === "auth status",
     );
     if (flags.has("--no-member-cid")) delete credential.memberCid;
     else if (flags.has("--member-cid")) {
       credential.memberCid = flags.get("--member-cid")!;
       registerMemberCid(credential.memberCid);
     }
+    memberCid = credential.memberCid;
     const allowUnknown = flags.has("--allow-unknown-origin");
     const base = resolveOrigin(
       flags.get("--region") ?? credential.region,
       allowUnknown,
     );
+    const signal = searchSubset
+      ? AbortSignal.any([controller.signal, AbortSignal.timeout(1000)])
+      : flags.has("--hostname") &&
+          ["host logins", "host network"].includes(command.name)
+        ? AbortSignal.any([
+            controller.signal,
+            AbortSignal.timeout(
+              Math.max(0, Math.floor(30000 - (performance.now() - started))),
+            ),
+          ])
+        : controller.signal;
     const session = await authenticate(credential, base, allowUnknown, signal);
     if (searchSubset)
       throw new CliError(
         "VALIDATION_ERROR",
         "search status is not delivered in S01",
       );
-    const result = await listDetections(
+    if (command.name === "auth status") {
+      const region =
+        Object.keys(REGIONS).find((key) => REGIONS[key] === session.base) ??
+        "an unlisted Falcon cloud";
+      process.stdout.write(
+        render(
+          {
+            credential_resolved: true,
+            credential_channel: credential.channel,
+            profile: credential.profile,
+            endpoint: session.base,
+            client_secret_source: credential.secretSource,
+            credential_path: credential.path,
+            tenant: new Raw(
+              `${region}${base !== session.base ? ` (re-targeted from ${Object.keys(REGIONS).find((key) => REGIONS[key] === base)})` : ""}${credential.memberCid ? ` member CID …${credential.memberCid.length <= 4 ? "" : credential.memberCid.slice(-4)}` : " (own CID unavailable)"}`,
+            ),
+            scopes: new Raw("read scopes"),
+            ...(session.rateLimit !== undefined &&
+            session.remaining !== undefined
+              ? {
+                  rate_limit: new Raw(
+                    `${session.remaining} of ${session.rateLimit} requests remaining`,
+                  ),
+                }
+              : {}),
+          },
+          contextualHelp([
+            "Run `falcon-axi detection list` to read detections with this credential",
+          ]),
+        ),
+      );
+      return 0;
+    }
+    const result = await investigate(
+      invocation,
       credential,
       session,
-      limit,
-      flags.get("--filter"),
-      flags.get("--cursor"),
+      filter,
       allowUnknown,
       signal,
     );
-    process.stdout.write(render(result.value, result.help));
+    if (
+      session.rateLimit &&
+      session.remaining !== undefined &&
+      session.remaining < session.rateLimit * 0.1
+    ) {
+      const note = `${session.remaining} of ${session.rateLimit} requests remaining in this rate limit window`;
+      if (command.name.startsWith("file-change ")) result.help.push(note);
+      else if (result.value.count || command.name === "process tree")
+        result.value.rate_limit = new Raw(note);
+    }
+    if (command.name === "home") {
+      result.value = {
+        ...homeHead(),
+        tenant: new Raw(
+          `${Object.keys(REGIONS).find((key) => REGIONS[key] === session.base) ?? "an unlisted Falcon cloud"} (own CID unavailable)`,
+        ),
+        ...result.value,
+      };
+      result.help.push(
+        "Run `falcon-axi detection list` to see more detections",
+        "Run `falcon-axi detection list --product idp` for Identity Protection detections",
+        "Run `falcon-axi host list --filter \"hostname:'WIN-*'\"` to search hosts",
+        "Run `falcon-axi scopes` to see what this API client needs",
+      );
+    }
+    process.stdout.write(render(result.value, contextualHelp(result.help)));
     return 0;
   } catch (error) {
     const safe =
@@ -127,8 +276,13 @@ export async function main(argv: string[]): Promise<number> {
           );
     process.stdout.write(
       render(
-        { error: { code: safe.code, message: safe.message, ...safe.details } },
-        safe.help,
+        {
+          ...(home ? homeHead() : {}),
+          error: safe.message,
+          code: safe.code,
+          ...safe.details,
+        },
+        contextualHelp(safe.help),
       ),
     );
     return safe.exitCode;

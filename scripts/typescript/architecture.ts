@@ -16,7 +16,11 @@ const allowed = new Set([
   "./render.js",
   "./response.js",
   "./metadata.js",
-  "./detection.js",
+  "./investigation.js",
+  "./parser.js",
+  "./cursor.js",
+  "./windows-acl.js",
+  "./help.json",
   "./version.js",
   "./cli.js",
   "./transport/https.js",
@@ -59,7 +63,9 @@ export function violations(source: string, name: string): string[] {
                 "node:url",
               ].includes(specifier.text)) ||
             (name === "transport/dns-worker.ts" &&
-              specifier.text === "node:dns/promises")
+              specifier.text === "node:dns/promises") ||
+            (name === "windows-acl.ts" &&
+              specifier.text === "node:child_process")
           ))
       )
         errors.push("unauthorized dependency");

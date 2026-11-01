@@ -21,5 +21,11 @@
       }
     }
   ],
-  "exit_code": 0
+  "exit_code": 0,
+  "typescriptMigration": {
+    "omitSuggestions": [
+      "Run `falcon-axi cve show <CVE-ID>` for Falcon Intelligence on one CVE"
+    ],
+    "restore": "Restore each omitted navigation or original group when its commands ship; S13 compares the original documents with no TypeScript discovery exceptions."
+  }
 }

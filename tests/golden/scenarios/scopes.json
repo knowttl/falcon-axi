@@ -5,5 +5,13 @@
     "scopes"
   ],
   "env": "none",
-  "exit_code": 0
+  "exit_code": 0,
+  "typescriptMigration": {
+    "omitSuggestions": [
+      "Omit NGSIEM:write and `search start`, `search stop`, and `identity activity` fail with SCOPE_DENIED",
+      "Omit Identity Protection GraphQL:write and `identity list`, `identity show`, `identity timeline`, and `identity assessment` fail with SCOPE_DENIED"
+    ],
+    "scopeMatrix": "owned commands with read-only posture and guidance",
+    "restore": "Restore each omitted navigation or original group when its commands ship; S13 compares the original documents with no TypeScript discovery exceptions."
+  }
 }

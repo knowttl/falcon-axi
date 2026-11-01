@@ -11,7 +11,11 @@ export function origin(value: string, allowUnknown = false): string {
     throw new CliError(
       "ORIGIN_NOT_ALLOWED",
       "the resolved Falcon base URL is not a trusted destination",
-      ["Use a documented region with `--region` (us-1 us-2 eu-1 us-gov-1)"],
+      [
+        "Use a documented region with `--region` (us-1 us-2 eu-1 us-gov-1)",
+        "Allowed hosts are the documented Falcon clouds and subdomains of crowdstrike.com or gcw.crowdstrike.com",
+        "Pass `--allow-unknown-origin` in the same invocation to reach a deliberately selected unknown Falcon cloud",
+      ],
       { invalid_component: component },
     );
   };
@@ -36,6 +40,11 @@ export function origin(value: string, allowUnknown = false): string {
   return `https://${host}`;
 }
 export function resolveOrigin(region = "us-1", allowUnknown = false): string {
+  if (!Object.hasOwn(REGIONS, region) && !region.includes("://"))
+    throw new CliError("VALIDATION_ERROR", `unknown region ${region}`, [
+      `valid regions: ${Object.keys(REGIONS).join(", ")}`,
+      "Or pass a verified full Falcon base URL with `--region <url> --allow-unknown-origin`",
+    ]);
   return origin(
     Object.hasOwn(REGIONS, region) ? REGIONS[region]! : region,
     allowUnknown,
