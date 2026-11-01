@@ -2,13 +2,9 @@
 
 Read CrowdStrike Falcon from the shell with compact, structured results for agents and the humans running them.
 
-This migration branch also contains a private TypeScript S02-S11 candidate for `@knowttl/falcon-axi` on Node 24.
-Its packaging, delivered surface and offline checks are described in [the TypeScript candidate notes](docs/design/v1-typescript.md).
-The Python implementation and installation instructions below remain the released baseline.
-
 [![PyPI](https://img.shields.io/pypi/v/falcon-axi)](https://pypi.org/project/falcon-axi/) [![License: MIT](https://img.shields.io/badge/license-MIT-blue)](LICENSE) [![Python](https://img.shields.io/pypi/pyversions/falcon-axi)](https://pypi.org/project/falcon-axi/) [![Provenance](https://img.shields.io/badge/provenance-PyPI_Trusted_Publishing-blue)](https://pypi.org/project/falcon-axi/#history) [![AXI](https://img.shields.io/badge/AXI-agent--friendly-blue)](https://github.com/kunchenguid/axi)
 
-[Why](#why-this-exists) • [Quickstart](#quickstart) • [Agents](#use-with-your-agent) • [Coverage](#what-it-covers) • [Safety](#safety) • [Configuration](#configuration) • [Output](#output-and-exit-codes) • [Troubleshooting](#troubleshooting) • [Contributing](#contributing) • [Security](#security) • [License](#license)
+[Why](#why-this-exists) • [Quickstart](#quickstart) • [Agents](#use-with-your-agent) • [Coverage](#what-it-covers) • [Safety](#safety) • [Configuration](#configuration) • [Output](#output-and-exit-codes) • [Troubleshooting](#troubleshooting) • [Limitations](#limitations) • [Development](#development) • [Security](#security) • [License](#license)
 
 ## Why this exists
 
@@ -169,9 +165,27 @@ Errors include a stable `code` and actionable `help`; unknown commands and flags
 | `ORIGIN_NOT_ALLOWED` / `FQL_INVALID` / `RATE_LIMITED` | Follow structured help for the region, filter, or retry delay |
 | Hook installation refused | Use a durable installation and repair malformed agent configuration |
 
-## Contributing
+## Limitations
 
-See [CONTRIBUTING.md](CONTRIBUTING.md) for development, offline verification, documentation generation, and releases, and [AGENTS.md](AGENTS.md) for repository constraints.
+- No live-tenant validation is claimed; offline checks use synthetic fixtures only.
+- This README documents the released Python package, which is the only published implementation.
+- The `migration/typescript` branch also holds an unpublished, private TypeScript candidate (`@knowttl/falcon-axi`, Node 24.11 or newer, executable `falcon-axi`).
+  It is pending: it has no npm release and no install line.
+  At this head it does not ship `setup`, `setup hooks`, or the hook integration, and it reports a placeholder version.
+  See the [candidate notes](docs/design/v1-typescript.md) for its delivered surface and offline checks.
+- Remote skill installation, interactive agent-host sessions, and live commissioning are listed as pending in the [catalog verification record](docs/catalog-verification.md).
+
+## Development
+
+Run the complete offline gate for the released Python package:
+
+```sh
+uv sync
+uv run scripts/verify.py
+```
+
+For the TypeScript candidate, run `npm ci --offline --ignore-scripts` and `npm run verify`; see its [build and verification notes](docs/design/v1-typescript.md#build-and-offline-verification).
+See [CONTRIBUTING.md](CONTRIBUTING.md) for tests, fixtures, documentation generation, and releases, and [AGENTS.md](AGENTS.md) for repository constraints.
 
 ## Security
 
