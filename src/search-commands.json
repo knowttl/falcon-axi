@@ -1,0 +1,184 @@
+[
+  {
+    "name": "host usb",
+    "summary": "  host usb <device id>      start a search for one host's USB activity",
+    "order": 602,
+    "values": [
+      "since"
+    ],
+    "booleans": [],
+    "operations": [
+      "StartSearchV1"
+    ],
+    "positional": "device identifier"
+  },
+  {
+    "name": "identity activity",
+    "summary": "  identity activity <acct>  start a search for one account's identity events",
+    "order": 1700,
+    "values": [
+      "since"
+    ],
+    "booleans": [],
+    "operations": [
+      "StartSearchV1"
+    ],
+    "positional": "account objectGUID or account name"
+  },
+  {
+    "name": "search start",
+    "summary": "  search start              start an NG-SIEM CQL search job",
+    "order": 1800,
+    "values": [
+      "query",
+      "repository",
+      "since",
+      "wait"
+    ],
+    "booleans": [],
+    "operations": [
+      "StartSearchV1",
+      "GetSearchStatusV1"
+    ]
+  },
+  {
+    "name": "search status",
+    "summary": "  search status <id>        poll one search job and read its events",
+    "order": 1900,
+    "values": [
+      "repository",
+      "wait"
+    ],
+    "booleans": [],
+    "operations": [
+      "GetSearchStatusV1"
+    ],
+    "positional": "search identifier"
+  },
+  {
+    "name": "search stop",
+    "summary": "  search stop <id>          cancel one search job",
+    "order": 2000,
+    "values": [
+      "repository"
+    ],
+    "booleans": [],
+    "operations": [
+      "StopSearchV1"
+    ],
+    "positional": "search identifier"
+  },
+  {
+    "name": "identity list",
+    "summary": "  identity list             list Identity Protection users and endpoints with their risk",
+    "order": 2100,
+    "values": [
+      "name",
+      "email",
+      "domain",
+      "type",
+      "limit",
+      "cursor"
+    ],
+    "booleans": [],
+    "operations": [
+      "api_preempt_proxy_post_graphql"
+    ],
+    "ceiling": 200
+  },
+  {
+    "name": "identity show",
+    "summary": "  identity show <id>        one identity's risk, accounts, associations, and open incidents",
+    "order": 2200,
+    "values": [],
+    "booleans": [
+      "full"
+    ],
+    "operations": [
+      "api_preempt_proxy_post_graphql"
+    ],
+    "positional": "identity id"
+  },
+  {
+    "name": "identity timeline",
+    "summary": "  identity timeline <id>    one identity's recent activity",
+    "order": 2300,
+    "values": [
+      "since",
+      "category",
+      "limit",
+      "cursor"
+    ],
+    "booleans": [],
+    "operations": [
+      "api_preempt_proxy_post_graphql"
+    ],
+    "positional": "identity id",
+    "ceiling": 200
+  },
+  {
+    "name": "identity assessment",
+    "summary": "  identity assessment       security assessment score and risk factors",
+    "order": 2301,
+    "values": [
+      "domain"
+    ],
+    "booleans": [],
+    "operations": [
+      "api_preempt_proxy_post_graphql"
+    ]
+  },
+  {
+    "name": "malquery show",
+    "summary": "  malquery show <sha256>    indexed file metadata by SHA-256",
+    "order": 2307.83,
+    "values": [],
+    "booleans": [],
+    "operations": [
+      "GetMalQueryMetadataV1"
+    ],
+    "positional": "SHA-256 hash"
+  },
+  {
+    "name": "malquery quota",
+    "summary": "  malquery quota            MalQuery quota counters and refresh time",
+    "order": 2307.84,
+    "values": [],
+    "booleans": [],
+    "operations": [
+      "GetMalQueryQuotasV1"
+    ]
+  },
+  {
+    "name": "malquery search",
+    "summary": "  malquery search           bounded exact or fuzzy literal-pattern search (N4)",
+    "order": 2307.85,
+    "values": [
+      "string",
+      "hex",
+      "limit"
+    ],
+    "booleans": [
+      "fuzzy"
+    ],
+    "operations": [
+      "PostMalQueryExactSearchV1",
+      "PostMalQueryFuzzySearchV1"
+    ],
+    "ceiling": 100
+  },
+  {
+    "name": "malquery status",
+    "summary": "  malquery status <id>      exact-search request status and bounded metadata results",
+    "order": 2307.86,
+    "values": [
+      "limit"
+    ],
+    "booleans": [],
+    "operations": [
+      "GetMalQueryRequestV1"
+    ],
+    "positional": "request id",
+    "ceiling": 100
+  }
+]

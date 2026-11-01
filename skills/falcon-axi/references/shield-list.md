@@ -3,7 +3,7 @@
 shield list               list SaaS security posture checks
 
 ```text
-uvx falcon-axi shield list [--status <status>] [--impact <impact>] [--limit N] [--cursor <token>]
+npx -y @knowttl/falcon-axi@next shield list [--status <status>] [--impact <impact>] [--limit N] [--cursor <token>]
 
 List Falcon Shield SaaS security posture checks. This is not the detection alerts list.
 --status   Passed, Failed, Dismissed, Pending, Can't Run, Stale, NA, Not Available (case-insensitive)
@@ -12,8 +12,8 @@ List Falcon Shield SaaS security posture checks. This is not the detection alert
 --cursor   opaque continuation token from a previous call
 
 Examples:
-  uvx falcon-axi shield list --status failed --impact high
-  uvx falcon-axi shield list --limit 50
+  npx -y @knowttl/falcon-axi@next shield list --status failed --impact high
+  npx -y @knowttl/falcon-axi@next shield list --limit 50
 
 Read-only. Requires SaaS Security:read (Falcon Shield).
 ```

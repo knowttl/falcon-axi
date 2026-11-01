@@ -3,7 +3,7 @@
 file-change list              list FileVantage change history
 
 ```text
-uvx falcon-axi file-change list [--filter <FQL>] [--limit N] [--cursor <token>]
+npx -y @knowttl/falcon-axi@next file-change list [--filter <FQL>] [--limit N] [--cursor <token>]
 
 Read FileVantage change history, newest action_timestamp first.
 --filter   raw FQL; for example host.name:'SYNTHETIC-HOST' or action_timestamp:>'now-7d'
@@ -14,5 +14,5 @@ Read-only; requires Falcon FileVantage:read and Falcon FileVantage licensing.
 Empty results can mean no matching changes or no FileVantage license.
 Captured file contents are excluded.
 
-Example: uvx falcon-axi file-change list --filter "host.name:'SYNTHETIC-HOST'"
+Example: npx -y @knowttl/falcon-axi@next file-change list --filter "host.name:'SYNTHETIC-HOST'"
 ```

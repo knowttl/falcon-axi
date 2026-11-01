@@ -3,7 +3,7 @@
 cloud-risk list              list aggregated cloud risks
 
 ```text
-uvx falcon-axi cloud-risk list [--filter <FQL>] [--sort <field.direction>] [--limit N] [--cursor <token>]
+npx -y @knowttl/falcon-axi@next cloud-risk list [--filter <FQL>] [--sort <field.direction>] [--limit N] [--cursor <token>]
 
 list aggregated cloud risks.
 --filter   raw FQL; + is AND, `,` is OR, values are single-quoted
@@ -14,6 +14,6 @@ list aggregated cloud risks.
 Read-only; requires Cloud Security API Risks:read.
 Risk detail is not offered: the official API has no risk-detail endpoint or risk-id filter.
 Examples:
-  uvx falcon-axi cloud-risk list --filter "severity:'Critical'+status:'Open'"
-  uvx falcon-axi cloud-risk list --limit 100
+  npx -y @knowttl/falcon-axi@next cloud-risk list --filter "severity:'Critical'+status:'Open'"
+  npx -y @knowttl/falcon-axi@next cloud-risk list --limit 100
 ```

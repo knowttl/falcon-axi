@@ -1,0 +1,19 @@
+{
+  "compilerOptions": {
+    "target": "ES2024",
+    "module": "NodeNext",
+    "moduleResolution": "NodeNext",
+    "strict": true,
+    "noUncheckedIndexedAccess": true,
+    "exactOptionalPropertyTypes": true,
+    "noUnusedLocals": true,
+    "noUnusedParameters": true,
+    "noEmitOnError": true,
+    "verbatimModuleSyntax": true,
+    "resolveJsonModule": true,
+    "rootDir": ".",
+    "outDir": ".typescript-build",
+    "types": ["node"]
+  },
+  "include": ["src/**/*.ts", "scripts/typescript/*.ts", "tests/typescript/*.ts"]
+}

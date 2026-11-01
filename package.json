@@ -1,0 +1,59 @@
+{
+  "name": "@knowttl/falcon-axi",
+  "version": "1.0.0-rc.1",
+  "private": false,
+  "type": "module",
+  "license": "MIT",
+  "description": "Read CrowdStrike Falcon from the shell with compact, structured results for agents and the humans running them.",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/knowttl/falcon-axi.git"
+  },
+  "homepage": "https://github.com/knowttl/falcon-axi#readme",
+  "publishConfig": {
+    "access": "public",
+    "tag": "next"
+  },
+  "bugs": {
+    "url": "https://github.com/knowttl/falcon-axi/issues"
+  },
+  "bin": {
+    "falcon-axi": ".typescript-build/src/bin.js",
+    "falcon-axi-hook": ".typescript-build/src/hook.js"
+  },
+  "files": [
+    ".typescript-build/src",
+    ".typescript-build/native/checksums.json",
+    "native/prebuilds",
+    "skills/falcon-axi",
+    "artium-invocations.json",
+    "LICENSE"
+  ],
+  "engines": {
+    "node": ">=24.11.0 <25"
+  },
+  "packageManager": "npm@11.9.0",
+  "scripts": {
+    "build:native": "node scripts/typescript/build-native.ts",
+    "build": "node scripts/typescript/build.ts",
+    "generate": "npm run build && node .typescript-build/scripts/typescript/generate.js",
+    "lint": "prettier --check package.json tsconfig.json 'src/**/*.ts' src/axi-credential.schema.json src/help.json 'scripts/typescript/*.ts' 'tests/typescript/*.ts'",
+    "verify": "npm run build && npm run lint && node .typescript-build/scripts/typescript/package-contract.js && node .typescript-build/scripts/typescript/check-slice.js --slice S13 --paths native --offline",
+    "check:coverage": "npm run build && node .typescript-build/scripts/typescript/coverage.js --strict && node .typescript-build/scripts/typescript/final-coverage.js",
+    "check:slice": "npm run build && node .typescript-build/scripts/typescript/check-slice.js",
+    "probe:primitive": "npm run build && node .typescript-build/scripts/typescript/primitive-probe.js"
+  },
+  "devDependencies": {
+    "@types/eslint": "9.6.1",
+    "@types/node": "24.10.1",
+    "graphql": "16.13.1",
+    "prettier": "3.6.2",
+    "typescript": "5.9.3"
+  },
+  "dependencies": {
+    "@toon-format/toon": "4.1.1",
+    "ajv": "8.20.0",
+    "axi-sdk-js": "0.1.13",
+    "toml-eslint-parser": "1.0.3"
+  }
+}

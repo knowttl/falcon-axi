@@ -3,9 +3,9 @@
 identity sensor show <id> one Identity Protection sensor's details
 
 ```text
-uvx falcon-axi identity sensor show <device id>
+npx -y @knowttl/falcon-axi@next identity sensor show <device id>
 
 Prints one Identity Protection sensor's status, version, heartbeat, and policy details.
-Use a device_id printed by `uvx falcon-axi identity sensor list`.
+Use a device_id printed by `npx -y @knowttl/falcon-axi@next identity sensor list`.
 This command is read-only and requires Identity Protection Entities:read.
 ```

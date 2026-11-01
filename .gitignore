@@ -30,3 +30,7 @@ coverage/
 # Caches
 .cache/
 .pi-subagents/
+
+# TypeScript migration build output
+node_modules/
+.typescript-build/

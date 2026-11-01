@@ -2,9 +2,14 @@
 
 Read CrowdStrike Falcon from the shell with compact, structured results for agents and the humans running them.
 
-[![PyPI](https://img.shields.io/pypi/v/falcon-axi)](https://pypi.org/project/falcon-axi/) [![License: MIT](https://img.shields.io/badge/license-MIT-blue)](LICENSE) [![Python](https://img.shields.io/pypi/pyversions/falcon-axi)](https://pypi.org/project/falcon-axi/) [![Provenance](https://img.shields.io/badge/provenance-PyPI_Trusted_Publishing-blue)](https://pypi.org/project/falcon-axi/#history) [![AXI](https://img.shields.io/badge/AXI-agent--friendly-blue)](https://github.com/kunchenguid/axi)
+This TypeScript tree prepares `@knowttl/falcon-axi@1.0.0-rc.1` for Node 24, with the `falcon-axi` and `falcon-axi-hook` executables.
+The first npm publication is pending and will be performed manually from merged `main`.
+The [distribution record](docs/distribution/typescript-transition.md) preserves the Python rollback proof and separate publication gates.
+Python 0.9.0 remains available from its [release source](https://github.com/knowttl/falcon-axi/tree/v0.9.0) and existing PyPI artifacts.
 
-[Why](#why-this-exists) • [Quickstart](#quickstart) • [Agents](#use-with-your-agent) • [Coverage](#what-it-covers) • [Safety](#safety) • [Configuration](#configuration) • [Output](#output-and-exit-codes) • [Troubleshooting](#troubleshooting) • [Contributing](#contributing) • [Security](#security) • [License](#license)
+[![License: MIT](https://img.shields.io/badge/license-MIT-blue)](LICENSE) [![Node](https://img.shields.io/badge/Node-24-green)](https://nodejs.org/) [![AXI](https://img.shields.io/badge/AXI-agent--friendly-blue)](https://github.com/kunchenguid/axi)
+
+[Why](#why-this-exists) • [Quickstart](#quickstart) • [Agents](#use-with-your-agent) • [Coverage](#what-it-covers) • [Safety](#safety) • [Configuration](#configuration) • [Output](#output-and-exit-codes) • [Troubleshooting](#troubleshooting) • [Limitations](#limitations) • [Development](#development) • [Security](#security) • [License](#license)
 
 ## Why this exists
 
@@ -15,11 +20,11 @@ Synthetic offline checks verify local behavior and safety constraints; they do n
 
 ## Quickstart
 
-Requires Python 3.11 or newer and [uv](https://docs.astral.sh/uv/getting-started/installation/).
-Install globally, or use `uvx falcon-axi` without a permanent install:
+Requires [Node.js](https://nodejs.org/) 24.11.0 or newer within Node 24.
+After the first manual npm publication, install the prerelease globally, or use `npx -y @knowttl/falcon-axi@next` for one-shot reads:
 
 ```sh
-uv tool install falcon-axi
+npm install --global @knowttl/falcon-axi@next
 ```
 
 Before credentials are configured, the home view reports (synthetic offline output excerpt):
@@ -165,9 +170,19 @@ Errors include a stable `code` and actionable `help`; unknown commands and flags
 | `ORIGIN_NOT_ALLOWED` / `FQL_INVALID` / `RATE_LIMITED` | Follow structured help for the region, filter, or retry delay |
 | Hook installation refused | Use a durable installation and repair malformed agent configuration |
 
-## Contributing
+## Limitations
 
-See [CONTRIBUTING.md](CONTRIBUTING.md) for development, offline verification, documentation generation, and releases, and [AGENTS.md](AGENTS.md) for repository constraints.
+- No live-tenant validation is claimed; offline checks use synthetic fixtures only.
+- The TypeScript package is prepared for its first manual publication; publication has not occurred in this change.
+- Native Windows certification and the hosted TypeScript release-candidate fold remain pending.
+- Native RTR controller execution supports Linux x64 with glibc 2.33 or newer; Windows controllers refuse execution while ordinary reads remain available.
+- Remote skill installation, interactive agent-host sessions, and live commissioning are listed as pending in the [catalog verification record](docs/catalog-verification.md).
+
+## Development
+
+Run `npm ci --offline --ignore-scripts` and `npm run verify` with Node 24.14.0 and npm 11.9.0.
+The [TypeScript build notes](docs/design/v1-typescript.md#build-and-offline-verification) describe the complete offline gate and installation checks.
+See [CONTRIBUTING.md](CONTRIBUTING.md) for tests, fixtures, documentation generation, and releases, and [AGENTS.md](AGENTS.md) for repository constraints.
 
 ## Security
 

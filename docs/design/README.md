@@ -1,11 +1,12 @@
 # Design index
 
-Status: implemented in Python.
+Status: implemented in TypeScript; first npm publication pending.
 The [full command reference](../commands.md) is generated from the shipped command registry and owns delivery status; the [README](../../README.md#what-it-covers) summarizes command groups.
 This page preserves the domain rollout inventory formerly in the README; it is historical context, not a second command registry.
 
 - [v1 behavior and safety design](v1.md): command contracts, scopes, pagination, redaction, transport enforcement, and closed decisions in section 17.
-- [Python implementation amendment](v1-python.md): package structure, SDK confinement, golden comparisons, packaging, and commissioning history.
+- [Python implementation amendment](v1-python.md): preserved baseline, golden comparison contract, and commissioning history.
+- [TypeScript implementation](v1-typescript.md): scope, packaging, offline verification, and approved amendments.
 - [Read-only enforcement](../read-only.md): shipped transport enforcement and source-parity validation limits.
 - [Contributor workflow](../../CONTRIBUTING.md): offline verification and documentation generation.
 
@@ -15,8 +16,8 @@ What is shipped:
 
 - Data Protection configuration reads: `classification list`, `classification show`,
   `data-policy list`, and `data-policy show`; see [Data Protection](../commands.md#classification-list) for usage.
-- the package foundation: a Python package, the `falcon-axi` console script, and one offline
-  `uv run scripts/verify.py` entry point;
+- the package foundation: a TypeScript npm package, the `falcon-axi` executable, and one offline
+  `npm run verify` entry point;
 - `-v`, `-V`, and `--version`, printing the bare version;
 - the sealed transport and its closed operation registry, with evidence carried per operation,
   [closed exception tiers](v1.md#33-the-transport-is-the-enforcement-point), and a single permitted network sink;

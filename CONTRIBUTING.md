@@ -1,25 +1,27 @@
 # Contributing
 
-Install [uv](https://docs.astral.sh/uv/), then run the complete local verification gate:
+Use Node 24.14.0 and npm 11.9.0, then run the complete local verification gate:
 
 ```sh
-uv sync
-uv run scripts/verify.py
+npm ci --offline --ignore-scripts
+npm run verify
 ```
 
-The gate runs Ruff, strict mypy, architecture checks, generated skill and documentation drift checks, and the offline pytest suite.
-GitHub CI runs the same offline gate on pull requests and pushes to `main`.
-The release workflow builds and publishes packages using PyPI Trusted Publishing.
+The gate runs TypeScript compilation, formatting, architecture and generated drift checks, package installation checks, the cumulative native suite, and golden/safety provenance reconciliation.
+GitHub CI installs the locked dependencies and runs the same offline verification on pull requests and pushes to `main`.
+Both jobs in the release workflow are disabled during cutover; the first npm publication is manual from merged `main`.
+See the [build and offline verification instructions](docs/design/v1-typescript.md#build-and-offline-verification) for runtime and Linux test prerequisites.
 
 ## Tests and fixtures
 
-All automated fixtures are wholly synthetic and carry provenance headers.
-A pytest fixture refuses sockets, so the suite cannot contact Falcon.
+Response fixtures are wholly synthetic and carry provenance headers.
+Installed-artifact tests use loopback-only namespaces or inherited kernel socket denial, so their synthetic delivery cannot contact Falcon.
 Never commit credentials, tenant identifiers, captured responses, or personal data.
-Commands accept a recorded transport only through the code-level test interface.
+The released package contains no recorded transport or test-origin selector.
 
-Run a focused check with `uv run pytest tests/offline/<test_file>.py -q`.
-The opt-in installed-artifact suite in `tests/packaged/` has separate prerequisites and commands in the [catalog verification record](docs/catalog-verification.md#repeat-the-artifact-checks).
+Run a focused slice with `npm run check:slice -- --slice S13 --paths native --offline`, or execute the relevant compiled Node test using the same isolation setup as the slice runner.
+The Python sources in `tests/offline/`, `tests/packaged/`, and `tests/support/` are frozen comparison provenance, not an executable suite for the current implementation.
+Their selected source hashes remain checked by the TypeScript safety ledger; no Python runtime is needed to read them.
 The recorded-invocation gate in `tests/golden/` preserves the output contract described in [the Python design](docs/design/v1-python.md#5-behavior-that-must-not-change-during-the-port).
 Do not regenerate expected output to make a failure disappear.
 Intentional behavior changes need a design explanation and a comment in the affected scenario.
@@ -44,15 +46,17 @@ Exempt: validation-boundary tests, contract tests against an agreed schema or re
 
 ## Generated documentation
 
+Regenerate the skill, command references, and invocation catalog from TypeScript metadata and templates:
+
 ```sh
-uv run scripts/skill.py
-uv run scripts/docs.py
-uv run scripts/verify.py
+npm run generate
+npm run verify
 ```
 
-Command declarations own the full command reference and generated skill references; the README summarizes command groups.
+`src/metadata.ts` owns command declarations; the README summarizes command groups.
+`docs/commands.md` retains the generated Python-origin reference whose command surface is preserved by the migration parity gate.
 Edit their sources rather than generated content.
-Every shipped command must appear in `docs/commands.md`, and every advertised command must exist.
+Every advertised command must exist in the TypeScript registry and its generated references.
 
 ## Architecture and review
 
@@ -64,6 +68,8 @@ Do not hand-edit the generated changelog.
 
 ## Releases
 
-The release workflow uses release-please to prepare version and changelog updates.
-Publishing a release builds the package and uploads it to PyPI using Trusted Publishing.
+The proposed Node release-please configuration uses the distinct `npm-v` tag namespace; its workflow is disabled.
+The first npm prerelease is prepared as `1.0.0-rc.1` on `next`, with publication performed manually only after the cutover merges.
+Future version changes must keep `package.json`, the lockfile root version, and `src/version.ts` synchronized, and regenerate metadata.
+Python artifacts remain installable, and a final notice-only PyPI release is separately gated on confirmation of the first npm publication.
 Keep release mechanics in the workflow and package metadata; install examples should not pin release versions.

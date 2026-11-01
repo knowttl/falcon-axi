@@ -1,0 +1,709 @@
+{
+  "sourceRevision": "75efc7e546c5ad9bae9084a610129fec22628c18",
+  "groups": [
+    {
+      "id": "SR-003",
+      "slice": "S01",
+      "source": "tests/offline/test_architecture.py",
+      "sourceSha256": "c0ac42d9a4fd1939f59aa1de6a18ded8f0993d9af2595170494ee348c84ebe72",
+      "members": [
+        {
+          "symbol": "test_the_architecture_boundary_check_passes",
+          "parameterSelection": "all"
+        },
+        {
+          "symbol": "test_architecture_confines_file_writers_to_setup",
+          "parameterSelection": "all"
+        },
+        {
+          "symbol": "test_architecture_rejects_dynamic_acl_commands",
+          "parameterSelection": "all"
+        },
+        {
+          "symbol": "test_the_sink_refuses_a_prepared_request_without_a_valid_permit",
+          "parameterSelection": "all"
+        },
+        {
+          "symbol": "test_falconpy_is_imported_by_exactly_one_module",
+          "parameterSelection": "all"
+        },
+        {
+          "symbol": "test_no_mcp_dependency_reaches_the_package_or_the_lock",
+          "parameterSelection": "all"
+        }
+      ]
+    },
+    {
+      "id": "SR-004",
+      "slice": "S01",
+      "source": "tests/offline/test_architecture.py",
+      "sourceSha256": "c0ac42d9a4fd1939f59aa1de6a18ded8f0993d9af2595170494ee348c84ebe72",
+      "members": [
+        {
+          "symbol": "test_architecture_allows_authorized_workflows",
+          "parameterSelection": "all"
+        },
+        {
+          "symbol": "test_architecture_rejects_other_automation",
+          "parameterSelection": "all"
+        },
+        {
+          "symbol": "test_architecture_rejects_live_variables_in_workflows",
+          "parameterSelection": "all"
+        }
+      ]
+    },
+    {
+      "id": "SR-005",
+      "slice": "S01",
+      "source": "tests/offline/test_architecture.py",
+      "sourceSha256": "c0ac42d9a4fd1939f59aa1de6a18ded8f0993d9af2595170494ee348c84ebe72",
+      "members": [
+        {
+          "symbol": "test_the_help_path_never_imports_falconpy_or_the_encoder",
+          "parameterSelection": "all"
+        },
+        {
+          "symbol": "test_version_answers_before_loading_the_command_graph",
+          "parameterSelection": "all"
+        }
+      ]
+    },
+    {
+      "id": "SR-006",
+      "slice": "S01",
+      "source": "tests/offline/test_auth_errors.py",
+      "sourceSha256": "d729e8358763e8c0b0baa99a547e61fb140d17c703839b37bb98c87897f934f4",
+      "members": [
+        {
+          "symbol": "test_auth_status_reports_the_channel_and_region_without_printing_any_value",
+          "parameterSelection": "all"
+        },
+        {
+          "symbol": "test_a_member_cid_is_selected_at_token_mint_and_only_its_masked_suffix_is_printed",
+          "parameterSelection": "all"
+        },
+        {
+          "symbol": "test_no_member_cid_clears_an_inherited_environment_selection",
+          "parameterSelection": "all"
+        },
+        {
+          "symbol": "test_a_403_at_token_mint_with_a_member_cid_is_tenant_denied",
+          "parameterSelection": "all"
+        }
+      ]
+    },
+    {
+      "id": "SR-007",
+      "slice": "S01",
+      "source": "tests/offline/test_auth_errors.py",
+      "sourceSha256": "d729e8358763e8c0b0baa99a547e61fb140d17c703839b37bb98c87897f934f4",
+      "members": [
+        {
+          "symbol": "test_region_autodiscovery_retargets_exactly_once_on_a_308_x_cs_region",
+          "parameterSelection": "all"
+        },
+        {
+          "symbol": "test_a_201_with_a_different_known_region_still_retargets_once",
+          "parameterSelection": "all"
+        },
+        {
+          "symbol": "test_a_308_whose_region_is_unknown_is_region_mismatch_and_is_not_followed",
+          "parameterSelection": "all"
+        },
+        {
+          "symbol": "test_a_308_without_a_region_and_a_second_redirect_are_refused",
+          "parameterSelection": "all"
+        }
+      ]
+    },
+    {
+      "id": "SR-008",
+      "slice": "S01",
+      "source": "tests/offline/test_auth_errors.py",
+      "sourceSha256": "d729e8358763e8c0b0baa99a547e61fb140d17c703839b37bb98c87897f934f4",
+      "members": [
+        {
+          "symbol": "test_no_credential_token_or_cid_value_reaches_stdout_on_a_successful_read",
+          "parameterSelection": "all"
+        },
+        {
+          "symbol": "test_redaction_covers_every_sensitive_key_that_reaches_the_renderer",
+          "parameterSelection": "all"
+        }
+      ]
+    },
+    {
+      "id": "SR-009",
+      "slice": "S13",
+      "source": "tests/offline/test_cli.py",
+      "sourceSha256": "3d13ba00c98ddba72d67b0e2e0c434a53db8f95ff86c46157512ffb1301977f7",
+      "members": [
+        {
+          "symbol": "test_group_help_lists_subcommands_without_authentication",
+          "parameterSelection": "all"
+        },
+        {
+          "symbol": "test_every_registered_command_has_help_a_handler_and_operations",
+          "parameterSelection": "all"
+        },
+        {
+          "symbol": "test_a_multiword_command_in_one_argument_is_unknown",
+          "parameterSelection": "all"
+        },
+        {
+          "symbol": "test_the_surface_lists_no_mutating_verb",
+          "parameterSelection": "all"
+        }
+      ]
+    },
+    {
+      "id": "SR-016",
+      "slice": "S13",
+      "source": "tests/offline/test_cli.py",
+      "sourceSha256": "3d13ba00c98ddba72d67b0e2e0c434a53db8f95ff86c46157512ffb1301977f7",
+      "members": [
+        {
+          "symbol": "test_help_never_advertises_a_command_the_cli_does_not_have",
+          "parameterSelection": "all"
+        }
+      ]
+    },
+    {
+      "id": "SR-017",
+      "slice": "S12",
+      "source": "tests/offline/test_cli.py",
+      "sourceSha256": "3d13ba00c98ddba72d67b0e2e0c434a53db8f95ff86c46157512ffb1301977f7",
+      "members": [
+        {
+          "symbol": "test_the_published_version_matches_pyproject",
+          "parameterSelection": "all"
+        }
+      ]
+    },
+    {
+      "id": "SR-018",
+      "slice": "S13",
+      "source": "tests/offline/test_cli.py",
+      "sourceSha256": "3d13ba00c98ddba72d67b0e2e0c434a53db8f95ff86c46157512ffb1301977f7",
+      "members": [
+        {
+          "symbol": "test_every_fixture_is_wholly_synthetic_and_carries_its_provenance_header",
+          "parameterSelection": "all"
+        }
+      ]
+    },
+    {
+      "id": "SR-056",
+      "slice": "S01",
+      "source": "tests/offline/test_cursor_retry.py",
+      "sourceSha256": "814cb5aaf1cda407f5d2c0451011ddd81852516872e59daf279503c334950ff5",
+      "members": [
+        {
+          "symbol": "test_a_429_waits_until_a_future_x_ratelimit_retryafter",
+          "parameterSelection": "all"
+        },
+        {
+          "symbol": "test_a_past_or_malformed_retry_after_falls_back_to_jittered_backoff",
+          "parameterSelection": "all"
+        },
+        {
+          "symbol": "test_a_503_ignores_the_retry_after_header_and_a_400_is_never_retried",
+          "parameterSelection": "all"
+        },
+        {
+          "symbol": "test_retries_stop_after_the_last_attempt",
+          "parameterSelection": "all"
+        }
+      ]
+    },
+    {
+      "id": "SR-073",
+      "slice": "S12",
+      "source": "tests/offline/test_docs.py",
+      "sourceSha256": "2b091c203415a3368c69d939efa10907dac307b34224b0c179e052b80689a097",
+      "members": [
+        {
+          "symbol": "test_full_reference_covers_exactly_the_shipped_commands",
+          "parameterSelection": "all"
+        },
+        {
+          "symbol": "test_command_table_keeps_positional_arguments_in_code",
+          "parameterSelection": "all"
+        },
+        {
+          "symbol": "test_readme_groups_cover_exactly_the_shipped_surface",
+          "parameterSelection": "all"
+        },
+        {
+          "symbol": "test_check_rejects_documentation_drift_without_writing",
+          "parameterSelection": "all"
+        }
+      ]
+    },
+    {
+      "id": "SR-074",
+      "slice": "S12",
+      "source": "tests/offline/test_docs.py",
+      "sourceSha256": "2b091c203415a3368c69d939efa10907dac307b34224b0c179e052b80689a097",
+      "members": [
+        {
+          "symbol": "test_readme_example_is_actual_offline_cli_output",
+          "parameterSelection": "all"
+        },
+        {
+          "symbol": "test_readme_fresh_install_excerpt_is_actual_offline_cli_output",
+          "parameterSelection": "all"
+        }
+      ]
+    },
+    {
+      "id": "SR-075",
+      "slice": "S12",
+      "source": "tests/offline/test_docs.py",
+      "sourceSha256": "2b091c203415a3368c69d939efa10907dac307b34224b0c179e052b80689a097",
+      "members": [
+        {
+          "symbol": "test_public_document_links_and_anchors_resolve",
+          "parameterSelection": "all"
+        },
+        {
+          "symbol": "test_package_description_matches_cli_description",
+          "parameterSelection": "all"
+        }
+      ]
+    },
+    {
+      "id": "SR-089",
+      "slice": "S13",
+      "source": "tests/offline/test_golden_parity.py",
+      "sourceSha256": "579bae26b04c534ad7b7b2b03e68fa75b4115ced92ef36376a1d71e60d87b182",
+      "members": [
+        {
+          "symbol": "test_golden_replay_reports_invalid_token_response_diagnostics",
+          "parameterSelection": "all"
+        },
+        {
+          "symbol": "test_every_generated_scenario_has_an_expected_document",
+          "parameterSelection": "all"
+        },
+        {
+          "symbol": "test_command_references_cover_the_ordered_command_surface",
+          "parameterSelection": "all"
+        },
+        {
+          "symbol": "test_python_reproduces_the_typescript_document",
+          "parameterSelection": "all"
+        }
+      ]
+    },
+    {
+      "id": "SR-092",
+      "slice": "S01",
+      "source": "tests/offline/test_harness.py",
+      "sourceSha256": "5f45191785381efb29d46d670c5f953809ff64a45c3ccca8d6efa461d4ad47f4",
+      "members": [
+        {
+          "symbol": "test_deadline_terminates_unfinished_response_consumption",
+          "parameterSelection": {
+            "fixture:deadline_request": [
+              0
+            ]
+          }
+        },
+        {
+          "symbol": "test_deadline_worker_returns_a_completed_response",
+          "parameterSelection": {
+            "fixture:deadline_request": [
+              0
+            ]
+          }
+        },
+        {
+          "symbol": "test_worker_startup_cannot_send_after_the_deadline",
+          "parameterSelection": {
+            "fixture:deadline_request": [
+              0
+            ]
+          }
+        },
+        {
+          "symbol": "test_worker_ignores_dependencies_in_the_callers_directory",
+          "parameterSelection": {
+            "fixture:deadline_request": [
+              0
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "id": "SR-098",
+      "slice": "S01",
+      "source": "tests/offline/test_harness.py",
+      "sourceSha256": "5f45191785381efb29d46d670c5f953809ff64a45c3ccca8d6efa461d4ad47f4",
+      "members": [
+        {
+          "symbol": "test_the_token_mint_is_falcon_axis_own_and_refuses_to_follow_a_redirect",
+          "parameterSelection": "all"
+        },
+        {
+          "symbol": "test_a_redirect_on_the_token_path_is_returned_and_never_followed",
+          "parameterSelection": "all"
+        }
+      ]
+    },
+    {
+      "id": "SR-099",
+      "slice": "S01",
+      "source": "tests/offline/test_harness.py",
+      "sourceSha256": "5f45191785381efb29d46d670c5f953809ff64a45c3ccca8d6efa461d4ad47f4",
+      "members": [
+        {
+          "symbol": "test_an_unreachable_endpoint_and_an_untrusted_certificate_are_named_apart",
+          "parameterSelection": "all"
+        },
+        {
+          "symbol": "test_an_unregistered_operation_never_reaches_falconpy",
+          "parameterSelection": "all"
+        },
+        {
+          "symbol": "test_a_redirect_on_an_operation_is_refused_rather_than_followed",
+          "parameterSelection": "all"
+        }
+      ]
+    },
+    {
+      "id": "SR-133",
+      "slice": "S01",
+      "source": "tests/offline/test_origin.py",
+      "sourceSha256": "482efa194115e2d0b9551f5f16d5aa536ecc6b98fb179e4e33011c6888764ea3",
+      "members": [
+        {
+          "symbol": "test_every_documented_region_is_a_trusted_origin",
+          "parameterSelection": "all"
+        },
+        {
+          "symbol": "test_a_crowdstrike_subdomain_is_trusted_and_a_lookalike_host_is_not",
+          "parameterSelection": "all"
+        },
+        {
+          "symbol": "test_each_violated_component_is_reported_by_name_and_never_with_the_url",
+          "parameterSelection": "all"
+        },
+        {
+          "symbol": "test_allow_unknown_origin_relaxes_only_the_host_allowlist",
+          "parameterSelection": "all"
+        },
+        {
+          "symbol": "test_selected_region_resolves_by_name_or_url_with_a_default_cloud",
+          "parameterSelection": "all"
+        }
+      ]
+    },
+    {
+      "id": "SR-154",
+      "slice": "S01",
+      "source": "tests/offline/test_registry.py",
+      "sourceSha256": "193a3fc50c5cb3b2ff7afec67ade131836b9eacd9e57ea8d4106e0df673e2a64",
+      "members": [
+        {
+          "symbol": "test_the_registry_contains_exactly_the_registered_operations",
+          "parameterSelection": "all"
+        },
+        {
+          "symbol": "test_every_descriptor_equals_its_canonical_value_and_carries_matching_evidence",
+          "parameterSelection": "all"
+        },
+        {
+          "symbol": "test_no_registered_path_matches_a_known_mutation_route",
+          "parameterSelection": "all"
+        },
+        {
+          "symbol": "test_every_registered_scope_is_a_read_scope_outside_the_two_captain_exceptions",
+          "parameterSelection": "all"
+        }
+      ]
+    },
+    {
+      "id": "SR-155",
+      "slice": "S01",
+      "source": "tests/offline/test_registry.py",
+      "sourceSha256": "193a3fc50c5cb3b2ff7afec67ade131836b9eacd9e57ea8d4106e0df673e2a64",
+      "members": [
+        {
+          "symbol": "test_the_registry_and_every_nested_value_resist_mutation",
+          "parameterSelection": "all"
+        },
+        {
+          "symbol": "test_an_unregistered_operation_id_fails_with_read_only_violation_before_anything_is_sent",
+          "parameterSelection": "all"
+        },
+        {
+          "symbol": "test_the_second_enforcement_tier_admits_no_operation_beyond_captain_exception_n1",
+          "parameterSelection": "all"
+        },
+        {
+          "symbol": "test_the_second_citation_is_falcon_mcp_or_falconpy_plus_psfalcon_and_nothing_weaker",
+          "parameterSelection": "all"
+        }
+      ]
+    },
+    {
+      "id": "SR-177",
+      "slice": "S13",
+      "source": "tests/offline/test_scopes.py",
+      "sourceSha256": "bc973aacbdc0acb11ee883d3d3313d111c2cc62eef742406f2a4113c04dca39f",
+      "members": [
+        {
+          "symbol": "test_every_printed_scope_comes_from_the_registry_with_its_access_derived_from_it",
+          "parameterSelection": "all"
+        },
+        {
+          "symbol": "test_the_only_write_scopes_in_the_matrix_are_the_two_the_captain_exceptions_admit",
+          "parameterSelection": "all"
+        },
+        {
+          "symbol": "test_provisioning_hints_describe_each_write_scope_without_claiming_the_other_is_read_only",
+          "parameterSelection": "all"
+        },
+        {
+          "symbol": "test_the_identity_commands_list_their_per_document_read_scopes",
+          "parameterSelection": "all"
+        },
+        {
+          "symbol": "test_only_policy_and_exclusion_scope_alternatives_depend_on_selected_type",
+          "parameterSelection": "all"
+        },
+        {
+          "symbol": "test_the_matrix_names_only_commands_the_cli_ships",
+          "parameterSelection": "all"
+        },
+        {
+          "symbol": "test_it_preserves_the_unresolved_member_cid_question_rather_than_claiming_it_settled",
+          "parameterSelection": "all"
+        }
+      ]
+    },
+    {
+      "id": "SR-184",
+      "slice": "S12",
+      "source": "tests/offline/test_setup.py",
+      "sourceSha256": "9cbdf5ae3f22a1c739e57f4a6ad0f7ecdb785eff37d10981a4870c50420624c7",
+      "members": [
+        {
+          "symbol": "test_guidance_is_offline_and_writes_nothing",
+          "parameterSelection": "all"
+        },
+        {
+          "symbol": "test_all_integrations_install_and_rerun_without_writes",
+          "parameterSelection": "all"
+        },
+        {
+          "symbol": "test_repair_moved_binary_preserves_other_hooks_and_config",
+          "parameterSelection": "all"
+        },
+        {
+          "symbol": "test_opencode_plugin_injects_local_context_and_fails_open",
+          "parameterSelection": "all"
+        },
+        {
+          "symbol": "test_codex_features_preserve_valid_toml_settings_and_comments",
+          "parameterSelection": "all"
+        }
+      ]
+    },
+    {
+      "id": "SR-185",
+      "slice": "S12",
+      "source": "tests/offline/test_setup.py",
+      "sourceSha256": "9cbdf5ae3f22a1c739e57f4a6ad0f7ecdb785eff37d10981a4870c50420624c7",
+      "members": [
+        {
+          "symbol": "test_invalid_configuration_is_refused_before_any_write",
+          "parameterSelection": "all"
+        },
+        {
+          "symbol": "test_non_durable_executable_is_refused",
+          "parameterSelection": "all"
+        },
+        {
+          "symbol": "test_resolved_temporary_boundary_refuses_either_executable_before_writes",
+          "parameterSelection": "all"
+        },
+        {
+          "symbol": "test_hook_is_one_line_and_exits_zero_without_network",
+          "parameterSelection": "all"
+        }
+      ]
+    },
+    {
+      "id": "SR-188",
+      "slice": "S12",
+      "source": "tests/offline/test_skill.py",
+      "sourceSha256": "499e24fd3d1b3a67188f2d79e46be5b2a545bf6a922d224c6e7dd6fdb99dd40a",
+      "members": [
+        {
+          "symbol": "test_committed_skill_matches_deterministic_generator",
+          "parameterSelection": "all"
+        },
+        {
+          "symbol": "test_check_refuses_drift_without_writing_and_generation_repairs_it",
+          "parameterSelection": "all"
+        },
+        {
+          "symbol": "test_check_refuses_missing_stale_and_extra_command_references",
+          "parameterSelection": "all"
+        }
+      ]
+    },
+    {
+      "id": "SR-189",
+      "slice": "S12",
+      "source": "tests/offline/test_skill.py",
+      "sourceSha256": "499e24fd3d1b3a67188f2d79e46be5b2a545bf6a922d224c6e7dd6fdb99dd40a",
+      "members": [
+        {
+          "symbol": "test_bare_home_suggests_install_inside_each_host",
+          "parameterSelection": "all"
+        },
+        {
+          "symbol": "test_hint_is_only_on_bare_home_inside_a_host",
+          "parameterSelection": "all"
+        },
+        {
+          "symbol": "test_user_skill_suppresses_hint",
+          "parameterSelection": "all"
+        },
+        {
+          "symbol": "test_project_skill_found_from_subdirectory",
+          "parameterSelection": "all"
+        },
+        {
+          "symbol": "test_host_root_overrides",
+          "parameterSelection": "all"
+        },
+        {
+          "symbol": "test_probe_failure_does_not_break_home",
+          "parameterSelection": "all"
+        },
+        {
+          "symbol": "test_another_hosts_skill_does_not_suppress_hint",
+          "parameterSelection": "all"
+        },
+        {
+          "symbol": "test_project_probe_stops_at_repository_boundary",
+          "parameterSelection": "all"
+        },
+        {
+          "symbol": "test_claude_finds_main_checkout_skill_from_worktree",
+          "parameterSelection": "all"
+        },
+        {
+          "symbol": "test_authenticated_home_keeps_install_hint",
+          "parameterSelection": "all"
+        }
+      ]
+    },
+    {
+      "id": "SR-194",
+      "slice": "S01",
+      "source": "tests/offline/test_toon_parity.py",
+      "sourceSha256": "a30129cb02914f039ef0744ef1387acf1d8af79c545edee74f46aebf21153d70",
+      "members": [
+        {
+          "symbol": "test_a_uniform_row_array_encodes_as_a_tabular_block",
+          "parameterSelection": "all"
+        },
+        {
+          "symbol": "test_a_single_element_string_array_stays_inline",
+          "parameterSelection": "all"
+        },
+        {
+          "symbol": "test_falcon_axi_never_emits_an_empty_array",
+          "parameterSelection": "all"
+        },
+        {
+          "symbol": "test_a_rendered_document_round_trips_through_the_decoder",
+          "parameterSelection": "all"
+        }
+      ]
+    },
+    {
+      "id": "SR-203",
+      "slice": "S12",
+      "source": "tests/packaged/test_catalog.py",
+      "sourceSha256": "43bcbf0bf2a00600e39f3e6fcb16343296943b70a6391ca34d4aae52b8d12ad5",
+      "members": [
+        {
+          "symbol": "test_installed_version",
+          "parameterSelection": "all"
+        }
+      ]
+    },
+    {
+      "id": "SR-204",
+      "slice": "S13",
+      "source": "tests/packaged/test_catalog.py",
+      "sourceSha256": "43bcbf0bf2a00600e39f3e6fcb16343296943b70a6391ca34d4aae52b8d12ad5",
+      "members": [
+        {
+          "symbol": "test_installed_subcommand_help",
+          "parameterSelection": "all"
+        },
+        {
+          "symbol": "test_installed_input_rejected_before_authentication",
+          "parameterSelection": "all"
+        }
+      ]
+    },
+    {
+      "id": "SR-205",
+      "slice": "S01",
+      "source": "tests/packaged/test_catalog.py",
+      "sourceSha256": "43bcbf0bf2a00600e39f3e6fcb16343296943b70a6391ca34d4aae52b8d12ad5",
+      "members": [
+        {
+          "symbol": "test_configured_home_is_bounded_content_with_identity_and_next_steps",
+          "parameterSelection": "all"
+        },
+        {
+          "symbol": "test_missing_credentials_auth_failure_and_denied_home_are_not_zero",
+          "parameterSelection": "all"
+        },
+        {
+          "symbol": "test_installed_empty_list_is_successful_and_explicit",
+          "parameterSelection": "all"
+        }
+      ]
+    },
+    {
+      "id": "SR-207",
+      "slice": "S12",
+      "source": "tests/packaged/test_catalog.py",
+      "sourceSha256": "43bcbf0bf2a00600e39f3e6fcb16343296943b70a6391ca34d4aae52b8d12ad5",
+      "members": [
+        {
+          "symbol": "test_installed_opencode_consumer_injects_hook_context_and_fails_open",
+          "parameterSelection": "all"
+        },
+        {
+          "symbol": "test_local_skill_install_route_preserves_generated_content",
+          "parameterSelection": "all"
+        }
+      ]
+    },
+    {
+      "id": "SR-210",
+      "slice": "S12",
+      "source": "tests/packaged/test_catalog.py",
+      "sourceSha256": "43bcbf0bf2a00600e39f3e6fcb16343296943b70a6391ca34d4aae52b8d12ad5",
+      "members": [
+        {
+          "symbol": "test_installed_setup_refuses_invalid_configuration_without_writes",
+          "parameterSelection": "all"
+        }
+      ]
+    }
+  ]
+}

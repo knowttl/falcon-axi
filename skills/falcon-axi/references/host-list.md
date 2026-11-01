@@ -3,7 +3,7 @@
 host list                 list hosts from the Falcon Hosts collection
 
 ```text
-uvx falcon-axi host list [--hostname <name>] [--platform <name>] [--status <name>] [--since <window>] [--filter <FQL>] [--limit N] [--cursor <token>] [--all] [--max-rows N] [--fields <names>]
+npx -y @knowttl/falcon-axi@next host list [--hostname <name>] [--platform <name>] [--status <name>] [--since <window>] [--filter <FQL>] [--limit N] [--cursor <token>] [--all] [--max-rows N] [--fields <names>]
 
 --hostname   hostname to match; Hosts filters accept wildcards, so WIN-* works
 --platform   one of windows, mac, linux
@@ -19,8 +19,8 @@ uvx falcon-axi host list [--hostname <name>] [--platform <name>] [--status <name
 Filterable fields include hostname, platform_name, os_version, agent_version, status,
 last_seen, first_seen, machine_domain, and local_ip.
 Examples:
-  uvx falcon-axi host list --platform windows --since 24h
-  uvx falcon-axi host list --filter "hostname:'WIN-*'+platform_name:'Windows'"
+  npx -y @knowttl/falcon-axi@next host list --platform windows --since 24h
+  npx -y @knowttl/falcon-axi@next host list --filter "hostname:'WIN-*'+platform_name:'Windows'"
 
 This command is read-only and requires only Hosts:read. It reports containment status as
 data and cannot change it.
