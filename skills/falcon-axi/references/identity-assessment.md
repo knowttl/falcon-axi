@@ -3,7 +3,7 @@
 identity assessment       security assessment score and risk factors
 
 ```text
-uvx falcon-axi identity assessment [--domain <name>]
+npx -y @knowttl/falcon-axi identity assessment [--domain <name>]
 
 --domain     configured Active Directory domain; omit for the overall assessment
 

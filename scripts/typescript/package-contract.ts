@@ -1,5 +1,6 @@
 import assert from "node:assert/strict";
 import { execFileSync } from "node:child_process";
+import { createHash } from "node:crypto";
 import { mkdtempSync, readFileSync, rmSync } from "node:fs";
 import { Socket } from "node:net";
 import { homedir, tmpdir } from "node:os";
@@ -82,19 +83,24 @@ try {
       "README.md",
       "LICENSE",
       ".typescript-build/src/bin.js",
+      ".typescript-build/src/hook.js",
       ".typescript-build/src/version.js",
       ".typescript-build/src/cli.js",
       ".typescript-build/src/metadata.js",
+      ".typescript-build/src/parser.js",
       ".typescript-build/src/axi-credential.schema.json",
       ".typescript-build/native/checksums.json",
       "native/prebuilds/linux-x64.node",
       "native/prebuilds/win32-x64.node",
+      "artium-invocations.json",
+      "skills/falcon-axi/SKILL.md",
     ];
     for (const path of required)
       assert.ok(files.includes(path), `Missing ${path}`);
     for (const path of files)
       assert.ok(
         required.includes(path) ||
+          /^skills\/falcon-axi\/references\/[a-z][a-z0-9-]*\.md$/.test(path) ||
           /^\.typescript-build\/src\/(?:transport\/)?[a-z][a-z0-9-]*\.(?:js|json)$/.test(
             path,
           ),
@@ -103,6 +109,7 @@ try {
     assert.equal(source.name, "@knowttl/falcon-axi");
     assert.deepEqual(source.bin, {
       "falcon-axi": ".typescript-build/src/bin.js",
+      "falcon-axi-hook": ".typescript-build/src/hook.js",
     });
     run("npm", [
       "install",
@@ -136,6 +143,29 @@ try {
     const help = run(bin, ["--help"]);
     assert.ok(help.startsWith(`falcon-axi ${source.version} - `));
     assert.match(help, /^  detection list\s/m);
+    assert.match(help, /^  setup hooks\s/m);
+    const hook = join(directory, "node_modules/.bin/falcon-axi-hook");
+    assert.match(run(hook, []), /^falcon-axi \S+: profile unresolved/);
+    const catalog = JSON.parse(
+      readFileSync(join(installed, "artium-invocations.json"), "utf8"),
+    ) as {
+      executable: string;
+      hook: string;
+      parser: { path: string; sha256: string };
+      schema: { path: string; sha256: string };
+      skill: { path: string; sha256: string };
+    };
+    assert.equal(catalog.executable, source.bin["falcon-axi"]);
+    assert.equal(catalog.hook, source.bin["falcon-axi-hook"]);
+    for (const entry of [catalog.parser, catalog.schema, catalog.skill]) {
+      assert.ok(files.includes(entry.path));
+      assert.equal(
+        createHash("sha256")
+          .update(readFileSync(join(installed, entry.path)))
+          .digest("hex"),
+        entry.sha256,
+      );
+    }
     // Artium imports metadata for admission and pins the parser and schema paths.
     const metadata = await import(
       pathToFileURL(join(installed, ".typescript-build/src/metadata.js")).href

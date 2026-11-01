@@ -9,7 +9,7 @@ description: >-
 
 Read CrowdStrike Falcon from the shell.
 See [installation and agent setup](https://github.com/knowttl/falcon-axi#use-with-your-agent).
-Run `uvx falcon-axi ...` without a global install.
+Run `npx -y @knowttl/falcon-axi ...` without a global install.
 
 ## Read-only boundary
 
@@ -23,24 +23,24 @@ There is no arbitrary REST or GraphQL escape hatch.
 Start with the [compact investigation guide](references/agent-guide.md) for exact commands, one-call forms, output bounds, safety and failure recovery.
 Use help to repair a failed command or inspect an unfamiliar option, not to start an investigation.
 
-Run `uvx falcon-axi` for recent detections, or invoke a known command directly.
+Run `npx -y @knowttl/falcon-axi` for recent detections, or invoke a known command directly.
 
-- Run `uvx falcon-axi detection list` to see more detections
-- Run `uvx falcon-axi detection list --product idp` for Identity Protection detections
-- Run `uvx falcon-axi host list --filter "hostname:'WIN-*'"` to search hosts
-- Run `uvx falcon-axi cve show <CVE-ID>` for Falcon Intelligence on one CVE
-- Run `uvx falcon-axi scopes` to see what this API client needs
+- Run `npx -y @knowttl/falcon-axi detection list` to see more detections
+- Run `npx -y @knowttl/falcon-axi detection list --product idp` for Identity Protection detections
+- Run `npx -y @knowttl/falcon-axi host list --filter "hostname:'WIN-*'"` to search hosts
+- Run `npx -y @knowttl/falcon-axi cve show <CVE-ID>` for Falcon Intelligence on one CVE
+- Run `npx -y @knowttl/falcon-axi scopes` to see what this API client needs
 
 ## Commands
 
-Run `uvx falcon-axi --help` for the complete command list.
+Run `npx -y @knowttl/falcon-axi --help` for the complete command list.
 Read `references/<command>.md` for a command's reference, replacing spaces with hyphens.
 
-Run `uvx falcon-axi <command> --help` for accepted flags, defaults, arguments, and examples.
+Run `npx -y @knowttl/falcon-axi <command> --help` for accepted flags, defaults, arguments, and examples.
 
 ## Credentials and output
 
-Use `uvx falcon-axi auth status` to diagnose credentials without printing their values.
+Use `npx -y @knowttl/falcon-axi auth status` to diagnose credentials without printing their values.
 Secrets belong in environment variables or env/file SecretRefs in config.json, never command arguments.
 Use `--profile <name>` or `--config <path>` for configured credentials, and `--region` for the Falcon cloud.
 Use `--member-cid` to select a Flight Control child tenant and `--no-member-cid` to clear an inherited selection.
@@ -57,8 +57,8 @@ search start --wait advises when the normalized filter differs; review it before
 search start checks CQL structure before authentication: use the reported code, line, column, token class, and fix hint.
 Local CQL errors never echo submitted query text or caret excerpts, so query text cannot leak.
 This conservative check does not validate function names, fields, or query semantics; ambiguity passes.
-Start with `uvx falcon-axi search start --query '<cql> | head(5)' --wait 30`.
-If still running, use `uvx falcon-axi search status <id> --wait 30`; --wait accepts 1-50 seconds.
+Start with `npx -y @knowttl/falcon-axi search start --query '<cql> | head(5)' --wait 30`.
+If still running, use `npx -y @knowttl/falcon-axi search status <id> --wait 30`; --wait accepts 1-50 seconds.
 Without --wait, start returns the job id and status polls once.
 For readable epoch-millisecond @timestamp values, append this CQL stage to the query:
 `| formatTime("%Y-%m-%dT%H:%M:%SZ", field=@timestamp, as=time, timezone="UTC")`.
@@ -66,7 +66,7 @@ Stop search jobs when no longer needed.
 
 ## Read-only RTR execution
 
-Use `uvx falcon-axi rtr run <device_id> --command '<complete command>'` for a local preview.
+Use `npx -y @knowttl/falcon-axi rtr run <device_id> --command '<complete command>'` for a local preview.
 Execution requires a configured profile with rtr.enabled=true and both --execute and
 --confirm '<device_id>:<complete command>' matching the host and command exactly.
 FALCON_AXI_READ_ONLY=1 forbids execution even with opt-in and confirmation; previews and history remain available.
@@ -79,9 +79,9 @@ Execution currently requires POSIX private-file and signal primitives.
 
 ### Running a command
 
-1. Find the 32-character device id with `uvx falcon-axi host list --hostname '<name>'`.
+1. Find the 32-character device id with `npx -y @knowttl/falcon-axi host list --hostname '<name>'`.
    Work on one host at a time and prove the workflow on a single host first.
-2. Preview with `uvx falcon-axi rtr run <device_id> --command '<complete command>'`.
+2. Preview with `npx -y @knowttl/falcon-axi rtr run <device_id> --command '<complete command>'`.
    The preview makes no network request and shows the effective policy and allowed commands.
 3. Execute the identical command string with `--execute --confirm '<device_id>:<complete command>'`.
 

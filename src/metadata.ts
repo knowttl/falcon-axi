@@ -1,6 +1,9 @@
 import inspectionCommands from "./inspection-commands.json" with { type: "json" };
 import searchCommands from "./search-commands.json" with { type: "json" };
 
+export const DESCRIPTION =
+  "Read CrowdStrike Falcon from the shell with compact, structured results for agents and the humans running them.";
+
 export interface Command {
   readonly name: string;
   readonly summary: string;
@@ -16,6 +19,24 @@ const list = ["filter", "limit", "cursor"];
 const detection = ["filter", "severity", "status", "product", "since"];
 const host = ["filter", "hostname", "platform", "status", "since"];
 const declarations: Command[] = [
+  {
+    name: "setup",
+    summary:
+      "  setup                     offline installation and credential guidance",
+    order: 2800,
+    values: [],
+    booleans: [],
+    operations: [],
+  },
+  {
+    name: "setup hooks",
+    summary:
+      "  setup hooks               install or repair all three session integrations",
+    order: 2900,
+    values: [],
+    booleans: [],
+    operations: [],
+  },
   {
     name: "rtr run",
     summary:

@@ -8,6 +8,9 @@ Install the CLI with `uv tool install falcon-axi`, then opt in:
 falcon-axi setup hooks
 ```
 
+That installation command selects the released Python package.
+For the unpublished TypeScript candidate, follow its [artifact installation instructions](design/v1-typescript.md#installation-and-full-parity-candidate) before opting in.
+
 This installs or repairs integrations for Claude Code, Codex, and OpenCode.
 At session start, they provide local profile status, region, version, and a command hint without contacting Falcon.
 Ordinary reads and `falcon-axi setup` do not install hooks.
@@ -38,7 +41,8 @@ npx skills add knowttl/falcon-axi --skill falcon-axi
 
 Add `-g` for a user-wide skill.
 Choose either integration or use both; hook setup does not install the skill.
-The skill grants no permissions and can use `uvx falcon-axi` without a global CLI install.
+The skill grants no permissions.
+Follow its generated invocation examples to run without a global CLI install.
 
 ## Remove session integrations
 

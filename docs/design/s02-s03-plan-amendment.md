@@ -11,7 +11,7 @@ Plan S12 owns installation and hooks.
 The test installs agent hook files, executes the hooks, checks unchanged repeat writes and repairs executable relocation.
 Those observations require the S12 implementation and cannot be replaced by an S03 package-read assertion.
 The two investigation members of SR-206 remain in S03.
-The transferred symbol remains pending and required in S12 and the final S13 gate.
+The transferred symbol remains required in S12 and the final S13 gate; the [candidate notes](v1-typescript.md#installation-and-full-parity-candidate) own its delivery status.
 The committed migration coverage ledger records the single-symbol reassignment.
 All other S02/S03 ownership remains unchanged.
 
@@ -26,16 +26,11 @@ A change that leaves a requirement unowned or changes scope requires a separate 
 ## Temporary discovery expectations
 
 The partial TypeScript surface must not advertise commands owned by later slices.
-Every affected golden scenario carries an explicit `typescriptMigration` record describing the exact omitted suggestion or narrowed discovery output.
-The comparison derives these expectations from the retained origin documents and frozen owned-command list, never from candidate output.
+During the partial-surface slices, each affected golden scenario carried an explicit `typescriptMigration` record describing the exact omitted suggestion or narrowed discovery output.
+The comparison derived those expectations from the retained origin documents and frozen owned-command list, never from candidate output.
 The Python expected documents remain unchanged.
 S08-S10 restored search and Identity navigation, setup guidance for search, and write-labelled scope guidance.
-The remaining exceptions are:
-
-| Affected scenarios | Temporary difference | Restore when |
-| --- | --- | --- |
-| `home-view-skill-hint` | Omit installation guidance for the full Python skill. | S12 delivers the candidate's generated skill. |
-| `help-top`, `unknown-command`, `scopes` | Restrict command names, summaries and the scope matrix to frozen delivered commands. | Each additional command ships. |
+The [candidate notes](v1-typescript.md#installation-and-full-parity-candidate) own the final restoration status of the remaining discovery scenarios.
 
 Restore each original discovery entry when its target ships and remove its temporary annotation.
 S13 must compare the complete original documents with no TypeScript discovery exceptions.

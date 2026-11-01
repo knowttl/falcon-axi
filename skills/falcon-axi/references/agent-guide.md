@@ -1,7 +1,7 @@
 # Falcon investigation quick guide
 
 Start with a command below; reserve `--help` for a command that fails or an unfamiliar option.
-Use `uvx falcon-axi` in place of `falcon-axi` when it is not installed globally.
+Use `npx -y @knowttl/falcon-axi` in place of `falcon-axi` when it is not installed globally.
 Examples are wholly synthetic; replace their identifiers with values returned by your investigation.
 Credentials must already be supplied through environment variables or configured SecretRefs, never arguments.
 Append `--profile <name>` to select a configured profile and retain it on every pivot.
@@ -91,4 +91,3 @@ Read the stable `code` and actionable `help` before retrying:
 | `RATE_LIMITED` | Honor retry guidance after the built-in bounded retries; narrow the request |
 | `NETWORK_UNREACHABLE`, `TLS_UNTRUSTED`, `ORIGIN_NOT_ALLOWED` | Fix connectivity, trust or configured region; do not bypass validation |
 | `READ_ONLY_VIOLATION` | Respect the policy boundary; use passive reads |
-

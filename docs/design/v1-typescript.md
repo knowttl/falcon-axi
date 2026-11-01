@@ -1,10 +1,10 @@
-# TypeScript S02-S11 candidate
+# TypeScript S02-S13 candidate
 
 The [approved settlement amendment](s01-primitive-amendment.md#dns-deadline-settlement) owns the DNS resolver and process settlement contract.
 The installed-artifact regression uses a three-second local DNS blackhole and requires WAIT_TIMEOUT and process settlement within the inherited one-second budget plus startup allowance.
 
 The migration branch preserves the released Python implementation while evaluating a Node 24 TypeScript replacement.
-The private npm candidate is `@knowttl/falcon-axi@0.0.0-s02.0` with the executable name `falcon-axi`.
+The private npm candidate is `@knowttl/falcon-axi@0.0.0-s02.0` with the executable names `falcon-axi` and `falcon-axi-hook`.
 The candidate delivers local configuration diagnostics, token-checking `auth status`, `scopes`, and passive detection investigation and host, IOC, process, FileVantage and RTR history reads.
 S04 adds account, asset, application, login, host-group, IoT, weekly sensor usage and Identity sensor reads.
 S05 adds Spotlight vulnerabilities, CVE intelligence, cloud assets and misconfigurations, aggregated cloud risks, containers, images, serverless SARIF and Shield checks.
@@ -33,15 +33,15 @@ Account offsets remain unbounded; container/image inventory caps its window at 1
 `src/metadata.ts` owns the delivered TypeScript command and flag surface.
 The released Python implementation remains present as the frozen comparison and rollback origin.
 The earlier representative `search status synthetic-job --wait 1` budget probe now uses the delivered lifecycle and retains its shared authentication deadline.
-The remaining Python command surface remains the behaviour origin for later slices.
+The complete Python command surface remains the behaviour origin for parity and rollback.
 No npm publication, Python release change, workflow edit or host deployment is included.
 
 ## Build and offline verification
 
 Development pins Node 24.14.0, npm 11.9.0 and exact locked dependencies.
-The runtime floor is Node 24.11.0; native Windows controller refusal, preview and reads, and other Node versions remain unproved in this slice.
+The runtime floor is Node 24.11.0; native Windows evidence remains pending.
 Run `npm ci --offline --ignore-scripts` and `npm run verify`.
-The latter repeats the S10 native carrier, the native S11 lifecycle, compiled filesystem primitives, and frozen safety ownership checks.
+The latter runs the cumulative S13 native gate, including the S10 carrier, S11 lifecycle, compiled filesystem primitives, S12 installation and hook checks, generated freshness, all 350 goldens, and reconciliation of all 210 retained safety groups.
 It also runs a standalone package-contract check after building: the packed allowlist must contain the bin, admission metadata, parser, credential schema, README, license and native prebuilds, without tests, source maps, local paths or recognizable secret material.
 The check installs the tarball offline outside the checkout, probes the installed bin with `--help` and `--version`, and imports the admission metadata and CLI entry point under the inherited kernel IP socket deny.
 Run `node .typescript-build/scripts/typescript/package-contract.js` after `npm run build` for a focused check; it needs no hosted fixture and requires Linux seccomp support and `/usr/bin/gcc` to compile the socket-denial launcher.
@@ -62,14 +62,16 @@ Synthetic TLS delivery is injected only by the unpackaged test launcher after pr
 The CLI contains no fake-origin flag, config field, environment selector or recorded transport.
 The separate compiled primitive gate also requires `cc` to build its test-only network-denial launcher and fault-injection library.
 
-The optional hosted path requires a separately built frozen local Artium fixture containing the reviewed S01 host delta.
-Set `S01_ARTIUM_ROOT` to that fixture and run `npm run check:slice -- --slice S10 --paths native,artium --offline`.
+The optional hosted path requires a separately built frozen local Artium fixture containing the candidate's host delta.
+Set `S01_ARTIUM_ROOT` to that fixture and run `npm run check:slice -- --slice S13 --paths native,artium --offline`.
 Missing fixtures and unknown or empty selections fail.
 The host delta launches the candidate with its Node runtime rather than either Python launch condition, retaining Node heap limits and the existing termination grace.
 The real client, server, public credential API, private profile writer and runner execute the same installed artifact.
 The configured no-mistakes test deliberately requires only the native offline path.
 Slices merge on their repository gate, including the package-contract and network-denial checks; hosted Artium proof runs once per release or in one nightly batch rather than per slice.
 Final hosted evidence is bound separately to the frozen fixture and final candidate revision.
+Artium hosted proof and the package switch fold once per release candidate rather than per slice.
+The recorded source-only `artium-delta` is held for the next release-candidate fold; this carrier makes no hosted acceptance claim.
 
 ## Authority and output
 
@@ -99,7 +101,7 @@ The [S02/S03 verification amendment](s02-s03-plan-amendment.md) owns the deferre
 Subcommand help is seeded from the frozen Python origin in `src/help.json` and `src/search-help.json`.
 Errors use the Python origin's top-level error and code fields rather than S01's nested envelope.
 Opaque cursors retain the origin's signed context and exact serialization.
-No existing Python golden document is rewritten.
+S12/S13 retain the original golden output contract without a scope-label change.
 
 ## Native primitive proof
 
@@ -159,3 +161,22 @@ The compiled-interface probe uses an inherited Linux seccomp IP socket deny, pre
 It proves the deny in IPv4/IPv6 child processes, retained-ancestor writes, unsafe-target and ancestor refusals, cross-process lock contention and release, and injected short-write, EINTR and file/directory fsync outcomes.
 An outside-source install proves compiled appends, binary-integrity refusal, and read/help plus Windows controller refusal with the binaries removed.
 Neither fs-ext nor fs-native-extensions was adopted.
+
+## Installation and full parity candidate
+
+S12 adds the separate `falcon-axi-hook` npm executable and the offline `setup` and `setup hooks` commands.
+The hook resolves local credentials and trusted region information, prints one safe line, and exits successfully without authentication or network access.
+Explicit setup preserves the four existing agent configuration targets, owned-entry repair, malformed-file refusal, comments, and unchanged bytes and modification times on repeat installation.
+Windows commands use the installed Node runtime plus the real JavaScript entry point when an executable wrapper cannot be used directly.
+Ordinary commands do not install integrations, capture transcripts, or update software.
+Build and pack with `npm run build` and `npm pack --pack-destination <directory>`.
+Install that tarball into a durable prefix with `npm install --offline --ignore-scripts --prefix <prefix> <tarball>` after acquiring the pinned dependencies during setup.
+Run either executable from `<prefix>/node_modules/.bin`, or use the installed Node runtime with its compiled entry point on Windows.
+This private candidate is not an npm publication or a main-branch cutover.
+
+S13 restores complete discovery comparisons against the retained command references and all 350 golden scenarios, removing temporary discovery filtering.
+The `scopes` posture, scope rows, provisioning guidance, and exit code retain exact origin parity, including all four original exception labels and guarded RTR host execution disclosure.
+All golden comparisons retain the existing release-version substitutions and byte-for-byte output contract.
+The corpus provenance includes the already merged bounded hostname-history amendment from `eae2ba801a3bcf39b2b13b4fc3799e1ee3e05e44` and §1.8 of `v1.md`.
+Its two host-history help documents precede this carrier and remain unchanged here.
+Native Windows evidence remains pending.

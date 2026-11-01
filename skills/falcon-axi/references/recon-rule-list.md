@@ -3,7 +3,7 @@
 recon-rule list               list Recon monitoring rules
 
 ```text
-uvx falcon-axi recon-rule list [--filter <FQL>] [--limit N] [--cursor <token>]
+npx -y @knowttl/falcon-axi recon-rule list [--filter <FQL>] [--limit N] [--cursor <token>]
 
 list Recon monitoring rules
 --filter     raw FQL; + is AND, `,` is OR, values are single-quoted
@@ -11,6 +11,6 @@ list Recon monitoring rules
 --cursor     opaque continuation token; queries stop at 10000 results
 Requires Monitoring rules (Falcon Intelligence Recon):read. Read-only.
 Examples:
-  uvx falcon-axi recon-rule list --filter "status:'active'"
-  uvx falcon-axi recon-rule list --limit 100
+  npx -y @knowttl/falcon-axi recon-rule list --filter "status:'active'"
+  npx -y @knowttl/falcon-axi recon-rule list --limit 100
 ```

@@ -3,11 +3,11 @@
 setup                     offline installation and credential guidance
 
 ```text
-uvx falcon-axi setup
+npx -y @knowttl/falcon-axi setup
 
 Print offline guidance without writing files.
 
 Examples:
-  uvx falcon-axi setup
-  uvx falcon-axi setup hooks
+  npx -y @knowttl/falcon-axi setup
+  npx -y @knowttl/falcon-axi setup hooks
 ```

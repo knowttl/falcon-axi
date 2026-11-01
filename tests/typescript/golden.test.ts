@@ -1,31 +1,24 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
 import { readFile, writeFile } from "node:fs/promises";
+import { readdirSync } from "node:fs";
 import { resolve, join } from "node:path";
 import { createHmac } from "node:crypto";
-import s02 from "../fixtures/migration/S02/contracts.json" with { type: "json" };
-import s03 from "../fixtures/migration/S03/contracts.json" with { type: "json" };
-import s04 from "../fixtures/migration/S04/contracts.json" with { type: "json" };
-import s05 from "../fixtures/migration/S05/contracts.json" with { type: "json" };
 import { prepareScenario, run } from "./s01.test.js";
 import type { Scenario } from "./s01.test.js";
 import { expectedDocument } from "./discovery.js";
-import type { DiscoveryDelta } from "./discovery.js";
 
 if (process.env.S01_ACTIVE_PATH !== "artium")
-  for (const name of [
-    ...s02.goldenScenarioIds,
-    ...s03.goldenScenarioIds,
-    ...s04.goldenScenarioIds,
-    ...s05.goldenScenarioIds,
-  ]) {
+  for (const name of readdirSync(resolve("tests/golden/scenarios"))
+    .sort()
+    .map((file) => file.replace(/\.json$/, ""))) {
     test(`golden ${name}`, async () => {
       const scenario = JSON.parse(
         await readFile(
           resolve("tests/golden/scenarios", `${name}.json`),
           "utf8",
         ),
-      ) as Scenario & { typescriptMigration?: DiscoveryDelta };
+      ) as Scenario;
       await prepareScenario(scenario);
       const args = [...scenario.argv];
       if (scenario.cursor) {
@@ -72,10 +65,7 @@ if (process.env.S01_ACTIVE_PATH !== "artium")
           join(process.env.S01_EVIDENCE_DIR, `golden-${name}.actual.txt`),
           result.stdout,
         );
-      const expected = await expectedDocument(
-        name,
-        scenario.typescriptMigration,
-      );
+      const expected = await expectedDocument(name);
       assert.equal(result.code, scenario.exit_code, result.stdout);
       assert.equal(result.stdout, expected);
     });

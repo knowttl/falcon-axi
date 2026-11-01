@@ -7,7 +7,7 @@ import schema from "./axi-credential.schema.json" with { type: "json" };
 import { CliError, object } from "./core.js";
 import { registerSecret, registerMemberCid } from "./render.js";
 import { verifyWindowsFile } from "./windows-acl.js";
-import { rtrPolicy, readOnly } from "./rtr-policy.js";
+import { rtrPolicy } from "./rtr-policy.js";
 import type { RtrPolicy } from "./rtr-policy.js";
 
 export interface Credential {
@@ -29,17 +29,18 @@ const aliases: Readonly<Record<string, string>> = {
   FALCON_PROXY_URL: "FALCON_AXI_PROXY_URL",
 };
 const sourceAliases = new Map<string, string>();
-export function normalizeEnvironment(): void {
+export function normalizeEnvironment(): string[] {
+  const warnings: string[] = [];
   for (const [old, current] of Object.entries(aliases)) {
     if (process.env[old] !== undefined) {
-      process.stderr.write(`${old} is deprecated; use ${current}\n`);
+      warnings.push(`${old} is deprecated; use ${current}`);
       if (process.env[current] === undefined) {
         sourceAliases.set(current, old);
         process.env[current] = process.env[old];
       }
     }
   }
-  readOnly();
+  return warnings;
 }
 export function directory(kind: "config" | "state"): string {
   const env = process.env;

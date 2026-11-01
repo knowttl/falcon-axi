@@ -53,7 +53,7 @@ cites every source, so a claim can be re-verified rather than trusted.
 Read both before changing implementation structure; v1.md still owns behavior, v1-python.md owns how it is
 built.
 The Python implementation has no Node runtime, MCP process, or `falcon-mcp` dependency.
-The migration branch also carries a separate TypeScript S02-S11 candidate under `src/`.
+The migration branch also carries a separate TypeScript S02-S13 candidate under `src/`.
 
 The implemented surface includes the package foundation, the sealed transport and its closed registry,
 AXI credential profiles with `auth status`, `profile list`, and `config path`, the read domains (`detection list`, `detection show`,
@@ -147,8 +147,8 @@ reviewing any CLI behavior here.
 `azure-axi` and `awx-axi` are the sibling references for these patterns; `docs/design/v1.md` §18 lists where
 their assumptions do **not** transfer to Falcon.
 `skills/falcon-axi/SKILL.md` and its per-command `references/` are this repo's generated agent-facing skill;
-regenerate them with `uv run scripts/skill.py`.
-Its drift check runs in `scripts/verify.py`, and it must never name a command the CLI does not ship (`docs/design/v1.md` §12.2).
+regenerate them with `npm run generate` on the TypeScript migration branch.
+Its drift check runs in `npm run verify`, and it must never name a command the CLI does not ship (`docs/design/v1.md` §12.2).
 
 ## Maintaining this file
 

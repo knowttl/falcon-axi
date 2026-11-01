@@ -1,0 +1,1484 @@
+{
+  "version": 1,
+  "executable": ".typescript-build/src/bin.js",
+  "hook": ".typescript-build/src/hook.js",
+  "schema": {
+    "path": ".typescript-build/src/axi-credential.schema.json",
+    "sha256": "adb248794413a7b853e36a4a75b4a53bd7f9e6dade8be040d39165f4d926ee30"
+  },
+  "parser": {
+    "path": ".typescript-build/src/parser.js",
+    "sha256": "19fc9b9145604071e06b790992dedfa9c09a162aac18dbf00ffd8184e003f1ca"
+  },
+  "skill": {
+    "path": "skills/falcon-axi/SKILL.md",
+    "sha256": "b8fa708de3bdebf28c195dd16b26947e90f515896f69cf1393542b368ee574de"
+  },
+  "globalFlags": [
+    "help",
+    "allow-unknown-origin",
+    "no-member-cid",
+    "config",
+    "profile",
+    "region",
+    "member-cid"
+  ],
+  "commands": [
+    {
+      "command": "detection summary",
+      "flags": {
+        "help": "boolean",
+        "allow-unknown-origin": "boolean",
+        "no-member-cid": "boolean",
+        "config": "value",
+        "profile": "value",
+        "region": "value",
+        "member-cid": "value",
+        "filter": "value",
+        "severity": "value",
+        "status": "value",
+        "product": "value",
+        "since": "value"
+      }
+    },
+    {
+      "command": "detection list",
+      "flags": {
+        "help": "boolean",
+        "allow-unknown-origin": "boolean",
+        "no-member-cid": "boolean",
+        "config": "value",
+        "profile": "value",
+        "region": "value",
+        "member-cid": "value",
+        "all": "boolean",
+        "filter": "value",
+        "severity": "value",
+        "status": "value",
+        "product": "value",
+        "since": "value",
+        "limit": "value",
+        "cursor": "value",
+        "max-rows": "value",
+        "fields": "value"
+      }
+    },
+    {
+      "command": "detection show",
+      "flags": {
+        "help": "boolean",
+        "allow-unknown-origin": "boolean",
+        "no-member-cid": "boolean",
+        "config": "value",
+        "profile": "value",
+        "region": "value",
+        "member-cid": "value",
+        "full": "boolean"
+      }
+    },
+    {
+      "command": "detection process",
+      "flags": {
+        "help": "boolean",
+        "allow-unknown-origin": "boolean",
+        "no-member-cid": "boolean",
+        "config": "value",
+        "profile": "value",
+        "region": "value",
+        "member-cid": "value",
+        "full": "boolean"
+      }
+    },
+    {
+      "command": "host list",
+      "flags": {
+        "help": "boolean",
+        "allow-unknown-origin": "boolean",
+        "no-member-cid": "boolean",
+        "config": "value",
+        "profile": "value",
+        "region": "value",
+        "member-cid": "value",
+        "all": "boolean",
+        "filter": "value",
+        "hostname": "value",
+        "platform": "value",
+        "status": "value",
+        "since": "value",
+        "limit": "value",
+        "cursor": "value",
+        "max-rows": "value",
+        "fields": "value"
+      }
+    },
+    {
+      "command": "host show",
+      "flags": {
+        "help": "boolean",
+        "allow-unknown-origin": "boolean",
+        "no-member-cid": "boolean",
+        "config": "value",
+        "profile": "value",
+        "region": "value",
+        "member-cid": "value"
+      }
+    },
+    {
+      "command": "host logins",
+      "flags": {
+        "help": "boolean",
+        "allow-unknown-origin": "boolean",
+        "no-member-cid": "boolean",
+        "config": "value",
+        "profile": "value",
+        "region": "value",
+        "member-cid": "value",
+        "hostname": "value",
+        "since": "value",
+        "limit": "value"
+      }
+    },
+    {
+      "command": "host network",
+      "flags": {
+        "help": "boolean",
+        "allow-unknown-origin": "boolean",
+        "no-member-cid": "boolean",
+        "config": "value",
+        "profile": "value",
+        "region": "value",
+        "member-cid": "value",
+        "hostname": "value"
+      }
+    },
+    {
+      "command": "host usb",
+      "flags": {
+        "help": "boolean",
+        "allow-unknown-origin": "boolean",
+        "no-member-cid": "boolean",
+        "config": "value",
+        "profile": "value",
+        "region": "value",
+        "member-cid": "value",
+        "since": "value"
+      }
+    },
+    {
+      "command": "account list",
+      "flags": {
+        "help": "boolean",
+        "allow-unknown-origin": "boolean",
+        "no-member-cid": "boolean",
+        "config": "value",
+        "profile": "value",
+        "region": "value",
+        "member-cid": "value",
+        "all": "boolean",
+        "filter": "value",
+        "limit": "value",
+        "cursor": "value",
+        "max-rows": "value"
+      }
+    },
+    {
+      "command": "account show",
+      "flags": {
+        "help": "boolean",
+        "allow-unknown-origin": "boolean",
+        "no-member-cid": "boolean",
+        "config": "value",
+        "profile": "value",
+        "region": "value",
+        "member-cid": "value"
+      }
+    },
+    {
+      "command": "asset list",
+      "flags": {
+        "help": "boolean",
+        "allow-unknown-origin": "boolean",
+        "no-member-cid": "boolean",
+        "config": "value",
+        "profile": "value",
+        "region": "value",
+        "member-cid": "value",
+        "filter": "value",
+        "limit": "value",
+        "cursor": "value"
+      }
+    },
+    {
+      "command": "asset show",
+      "flags": {
+        "help": "boolean",
+        "allow-unknown-origin": "boolean",
+        "no-member-cid": "boolean",
+        "config": "value",
+        "profile": "value",
+        "region": "value",
+        "member-cid": "value"
+      }
+    },
+    {
+      "command": "application list",
+      "flags": {
+        "help": "boolean",
+        "allow-unknown-origin": "boolean",
+        "no-member-cid": "boolean",
+        "config": "value",
+        "profile": "value",
+        "region": "value",
+        "member-cid": "value",
+        "full": "boolean",
+        "filter": "value",
+        "limit": "value",
+        "cursor": "value",
+        "fields": "value"
+      }
+    },
+    {
+      "command": "login list",
+      "flags": {
+        "help": "boolean",
+        "allow-unknown-origin": "boolean",
+        "no-member-cid": "boolean",
+        "config": "value",
+        "profile": "value",
+        "region": "value",
+        "member-cid": "value",
+        "filter": "value",
+        "limit": "value",
+        "cursor": "value"
+      }
+    },
+    {
+      "command": "iot list",
+      "flags": {
+        "help": "boolean",
+        "allow-unknown-origin": "boolean",
+        "no-member-cid": "boolean",
+        "config": "value",
+        "profile": "value",
+        "region": "value",
+        "member-cid": "value",
+        "filter": "value",
+        "limit": "value",
+        "cursor": "value"
+      }
+    },
+    {
+      "command": "vuln show",
+      "flags": {
+        "help": "boolean",
+        "allow-unknown-origin": "boolean",
+        "no-member-cid": "boolean",
+        "config": "value",
+        "profile": "value",
+        "region": "value",
+        "member-cid": "value"
+      }
+    },
+    {
+      "command": "vuln list",
+      "flags": {
+        "help": "boolean",
+        "allow-unknown-origin": "boolean",
+        "no-member-cid": "boolean",
+        "config": "value",
+        "profile": "value",
+        "region": "value",
+        "member-cid": "value",
+        "all": "boolean",
+        "filter": "value",
+        "host": "value",
+        "severity": "value",
+        "status": "value",
+        "since": "value",
+        "limit": "value",
+        "cursor": "value",
+        "fields": "value",
+        "max-rows": "value"
+      }
+    },
+    {
+      "command": "cve list",
+      "flags": {
+        "help": "boolean",
+        "allow-unknown-origin": "boolean",
+        "no-member-cid": "boolean",
+        "config": "value",
+        "profile": "value",
+        "region": "value",
+        "member-cid": "value",
+        "filter": "value",
+        "severity": "value",
+        "since": "value",
+        "limit": "value",
+        "cursor": "value"
+      }
+    },
+    {
+      "command": "cve show",
+      "flags": {
+        "help": "boolean",
+        "allow-unknown-origin": "boolean",
+        "no-member-cid": "boolean",
+        "config": "value",
+        "profile": "value",
+        "region": "value",
+        "member-cid": "value"
+      }
+    },
+    {
+      "command": "actor list",
+      "flags": {
+        "help": "boolean",
+        "allow-unknown-origin": "boolean",
+        "no-member-cid": "boolean",
+        "config": "value",
+        "profile": "value",
+        "region": "value",
+        "member-cid": "value",
+        "filter": "value",
+        "limit": "value",
+        "cursor": "value"
+      }
+    },
+    {
+      "command": "actor show",
+      "flags": {
+        "help": "boolean",
+        "allow-unknown-origin": "boolean",
+        "no-member-cid": "boolean",
+        "config": "value",
+        "profile": "value",
+        "region": "value",
+        "member-cid": "value",
+        "full": "boolean",
+        "mitre": "boolean"
+      }
+    },
+    {
+      "command": "report list",
+      "flags": {
+        "help": "boolean",
+        "allow-unknown-origin": "boolean",
+        "no-member-cid": "boolean",
+        "config": "value",
+        "profile": "value",
+        "region": "value",
+        "member-cid": "value",
+        "filter": "value",
+        "limit": "value",
+        "cursor": "value"
+      }
+    },
+    {
+      "command": "report show",
+      "flags": {
+        "help": "boolean",
+        "allow-unknown-origin": "boolean",
+        "no-member-cid": "boolean",
+        "config": "value",
+        "profile": "value",
+        "region": "value",
+        "member-cid": "value",
+        "full": "boolean"
+      }
+    },
+    {
+      "command": "malware list",
+      "flags": {
+        "help": "boolean",
+        "allow-unknown-origin": "boolean",
+        "no-member-cid": "boolean",
+        "config": "value",
+        "profile": "value",
+        "region": "value",
+        "member-cid": "value",
+        "filter": "value",
+        "limit": "value",
+        "cursor": "value"
+      }
+    },
+    {
+      "command": "malware show",
+      "flags": {
+        "help": "boolean",
+        "allow-unknown-origin": "boolean",
+        "no-member-cid": "boolean",
+        "config": "value",
+        "profile": "value",
+        "region": "value",
+        "member-cid": "value",
+        "full": "boolean"
+      }
+    },
+    {
+      "command": "indicator list",
+      "flags": {
+        "help": "boolean",
+        "allow-unknown-origin": "boolean",
+        "no-member-cid": "boolean",
+        "config": "value",
+        "profile": "value",
+        "region": "value",
+        "member-cid": "value",
+        "filter": "value",
+        "limit": "value",
+        "cursor": "value"
+      }
+    },
+    {
+      "command": "indicator show",
+      "flags": {
+        "help": "boolean",
+        "allow-unknown-origin": "boolean",
+        "no-member-cid": "boolean",
+        "config": "value",
+        "profile": "value",
+        "region": "value",
+        "member-cid": "value"
+      }
+    },
+    {
+      "command": "container list",
+      "flags": {
+        "help": "boolean",
+        "allow-unknown-origin": "boolean",
+        "no-member-cid": "boolean",
+        "config": "value",
+        "profile": "value",
+        "region": "value",
+        "member-cid": "value",
+        "filter": "value",
+        "limit": "value",
+        "cursor": "value"
+      }
+    },
+    {
+      "command": "image list",
+      "flags": {
+        "help": "boolean",
+        "allow-unknown-origin": "boolean",
+        "no-member-cid": "boolean",
+        "config": "value",
+        "profile": "value",
+        "region": "value",
+        "member-cid": "value",
+        "filter": "value",
+        "limit": "value",
+        "cursor": "value"
+      }
+    },
+    {
+      "command": "image vulnerabilities",
+      "flags": {
+        "help": "boolean",
+        "allow-unknown-origin": "boolean",
+        "no-member-cid": "boolean",
+        "config": "value",
+        "profile": "value",
+        "region": "value",
+        "member-cid": "value",
+        "filter": "value",
+        "limit": "value",
+        "cursor": "value"
+      }
+    },
+    {
+      "command": "serverless list",
+      "flags": {
+        "help": "boolean",
+        "allow-unknown-origin": "boolean",
+        "no-member-cid": "boolean",
+        "config": "value",
+        "profile": "value",
+        "region": "value",
+        "member-cid": "value",
+        "filter": "value",
+        "limit": "value",
+        "cursor": "value"
+      }
+    },
+    {
+      "command": "classification list",
+      "flags": {
+        "help": "boolean",
+        "allow-unknown-origin": "boolean",
+        "no-member-cid": "boolean",
+        "config": "value",
+        "profile": "value",
+        "region": "value",
+        "member-cid": "value",
+        "filter": "value",
+        "sort": "value",
+        "limit": "value",
+        "cursor": "value"
+      }
+    },
+    {
+      "command": "classification show",
+      "flags": {
+        "help": "boolean",
+        "allow-unknown-origin": "boolean",
+        "no-member-cid": "boolean",
+        "config": "value",
+        "profile": "value",
+        "region": "value",
+        "member-cid": "value"
+      }
+    },
+    {
+      "command": "data-policy list",
+      "flags": {
+        "help": "boolean",
+        "allow-unknown-origin": "boolean",
+        "no-member-cid": "boolean",
+        "config": "value",
+        "profile": "value",
+        "region": "value",
+        "member-cid": "value",
+        "platform": "value",
+        "filter": "value",
+        "sort": "value",
+        "limit": "value",
+        "cursor": "value"
+      }
+    },
+    {
+      "command": "data-policy show",
+      "flags": {
+        "help": "boolean",
+        "allow-unknown-origin": "boolean",
+        "no-member-cid": "boolean",
+        "config": "value",
+        "profile": "value",
+        "region": "value",
+        "member-cid": "value"
+      }
+    },
+    {
+      "command": "identity activity",
+      "flags": {
+        "help": "boolean",
+        "allow-unknown-origin": "boolean",
+        "no-member-cid": "boolean",
+        "config": "value",
+        "profile": "value",
+        "region": "value",
+        "member-cid": "value",
+        "since": "value"
+      }
+    },
+    {
+      "command": "search start",
+      "flags": {
+        "help": "boolean",
+        "allow-unknown-origin": "boolean",
+        "no-member-cid": "boolean",
+        "config": "value",
+        "profile": "value",
+        "region": "value",
+        "member-cid": "value",
+        "query": "value",
+        "repository": "value",
+        "since": "value",
+        "wait": "value"
+      }
+    },
+    {
+      "command": "search status",
+      "flags": {
+        "help": "boolean",
+        "allow-unknown-origin": "boolean",
+        "no-member-cid": "boolean",
+        "config": "value",
+        "profile": "value",
+        "region": "value",
+        "member-cid": "value",
+        "repository": "value",
+        "wait": "value"
+      }
+    },
+    {
+      "command": "search stop",
+      "flags": {
+        "help": "boolean",
+        "allow-unknown-origin": "boolean",
+        "no-member-cid": "boolean",
+        "config": "value",
+        "profile": "value",
+        "region": "value",
+        "member-cid": "value",
+        "repository": "value"
+      }
+    },
+    {
+      "command": "identity list",
+      "flags": {
+        "help": "boolean",
+        "allow-unknown-origin": "boolean",
+        "no-member-cid": "boolean",
+        "config": "value",
+        "profile": "value",
+        "region": "value",
+        "member-cid": "value",
+        "name": "value",
+        "email": "value",
+        "domain": "value",
+        "type": "value",
+        "limit": "value",
+        "cursor": "value"
+      }
+    },
+    {
+      "command": "identity show",
+      "flags": {
+        "help": "boolean",
+        "allow-unknown-origin": "boolean",
+        "no-member-cid": "boolean",
+        "config": "value",
+        "profile": "value",
+        "region": "value",
+        "member-cid": "value",
+        "full": "boolean"
+      }
+    },
+    {
+      "command": "identity timeline",
+      "flags": {
+        "help": "boolean",
+        "allow-unknown-origin": "boolean",
+        "no-member-cid": "boolean",
+        "config": "value",
+        "profile": "value",
+        "region": "value",
+        "member-cid": "value",
+        "since": "value",
+        "category": "value",
+        "limit": "value",
+        "cursor": "value"
+      }
+    },
+    {
+      "command": "identity assessment",
+      "flags": {
+        "help": "boolean",
+        "allow-unknown-origin": "boolean",
+        "no-member-cid": "boolean",
+        "config": "value",
+        "profile": "value",
+        "region": "value",
+        "member-cid": "value",
+        "domain": "value"
+      }
+    },
+    {
+      "command": "identity sensor list",
+      "flags": {
+        "help": "boolean",
+        "allow-unknown-origin": "boolean",
+        "no-member-cid": "boolean",
+        "config": "value",
+        "profile": "value",
+        "region": "value",
+        "member-cid": "value",
+        "filter": "value",
+        "limit": "value",
+        "cursor": "value"
+      }
+    },
+    {
+      "command": "identity sensor show",
+      "flags": {
+        "help": "boolean",
+        "allow-unknown-origin": "boolean",
+        "no-member-cid": "boolean",
+        "config": "value",
+        "profile": "value",
+        "region": "value",
+        "member-cid": "value"
+      }
+    },
+    {
+      "command": "identity rule list",
+      "flags": {
+        "help": "boolean",
+        "allow-unknown-origin": "boolean",
+        "no-member-cid": "boolean",
+        "config": "value",
+        "profile": "value",
+        "region": "value",
+        "member-cid": "value",
+        "name": "value",
+        "enabled": "value",
+        "simulation-mode": "value"
+      }
+    },
+    {
+      "command": "identity rule show",
+      "flags": {
+        "help": "boolean",
+        "allow-unknown-origin": "boolean",
+        "no-member-cid": "boolean",
+        "config": "value",
+        "profile": "value",
+        "region": "value",
+        "member-cid": "value"
+      }
+    },
+    {
+      "command": "ioc list",
+      "flags": {
+        "help": "boolean",
+        "allow-unknown-origin": "boolean",
+        "no-member-cid": "boolean",
+        "config": "value",
+        "profile": "value",
+        "region": "value",
+        "member-cid": "value",
+        "filter": "value",
+        "limit": "value",
+        "cursor": "value"
+      }
+    },
+    {
+      "command": "ioc show",
+      "flags": {
+        "help": "boolean",
+        "allow-unknown-origin": "boolean",
+        "no-member-cid": "boolean",
+        "config": "value",
+        "profile": "value",
+        "region": "value",
+        "member-cid": "value"
+      }
+    },
+    {
+      "command": "ioc hosts",
+      "flags": {
+        "help": "boolean",
+        "allow-unknown-origin": "boolean",
+        "no-member-cid": "boolean",
+        "config": "value",
+        "profile": "value",
+        "region": "value",
+        "member-cid": "value",
+        "limit": "value",
+        "cursor": "value"
+      }
+    },
+    {
+      "command": "ioc processes",
+      "flags": {
+        "help": "boolean",
+        "allow-unknown-origin": "boolean",
+        "no-member-cid": "boolean",
+        "config": "value",
+        "profile": "value",
+        "region": "value",
+        "member-cid": "value",
+        "host": "value",
+        "limit": "value",
+        "cursor": "value"
+      }
+    },
+    {
+      "command": "process show",
+      "flags": {
+        "help": "boolean",
+        "allow-unknown-origin": "boolean",
+        "no-member-cid": "boolean",
+        "config": "value",
+        "profile": "value",
+        "region": "value",
+        "member-cid": "value",
+        "full": "boolean"
+      }
+    },
+    {
+      "command": "process tree",
+      "flags": {
+        "help": "boolean",
+        "allow-unknown-origin": "boolean",
+        "no-member-cid": "boolean",
+        "config": "value",
+        "profile": "value",
+        "region": "value",
+        "member-cid": "value",
+        "full": "boolean",
+        "cursor": "value"
+      }
+    },
+    {
+      "command": "sandbox list",
+      "flags": {
+        "help": "boolean",
+        "allow-unknown-origin": "boolean",
+        "no-member-cid": "boolean",
+        "config": "value",
+        "profile": "value",
+        "region": "value",
+        "member-cid": "value",
+        "sha256": "value",
+        "filter": "value",
+        "limit": "value",
+        "cursor": "value"
+      }
+    },
+    {
+      "command": "sandbox show",
+      "flags": {
+        "help": "boolean",
+        "allow-unknown-origin": "boolean",
+        "no-member-cid": "boolean",
+        "config": "value",
+        "profile": "value",
+        "region": "value",
+        "member-cid": "value"
+      }
+    },
+    {
+      "command": "file-change list",
+      "flags": {
+        "help": "boolean",
+        "allow-unknown-origin": "boolean",
+        "no-member-cid": "boolean",
+        "config": "value",
+        "profile": "value",
+        "region": "value",
+        "member-cid": "value",
+        "filter": "value",
+        "limit": "value",
+        "cursor": "value"
+      }
+    },
+    {
+      "command": "file-change show",
+      "flags": {
+        "help": "boolean",
+        "allow-unknown-origin": "boolean",
+        "no-member-cid": "boolean",
+        "config": "value",
+        "profile": "value",
+        "region": "value",
+        "member-cid": "value"
+      }
+    },
+    {
+      "command": "malquery show",
+      "flags": {
+        "help": "boolean",
+        "allow-unknown-origin": "boolean",
+        "no-member-cid": "boolean",
+        "config": "value",
+        "profile": "value",
+        "region": "value",
+        "member-cid": "value"
+      }
+    },
+    {
+      "command": "malquery quota",
+      "flags": {
+        "help": "boolean",
+        "allow-unknown-origin": "boolean",
+        "no-member-cid": "boolean",
+        "config": "value",
+        "profile": "value",
+        "region": "value",
+        "member-cid": "value"
+      }
+    },
+    {
+      "command": "malquery search",
+      "flags": {
+        "help": "boolean",
+        "allow-unknown-origin": "boolean",
+        "no-member-cid": "boolean",
+        "config": "value",
+        "profile": "value",
+        "region": "value",
+        "member-cid": "value",
+        "fuzzy": "boolean",
+        "string": "value",
+        "hex": "value",
+        "limit": "value"
+      }
+    },
+    {
+      "command": "malquery status",
+      "flags": {
+        "help": "boolean",
+        "allow-unknown-origin": "boolean",
+        "no-member-cid": "boolean",
+        "config": "value",
+        "profile": "value",
+        "region": "value",
+        "member-cid": "value",
+        "limit": "value"
+      }
+    },
+    {
+      "command": "host-group list",
+      "flags": {
+        "help": "boolean",
+        "allow-unknown-origin": "boolean",
+        "no-member-cid": "boolean",
+        "config": "value",
+        "profile": "value",
+        "region": "value",
+        "member-cid": "value",
+        "filter": "value",
+        "limit": "value",
+        "cursor": "value"
+      }
+    },
+    {
+      "command": "host-group members",
+      "flags": {
+        "help": "boolean",
+        "allow-unknown-origin": "boolean",
+        "no-member-cid": "boolean",
+        "config": "value",
+        "profile": "value",
+        "region": "value",
+        "member-cid": "value",
+        "filter": "value",
+        "limit": "value",
+        "cursor": "value"
+      }
+    },
+    {
+      "command": "policy list",
+      "flags": {
+        "help": "boolean",
+        "allow-unknown-origin": "boolean",
+        "no-member-cid": "boolean",
+        "config": "value",
+        "profile": "value",
+        "region": "value",
+        "member-cid": "value",
+        "type": "value",
+        "filter": "value",
+        "limit": "value",
+        "cursor": "value"
+      }
+    },
+    {
+      "command": "policy members",
+      "flags": {
+        "help": "boolean",
+        "allow-unknown-origin": "boolean",
+        "no-member-cid": "boolean",
+        "config": "value",
+        "profile": "value",
+        "region": "value",
+        "member-cid": "value",
+        "type": "value",
+        "filter": "value",
+        "limit": "value",
+        "cursor": "value"
+      }
+    },
+    {
+      "command": "policy show",
+      "flags": {
+        "help": "boolean",
+        "allow-unknown-origin": "boolean",
+        "no-member-cid": "boolean",
+        "config": "value",
+        "profile": "value",
+        "region": "value",
+        "member-cid": "value",
+        "type": "value"
+      }
+    },
+    {
+      "command": "cloud-asset list",
+      "flags": {
+        "help": "boolean",
+        "allow-unknown-origin": "boolean",
+        "no-member-cid": "boolean",
+        "config": "value",
+        "profile": "value",
+        "region": "value",
+        "member-cid": "value",
+        "filter": "value",
+        "sort": "value",
+        "limit": "value",
+        "cursor": "value"
+      }
+    },
+    {
+      "command": "cloud-asset show",
+      "flags": {
+        "help": "boolean",
+        "allow-unknown-origin": "boolean",
+        "no-member-cid": "boolean",
+        "config": "value",
+        "profile": "value",
+        "region": "value",
+        "member-cid": "value"
+      }
+    },
+    {
+      "command": "iom list",
+      "flags": {
+        "help": "boolean",
+        "allow-unknown-origin": "boolean",
+        "no-member-cid": "boolean",
+        "config": "value",
+        "profile": "value",
+        "region": "value",
+        "member-cid": "value",
+        "filter": "value",
+        "sort": "value",
+        "limit": "value",
+        "cursor": "value"
+      }
+    },
+    {
+      "command": "iom show",
+      "flags": {
+        "help": "boolean",
+        "allow-unknown-origin": "boolean",
+        "no-member-cid": "boolean",
+        "config": "value",
+        "profile": "value",
+        "region": "value",
+        "member-cid": "value"
+      }
+    },
+    {
+      "command": "cloud-risk list",
+      "flags": {
+        "help": "boolean",
+        "allow-unknown-origin": "boolean",
+        "no-member-cid": "boolean",
+        "config": "value",
+        "profile": "value",
+        "region": "value",
+        "member-cid": "value",
+        "filter": "value",
+        "sort": "value",
+        "limit": "value",
+        "cursor": "value"
+      }
+    },
+    {
+      "command": "shield list",
+      "flags": {
+        "help": "boolean",
+        "allow-unknown-origin": "boolean",
+        "no-member-cid": "boolean",
+        "config": "value",
+        "profile": "value",
+        "region": "value",
+        "member-cid": "value",
+        "status": "value",
+        "impact": "value",
+        "limit": "value",
+        "cursor": "value"
+      }
+    },
+    {
+      "command": "shield show",
+      "flags": {
+        "help": "boolean",
+        "allow-unknown-origin": "boolean",
+        "no-member-cid": "boolean",
+        "config": "value",
+        "profile": "value",
+        "region": "value",
+        "member-cid": "value",
+        "full": "boolean"
+      }
+    },
+    {
+      "command": "exclusion list",
+      "flags": {
+        "help": "boolean",
+        "allow-unknown-origin": "boolean",
+        "no-member-cid": "boolean",
+        "config": "value",
+        "profile": "value",
+        "region": "value",
+        "member-cid": "value",
+        "type": "value",
+        "filter": "value",
+        "limit": "value",
+        "cursor": "value"
+      }
+    },
+    {
+      "command": "exclusion show",
+      "flags": {
+        "help": "boolean",
+        "allow-unknown-origin": "boolean",
+        "no-member-cid": "boolean",
+        "config": "value",
+        "profile": "value",
+        "region": "value",
+        "member-cid": "value",
+        "type": "value"
+      }
+    },
+    {
+      "command": "quarantine list",
+      "flags": {
+        "help": "boolean",
+        "allow-unknown-origin": "boolean",
+        "no-member-cid": "boolean",
+        "config": "value",
+        "profile": "value",
+        "region": "value",
+        "member-cid": "value",
+        "filter": "value",
+        "limit": "value",
+        "cursor": "value"
+      }
+    },
+    {
+      "command": "quarantine show",
+      "flags": {
+        "help": "boolean",
+        "allow-unknown-origin": "boolean",
+        "no-member-cid": "boolean",
+        "config": "value",
+        "profile": "value",
+        "region": "value",
+        "member-cid": "value"
+      }
+    },
+    {
+      "command": "firewall rule list",
+      "flags": {
+        "help": "boolean",
+        "allow-unknown-origin": "boolean",
+        "no-member-cid": "boolean",
+        "config": "value",
+        "profile": "value",
+        "region": "value",
+        "member-cid": "value",
+        "filter": "value",
+        "limit": "value",
+        "cursor": "value"
+      }
+    },
+    {
+      "command": "firewall rule show",
+      "flags": {
+        "help": "boolean",
+        "allow-unknown-origin": "boolean",
+        "no-member-cid": "boolean",
+        "config": "value",
+        "profile": "value",
+        "region": "value",
+        "member-cid": "value",
+        "full": "boolean"
+      }
+    },
+    {
+      "command": "firewall group list",
+      "flags": {
+        "help": "boolean",
+        "allow-unknown-origin": "boolean",
+        "no-member-cid": "boolean",
+        "config": "value",
+        "profile": "value",
+        "region": "value",
+        "member-cid": "value",
+        "filter": "value",
+        "limit": "value",
+        "cursor": "value"
+      }
+    },
+    {
+      "command": "ioa group list",
+      "flags": {
+        "help": "boolean",
+        "allow-unknown-origin": "boolean",
+        "no-member-cid": "boolean",
+        "config": "value",
+        "profile": "value",
+        "region": "value",
+        "member-cid": "value",
+        "filter": "value",
+        "limit": "value",
+        "cursor": "value"
+      }
+    },
+    {
+      "command": "correlation-rule list",
+      "flags": {
+        "help": "boolean",
+        "allow-unknown-origin": "boolean",
+        "no-member-cid": "boolean",
+        "config": "value",
+        "profile": "value",
+        "region": "value",
+        "member-cid": "value",
+        "filter": "value",
+        "limit": "value",
+        "cursor": "value"
+      }
+    },
+    {
+      "command": "case list",
+      "flags": {
+        "help": "boolean",
+        "allow-unknown-origin": "boolean",
+        "no-member-cid": "boolean",
+        "config": "value",
+        "profile": "value",
+        "region": "value",
+        "member-cid": "value",
+        "filter": "value",
+        "limit": "value",
+        "cursor": "value"
+      }
+    },
+    {
+      "command": "case show",
+      "flags": {
+        "help": "boolean",
+        "allow-unknown-origin": "boolean",
+        "no-member-cid": "boolean",
+        "config": "value",
+        "profile": "value",
+        "region": "value",
+        "member-cid": "value",
+        "full": "boolean"
+      }
+    },
+    {
+      "command": "rtr session list",
+      "flags": {
+        "help": "boolean",
+        "allow-unknown-origin": "boolean",
+        "no-member-cid": "boolean",
+        "config": "value",
+        "profile": "value",
+        "region": "value",
+        "member-cid": "value",
+        "filter": "value",
+        "limit": "value",
+        "cursor": "value"
+      }
+    },
+    {
+      "command": "rtr session show",
+      "flags": {
+        "help": "boolean",
+        "allow-unknown-origin": "boolean",
+        "no-member-cid": "boolean",
+        "config": "value",
+        "profile": "value",
+        "region": "value",
+        "member-cid": "value",
+        "full": "boolean"
+      }
+    },
+    {
+      "command": "rtr audit list",
+      "flags": {
+        "help": "boolean",
+        "allow-unknown-origin": "boolean",
+        "no-member-cid": "boolean",
+        "config": "value",
+        "profile": "value",
+        "region": "value",
+        "member-cid": "value",
+        "filter": "value",
+        "limit": "value",
+        "cursor": "value"
+      }
+    },
+    {
+      "command": "rtr run",
+      "flags": {
+        "help": "boolean",
+        "allow-unknown-origin": "boolean",
+        "no-member-cid": "boolean",
+        "config": "value",
+        "profile": "value",
+        "region": "value",
+        "member-cid": "value",
+        "execute": "boolean",
+        "command": "value",
+        "confirm": "value"
+      }
+    },
+    {
+      "command": "auth status",
+      "flags": {
+        "help": "boolean",
+        "allow-unknown-origin": "boolean",
+        "no-member-cid": "boolean",
+        "config": "value",
+        "profile": "value",
+        "region": "value",
+        "member-cid": "value"
+      }
+    },
+    {
+      "command": "profile list",
+      "flags": {
+        "help": "boolean",
+        "allow-unknown-origin": "boolean",
+        "no-member-cid": "boolean",
+        "config": "value",
+        "profile": "value",
+        "region": "value",
+        "member-cid": "value"
+      }
+    },
+    {
+      "command": "config path",
+      "flags": {
+        "help": "boolean",
+        "allow-unknown-origin": "boolean",
+        "no-member-cid": "boolean",
+        "config": "value",
+        "profile": "value",
+        "region": "value",
+        "member-cid": "value"
+      }
+    },
+    {
+      "command": "scopes",
+      "flags": {
+        "help": "boolean",
+        "allow-unknown-origin": "boolean",
+        "no-member-cid": "boolean",
+        "config": "value",
+        "profile": "value",
+        "region": "value",
+        "member-cid": "value"
+      }
+    },
+    {
+      "command": "sensor-usage list",
+      "flags": {
+        "help": "boolean",
+        "allow-unknown-origin": "boolean",
+        "no-member-cid": "boolean",
+        "config": "value",
+        "profile": "value",
+        "region": "value",
+        "member-cid": "value",
+        "filter": "value"
+      }
+    },
+    {
+      "command": "recon-rule list",
+      "flags": {
+        "help": "boolean",
+        "allow-unknown-origin": "boolean",
+        "no-member-cid": "boolean",
+        "config": "value",
+        "profile": "value",
+        "region": "value",
+        "member-cid": "value",
+        "filter": "value",
+        "limit": "value",
+        "cursor": "value"
+      }
+    },
+    {
+      "command": "recon-rule show",
+      "flags": {
+        "help": "boolean",
+        "allow-unknown-origin": "boolean",
+        "no-member-cid": "boolean",
+        "config": "value",
+        "profile": "value",
+        "region": "value",
+        "member-cid": "value",
+        "full": "boolean"
+      }
+    },
+    {
+      "command": "recon-notification list",
+      "flags": {
+        "help": "boolean",
+        "allow-unknown-origin": "boolean",
+        "no-member-cid": "boolean",
+        "config": "value",
+        "profile": "value",
+        "region": "value",
+        "member-cid": "value",
+        "filter": "value",
+        "limit": "value",
+        "cursor": "value"
+      }
+    },
+    {
+      "command": "recon-notification show",
+      "flags": {
+        "help": "boolean",
+        "allow-unknown-origin": "boolean",
+        "no-member-cid": "boolean",
+        "config": "value",
+        "profile": "value",
+        "region": "value",
+        "member-cid": "value",
+        "full": "boolean"
+      }
+    },
+    {
+      "command": "recon-record list",
+      "flags": {
+        "help": "boolean",
+        "allow-unknown-origin": "boolean",
+        "no-member-cid": "boolean",
+        "config": "value",
+        "profile": "value",
+        "region": "value",
+        "member-cid": "value",
+        "filter": "value",
+        "limit": "value",
+        "cursor": "value"
+      }
+    },
+    {
+      "command": "recon-record show",
+      "flags": {
+        "help": "boolean",
+        "allow-unknown-origin": "boolean",
+        "no-member-cid": "boolean",
+        "config": "value",
+        "profile": "value",
+        "region": "value",
+        "member-cid": "value",
+        "full": "boolean"
+      }
+    },
+    {
+      "command": "setup",
+      "flags": {
+        "help": "boolean",
+        "allow-unknown-origin": "boolean",
+        "no-member-cid": "boolean",
+        "config": "value",
+        "profile": "value",
+        "region": "value",
+        "member-cid": "value"
+      }
+    },
+    {
+      "command": "setup hooks",
+      "flags": {
+        "help": "boolean",
+        "allow-unknown-origin": "boolean",
+        "no-member-cid": "boolean",
+        "config": "value",
+        "profile": "value",
+        "region": "value",
+        "member-cid": "value"
+      }
+    }
+  ]
+}

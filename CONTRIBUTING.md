@@ -45,13 +45,16 @@ Exempt: validation-boundary tests, contract tests against an agreed schema or re
 
 ## Generated documentation
 
+For the released Python baseline:
+
 ```sh
 uv run scripts/skill.py
 uv run scripts/docs.py
 uv run scripts/verify.py
 ```
 
-Python command declarations own the full command reference and generated skill references; the README summarizes command groups.
+Python command declarations own the released command reference; the README summarizes command groups.
+On the TypeScript migration branch, run `npm run generate` to regenerate the candidate skill, per-command references, and invocation catalog from its metadata and templates.
 Edit their sources rather than generated content.
 Every released Python command must appear in `docs/commands.md`, and every advertised command must exist.
 

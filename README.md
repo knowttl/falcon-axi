@@ -2,6 +2,10 @@
 
 Read CrowdStrike Falcon from the shell with compact, structured results for agents and the humans running them.
 
+This migration branch also contains a private TypeScript S02-S13 candidate for `@knowttl/falcon-axi` on Node 24.
+Its packaging, delivered surface and offline checks are described in [the TypeScript candidate notes](docs/design/v1-typescript.md).
+The Python implementation and installation instructions below remain the released baseline.
+
 [![PyPI](https://img.shields.io/pypi/v/falcon-axi)](https://pypi.org/project/falcon-axi/) [![License: MIT](https://img.shields.io/badge/license-MIT-blue)](LICENSE) [![Python](https://img.shields.io/pypi/pyversions/falcon-axi)](https://pypi.org/project/falcon-axi/) [![Provenance](https://img.shields.io/badge/provenance-PyPI_Trusted_Publishing-blue)](https://pypi.org/project/falcon-axi/#history) [![AXI](https://img.shields.io/badge/AXI-agent--friendly-blue)](https://github.com/kunchenguid/axi)
 
 [Why](#why-this-exists) • [Quickstart](#quickstart) • [Agents](#use-with-your-agent) • [Coverage](#what-it-covers) • [Safety](#safety) • [Configuration](#configuration) • [Output](#output-and-exit-codes) • [Troubleshooting](#troubleshooting) • [Limitations](#limitations) • [Development](#development) • [Security](#security) • [License](#license)

@@ -3,13 +3,13 @@
 firewall rule list         read firewall_rules
 
 ```text
-uvx falcon-axi firewall rule list [--filter <FQL>] [--limit N] [--cursor <token>]
+npx -y @knowttl/falcon-axi firewall rule list [--filter <FQL>] [--limit N] [--cursor <token>]
 
 --filter  raw FQL; + is AND, comma is OR, values are single-quoted
 --limit   rows in this call (default 20, ceiling 5000)
 --cursor  opaque continuation token from the previous call
 Read-only. Requires Firewall Management:read.
 Examples:
-  uvx falcon-axi firewall rule list
-  uvx falcon-axi firewall rule list --limit 2
+  npx -y @knowttl/falcon-axi firewall rule list
+  npx -y @knowttl/falcon-axi firewall rule list --limit 2
 ```
