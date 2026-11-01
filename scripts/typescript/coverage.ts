@@ -6,6 +6,9 @@ import s02 from "../../tests/fixtures/migration/S02/contracts.json" with { type:
 import s03 from "../../tests/fixtures/migration/S03/contracts.json" with { type: "json" };
 import s04 from "../../tests/fixtures/migration/S04/contracts.json" with { type: "json" };
 import s05 from "../../tests/fixtures/migration/S05/contracts.json" with { type: "json" };
+import s06 from "../../tests/fixtures/migration/S06/contracts.json" with { type: "json" };
+import s07 from "../../tests/fixtures/migration/S07/contracts.json" with { type: "json" };
+import inspectionLedger from "../../tests/migration/coverage-s06-s07.json" with { type: "json" };
 import ledger from "../../tests/migration/coverage.json" with { type: "json" };
 import inventoryLedger from "../../tests/migration/coverage-s04-s05.json" with { type: "json" };
 
@@ -16,7 +19,15 @@ const inventorySeal =
   "7283d209cdbc0acb10497c767ccd1f6946bcbfd46fb46e82277c4b2f992638ec";
 if (digest(JSON.stringify(inventoryLedger)) !== inventorySeal)
   throw new Error("Frozen S04/S05 safety ownership changed");
-const groups = [...ledger.groups, ...inventoryLedger.groups];
+const inspectionSeal =
+  "8c35f2c09b52034db59c8b2e43bd09147bed4934fa9932df0a50e4b3680e7319";
+if (digest(JSON.stringify(inspectionLedger)) !== inspectionSeal)
+  throw new Error("Frozen S06/S07 safety ownership changed");
+const groups = [
+  ...ledger.groups,
+  ...inventoryLedger.groups,
+  ...inspectionLedger.groups,
+];
 if (digest(JSON.stringify(ledger)) !== seal)
   throw new Error(
     "Frozen safety ownership, members or parameter selections changed",
@@ -27,6 +38,8 @@ const expectedCommands = [
     ...s03.commandNames,
     ...s04.commandNames,
     ...s05.commandNames,
+    ...s06.commandNames,
+    ...s07.commandNames,
   ]),
 ]
   .filter((name) => name !== "home")
@@ -44,10 +57,16 @@ const operations = [
 if (
   JSON.stringify(operations) !==
   JSON.stringify(
-    [...s03.operationIds, ...s04.operationIds, ...s05.operationIds].sort(),
+    [
+      ...s03.operationIds,
+      ...s04.operationIds,
+      ...s05.operationIds,
+      ...s06.operationIds,
+      ...s07.operationIds,
+    ].sort(),
   )
 )
-  throw new Error("Operation coverage differs from frozen S03-S05 ownership");
+  throw new Error("Operation coverage differs from frozen S03-S07 ownership");
 for (const group of groups)
   if (digest(readFileSync(resolve(group.source))) !== group.sourceSha256)
     throw new Error(`Pinned source changed: ${group.source}`);
@@ -61,6 +80,144 @@ for (const flag of commands.flatMap((command) => [
 // Source symbols are adapted to public observations, not historical test counts.
 // Structural entries run above; other entries bind to passing installed-artifact checks.
 const bindings: Readonly<Record<string, readonly string[]>> = {
+  "SR-041": [
+    "S06/S07 retained firewall-rule-list",
+    "S06/S07 retained ioa-group-list",
+    "S06/S07 retained case-list",
+    "S06/S07 continuation query_rules",
+  ],
+  "SR-042": ["S06/S07 redaction before preview firewall-rule-show"],
+  "SR-043": [
+    "S06/S07 firewall server token",
+    "S06/S07 continuation query_rules",
+  ],
+  "SR-044": [
+    "S06/S07 filter remedy firewall-rule-list",
+    "S06/S07 scope get_rules",
+    "S06/S07 retained classification-show-not-found",
+  ],
+  "SR-045": [
+    "S06/S07 chunk hydration queries_cases_get_v1",
+    "S06/S07 scope entities_cases_post_v2",
+  ],
+  "SR-055": [
+    "S06/S07 firewall server token",
+    "S06/S07 continuation query_rules",
+  ],
+  "SR-060": [
+    "S06/S07 retained classification-list",
+    "S06/S07 retained data-policy-show",
+    "S06/S07 chunk hydration queries_classification_get_v2",
+    "S06/S07 scope entities_policy_get_v2",
+  ],
+  "SR-061": [
+    "S06/S07 continuation queries_policy_get_v2",
+    "S06/S07 pagination wall data",
+    "S06/S07 pre-auth data-policy list",
+  ],
+  "SR-076": [
+    "S06/S07 retained exclusion-ml-list",
+    "S06/S07 retained quarantine-quarantine-show",
+    "S06/S07 continuation QueryQuarantineFiles",
+  ],
+  "SR-077": [
+    "S06/S07 filter remedy exclusion-ml-list",
+    "S06/S07 scope exclusions_get_v2",
+    "S06/S07 pre-auth exclusion list",
+  ],
+  "SR-078": ["S06/S07 hydration loss"],
+  "SR-088": [
+    "S06/S07 filter remedy actor-list-page",
+    "S06/S07 filter remedy classification-list",
+  ],
+  "SR-111": ["S06/S07 continuation QueryIntelIndicatorEntities"],
+  "SR-112": [
+    "S06/S07 retained indicator-show",
+    "S06/S07 missing indicator marker",
+    "S06/S07 scope QueryIntelIndicatorEntities",
+    "S06/S07 filter remedy indicator-list-page",
+  ],
+  "SR-113": [
+    "S06/S07 retained actor-list-page",
+    "S06/S07 retained report-show",
+    "S06/S07 redaction before preview actor-show",
+    "S06/S07 continuation QueryIntelActorEntities",
+  ],
+  "SR-114": [
+    "S06/S07 retained actor-show-mitre",
+    "S06/S07 malformed GetMitreReport",
+    "S06/S07 empty MITRE",
+  ],
+  "SR-116": [
+    "S06/S07 retained malware-list",
+    "S06/S07 scope QueryMalwareEntities",
+  ],
+  "SR-117": [
+    "S06/S07 retained identity-rule-list",
+    "S06/S07 scope get_policy_rules_query",
+  ],
+  "SR-118": ["S06/S07 redaction before preview malware-show"],
+  "SR-119": [
+    "S06/S07 identity rule filter",
+    "S06/S07 chunk hydration get_policy_rules_query",
+  ],
+  "SR-121": [
+    "S06/S07 continuation QueryMalwareEntities",
+    "S06/S07 pre-auth sandbox list",
+  ],
+  "SR-122": ["S06/S07 pre-auth identity rule list"],
+  "SR-138": [
+    "S06/S07 retained policy-list-prevention",
+    "S06/S07 retained policy-members-content-update",
+    "S06/S07 scope queryCombinedSensorUpdatePoliciesV2",
+    "S06/S07 continuation queryCombinedPreventionPolicyMembers",
+  ],
+  "SR-139": [
+    "S06/S07 retained policy-list-device-control",
+    "S06/S07 retained policy-show-device-control",
+    "S06/S07 incomplete hydration getDeviceControlPoliciesV2",
+    "S06/S07 exact detail getDeviceControlPoliciesV2",
+  ],
+  "SR-150": [
+    "S06/S07 retained recon-notification-list",
+    "S06/S07 raw entities recon-rule-list",
+    "S06/S07 redaction before preview recon-notification-show",
+    "S06/S07 pagination wall recon",
+  ],
+  "SR-151": [
+    "S06/S07 continuation QueryRulesV1",
+    "S06/S07 scope QueryNotificationsV1",
+    "S06/S07 filter remedy recon-rule-list",
+  ],
+  "SR-158": [
+    "S06/S07 scope GetIntelActorEntities",
+    "S06/S07 malformed QueryRulesV1",
+    "S06/S07 retained actor-show-not-found",
+  ],
+  "SR-159": [
+    "S06/S07 diagnostic HTML login page",
+    "S06/S07 diagnostic tenant keys and values",
+  ],
+  "SR-160": [
+    "S06/S07 malformed QueryRulesV1",
+    "H07 installed malformed response",
+    "H07 installed denied response",
+  ],
+  "SR-161": [
+    "S06/S07 diagnostic depth limit",
+    "S06/S07 diagnostic oversized array",
+    "S06/S07 diagnostic oversized media",
+  ],
+  "SR-175": [
+    "S06/S07 retained sandbox-list",
+    "S06/S07 exact detail GetSummaryReports",
+    "S06/S07 continuation QueryReports",
+    "S06/S07 scope QueryReports",
+  ],
+  "SR-176": [
+    "S06/S07 incomplete hydration GetSummaryReports",
+    "S06/S07 pre-auth sandbox list",
+  ],
   "SR-001": ["S04/S05 continuation replay account-list-page"],
   "SR-002": [
     "golden account-show",
@@ -373,13 +530,13 @@ const managedBindings: Readonly<Record<string, readonly string[]>> = {
 const args = process.argv.slice(2);
 let evidence: string | undefined;
 let path: string | undefined;
-let slice = "S05";
+let slice = "S07";
 for (let index = 0; index < args.length; index++) {
   const flag = args[index]!;
   if (flag === "--strict") continue;
   if (
     flag === "--slice" &&
-    ["S02", "S03", "S04", "S05"].includes(args[index + 1] ?? "")
+    ["S02", "S03", "S04", "S05", "S06", "S07"].includes(args[index + 1] ?? "")
   ) {
     slice = args[++index]!;
     continue;
@@ -455,6 +612,7 @@ if (evidence && path) {
         path,
         ledgerSha256: seal,
         inventoryLedgerSha256: inventorySeal,
+        inspectionLedgerSha256: inspectionSeal,
         reports,
         pending: ledger.reassignments.filter((row) => row.to !== "S04"),
       },

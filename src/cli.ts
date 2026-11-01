@@ -16,6 +16,8 @@ import { investigate } from "./investigation.js";
 import { Domain, quote } from "./domain.js";
 import { inventory } from "./inventory.js";
 import { exposure } from "./exposure.js";
+import { inspection } from "./inspection.js";
+import inspectionCommands from "./inspection-commands.json" with { type: "json" };
 import { homedir } from "node:os";
 import { resolve } from "node:path";
 import helpText from "./help.json" with { type: "json" };
@@ -150,7 +152,9 @@ export async function main(argv: string[], bin?: string): Promise<number> {
               scope,
               access: "read",
               commands: names.join(", "),
-              required: "yes",
+              required: names.every((name) => /^(policy|exclusion) /.test(name))
+                ? "selected --type"
+                : "yes",
             })),
             member_cid_token_scope: new Raw(
               "unresolved (Flight Control read may be required; see design section 17.7)",
@@ -239,17 +243,20 @@ export async function main(argv: string[], bin?: string): Promise<number> {
       allowUnknown,
       signal,
     );
-    const result =
-      [
-        "account",
-        "asset",
-        "application",
-        "login",
-        "iot",
-        "host-group",
-        "sensor-usage",
-      ].includes(command.name.split(" ")[0]!) ||
-      command.name.startsWith("identity sensor ")
+    const result = inspectionCommands.some(
+      (entry) => entry.name === command.name,
+    )
+      ? await inspection(domain, filter)
+      : [
+            "account",
+            "asset",
+            "application",
+            "login",
+            "iot",
+            "host-group",
+            "sensor-usage",
+          ].includes(command.name.split(" ")[0]!) ||
+          command.name.startsWith("identity sensor ")
         ? await inventory(domain, filter)
         : [
               "vuln",

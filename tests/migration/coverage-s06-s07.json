@@ -1,0 +1,1047 @@
+{
+  "sourceRevision": "75efc7e546c5ad9bae9084a610129fec22628c18",
+  "groups": [
+    {
+      "id": "SR-041",
+      "slice": "S07",
+      "requirement": "Configuration list ordering, empty state, scope and cursor model",
+      "source": "tests/offline/test_config_reads.py",
+      "sourceSha256": "78411824f77624ed7abb3226e8c4c162a57eedbfa716009856029c192033472e",
+      "members": [
+        {
+          "symbol": "test_lists_read_the_documented_operations_and_preserve_query_order",
+          "parameterSelection": "all",
+          "obligations": "lists read the documented operations and preserve query order"
+        },
+        {
+          "symbol": "test_empty_lists_skip_hydration",
+          "parameterSelection": "all",
+          "obligations": "empty lists skip hydration"
+        },
+        {
+          "symbol": "test_scope_denials_name_the_required_scope",
+          "parameterSelection": "all",
+          "obligations": "scope denials name the required scope"
+        },
+        {
+          "symbol": "test_cursor_continues_the_correct_pagination_model",
+          "parameterSelection": "all",
+          "obligations": "cursor continues the correct pagination model"
+        }
+      ]
+    },
+    {
+      "id": "SR-042",
+      "slice": "S07",
+      "requirement": "Selected detail and redaction before preview",
+      "source": "tests/offline/test_config_reads.py",
+      "sourceSha256": "78411824f77624ed7abb3226e8c4c162a57eedbfa716009856029c192033472e",
+      "members": [
+        {
+          "symbol": "test_show_selects_the_requested_record_and_truncates_long_fields",
+          "parameterSelection": "all",
+          "obligations": "show selects the requested record and truncates long fields"
+        },
+        {
+          "symbol": "test_detail_redacts_complete_private_keys_before_preview",
+          "parameterSelection": "all",
+          "obligations": "detail redacts complete private keys before preview"
+        },
+        {
+          "symbol": "test_firewall_customer_id_is_redacted_in_default_tenant_detail",
+          "parameterSelection": "all",
+          "obligations": "firewall customer id is redacted in default tenant detail"
+        }
+      ]
+    },
+    {
+      "id": "SR-043",
+      "slice": "S07",
+      "requirement": "Firewall offset and server-token continuation",
+      "source": "tests/offline/test_config_reads.py",
+      "sourceSha256": "78411824f77624ed7abb3226e8c4c162a57eedbfa716009856029c192033472e",
+      "members": [
+        {
+          "symbol": "test_firewall_offset_pages_continue_until_exhausted",
+          "parameterSelection": "all",
+          "obligations": "firewall offset pages continue until exhausted"
+        },
+        {
+          "symbol": "test_firewall_server_tokens_take_precedence_over_offsets",
+          "parameterSelection": "all",
+          "obligations": "firewall server tokens take precedence over offsets"
+        }
+      ]
+    },
+    {
+      "id": "SR-044",
+      "slice": "S07",
+      "requirement": "Domain-specific filter, hydration, detail and usage errors",
+      "source": "tests/offline/test_config_reads.py",
+      "sourceSha256": "78411824f77624ed7abb3226e8c4c162a57eedbfa716009856029c192033472e",
+      "members": [
+        {
+          "symbol": "test_rejected_filters_suggest_the_failed_domain",
+          "parameterSelection": "all",
+          "obligations": "rejected filters suggest the failed domain"
+        },
+        {
+          "symbol": "test_hydration_errors_suggest_the_failed_domain",
+          "parameterSelection": "all",
+          "obligations": "hydration errors suggest the failed domain"
+        },
+        {
+          "symbol": "test_detail_404_suggests_the_failed_domain",
+          "parameterSelection": "all",
+          "obligations": "detail 404 suggests the failed domain"
+        },
+        {
+          "symbol": "test_show_reports_a_missing_record",
+          "parameterSelection": "all",
+          "obligations": "show reports a missing record"
+        },
+        {
+          "symbol": "test_invalid_nested_commands_fail_before_authentication",
+          "parameterSelection": "all",
+          "obligations": "invalid nested commands fail before authentication"
+        }
+      ]
+    },
+    {
+      "id": "SR-045",
+      "slice": "S07",
+      "requirement": "Case batch hydration and no partial-success concealment",
+      "source": "tests/offline/test_config_reads.py",
+      "sourceSha256": "78411824f77624ed7abb3226e8c4c162a57eedbfa716009856029c192033472e",
+      "members": [
+        {
+          "symbol": "test_case_hydration_chunks_ids_and_keeps_the_query_total",
+          "parameterSelection": "all",
+          "obligations": "case hydration chunks ids and keeps the query total"
+        },
+        {
+          "symbol": "test_hydration_errors_are_not_returned_as_partial_success",
+          "parameterSelection": "all",
+          "obligations": "hydration errors are not returned as partial success"
+        }
+      ]
+    },
+    {
+      "id": "SR-055",
+      "slice": "S07",
+      "requirement": "Authenticated cursor position and complete context binding",
+      "source": "tests/offline/test_cursor_retry.py",
+      "sourceSha256": "814cb5aaf1cda407f5d2c0451011ddd81852516872e59daf279503c334950ff5",
+      "members": [
+        {
+          "symbol": "test_firewall_cursors_round_trip_both_positions",
+          "parameterSelection": "all",
+          "obligations": "firewall cursors round trip both positions"
+        },
+        {
+          "symbol": "test_firewall_cursors_reject_invalid_positions",
+          "parameterSelection": "all",
+          "obligations": "firewall cursors reject invalid positions"
+        }
+      ]
+    },
+    {
+      "id": "SR-060",
+      "slice": "S07",
+      "requirement": "Data protection query hydration, detail, scope and guidance",
+      "source": "tests/offline/test_data_protection.py",
+      "sourceSha256": "c0790b18aba7dec325190e84ef473ffe7c375ccca301f7ca44a60c82ab8ffa5c",
+      "members": [
+        {
+          "symbol": "test_list_queries_then_hydrates_in_query_order",
+          "parameterSelection": "all",
+          "obligations": "list queries then hydrates in query order"
+        },
+        {
+          "symbol": "test_show_retains_properties_and_redacts_cid",
+          "parameterSelection": "all",
+          "obligations": "show retains properties and redacts cid"
+        },
+        {
+          "symbol": "test_empty_list_skips_hydration",
+          "parameterSelection": "all",
+          "obligations": "empty list skips hydration"
+        },
+        {
+          "symbol": "test_empty_continuation_reports_exhaustion",
+          "parameterSelection": "all",
+          "obligations": "empty continuation reports exhaustion"
+        },
+        {
+          "symbol": "test_errors_offer_data_protection_guidance",
+          "parameterSelection": "all",
+          "obligations": "errors offer data protection guidance"
+        },
+        {
+          "symbol": "test_large_query_chunks_hydration_at_100_ids",
+          "parameterSelection": "all",
+          "obligations": "large query chunks hydration at 100 ids"
+        }
+      ]
+    },
+    {
+      "id": "SR-061",
+      "slice": "S07",
+      "requirement": "Policy cursor context, offset wall and pre-authentication refusal",
+      "source": "tests/offline/test_data_protection.py",
+      "sourceSha256": "c0790b18aba7dec325190e84ef473ffe7c375ccca301f7ca44a60c82ab8ffa5c",
+      "members": [
+        {
+          "symbol": "test_policy_cursor_preserves_platform_filter_and_sort",
+          "parameterSelection": "all",
+          "obligations": "policy cursor preserves platform filter and sort"
+        },
+        {
+          "symbol": "test_offset_wall_discloses_remaining_results",
+          "parameterSelection": "all",
+          "obligations": "offset wall discloses remaining results"
+        },
+        {
+          "symbol": "test_invalid_input_makes_no_operation_request",
+          "parameterSelection": "all",
+          "obligations": "invalid input makes no operation request"
+        }
+      ]
+    },
+    {
+      "id": "SR-076",
+      "slice": "S07",
+      "requirement": "Exclusion and quarantine list, detail, cursor and empty state",
+      "source": "tests/offline/test_exclusion_quarantine.py",
+      "sourceSha256": "c35c54db90883ec67022c6ff1c6f1f837a281c722d4d0f8beaf40e2afd28a0d5",
+      "members": [
+        {
+          "symbol": "test_lists_preserve_query_order_total_and_parameter_shapes",
+          "parameterSelection": "all",
+          "obligations": "lists preserve query order total and parameter shapes"
+        },
+        {
+          "symbol": "test_continuation_replays_context_and_stops_on_last_page",
+          "parameterSelection": "all",
+          "obligations": "continuation replays context and stops on last page"
+        },
+        {
+          "symbol": "test_show_selects_requested_id_and_redacts_tenant_fields",
+          "parameterSelection": "all",
+          "obligations": "show selects requested id and redacts tenant fields"
+        },
+        {
+          "symbol": "test_empty_inventory_skips_hydration",
+          "parameterSelection": "all",
+          "obligations": "empty inventory skips hydration"
+        }
+      ]
+    },
+    {
+      "id": "SR-077",
+      "slice": "S07",
+      "requirement": "Domain-specific usage, scope, filter and hydration errors",
+      "source": "tests/offline/test_exclusion_quarantine.py",
+      "sourceSha256": "c35c54db90883ec67022c6ff1c6f1f837a281c722d4d0f8beaf40e2afd28a0d5",
+      "members": [
+        {
+          "symbol": "test_missing_detail_is_not_found",
+          "parameterSelection": "all",
+          "obligations": "missing detail is not found"
+        },
+        {
+          "symbol": "test_invalid_arguments_fail_before_authentication",
+          "parameterSelection": "all",
+          "obligations": "invalid arguments fail before authentication"
+        },
+        {
+          "symbol": "test_scope_denied_reports_the_selected_inventory_scope",
+          "parameterSelection": "all",
+          "obligations": "scope denied reports the selected inventory scope"
+        },
+        {
+          "symbol": "test_bad_fql_help_points_to_the_same_domain",
+          "parameterSelection": "all",
+          "obligations": "bad fql help points to the same domain"
+        },
+        {
+          "symbol": "test_exclusion_cursor_cannot_select_another_type",
+          "parameterSelection": "all",
+          "obligations": "exclusion cursor cannot select another type"
+        },
+        {
+          "symbol": "test_hydration_failure_does_not_become_an_empty_success",
+          "parameterSelection": "all",
+          "obligations": "hydration failure does not become an empty success"
+        }
+      ]
+    },
+    {
+      "id": "SR-078",
+      "slice": "S07",
+      "requirement": "Missing hydration preserves query position and total semantics",
+      "source": "tests/offline/test_exclusion_quarantine.py",
+      "sourceSha256": "c35c54db90883ec67022c6ff1c6f1f837a281c722d4d0f8beaf40e2afd28a0d5",
+      "members": [
+        {
+          "symbol": "test_missing_entities_keep_the_query_cursor_position",
+          "parameterSelection": "all",
+          "obligations": "missing entities keep the query cursor position"
+        },
+        {
+          "symbol": "test_missing_total_uses_the_query_page_size",
+          "parameterSelection": "all",
+          "obligations": "missing total uses the query page size"
+        }
+      ]
+    },
+    {
+      "id": "SR-088",
+      "slice": "S06",
+      "requirement": "Filter and identifier remedies name the failed domain",
+      "source": "tests/offline/test_fql_remedies.py",
+      "sourceSha256": "4c1a3a5122d7960ea37034a228929c904f9f8a408187ab242b50568ff9905bcf",
+      "members": [
+        {
+          "symbol": "test_combined_reads_use_their_own_fql_remedy",
+          "parameterSelection": {
+            "P1": [
+              3,
+              4
+            ]
+          },
+          "obligations": "combined reads use their own fql remedy"
+        }
+      ]
+    },
+    {
+      "id": "SR-111",
+      "slice": "S06",
+      "requirement": "Indicator marker continuation, context binding and empty state",
+      "source": "tests/offline/test_indicator.py",
+      "sourceSha256": "fddb76f85fc318e74a5c6dc2fec080e281459af08ece77695a80501cd0a4ea9b",
+      "members": [
+        {
+          "symbol": "test_next_page_suggestion_continues_the_same_filter_without_repeating_the_boundary",
+          "parameterSelection": "all",
+          "obligations": "next page suggestion continues the same filter without repeating the boundary"
+        },
+        {
+          "symbol": "test_changed_cursor_or_context_is_rejected_before_an_indicator_read",
+          "parameterSelection": "all",
+          "obligations": "changed cursor or context is rejected before an indicator read"
+        },
+        {
+          "symbol": "test_empty_page_is_definitive",
+          "parameterSelection": "all",
+          "obligations": "empty page is definitive"
+        }
+      ]
+    },
+    {
+      "id": "SR-112",
+      "slice": "S06",
+      "requirement": "Indicator detail, scope, missing marker and filter guidance",
+      "source": "tests/offline/test_indicator.py",
+      "sourceSha256": "fddb76f85fc318e74a5c6dc2fec080e281459af08ece77695a80501cd0a4ea9b",
+      "members": [
+        {
+          "symbol": "test_detail_reads_by_id_and_preserves_labels",
+          "parameterSelection": "all",
+          "obligations": "detail reads by id and preserves labels"
+        },
+        {
+          "symbol": "test_detail_failures_are_structured",
+          "parameterSelection": "all",
+          "obligations": "detail failures are structured"
+        },
+        {
+          "symbol": "test_missing_continuation_marker_fails_loudly",
+          "parameterSelection": "all",
+          "obligations": "missing continuation marker fails loudly"
+        },
+        {
+          "symbol": "test_list_scope_denial_names_the_intel_scope",
+          "parameterSelection": "all",
+          "obligations": "list scope denial names the intel scope"
+        },
+        {
+          "symbol": "test_filter_rejection_teaches_indicator_fields",
+          "parameterSelection": "all",
+          "obligations": "filter rejection teaches indicator fields"
+        }
+      ]
+    },
+    {
+      "id": "SR-113",
+      "slice": "S06",
+      "requirement": "Intelligence ordering, continuation, fields, redaction and full detail",
+      "source": "tests/offline/test_intel.py",
+      "sourceSha256": "60bfa986953cc0bfcfa70484fb331daaad2b25e53b4015d1dbe8ac4784b59955",
+      "members": [
+        {
+          "symbol": "test_combined_list_preserves_order_and_total",
+          "parameterSelection": "all",
+          "obligations": "combined list preserves order and total"
+        },
+        {
+          "symbol": "test_cursor_advances_and_rejects_a_different_query",
+          "parameterSelection": "all",
+          "obligations": "cursor advances and rejects a different query"
+        },
+        {
+          "symbol": "test_detail_requests_full_field_collection",
+          "parameterSelection": "all",
+          "obligations": "detail requests full field collection"
+        },
+        {
+          "symbol": "test_detail_redacts_complete_private_keys_before_preview",
+          "parameterSelection": "all",
+          "obligations": "detail redacts complete private keys before preview"
+        },
+        {
+          "symbol": "test_detail_truncation_has_a_full_escape_hatch",
+          "parameterSelection": "all",
+          "obligations": "detail truncation has a full escape hatch"
+        },
+        {
+          "symbol": "test_unknown_detail_is_not_found",
+          "parameterSelection": "all",
+          "obligations": "unknown detail is not found"
+        }
+      ]
+    },
+    {
+      "id": "SR-114",
+      "slice": "S06",
+      "requirement": "MITRE array shape, honest empty/error data and input refusal",
+      "source": "tests/offline/test_intel.py",
+      "sourceSha256": "60bfa986953cc0bfcfa70484fb331daaad2b25e53b4015d1dbe8ac4784b59955",
+      "members": [
+        {
+          "symbol": "test_mitre_uses_json_top_level_array",
+          "parameterSelection": "all",
+          "obligations": "mitre uses json top level array"
+        },
+        {
+          "symbol": "test_empty_mitre_mappings_are_definitive",
+          "parameterSelection": "all",
+          "obligations": "empty mitre mappings are definitive"
+        },
+        {
+          "symbol": "test_invalid_mitre_is_an_upstream_error",
+          "parameterSelection": "all",
+          "obligations": "invalid mitre is an upstream error"
+        },
+        {
+          "symbol": "test_invalid_flags_fail_before_authentication",
+          "parameterSelection": "all",
+          "obligations": "invalid flags fail before authentication"
+        }
+      ]
+    },
+    {
+      "id": "SR-116",
+      "slice": "S06",
+      "requirement": "Inventory rows, rate note, empty, detail and scope distinctions",
+      "source": "tests/offline/test_inventory_reads.py",
+      "sourceSha256": "6fa062dccd18d39ef261111a7bdd037a57cefcbc279bd3eae360b8f63017ce5f",
+      "members": [
+        {
+          "symbol": "test_inventory_list_rate_budget",
+          "parameterSelection": {
+            "P1": [
+              0
+            ]
+          },
+          "obligations": "inventory list rate budget"
+        },
+        {
+          "symbol": "test_inventory_reads",
+          "parameterSelection": {
+            "P1": [
+              0,
+              1
+            ]
+          },
+          "obligations": "inventory reads"
+        },
+        {
+          "symbol": "test_empty_query_skips_hydration",
+          "parameterSelection": {
+            "P1": [
+              0
+            ]
+          },
+          "obligations": "empty query skips hydration"
+        },
+        {
+          "symbol": "test_missing_detail",
+          "parameterSelection": {
+            "P1": [
+              0
+            ]
+          },
+          "obligations": "missing detail"
+        },
+        {
+          "symbol": "test_scope_denied",
+          "parameterSelection": {
+            "P1": [
+              0
+            ]
+          },
+          "obligations": "scope denied"
+        }
+      ]
+    },
+    {
+      "id": "SR-117",
+      "slice": "S07",
+      "requirement": "Inventory rows, rate note, empty, detail and scope distinctions",
+      "source": "tests/offline/test_inventory_reads.py",
+      "sourceSha256": "6fa062dccd18d39ef261111a7bdd037a57cefcbc279bd3eae360b8f63017ce5f",
+      "members": [
+        {
+          "symbol": "test_inventory_list_rate_budget",
+          "parameterSelection": {
+            "P1": [
+              2
+            ]
+          },
+          "obligations": "inventory list rate budget"
+        },
+        {
+          "symbol": "test_inventory_reads",
+          "parameterSelection": {
+            "P1": [
+              2,
+              3
+            ]
+          },
+          "obligations": "inventory reads"
+        },
+        {
+          "symbol": "test_empty_query_skips_hydration",
+          "parameterSelection": {
+            "P1": [
+              1
+            ]
+          },
+          "obligations": "empty query skips hydration"
+        },
+        {
+          "symbol": "test_missing_detail",
+          "parameterSelection": {
+            "P1": [
+              1
+            ]
+          },
+          "obligations": "missing detail"
+        },
+        {
+          "symbol": "test_scope_denied",
+          "parameterSelection": {
+            "P1": [
+              1
+            ]
+          },
+          "obligations": "scope denied"
+        }
+      ]
+    },
+    {
+      "id": "SR-118",
+      "slice": "S06",
+      "requirement": "Malware preview and fixed identity-rule filter/hydration",
+      "source": "tests/offline/test_inventory_reads.py",
+      "sourceSha256": "6fa062dccd18d39ef261111a7bdd037a57cefcbc279bd3eae360b8f63017ce5f",
+      "members": [
+        {
+          "symbol": "test_malware_description_preview_can_be_expanded",
+          "parameterSelection": "all",
+          "obligations": "malware description preview can be expanded"
+        }
+      ]
+    },
+    {
+      "id": "SR-119",
+      "slice": "S07",
+      "requirement": "Malware preview and fixed identity-rule filter/hydration",
+      "source": "tests/offline/test_inventory_reads.py",
+      "sourceSha256": "6fa062dccd18d39ef261111a7bdd037a57cefcbc279bd3eae360b8f63017ce5f",
+      "members": [
+        {
+          "symbol": "test_rule_filters_use_rest_parameter_names_and_boolean_values",
+          "parameterSelection": "all",
+          "obligations": "rule filters use rest parameter names and boolean values"
+        },
+        {
+          "symbol": "test_rule_hydration_chunks_and_reorders",
+          "parameterSelection": "all",
+          "obligations": "rule hydration chunks and reorders"
+        }
+      ]
+    },
+    {
+      "id": "SR-121",
+      "slice": "S06",
+      "requirement": "Inventory continuation binding and zero-request usage refusal",
+      "source": "tests/offline/test_inventory_reads.py",
+      "sourceSha256": "6fa062dccd18d39ef261111a7bdd037a57cefcbc279bd3eae360b8f63017ce5f",
+      "members": [
+        {
+          "symbol": "test_cursor_continuation_and_query_binding",
+          "parameterSelection": {
+            "P1": [
+              0
+            ]
+          },
+          "obligations": "cursor continuation and query binding"
+        },
+        {
+          "symbol": "test_invalid_arguments",
+          "parameterSelection": {
+            "P1": [
+              4
+            ]
+          },
+          "obligations": "invalid arguments"
+        }
+      ]
+    },
+    {
+      "id": "SR-122",
+      "slice": "S07",
+      "requirement": "Inventory continuation binding and zero-request usage refusal",
+      "source": "tests/offline/test_inventory_reads.py",
+      "sourceSha256": "6fa062dccd18d39ef261111a7bdd037a57cefcbc279bd3eae360b8f63017ce5f",
+      "members": [
+        {
+          "symbol": "test_invalid_arguments",
+          "parameterSelection": {
+            "P1": [
+              0,
+              1,
+              2,
+              5
+            ]
+          },
+          "obligations": "invalid arguments"
+        }
+      ]
+    },
+    {
+      "id": "SR-138",
+      "slice": "S07",
+      "requirement": "Policy selectors, scope, cursor binding and honest totals",
+      "source": "tests/offline/test_policy.py",
+      "sourceSha256": "82898b197a25e3bfb4f30c04e3f9457f33443fb381c09e1237a512195b6eb365",
+      "members": [
+        {
+          "symbol": "test_each_type_reads_the_combined_operation_and_projects_compact_rows",
+          "parameterSelection": "all",
+          "obligations": "each type reads the combined operation and projects compact rows"
+        },
+        {
+          "symbol": "test_rejected_filter_remedy_preserves_policy_command_and_type",
+          "parameterSelection": "all",
+          "obligations": "rejected filter remedy preserves policy command and type"
+        },
+        {
+          "symbol": "test_missing_policy_remedy_lists_identifiers_for_the_selected_type",
+          "parameterSelection": "all",
+          "obligations": "missing policy remedy lists identifiers for the selected type"
+        },
+        {
+          "symbol": "test_continuation_replays_filter_type_and_policy_id_and_stops_on_empty_page",
+          "parameterSelection": "all",
+          "obligations": "continuation replays filter type and policy id and stops on empty page"
+        },
+        {
+          "symbol": "test_members_cursor_rejects_changed_query_before_a_scoped_request",
+          "parameterSelection": "all",
+          "obligations": "members cursor rejects changed query before a scoped request"
+        },
+        {
+          "symbol": "test_pagination_uses_total_when_available_and_page_size_otherwise",
+          "parameterSelection": "all",
+          "obligations": "pagination uses total when available and page size otherwise"
+        },
+        {
+          "symbol": "test_invalid_policy_commands_fail_before_authentication",
+          "parameterSelection": "all",
+          "obligations": "invalid policy commands fail before authentication"
+        },
+        {
+          "symbol": "test_scope_denial_names_only_the_selected_types_read_scope",
+          "parameterSelection": "all",
+          "obligations": "scope denial names only the selected types read scope"
+        }
+      ]
+    },
+    {
+      "id": "SR-139",
+      "slice": "S07",
+      "requirement": "Device-control query hydration, exact detail and licensing distinctions",
+      "source": "tests/offline/test_policy.py",
+      "sourceSha256": "82898b197a25e3bfb4f30c04e3f9457f33443fb381c09e1237a512195b6eb365",
+      "members": [
+        {
+          "symbol": "test_device_control_list_restores_query_order_and_preserves_query_pagination",
+          "parameterSelection": "all",
+          "obligations": "device control list restores query order and preserves query pagination"
+        },
+        {
+          "symbol": "test_device_control_show_exposes_usb_classes_and_exceptions",
+          "parameterSelection": "all",
+          "obligations": "device control show exposes usb classes and exceptions"
+        },
+        {
+          "symbol": "test_device_control_scope_denial_explains_licensing",
+          "parameterSelection": "all",
+          "obligations": "device control scope denial explains licensing"
+        },
+        {
+          "symbol": "test_device_control_empty_result_explains_not_licensed_or_no_data",
+          "parameterSelection": "all",
+          "obligations": "device control empty result explains not licensed or no data"
+        },
+        {
+          "symbol": "test_device_control_show_rejects_malformed_or_mismatched_details",
+          "parameterSelection": "all",
+          "obligations": "device control show rejects malformed or mismatched details"
+        },
+        {
+          "symbol": "test_deprecated_device_control_operation_is_refused",
+          "parameterSelection": "all",
+          "obligations": "deprecated device control operation is refused"
+        },
+        {
+          "symbol": "test_device_control_list_refuses_missing_hydrated_policies",
+          "parameterSelection": "all",
+          "obligations": "device control list refuses missing hydrated policies"
+        },
+        {
+          "symbol": "test_device_control_show_not_found_remedy_preserves_type",
+          "parameterSelection": "all",
+          "obligations": "device control show not found remedy preserves type"
+        }
+      ]
+    },
+    {
+      "id": "SR-150",
+      "slice": "S06",
+      "requirement": "Recon identity, nested detail, redaction and bounded hydration",
+      "source": "tests/offline/test_recon.py",
+      "sourceSha256": "80023a5c48e7d8e7c102b3ac9f8555f79dbce022673e17b1c22963128402fb59",
+      "members": [
+        {
+          "symbol": "test_recon_list_preserves_query_order_and_total",
+          "parameterSelection": {
+            "P1": [
+              0,
+              1,
+              2
+            ]
+          },
+          "obligations": "recon list preserves query order and total"
+        },
+        {
+          "symbol": "test_notifications_read_status_from_nested_notification",
+          "parameterSelection": "all",
+          "obligations": "notifications read status from nested notification"
+        },
+        {
+          "symbol": "test_recon_show_reads_only_selected_id_and_redacts_cid",
+          "parameterSelection": {
+            "P1": [
+              0,
+              1,
+              2
+            ]
+          },
+          "obligations": "recon show reads only selected id and redacts cid"
+        },
+        {
+          "symbol": "test_recon_show_reports_missing_record",
+          "parameterSelection": "all",
+          "obligations": "recon show reports missing record"
+        },
+        {
+          "symbol": "test_recon_detail_truncates_nested_content_and_full_restores_it",
+          "parameterSelection": "all",
+          "obligations": "recon detail truncates nested content and full restores it"
+        },
+        {
+          "symbol": "test_recon_detail_redacts_complete_private_keys_before_preview",
+          "parameterSelection": {
+            "P1": [
+              0,
+              1,
+              2
+            ]
+          },
+          "obligations": "recon detail redacts complete private keys before preview"
+        },
+        {
+          "symbol": "test_missing_hydration_advances_cursor_by_queried_ids",
+          "parameterSelection": "all",
+          "obligations": "missing hydration advances cursor by queried ids"
+        },
+        {
+          "symbol": "test_recon_clips_page_at_offset_wall_and_explains_remaining_results",
+          "parameterSelection": "all",
+          "obligations": "recon clips page at offset wall and explains remaining results"
+        }
+      ]
+    },
+    {
+      "id": "SR-151",
+      "slice": "S06",
+      "requirement": "Recon honest totals, licensing, domain guidance and usage",
+      "source": "tests/offline/test_recon.py",
+      "sourceSha256": "80023a5c48e7d8e7c102b3ac9f8555f79dbce022673e17b1c22963128402fb59",
+      "members": [
+        {
+          "symbol": "test_empty_recon_list_is_definitive_and_does_not_hydrate",
+          "parameterSelection": "all",
+          "obligations": "empty recon list is definitive and does not hydrate"
+        },
+        {
+          "symbol": "test_unknown_total_is_not_invented_and_full_page_offers_continuation",
+          "parameterSelection": "all",
+          "obligations": "unknown total is not invented and full page offers continuation"
+        },
+        {
+          "symbol": "test_scope_errors_name_required_read_scope",
+          "parameterSelection": {
+            "P1": [
+              0,
+              1
+            ]
+          },
+          "obligations": "scope errors name required read scope"
+        },
+        {
+          "symbol": "test_rejected_filter_guidance_uses_the_originating_domain",
+          "parameterSelection": {
+            "P1": [
+              0,
+              1,
+              2
+            ]
+          },
+          "obligations": "rejected filter guidance uses the originating domain"
+        },
+        {
+          "symbol": "test_invalid_t1_commands_fail_before_authentication",
+          "parameterSelection": {
+            "P1": [
+              0,
+              1,
+              2,
+              3,
+              5
+            ]
+          },
+          "obligations": "invalid t1 commands fail before authentication"
+        }
+      ]
+    },
+    {
+      "id": "SR-158",
+      "slice": "S06",
+      "requirement": "HTTP error precedence, required scope, resource shape and honest 404 handling",
+      "source": "tests/offline/test_resource_errors.py",
+      "sourceSha256": "32c46bdd1c9b2528a8c1af03893872313cff2db16918c7087255c58ad0246d03",
+      "members": [
+        {
+          "symbol": "test_http_errors_precede_resource_validation",
+          "parameterSelection": {
+            "P1": [
+              0,
+              1
+            ]
+          },
+          "obligations": "http errors precede resource validation"
+        },
+        {
+          "symbol": "test_scope_denied_keeps_required_scope_guidance",
+          "parameterSelection": {
+            "P1": [
+              0,
+              1
+            ]
+          },
+          "obligations": "scope denied keeps required scope guidance"
+        },
+        {
+          "symbol": "test_successful_envelopes_still_require_resource_arrays",
+          "parameterSelection": {
+            "P1": [
+              0,
+              1
+            ]
+          },
+          "obligations": "successful envelopes still require resource arrays"
+        },
+        {
+          "symbol": "test_detail_404_without_resources_is_not_found",
+          "parameterSelection": {
+            "P1": [
+              0,
+              1
+            ]
+          },
+          "obligations": "detail 404 without resources is not found"
+        }
+      ]
+    },
+    {
+      "id": "SR-159",
+      "slice": "S07",
+      "requirement": "Canonical diagnostic vectors and exact safe result",
+      "source": "tests/offline/test_response_diagnostics.py",
+      "sourceSha256": "486f8ca8bf550c7dca74ee5d20cb36736a723db79618b57a9517a72419b6d08e",
+      "members": [
+        {
+          "symbol": "test_canonical_vector_bytes",
+          "parameterSelection": "all",
+          "obligations": "canonical vector bytes"
+        },
+        {
+          "symbol": "test_shared_diagnostics_vector",
+          "parameterSelection": "all",
+          "obligations": "shared diagnostics vector"
+        }
+      ]
+    },
+    {
+      "id": "SR-160",
+      "slice": "S07",
+      "requirement": "Invalid success and token diagnostics without private values",
+      "source": "tests/offline/test_response_diagnostics.py",
+      "sourceSha256": "486f8ca8bf550c7dca74ee5d20cb36736a723db79618b57a9517a72419b6d08e",
+      "members": [
+        {
+          "symbol": "test_invalid_success_reports_metadata_without_values",
+          "parameterSelection": "all",
+          "obligations": "invalid success reports metadata without values"
+        },
+        {
+          "symbol": "test_healthy_response_omits_diagnostics",
+          "parameterSelection": "all",
+          "obligations": "healthy response omits diagnostics"
+        },
+        {
+          "symbol": "test_non_response_error_omits_diagnostics",
+          "parameterSelection": "all",
+          "obligations": "non response error omits diagnostics"
+        },
+        {
+          "symbol": "test_invalid_token_reports_its_own_response",
+          "parameterSelection": "all",
+          "obligations": "invalid token reports its own response"
+        }
+      ]
+    },
+    {
+      "id": "SR-161",
+      "slice": "S07",
+      "requirement": "Diagnostic reset, shape and issue bounds",
+      "source": "tests/offline/test_response_diagnostics.py",
+      "sourceSha256": "486f8ca8bf550c7dca74ee5d20cb36736a723db79618b57a9517a72419b6d08e",
+      "members": [
+        {
+          "symbol": "test_recording_another_response_resets_issue_annotations",
+          "parameterSelection": "all",
+          "obligations": "recording another response resets issue annotations"
+        },
+        {
+          "symbol": "test_issue_annotations_are_bounded",
+          "parameterSelection": "all",
+          "obligations": "issue annotations are bounded"
+        },
+        {
+          "symbol": "test_shape_entries_are_bounded",
+          "parameterSelection": "all",
+          "obligations": "shape entries are bounded"
+        }
+      ]
+    },
+    {
+      "id": "SR-175",
+      "slice": "S06",
+      "requirement": "Sandbox exact selectors, safe metadata, attribution and continuation",
+      "source": "tests/offline/test_sandbox.py",
+      "sourceSha256": "1a2642b5b642778b1e42bcb462a1049f9e3c5eb5e58d47e7ed43cb5d05167d29",
+      "members": [
+        {
+          "symbol": "test_invalid_hash_is_rejected_before_authentication",
+          "parameterSelection": "all",
+          "obligations": "invalid hash is rejected before authentication"
+        },
+        {
+          "symbol": "test_exactly_one_nonempty_selector_is_required",
+          "parameterSelection": "all",
+          "obligations": "exactly one nonempty selector is required"
+        },
+        {
+          "symbol": "test_hash_lookup_hydrates_in_query_order_and_projects_only_safe_fields",
+          "parameterSelection": "all",
+          "obligations": "hash lookup hydrates in query order and projects only safe fields"
+        },
+        {
+          "symbol": "test_show_keeps_each_environment_and_adds_selected_details",
+          "parameterSelection": "all",
+          "obligations": "show keeps each environment and adds selected details"
+        },
+        {
+          "symbol": "test_empty_query_explains_license_and_data_without_hydrating",
+          "parameterSelection": "all",
+          "obligations": "empty query explains license and data without hydrating"
+        },
+        {
+          "symbol": "test_scope_denied_explains_falcon_intelligence_license",
+          "parameterSelection": "all",
+          "obligations": "scope denied explains falcon intelligence license"
+        },
+        {
+          "symbol": "test_show_never_attributes_missing_or_different_reports",
+          "parameterSelection": "all",
+          "obligations": "show never attributes missing or different reports"
+        },
+        {
+          "symbol": "test_cursor_preserves_hash_and_continues_query_offsets",
+          "parameterSelection": "all",
+          "obligations": "cursor preserves hash and continues query offsets"
+        }
+      ]
+    },
+    {
+      "id": "SR-176",
+      "slice": "S06",
+      "requirement": "Sandbox excludes upload/download and refuses incomplete hydration",
+      "source": "tests/offline/test_sandbox.py",
+      "sourceSha256": "1a2642b5b642778b1e42bcb462a1049f9e3c5eb5e58d47e7ed43cb5d05167d29",
+      "members": [
+        {
+          "symbol": "test_submission_upload_and_downloads_are_not_registered",
+          "parameterSelection": "all",
+          "obligations": "submission upload and downloads are not registered"
+        },
+        {
+          "symbol": "test_fql_selector_is_passed_through",
+          "parameterSelection": "all",
+          "obligations": "fql selector is passed through"
+        },
+        {
+          "symbol": "test_missing_hydrated_report_is_not_presented_as_a_complete_page",
+          "parameterSelection": "all",
+          "obligations": "missing hydrated report is not presented as a complete page"
+        }
+      ]
+    }
+  ]
+}

@@ -1,3 +1,5 @@
+import inspectionCommands from "./inspection-commands.json" with { type: "json" };
+
 export interface Command {
   readonly name: string;
   readonly summary: string;
@@ -530,9 +532,10 @@ const declarations: Command[] = [
     operations: ["RTRAuditSessions"],
   },
 ];
-export const commands: readonly Command[] = declarations.sort(
-  (a, b) => a.order - b.order,
-);
+export const commands: readonly Command[] = [
+  ...declarations,
+  ...inspectionCommands,
+].sort((a, b) => a.order - b.order);
 export const valueFlags: readonly string[] = [
   "--config",
   "--profile",

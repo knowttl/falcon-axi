@@ -1,0 +1,539 @@
+[
+  {
+    "name": "actor list",
+    "summary": "  actor list                list Falcon Intelligence actors",
+    "order": 1100,
+    "values": [
+      "filter",
+      "limit",
+      "cursor"
+    ],
+    "booleans": [],
+    "operations": [
+      "QueryIntelActorEntities"
+    ],
+    "ceiling": 5000
+  },
+  {
+    "name": "actor show",
+    "summary": "  actor show <id>           the detail for one intelligence actor",
+    "order": 1200,
+    "values": [],
+    "booleans": [
+      "full",
+      "mitre"
+    ],
+    "operations": [
+      "GetIntelActorEntities",
+      "GetMitreReport"
+    ],
+    "positional": "actor identifier"
+  },
+  {
+    "name": "report list",
+    "summary": "  report list               list Falcon Intelligence reports",
+    "order": 1300,
+    "values": [
+      "filter",
+      "limit",
+      "cursor"
+    ],
+    "booleans": [],
+    "operations": [
+      "QueryIntelReportEntities"
+    ],
+    "ceiling": 5000
+  },
+  {
+    "name": "report show",
+    "summary": "  report show <id>          the detail for one intelligence report",
+    "order": 1400,
+    "values": [],
+    "booleans": [
+      "full"
+    ],
+    "operations": [
+      "GetIntelReportEntities"
+    ],
+    "positional": "report identifier"
+  },
+  {
+    "name": "malware list",
+    "summary": "  malware list              list intelligence malware families",
+    "order": 1401,
+    "values": [
+      "filter",
+      "limit",
+      "cursor"
+    ],
+    "booleans": [],
+    "operations": [
+      "QueryMalwareEntities"
+    ],
+    "ceiling": 5000
+  },
+  {
+    "name": "malware show",
+    "summary": "  malware show <id>         the full malware family record",
+    "order": 1402,
+    "values": [],
+    "booleans": [
+      "full"
+    ],
+    "operations": [
+      "GetMalwareEntities"
+    ],
+    "positional": "malware family identifier"
+  },
+  {
+    "name": "indicator list",
+    "summary": "  indicator list            list Falcon Intelligence indicators",
+    "order": 1500,
+    "values": [
+      "filter",
+      "limit",
+      "cursor"
+    ],
+    "booleans": [],
+    "operations": [
+      "QueryIntelIndicatorEntities"
+    ],
+    "ceiling": 10000
+  },
+  {
+    "name": "indicator show",
+    "summary": "  indicator show <id>       detail for one intelligence indicator",
+    "order": 1600,
+    "values": [],
+    "booleans": [],
+    "operations": [
+      "GetIntelIndicatorEntities"
+    ],
+    "positional": "indicator identifier"
+  },
+  {
+    "name": "classification list",
+    "summary": "  classification list       list Data Protection classifications",
+    "order": 1620,
+    "values": [
+      "filter",
+      "sort",
+      "limit",
+      "cursor"
+    ],
+    "booleans": [],
+    "operations": [
+      "queries_classification_get_v2",
+      "entities_classification_get_v2"
+    ],
+    "ceiling": 500
+  },
+  {
+    "name": "classification show",
+    "summary": "  classification show <id>  full Data Protection classification",
+    "order": 1621,
+    "values": [],
+    "booleans": [],
+    "operations": [
+      "entities_classification_get_v2"
+    ],
+    "positional": "classification identifier"
+  },
+  {
+    "name": "data-policy list",
+    "summary": "  data-policy list          list Data Protection policies",
+    "order": 1630,
+    "values": [
+      "platform",
+      "filter",
+      "sort",
+      "limit",
+      "cursor"
+    ],
+    "booleans": [],
+    "operations": [
+      "queries_policy_get_v2",
+      "entities_policy_get_v2"
+    ],
+    "ceiling": 500
+  },
+  {
+    "name": "data-policy show",
+    "summary": "  data-policy show <id>     full Data Protection policy",
+    "order": 1640,
+    "values": [],
+    "booleans": [],
+    "operations": [
+      "entities_policy_get_v2"
+    ],
+    "positional": "policy identifier"
+  },
+  {
+    "name": "identity rule list",
+    "summary": "  identity rule list        list Identity Protection policy rules",
+    "order": 2303.3333333333335,
+    "values": [
+      "name",
+      "enabled",
+      "simulation-mode"
+    ],
+    "booleans": [],
+    "operations": [
+      "get_policy_rules_query",
+      "get_policy_rules"
+    ]
+  },
+  {
+    "name": "identity rule show",
+    "summary": "  identity rule show <id>   the full Identity Protection policy rule",
+    "order": 2303.6666666666665,
+    "values": [],
+    "booleans": [],
+    "operations": [
+      "get_policy_rules"
+    ],
+    "positional": "rule identifier"
+  },
+  {
+    "name": "sandbox list",
+    "summary": "  sandbox list             existing sandbox reports by hash or FQL",
+    "order": 2307.7,
+    "values": [
+      "sha256",
+      "filter",
+      "limit",
+      "cursor"
+    ],
+    "booleans": [],
+    "operations": [
+      "QueryReports",
+      "GetSummaryReports"
+    ],
+    "ceiling": 5000
+  },
+  {
+    "name": "sandbox show",
+    "summary": "  sandbox show <report-id> existing report summary and environment details",
+    "order": 2307.8,
+    "values": [],
+    "booleans": [],
+    "operations": [
+      "GetSummaryReports"
+    ],
+    "positional": "report identifier"
+  },
+  {
+    "name": "policy list",
+    "summary": "  policy list               list policies of one required type",
+    "order": 2310,
+    "values": [
+      "type",
+      "filter",
+      "limit",
+      "cursor"
+    ],
+    "booleans": [],
+    "operations": [
+      "queryCombinedPreventionPolicies",
+      "queryCombinedSensorUpdatePoliciesV2",
+      "queryCombinedFirewallPolicies",
+      "queryDeviceControlPolicies",
+      "queryCombinedRTResponsePolicies",
+      "queryCombinedContentUpdatePolicies",
+      "getDeviceControlPoliciesV2"
+    ],
+    "ceiling": 5000
+  },
+  {
+    "name": "policy members",
+    "summary": "  policy members <id>       list hosts assigned to a policy",
+    "order": 2311,
+    "values": [
+      "type",
+      "filter",
+      "limit",
+      "cursor"
+    ],
+    "booleans": [],
+    "operations": [
+      "queryCombinedPreventionPolicyMembers",
+      "queryCombinedSensorUpdatePolicyMembers",
+      "queryCombinedFirewallPolicyMembers",
+      "queryCombinedDeviceControlPolicyMembers",
+      "queryCombinedRTResponsePolicyMembers",
+      "queryCombinedContentUpdatePolicyMembers"
+    ],
+    "ceiling": 5000,
+    "positional": "policy identifier"
+  },
+  {
+    "name": "policy show",
+    "summary": "  policy show <id>          device-control USB classes and exceptions",
+    "order": 2311.5,
+    "values": [
+      "type"
+    ],
+    "booleans": [],
+    "operations": [
+      "getDeviceControlPoliciesV2"
+    ],
+    "positional": "policy identifier"
+  },
+  {
+    "name": "exclusion list",
+    "summary": "  exclusion list            list ML, IOA, sensor-visibility, or certificate exclusions",
+    "order": 2330,
+    "values": [
+      "type",
+      "filter",
+      "limit",
+      "cursor"
+    ],
+    "booleans": [],
+    "operations": [
+      "exclusions_search_v2",
+      "exclusions_get_v2",
+      "ss_ioa_exclusions_search_v2",
+      "ss_ioa_exclusions_get_v2",
+      "querySensorVisibilityExclusionsV1",
+      "getSensorVisibilityExclusionsV1",
+      "cb_exclusions_query_v1",
+      "cb_exclusions_get_v1"
+    ],
+    "ceiling": 500
+  },
+  {
+    "name": "exclusion show",
+    "summary": "  exclusion show <id>       the full exclusion record for a required --type",
+    "order": 2340,
+    "values": [
+      "type"
+    ],
+    "booleans": [],
+    "operations": [
+      "exclusions_get_v2",
+      "ss_ioa_exclusions_get_v2",
+      "getSensorVisibilityExclusionsV1",
+      "cb_exclusions_get_v1"
+    ],
+    "positional": "exclusion identifier"
+  },
+  {
+    "name": "quarantine list",
+    "summary": "  quarantine list           list quarantined file metadata",
+    "order": 2350,
+    "values": [
+      "filter",
+      "limit",
+      "cursor"
+    ],
+    "booleans": [],
+    "operations": [
+      "QueryQuarantineFiles",
+      "GetQuarantineFiles"
+    ],
+    "ceiling": 500
+  },
+  {
+    "name": "quarantine show",
+    "summary": "  quarantine show <id>      the full quarantined file record",
+    "order": 2360,
+    "values": [],
+    "booleans": [],
+    "operations": [
+      "GetQuarantineFiles"
+    ],
+    "positional": "quarantine identifier"
+  },
+  {
+    "name": "firewall rule list",
+    "summary": "  firewall rule list         read firewall_rules",
+    "order": 2370,
+    "values": [
+      "filter",
+      "limit",
+      "cursor"
+    ],
+    "booleans": [],
+    "operations": [
+      "query_rules",
+      "get_rules"
+    ],
+    "ceiling": 5000
+  },
+  {
+    "name": "firewall rule show",
+    "summary": "  firewall rule show <id>    read one record",
+    "order": 2371,
+    "values": [],
+    "booleans": [
+      "full"
+    ],
+    "operations": [
+      "get_rules"
+    ],
+    "positional": "identifier"
+  },
+  {
+    "name": "firewall group list",
+    "summary": "  firewall group list        read firewall_groups",
+    "order": 2372,
+    "values": [
+      "filter",
+      "limit",
+      "cursor"
+    ],
+    "booleans": [],
+    "operations": [
+      "query_rule_groups",
+      "get_rule_groups"
+    ],
+    "ceiling": 5000
+  },
+  {
+    "name": "ioa group list",
+    "summary": "  ioa group list             read ioa_groups",
+    "order": 2373,
+    "values": [
+      "filter",
+      "limit",
+      "cursor"
+    ],
+    "booleans": [],
+    "operations": [
+      "query_rule_groups_full"
+    ],
+    "ceiling": 500
+  },
+  {
+    "name": "correlation-rule list",
+    "summary": "  correlation-rule list      read correlation_rules",
+    "order": 2374,
+    "values": [
+      "filter",
+      "limit",
+      "cursor"
+    ],
+    "booleans": [],
+    "operations": [
+      "combined_rules_get_v2"
+    ],
+    "ceiling": 500
+  },
+  {
+    "name": "case list",
+    "summary": "  case list                  read cases",
+    "order": 2375,
+    "values": [
+      "filter",
+      "limit",
+      "cursor"
+    ],
+    "booleans": [],
+    "operations": [
+      "queries_cases_get_v1",
+      "entities_cases_post_v2"
+    ],
+    "ceiling": 500
+  },
+  {
+    "name": "case show",
+    "summary": "  case show <id>             read one record",
+    "order": 2376,
+    "values": [],
+    "booleans": [
+      "full"
+    ],
+    "operations": [
+      "entities_cases_post_v2"
+    ],
+    "positional": "identifier"
+  },
+  {
+    "name": "recon-rule list",
+    "summary": "  recon-rule list               list Recon monitoring rules",
+    "order": 2702,
+    "values": [
+      "filter",
+      "limit",
+      "cursor"
+    ],
+    "booleans": [],
+    "operations": [
+      "QueryRulesV1",
+      "GetRulesV1"
+    ],
+    "ceiling": 500
+  },
+  {
+    "name": "recon-rule show",
+    "summary": "  recon-rule show <id>          full record detail",
+    "order": 2703,
+    "values": [],
+    "booleans": [
+      "full"
+    ],
+    "operations": [
+      "GetRulesV1"
+    ],
+    "positional": "record identifier"
+  },
+  {
+    "name": "recon-notification list",
+    "summary": "  recon-notification list       list Recon notifications",
+    "order": 2704,
+    "values": [
+      "filter",
+      "limit",
+      "cursor"
+    ],
+    "booleans": [],
+    "operations": [
+      "QueryNotificationsV1",
+      "GetNotificationsDetailedV1"
+    ],
+    "ceiling": 500
+  },
+  {
+    "name": "recon-notification show",
+    "summary": "  recon-notification show <id>  full record detail",
+    "order": 2705,
+    "values": [],
+    "booleans": [
+      "full"
+    ],
+    "operations": [
+      "GetNotificationsDetailedV1"
+    ],
+    "positional": "record identifier"
+  },
+  {
+    "name": "recon-record list",
+    "summary": "  recon-record list             list Recon exposed-data records",
+    "order": 2706,
+    "values": [
+      "filter",
+      "limit",
+      "cursor"
+    ],
+    "booleans": [],
+    "operations": [
+      "QueryNotificationsExposedDataRecordsV1",
+      "GetNotificationsExposedDataRecordsV1"
+    ],
+    "ceiling": 500
+  },
+  {
+    "name": "recon-record show",
+    "summary": "  recon-record show <id>        full record detail",
+    "order": 2707,
+    "values": [],
+    "booleans": [
+      "full"
+    ],
+    "operations": [
+      "GetNotificationsExposedDataRecordsV1"
+    ],
+    "positional": "record identifier"
+  }
+]

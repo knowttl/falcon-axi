@@ -4,6 +4,8 @@ import s02 from "../fixtures/migration/S02/contracts.json" with { type: "json" }
 import s03 from "../fixtures/migration/S03/contracts.json" with { type: "json" };
 import s04 from "../fixtures/migration/S04/contracts.json" with { type: "json" };
 import s05 from "../fixtures/migration/S05/contracts.json" with { type: "json" };
+import s06 from "../fixtures/migration/S06/contracts.json" with { type: "json" };
+import s07 from "../fixtures/migration/S07/contracts.json" with { type: "json" };
 import { VERSION } from "../../src/version.js";
 
 export interface DiscoveryDelta {
@@ -43,6 +45,8 @@ export async function expectedDocument(
     ...s03.commandNames,
     ...s04.commandNames,
     ...s05.commandNames,
+    ...s06.commandNames,
+    ...s07.commandNames,
   ]);
   const selected = references.filter((reference) => owned.has(reference.name));
   const names = selected.map((reference) => reference.name).join(", ");
@@ -77,7 +81,7 @@ export async function expectedDocument(
       [...groups]
         .map(
           ([scope, commands]) =>
-            `  ${JSON.stringify(scope)},read,${commands.length > 1 ? JSON.stringify(commands.join(", ")) : commands[0]},yes\n`,
+            `  ${JSON.stringify(scope)},read,${commands.length > 1 ? JSON.stringify(commands.join(", ")) : commands[0]},${commands.every((name) => /^(policy|exclusion) /.test(name)) ? "selected --type" : "yes"}\n`,
         )
         .join("") +
       'member_cid_token_scope: unresolved (Flight Control read may be required; see design section 17.7)\nhelp[2]: "Grant these scopes in the Falcon console under Support and resources > API clients and keys","Grant read access only; falcon-axi needs no write scope"\n';

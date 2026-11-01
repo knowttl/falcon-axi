@@ -38,7 +38,10 @@ export class Domain {
     readonly signal: AbortSignal,
   ) {
     const { command, flags, id } = invocation;
-    this.suggestion = `falcon-axi ${command.name}${id ? ` ${quote(id)}` : ""}${flags.has("--all") ? " --all" : ""}${command.values
+    const values = /^(exclusion|policy) /.test(command.name)
+      ? [...command.values.filter((value) => value !== "type"), "type"]
+      : command.values;
+    this.suggestion = `falcon-axi ${command.name}${id ? ` ${quote(id)}` : ""}${flags.has("--all") ? " --all" : ""}${values
       .filter((key) => key !== "cursor" && flags.has(`--${key}`))
       .map(
         (key) =>
@@ -72,7 +75,7 @@ export class Domain {
           ? "no host group matched that identifier"
           : `no ${subject} matched that identifier`,
         [
-          `Run \`falcon-axi ${noun} list\`${noun === "host-group" ? "" : " to see current identifiers"}`,
+          `Run \`falcon-axi ${noun} list${noun === "policy" ? ` --type ${this.invocation.flags.get("--type")}` : ""}\`${noun === "host-group" ? "" : " to see current identifiers"}`,
         ],
       );
     }
@@ -171,7 +174,7 @@ export class Domain {
   cursor(
     operation: string,
     filter?: string,
-    model: "offset" | "token" = "offset",
+    model: "offset" | "token" | "marker" | "offset-or-token" = "offset",
     sort: string | null = null,
   ): Cursor {
     return new Cursor(

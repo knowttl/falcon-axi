@@ -14,8 +14,7 @@
         "show",
         "timeline",
         "assessment",
-        "activity",
-        "rule"
+        "activity"
       ]
     },
     "restore": "Restore remaining identity navigation when its commands ship; S13 compares the original documents without discovery exceptions."

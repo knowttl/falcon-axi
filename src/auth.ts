@@ -140,6 +140,8 @@ export function responseFailure(
       ]);
     const licences: Readonly<Record<string, string>> = {
       "Assets:read": "Falcon Discover or Exposure Management",
+      "Sandbox (Falcon Intelligence):read": "Falcon Intelligence (Sandbox)",
+      "Device Control Policies:read": "Falcon Device Control",
       "Falcon FileVantage:read": "Falcon FileVantage",
       "Threatgraph:read":
         "a Falcon subscription with ThreatGraph API access enabled",

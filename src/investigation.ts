@@ -529,6 +529,11 @@ export async function investigate(
           help.push(
             `Run \`falcon-axi process show ${pivot}\` for process details`,
           );
+      for (const hash of new Set(rows.map((row) => row.sha256)))
+        if (typeof hash === "string" && /^[a-fA-F0-9]{64}$/.test(hash))
+          help.push(
+            `Run \`falcon-axi sandbox list --sha256 ${hash}\` for existing sandbox reports`,
+          );
       return { value, help };
     }
     const detail: RecordValue = {

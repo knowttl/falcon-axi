@@ -20,6 +20,8 @@ const allowed = new Set([
   "./domain.js",
   "./inventory.js",
   "./exposure.js",
+  "./inspection.js",
+  "./inspection-commands.json",
   "./parser.js",
   "./cursor.js",
   "./windows-acl.js",

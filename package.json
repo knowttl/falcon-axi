@@ -30,7 +30,7 @@
     "build:native": "node scripts/typescript/build-native.ts",
     "build": "node scripts/typescript/build.ts",
     "lint": "prettier --check package.json tsconfig.json 'src/**/*.ts' src/axi-credential.schema.json src/help.json 'scripts/typescript/*.ts' 'tests/typescript/*.ts'",
-    "verify": "npm run build && npm run lint && node .typescript-build/scripts/typescript/architecture.js && node .typescript-build/scripts/typescript/coverage.js --strict && unshare --user --map-root-user --net --mount node .typescript-build/scripts/typescript/check-slice.js --slice S05 --paths native --offline && npm run probe:primitive -- --slice S01 --paths native --offline",
+    "verify": "npm run build && npm run lint && node .typescript-build/scripts/typescript/architecture.js && node .typescript-build/scripts/typescript/coverage.js --strict && unshare --user --map-root-user --net --mount node .typescript-build/scripts/typescript/check-slice.js --slice S07 --paths native --offline && npm run probe:primitive -- --slice S01 --paths native --offline",
     "check:coverage": "npm run build && node .typescript-build/scripts/typescript/coverage.js --strict",
     "check:slice": "npm run build && unshare --user --map-root-user --net --mount node .typescript-build/scripts/typescript/check-slice.js",
     "probe:primitive": "npm run build && node .typescript-build/scripts/typescript/primitive-probe.js"
