@@ -35,7 +35,6 @@ The Python expected documents remain unchanged.
 | `auth-status`, `auth-status-member-cid`, `auth-status-retargeted` | Scope guidance says `read scopes`, without advertising later write-labelled commands. | The referenced search, GraphQL and MalQuery commands ship. |
 | `auth-status-no-credential`, `home-view-no-credential`, `home-view-skill-hint` | Omit setup guidance naming unshipped search commands. | The referenced S08 commands ship. |
 | `home-view-skill-hint` | Omit installation guidance for the full Python skill. | S12 delivers the candidate's generated skill. |
-| `detection-process` | Omit the three recorded-hash sandbox-list suggestions. | S06 ships sandbox reads. |
 | `detection-show-identity` | Omit the identity-activity suggestion. | S08 ships that fixed search. |
 | `help-top`, `unknown-command`, `scopes` | Restrict command names, summaries and the scope matrix to frozen delivered commands; omit later execution/scope guidance. | Each additional command ships. |
 | `unknown-identity-subcommand` | Show only delivered Identity subcommands. | The remaining S08 and S09 Identity commands ship. |

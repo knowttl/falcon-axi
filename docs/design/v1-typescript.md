@@ -15,7 +15,7 @@ Sandbox lookup requires exactly one hash or FQL selector and projects only repor
 Recon entity reads and Device Control details accept their documented direct arrays as well as resources envelopes.
 Firewall continuation prefers a server token over numeric offsets, while intelligence indicators retain the entire advancing marker.
 These slices preserve the Python projections, scope distinctions and signed continuation contexts.
-Discover assets/applications/IoT and Spotlight use opaque `after` values, cloud assets use `meta.next`, and the remaining inventories use offsets.
+Among S04/S05 inventories, Discover assets/applications/IoT and Spotlight use opaque `after` values, cloud assets use `meta.next`, and the remaining inventories use offsets.
 Account offsets remain unbounded; container/image inventory caps its window at 10000 records, while SARIF advances by source-record budget rather than run count.
 `src/metadata.ts` owns the delivered TypeScript command and flag surface.
 The released Python implementation remains present as the frozen comparison and rollback origin.
