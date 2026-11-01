@@ -811,7 +811,7 @@ if (process.env.S01_ACTIVE_PATH !== "artium") {
       const args = ["detection", "list", "--limit", "2"];
       if (source === "flag") args.push("--member-cid", member);
       if (source === "environment") {
-        extra.FALCON_AXI_PROFILE = "";
+        extra.FALCON_AXI_PROFILE = undefined;
         extra.FALCON_AXI_CLIENT_ID = "synthetic-s01-client";
         extra.FALCON_AXI_CLIENT_SECRET = "synthetic-s01-secret";
         extra.FALCON_AXI_MEMBER_CID = member;

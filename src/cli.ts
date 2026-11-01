@@ -34,6 +34,7 @@ export async function main(argv: string[], bin?: string): Promise<number> {
   let activeFlags = new Map<string, string>();
   let memberCid: string | undefined;
   let home = false;
+  let hostnameDeadline: AbortSignal | undefined;
   const homeHead = (): Record<string, unknown> => {
     const executable = resolve(process.argv[1] ?? "falcon-axi");
     return {
@@ -180,16 +181,17 @@ export async function main(argv: string[], bin?: string): Promise<number> {
       flags.get("--region") ?? credential.region,
       allowUnknown,
     );
+    if (
+      flags.has("--hostname") &&
+      ["host logins", "host network"].includes(command.name)
+    )
+      hostnameDeadline = AbortSignal.timeout(
+        Math.max(0, Math.floor(60000 - (performance.now() - started))),
+      );
     const signal = searchSubset
       ? AbortSignal.any([controller.signal, AbortSignal.timeout(1000)])
-      : flags.has("--hostname") &&
-          ["host logins", "host network"].includes(command.name)
-        ? AbortSignal.any([
-            controller.signal,
-            AbortSignal.timeout(
-              Math.max(0, Math.floor(30000 - (performance.now() - started))),
-            ),
-          ])
+      : hostnameDeadline
+        ? AbortSignal.any([controller.signal, hostnameDeadline])
         : controller.signal;
     const session = await authenticate(credential, base, allowUnknown, signal);
     if (searchSubset)
@@ -197,10 +199,13 @@ export async function main(argv: string[], bin?: string): Promise<number> {
         "VALIDATION_ERROR",
         "search status is not delivered in S01",
       );
+    const region =
+      Object.keys(REGIONS).find((key) => REGIONS[key] === session.base) ??
+      "an unlisted Falcon cloud";
+    const tenant = new Raw(
+      `${region}${base !== session.base ? ` (re-targeted from ${Object.keys(REGIONS).find((key) => REGIONS[key] === base)})` : ""}${credential.memberCid ? ` member CID …${credential.memberCid.length <= 4 ? "" : credential.memberCid.slice(-4)}` : " (own CID unavailable)"}`,
+    );
     if (command.name === "auth status") {
-      const region =
-        Object.keys(REGIONS).find((key) => REGIONS[key] === session.base) ??
-        "an unlisted Falcon cloud";
       process.stdout.write(
         render(
           {
@@ -210,9 +215,7 @@ export async function main(argv: string[], bin?: string): Promise<number> {
             endpoint: session.base,
             client_secret_source: credential.secretSource,
             credential_path: credential.path,
-            tenant: new Raw(
-              `${region}${base !== session.base ? ` (re-targeted from ${Object.keys(REGIONS).find((key) => REGIONS[key] === base)})` : ""}${credential.memberCid ? ` member CID …${credential.memberCid.length <= 4 ? "" : credential.memberCid.slice(-4)}` : " (own CID unavailable)"}`,
-            ),
+            tenant,
             scopes: new Raw("read scopes"),
             ...(session.rateLimit !== undefined &&
             session.remaining !== undefined
@@ -251,9 +254,7 @@ export async function main(argv: string[], bin?: string): Promise<number> {
     if (command.name === "home") {
       result.value = {
         ...homeHead(),
-        tenant: new Raw(
-          `${Object.keys(REGIONS).find((key) => REGIONS[key] === session.base) ?? "an unlisted Falcon cloud"} (own CID unavailable)`,
-        ),
+        tenant,
         ...result.value,
       };
       result.help.push(
@@ -267,13 +268,20 @@ export async function main(argv: string[], bin?: string): Promise<number> {
     return 0;
   } catch (error) {
     const safe =
-      error instanceof CliError
-        ? error
-        : new CliError(
-            "UNKNOWN",
-            "falcon-axi could not complete this command",
+      hostnameDeadline?.aborted && !controller.signal.aborted
+        ? new CliError(
+            "WAIT_TIMEOUT",
+            "authentication, hostname lookup and history exceeded the combined 60-second time budget",
             ["Retry shortly"],
-          );
+            error instanceof CliError ? error.details : {},
+          )
+        : error instanceof CliError
+          ? error
+          : new CliError(
+              "UNKNOWN",
+              "falcon-axi could not complete this command",
+              ["Retry shortly"],
+            );
     process.stdout.write(
       render(
         {

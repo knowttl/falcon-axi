@@ -13,9 +13,155 @@ import {
   config,
   tokenResponse,
   recordedResponse,
+  prepareScenario,
 } from "./s01.test.js";
 import "./golden.test.js";
 import "./safety.test.js";
+
+if (process.env.S01_ACTIVE_PATH !== "artium") {
+  test("review R1 explicitly empty profile refuses environment fallback", async () => {
+    reset();
+    const result = await run(["auth", "status"], {
+      FALCON_AXI_PROFILE: "",
+    });
+    assert.equal(result.code, 1);
+    assert.match(result.stdout, /PROFILE_NOT_FOUND/);
+    assert.equal(wire.length, 0);
+  });
+
+  for (const group of [
+    "detection",
+    "host",
+    "auth",
+    "config",
+    "profile",
+    "ioc",
+    "process",
+    "file-change",
+    "rtr",
+    "rtr session",
+    "rtr audit",
+  ])
+    test(`review R5 ${group} help requires terminal input`, async () => {
+      reset();
+      const args = [...group.split(" "), "--help"];
+      assert.equal((await run(args)).code, 0);
+      for (const trailing of ["--unexpected", "extra", "--help"])
+        assert.equal((await run([...args, trailing])).code, 2);
+      assert.equal(wire.length, 0);
+    });
+
+  for (const source of ["own", "flag", "environment", "profile", "cleared"])
+    for (const retargeted of [false, true])
+      test(`review R2 home labels ${source} tenant with retarget=${retargeted}`, async () => {
+        const member = "synthetic-child-1234";
+        await prepareScenario({
+          name: "home-tenant",
+          argv: [],
+          exit_code: 0,
+          responders: [
+            {
+              op: "GetQueriesAlertsV2",
+              generate: { kind: "ids", count: 0, total: 0 },
+            },
+          ],
+          oauth: retargeted
+            ? [
+                {
+                  response: {
+                    status: 308,
+                    headers: { "x-cs-region": "us-2" },
+                    body: {},
+                  },
+                },
+                {
+                  response: {
+                    status: 200,
+                    body: { access_token: "synthetic-s01-token" },
+                  },
+                },
+              ]
+            : [
+                {
+                  response: {
+                    status: 200,
+                    body: { access_token: "synthetic-s01-token" },
+                  },
+                },
+              ],
+        });
+        const extra: NodeJS.ProcessEnv = {};
+        const args: string[] = [];
+        if (source === "flag") args.push("--member-cid", member);
+        if (source === "environment") {
+          extra.FALCON_AXI_PROFILE = undefined;
+          extra.FALCON_AXI_MEMBER_CID = member;
+        }
+        if (source === "profile" || source === "cleared") {
+          extra.FALCON_AXI_CONFIG = join(directory, "home-member.json");
+          await writeFile(
+            extra.FALCON_AXI_CONFIG,
+            JSON.stringify({
+              version: 1,
+              profiles: {
+                artium: {
+                  clientId: "synthetic-s01-client",
+                  memberCid: member,
+                  clientSecret: { env: "ARTIUM_SECRET_0" },
+                },
+              },
+            }),
+            { mode: 0o600 },
+          );
+        }
+        if (source === "cleared") args.push("--no-member-cid");
+        const result = await run(args, extra);
+        assert.equal(result.code, 0, result.stdout);
+        const data = decode(result.stdout) as { tenant: string };
+        const selected = !["own", "cleared"].includes(source);
+        assert.equal(
+          data.tenant,
+          `${retargeted ? "us-2 (re-targeted from us-1)" : "us-1"}${selected ? " member CID …1234" : " (own CID unavailable)"}`,
+        );
+        assert.ok(!result.stdout.includes(member));
+        assert.equal(
+          new URLSearchParams(wire[0]!.body).get("member_cid"),
+          selected ? member : null,
+        );
+      });
+
+  for (const [command, fixture] of [
+    ["logins", "hosts/login-history.json"],
+    ["network", "discover/network-history.json"],
+  ])
+    for (const elapsed of [35000, 60001])
+      test(`review R3 host ${command} hostname budget after ${elapsed}ms`, async () => {
+        reset();
+        await recordings([fixture!]);
+        recordedResponse("QueryDevicesByFilter", 200, {
+          meta: { pagination: { total: 1 } },
+          resources: ["synthetic-device-01"],
+          errors: [],
+        });
+        const result = await run(
+          ["host", command!, "--hostname", "WIN-DC-01"],
+          {
+            NODE_OPTIONS: `--import=${fileURLToPath(new URL("./history-clock.js", import.meta.url))}`,
+            S03_ELAPSED_MS: String(elapsed),
+          },
+        );
+        if (elapsed < 60000) {
+          assert.equal(result.code, 0, result.stdout);
+          assert.match(result.stdout, /synthetic-device-01/);
+          assert.equal(wire.length, 3);
+        } else {
+          assert.equal(result.code, 1, result.stdout);
+          assert.match(result.stdout, /WAIT_TIMEOUT/);
+          assert.match(result.stdout, /combined 60-second time budget/);
+          assert.ok(!wire.some((request) => request.url.includes("/devices/")));
+        }
+      });
+}
 
 for (const args of [
   ["-x"],

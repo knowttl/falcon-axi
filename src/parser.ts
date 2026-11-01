@@ -30,7 +30,7 @@ export function parse(argv: string[]): Invocation {
     )
   ) {
     const child = argv[group.split(" ").length];
-    if (child === "--help")
+    if (child === "--help" && argv.length === group.split(" ").length + 1)
       return {
         command: {
           name: group,

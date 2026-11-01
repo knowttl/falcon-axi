@@ -236,7 +236,10 @@ export async function resolveCredential(
   const path = configPath(config);
   await checkLegacy(path);
   let credential: Credential;
-  if (!selected && (env.FALCON_AXI_CLIENT_ID || env.FALCON_AXI_CLIENT_SECRET)) {
+  if (
+    selected === undefined &&
+    (env.FALCON_AXI_CLIENT_ID || env.FALCON_AXI_CLIENT_SECRET)
+  ) {
     if (!env.FALCON_AXI_CLIENT_ID || !env.FALCON_AXI_CLIENT_SECRET)
       throw new CliError(
         "CONFIG_INVALID",
