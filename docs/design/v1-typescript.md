@@ -44,7 +44,7 @@ Run `npm ci --offline --ignore-scripts` and `npm run verify`.
 The latter repeats the S10 native carrier, the native S11 lifecycle, compiled filesystem primitives, and frozen safety ownership checks.
 It also runs a standalone package-contract check after building: the packed allowlist must contain the bin, admission metadata, parser, credential schema, README, license and native prebuilds, without tests, source maps, local paths or recognizable secret material.
 The check installs the tarball offline outside the checkout, probes the installed bin with `--help` and `--version`, and imports the admission metadata and CLI entry point under the inherited kernel IP socket deny.
-Run `node .typescript-build/scripts/typescript/package-contract.js` after `npm run build` for a focused check; it needs no hosted fixture and reuses the test launcher's GCC prerequisite.
+Run `node .typescript-build/scripts/typescript/package-contract.js` after `npm run build` for a focused check; it needs no hosted fixture and requires Linux seccomp support and `/usr/bin/gcc` to compile the socket-denial launcher.
 The S06/S07 carrier repeats the S01-S05 native checks and adds enrichment/configuration golden parity, selector-specific scope and malformed-response refusals, continuation replay, ordered batch hydration, and redaction before detail previews.
 Native S06/S07 retained scenarios compare exact output bytes and exit codes, including signed cursors and suggestions.
 S06 restores the original detection-process sandbox suggestions, and S07 restores Identity rule navigation in the existing discovery scenarios.
@@ -68,6 +68,7 @@ Missing fixtures and unknown or empty selections fail.
 The host delta launches the candidate with its Node runtime rather than either Python launch condition, retaining Node heap limits and the existing termination grace.
 The real client, server, public credential API, private profile writer and runner execute the same installed artifact.
 The configured no-mistakes test deliberately requires only the native offline path.
+Slices merge on their repository gate, including the package-contract and network-denial checks; hosted Artium proof runs once per release or in one nightly batch rather than per slice.
 Final hosted evidence is bound separately to the frozen fixture and final candidate revision.
 
 ## Authority and output
