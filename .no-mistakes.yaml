@@ -1,4 +1,8 @@
 no_ci: true
+commands:
+  prepare: 'test "$(node --version)" = v24.14.0 && test "$(npm --version)" = 11.9.0 && npm ci --offline --ignore-scripts'
+  test: 'npm run verify && npm run check:slice -- --slice S01 --paths native --offline'
+  lint: 'npm run lint'
 review:
   path_instructions:
     - path: "**"
