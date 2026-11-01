@@ -7,9 +7,5 @@
     "--member-cid",
     "synthetic-child-cid-a3b4"
   ],
-  "exit_code": 0,
-  "typescriptMigration": {
-    "scopeGuidance": "read scopes",
-    "restore": "Restore each omitted navigation or original group when its commands ship; S13 compares the original documents with no TypeScript discovery exceptions."
-  }
+  "exit_code": 0
 }

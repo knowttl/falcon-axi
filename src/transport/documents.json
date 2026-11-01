@@ -1,0 +1,72 @@
+{
+  "identity_assessment": {
+    "text": "query IdentityAssessment($domain: String) {\n  securityAssessment(domain: $domain) {\n    overallScore\n    overallScoreLevel\n    assessmentFactors {\n      riskFactorType\n      severity\n      likelihood\n    }\n  }\n}",
+    "variables": [
+      "domain"
+    ],
+    "readScopes": [
+      "Identity Protection Assessment:read"
+    ]
+  },
+  "identity_list": {
+    "text": "query IdentityList(\n  $first: Int\n  $after: Cursor\n  $name: String\n  $email: String\n  $domains: [String!]\n) {\n  entities(\n    archived: false\n    primaryDisplayNamePattern: $name\n    secondaryDisplayNamePattern: $email\n    domains: $domains\n    first: $first\n    after: $after\n  ) {\n    nodes {\n      entityId\n      primaryDisplayName\n      secondaryDisplayName\n      type\n      riskScore\n      riskScoreSeverity\n    }\n    pageInfo {\n      hasNextPage\n      endCursor\n    }\n  }\n}",
+    "variables": [
+      "first",
+      "after",
+      "name",
+      "email",
+      "domains"
+    ],
+    "readScopes": [
+      "Identity Protection Entities:read"
+    ]
+  },
+  "identity_list_users": {
+    "text": "query IdentityList(\n  $first: Int\n  $after: Cursor\n  $name: String\n  $email: String\n  $domains: [String!]\n) {\n  entities(\n    types: [USER]\n    archived: false\n    primaryDisplayNamePattern: $name\n    secondaryDisplayNamePattern: $email\n    domains: $domains\n    first: $first\n    after: $after\n  ) {\n    nodes {\n      entityId\n      primaryDisplayName\n      secondaryDisplayName\n      type\n      riskScore\n      riskScoreSeverity\n    }\n    pageInfo {\n      hasNextPage\n      endCursor\n    }\n  }\n}",
+    "variables": [
+      "first",
+      "after",
+      "name",
+      "email",
+      "domains"
+    ],
+    "readScopes": [
+      "Identity Protection Entities:read"
+    ]
+  },
+  "identity_list_endpoints": {
+    "text": "query IdentityList(\n  $first: Int\n  $after: Cursor\n  $name: String\n  $email: String\n  $domains: [String!]\n) {\n  entities(\n    types: [ENDPOINT]\n    archived: false\n    primaryDisplayNamePattern: $name\n    secondaryDisplayNamePattern: $email\n    domains: $domains\n    first: $first\n    after: $after\n  ) {\n    nodes {\n      entityId\n      primaryDisplayName\n      secondaryDisplayName\n      type\n      riskScore\n      riskScoreSeverity\n    }\n    pageInfo {\n      hasNextPage\n      endCursor\n    }\n  }\n}",
+    "variables": [
+      "first",
+      "after",
+      "name",
+      "email",
+      "domains"
+    ],
+    "readScopes": [
+      "Identity Protection Entities:read"
+    ]
+  },
+  "identity_show": {
+    "text": "query IdentityShow($entityIds: [UUID!]) {\n  entities(entityIds: $entityIds, first: 1) {\n    nodes {\n      entityId\n      primaryDisplayName\n      secondaryDisplayName\n      type\n      riskScore\n      riskScoreSeverity\n      riskFactors {\n        type\n        severity\n      }\n      associations {\n        bindingType\n        ... on EntityAssociation {\n          entity {\n            entityId\n            primaryDisplayName\n          }\n        }\n        ... on LocalAdminLocalUserAssociation {\n          accountName\n        }\n        ... on LocalAdminDomainEntityAssociation {\n          entity {\n            entityId\n            primaryDisplayName\n          }\n        }\n        ... on GeoLocationAssociation {\n          geoLocation {\n            country\n            city\n          }\n        }\n      }\n      openIncidents(first: 10) {\n        nodes {\n          type\n          startTime\n          endTime\n          compromisedEntities {\n            entityId\n            primaryDisplayName\n          }\n        }\n        pageInfo {\n          hasNextPage\n        }\n      }\n      accounts {\n        ... on ActiveDirectoryAccountDescriptor {\n          domain\n          samAccountName\n          ou\n          passwordAttributes {\n            lastChange\n          }\n          expirationTime\n        }\n        ... on SsoUserAccountDescriptor {\n          dataSource\n          mostRecentActivity\n          title\n          creationTime\n          passwordAttributes {\n            lastChange\n          }\n        }\n      }\n    }\n  }\n}",
+    "variables": [
+      "entityIds"
+    ],
+    "readScopes": [
+      "Identity Protection Entities:read"
+    ]
+  },
+  "identity_timeline": {
+    "text": "query IdentityTimeline(\n  $entityIds: [UUID!]\n  $startTime: DateTimeInput\n  $categories: [TimelineEventCategory!]\n  $first: Int\n  $after: Cursor\n) {\n  timeline(\n    sourceEntityQuery: {entityIds: $entityIds}\n    startTime: $startTime\n    categories: $categories\n    sortOrder: DESCENDING\n    first: $first\n    after: $after\n  ) {\n    nodes {\n      eventId\n      eventType\n      eventSeverity\n      timestamp\n      ... on TimelineAlertEvent {\n        sourceEntity {\n          entityId\n          primaryDisplayName\n        }\n      }\n      ... on TimelineUserOnEndpointActivityEvent {\n        sourceEntity {\n          entityId\n          primaryDisplayName\n        }\n        targetEntity {\n          entityId\n          primaryDisplayName\n        }\n        geoLocation {\n          country\n          city\n        }\n        userDisplayName\n        endpointDisplayName\n        ipAddress\n      }\n      ... on TimelineAuthenticationEvent {\n        sourceEntity {\n          entityId\n          primaryDisplayName\n        }\n        targetEntity {\n          entityId\n          primaryDisplayName\n        }\n        geoLocation {\n          country\n          city\n        }\n        userDisplayName\n        endpointDisplayName\n        ipAddress\n      }\n      ... on TimelineSuccessfulAuthenticationEvent {\n        sourceEntity {\n          entityId\n          primaryDisplayName\n        }\n        targetEntity {\n          entityId\n          primaryDisplayName\n        }\n        geoLocation {\n          country\n          city\n        }\n        userDisplayName\n        endpointDisplayName\n        ipAddress\n      }\n      ... on TimelineFailedAuthenticationEvent {\n        sourceEntity {\n          entityId\n          primaryDisplayName\n        }\n        targetEntity {\n          entityId\n          primaryDisplayName\n        }\n        geoLocation {\n          country\n          city\n        }\n        userDisplayName\n        endpointDisplayName\n        ipAddress\n      }\n      ... on TimelineServiceAccessEvent {\n        sourceEntity {\n          entityId\n          primaryDisplayName\n        }\n        targetEntity {\n          entityId\n          primaryDisplayName\n        }\n        geoLocation {\n          country\n          city\n        }\n        userDisplayName\n        endpointDisplayName\n        ipAddress\n      }\n      ... on TimelineLdapSearchEvent {\n        sourceEntity {\n          entityId\n          primaryDisplayName\n        }\n        targetEntity {\n          entityId\n          primaryDisplayName\n        }\n        geoLocation {\n          country\n          city\n        }\n        userDisplayName\n        endpointDisplayName\n        ipAddress\n      }\n      ... on TimelineDceRpcEvent {\n        sourceEntity {\n          entityId\n          primaryDisplayName\n        }\n        targetEntity {\n          entityId\n          primaryDisplayName\n        }\n        geoLocation {\n          country\n          city\n        }\n        userDisplayName\n        endpointDisplayName\n        ipAddress\n      }\n      ... on TimelineRemoteCodeExecutionEvent {\n        sourceEntity {\n          entityId\n          primaryDisplayName\n        }\n        targetEntity {\n          entityId\n          primaryDisplayName\n        }\n        geoLocation {\n          country\n          city\n        }\n        userDisplayName\n        endpointDisplayName\n        ipAddress\n      }\n      ... on TimelineFileOperationEvent {\n        targetEntity {\n          entityId\n          primaryDisplayName\n        }\n        userDisplayName\n        endpointDisplayName\n        ipAddress\n      }\n    }\n    pageInfo {\n      hasNextPage\n      endCursor\n    }\n  }\n}",
+    "variables": [
+      "entityIds",
+      "startTime",
+      "categories",
+      "first",
+      "after"
+    ],
+    "readScopes": [
+      "Identity Protection Timeline:read"
+    ]
+  }
+}

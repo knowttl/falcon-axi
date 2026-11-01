@@ -275,6 +275,7 @@ export async function resolveCredential(
           : [
               "Set FALCON_AXI_CLIENT_ID and FALCON_AXI_CLIENT_SECRET in the environment",
               `Or configure a profile with a clientSecret SecretRef in ${path}`,
+              "Provision an API client with read scopes; only `search start`, `search stop`, and `identity activity` need NGSIEM:write",
             ],
       );
     if (!Object.hasOwn(profiles, name))

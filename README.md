@@ -2,7 +2,7 @@
 
 Read CrowdStrike Falcon from the shell with compact, structured results for agents and the humans running them.
 
-This migration branch also contains a private TypeScript S02-S07 candidate for `@knowttl/falcon-axi` on Node 24.
+This migration branch also contains a private TypeScript S02-S10 candidate for `@knowttl/falcon-axi` on Node 24.
 Its packaging, delivered surface and offline checks are described in [the TypeScript candidate notes](docs/design/v1-typescript.md).
 The Python implementation and installation instructions below remain the released baseline.
 

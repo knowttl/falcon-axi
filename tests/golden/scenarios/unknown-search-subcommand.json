@@ -4,9 +4,5 @@
     "search",
     "contain"
   ],
-  "exit_code": 2,
-  "typescriptMigration": {
-    "unavailableGroup": "search",
-    "restore": "Restore each omitted navigation or original group when its commands ship; S13 compares the original documents with no TypeScript discovery exceptions."
-  }
+  "exit_code": 2
 }

@@ -1,0 +1,48 @@
+{
+  "slice": "S09",
+  "operationIds": [
+    "api_preempt_proxy_post_graphql"
+  ],
+  "caseIds": [
+    "AC-GRAPHQL",
+    "AC-OP-114"
+  ],
+  "commandNames": [
+    "identity assessment",
+    "identity list",
+    "identity show",
+    "identity timeline"
+  ],
+  "goldenScenarioIds": [
+    "help-identity-assessment",
+    "help-identity-list",
+    "help-identity-show",
+    "help-identity-timeline",
+    "identity-assessment-empty",
+    "identity-assessment-scope-denied",
+    "identity-assessment",
+    "identity-list-empty",
+    "identity-list-graphql-error",
+    "identity-list-scope-denied",
+    "identity-list",
+    "identity-show-not-a-guid",
+    "identity-show-not-found",
+    "identity-show-without-id",
+    "identity-show",
+    "identity-timeline-empty",
+    "identity-timeline"
+  ],
+  "safetyRequirementIds": [
+    "SR-014",
+    "SR-026",
+    "SR-031",
+    "SR-090",
+    "SR-091",
+    "SR-102",
+    "SR-104",
+    "SR-105",
+    "SR-106",
+    "SR-107",
+    "SR-193"
+  ]
+}

@@ -22,6 +22,11 @@ import { homedir } from "node:os";
 import { resolve } from "node:path";
 import helpText from "./help.json" with { type: "json" };
 import { VERSION } from "./version.js";
+import { search } from "./search.js";
+import { identity } from "./identity.js";
+import { malquery } from "./malquery.js";
+import searchHelp from "./search-help.json" with { type: "json" };
+import { document } from "./transport/search-authority.js";
 
 const description =
   "Read CrowdStrike Falcon from the shell with compact, structured results for agents and the humans running them.";
@@ -73,16 +78,18 @@ export async function main(argv: string[], bin?: string): Promise<number> {
     return result;
   };
   try {
-    const budgetArgs = ["search", "status", "synthetic-job", "--wait", "1"];
-    const searchSubset =
-      argv.length === budgetArgs.length &&
-      argv.every((value, index) => value === budgetArgs[index]);
-    const invocation = parse(searchSubset ? ["detection", "list"] : argv);
+    const invocation = parse(argv);
     const { command, flags } = invocation;
     activeFlags = flags;
     home = command.name === "home";
     memberCid = flags.get("--member-cid");
     if (flags.has("--help")) {
+      if (Object.hasOwn(searchHelp, command.name)) {
+        process.stdout.write(
+          searchHelp[command.name as keyof typeof searchHelp] + "\n",
+        );
+        return 0;
+      }
       if (Object.hasOwn(helpText, command.name)) {
         process.stdout.write(
           helpText[command.name as keyof typeof helpText] + "\n",
@@ -115,6 +122,20 @@ export async function main(argv: string[], bin?: string): Promise<number> {
     if (flags.has("--region"))
       resolveOrigin(flags.get("--region"), flags.has("--allow-unknown-origin"));
     normalizeEnvironment();
+    if (
+      /^(true|1)$/i.test(process.env.FALCON_AXI_READ_ONLY ?? "false") &&
+      [
+        "search start",
+        "search stop",
+        "host usb",
+        "identity activity",
+        "malquery search",
+      ].includes(command.name)
+    )
+      throw new CliError(
+        "READ_ONLY_VIOLATION",
+        "FALCON_AXI_READ_ONLY forbids search lifecycle changes",
+      );
     if (command.name === "config path") {
       process.stdout.write(
         render({
@@ -137,9 +158,21 @@ export async function main(argv: string[], bin?: string): Promise<number> {
     if (command.name === "scopes") {
       const groups = new Map<string, string[]>();
       for (const spec of commands)
-        for (const scope of new Set(
-          spec.operations.flatMap((id) => operation(id).scopes),
-        )) {
+        for (const scope of new Set([
+          ...spec.operations.flatMap((id) => operation(id).scopes),
+          ...([
+            "identity list",
+            "identity show",
+            "identity timeline",
+            "identity assessment",
+          ].includes(spec.name)
+            ? document(
+                spec.name === "identity list"
+                  ? "identity_list"
+                  : spec.name.replace(" ", "_"),
+              ).readScopes
+            : []),
+        ])) {
           const names = groups.get(scope) ?? [];
           names.push(spec.name);
           groups.set(scope, names);
@@ -147,10 +180,12 @@ export async function main(argv: string[], bin?: string): Promise<number> {
       process.stdout.write(
         render(
           {
-            posture: new Raw("read-only"),
+            posture: new Raw(
+              "read-only except NGSIEM:write for search lifecycle changes and MalQuery:write for bounded pattern searches; Identity Protection GraphQL:write admits only fixed read queries",
+            ),
             scopes: [...groups].map(([scope, names]) => ({
               scope,
-              access: "read",
+              access: scope.endsWith(":write") ? "write" : "read",
               commands: names.join(", "),
               required: names.every((name) => /^(policy|exclusion) /.test(name))
                 ? "selected --type"
@@ -162,7 +197,12 @@ export async function main(argv: string[], bin?: string): Promise<number> {
           },
           [
             "Grant these scopes in the Falcon console under Support and resources > API clients and keys",
-            "Grant read access only; falcon-axi needs no write scope",
+            "Grant read access only, apart from NGSIEM:write, Identity Protection GraphQL:write, and MalQuery:write; falcon-axi needs no other write scope",
+            "Identity Protection GraphQL:write is labelled write because Falcon requires it even for read-only queries; falcon-axi sends only its own fixed read queries, never caller-supplied GraphQL (captain exception N2)",
+            "Omit NGSIEM:write and `search start`, `search stop`, and `identity activity` fail with SCOPE_DENIED",
+            "Omit Identity Protection GraphQL:write and `identity list`, `identity show`, `identity timeline`, and `identity assessment` fail with SCOPE_DENIED",
+            "MalQuery:write needs Falcon MalQuery licensing and admits only bounded exact/fuzzy search under N4; hunt and sample downloads remain excluded",
+            "Assets:read is license-gated to Falcon Discover or Exposure Management; omit it and the `account`, `asset`, `application`, and `login` commands fail with SCOPE_DENIED",
           ],
         ),
       );
@@ -191,17 +231,23 @@ export async function main(argv: string[], bin?: string): Promise<number> {
       hostnameDeadline = AbortSignal.timeout(
         Math.max(0, Math.floor(60000 - (performance.now() - started))),
       );
-    const signal = searchSubset
-      ? AbortSignal.any([controller.signal, AbortSignal.timeout(1000)])
+    const signal = flags.has("--wait")
+      ? AbortSignal.any([
+          controller.signal,
+          AbortSignal.timeout(
+            Math.max(
+              0,
+              Math.floor(
+                Number(flags.get("--wait")) * 1000 -
+                  (performance.now() - started),
+              ),
+            ),
+          ),
+        ])
       : hostnameDeadline
         ? AbortSignal.any([controller.signal, hostnameDeadline])
         : controller.signal;
     const session = await authenticate(credential, base, allowUnknown, signal);
-    if (searchSubset)
-      throw new CliError(
-        "VALIDATION_ERROR",
-        "search status is not delivered in S01",
-      );
     const region =
       Object.keys(REGIONS).find((key) => REGIONS[key] === session.base) ??
       "an unlisted Falcon cloud";
@@ -219,7 +265,9 @@ export async function main(argv: string[], bin?: string): Promise<number> {
             client_secret_source: credential.secretSource,
             credential_path: credential.path,
             tenant,
-            scopes: new Raw("read scopes"),
+            scopes: new Raw(
+              "read scopes, plus NGSIEM:write for `search start`, `search stop`, and `identity activity`, Identity Protection GraphQL:write for the fixed Identity Protection query commands, and MalQuery:write for bounded exact/fuzzy searches (N4)",
+            ),
             ...(session.rateLimit !== undefined &&
             session.remaining !== undefined
               ? {
@@ -243,41 +291,52 @@ export async function main(argv: string[], bin?: string): Promise<number> {
       allowUnknown,
       signal,
     );
-    const result = inspectionCommands.some(
-      (entry) => entry.name === command.name,
-    )
-      ? await inspection(domain, filter)
-      : [
-            "account",
-            "asset",
-            "application",
-            "login",
-            "iot",
-            "host-group",
-            "sensor-usage",
-          ].includes(command.name.split(" ")[0]!) ||
-          command.name.startsWith("identity sensor ")
-        ? await inventory(domain, filter)
+    const result =
+      command.name.startsWith("search ") ||
+      ["host usb", "identity activity"].includes(command.name)
+        ? await search(domain)
         : [
-              "vuln",
-              "cve",
-              "cloud-asset",
-              "iom",
-              "cloud-risk",
-              "container",
-              "image",
-              "serverless",
-              "shield",
-            ].includes(command.name.split(" ")[0]!)
-          ? await exposure(domain, filter)
-          : await investigate(
-              invocation,
-              credential,
-              session,
-              filter,
-              allowUnknown,
-              signal,
-            );
+              "identity list",
+              "identity show",
+              "identity timeline",
+              "identity assessment",
+            ].includes(command.name)
+          ? await identity(domain)
+          : command.name.startsWith("malquery ")
+            ? await malquery(domain)
+            : inspectionCommands.some((entry) => entry.name === command.name)
+              ? await inspection(domain, filter)
+              : [
+                    "account",
+                    "asset",
+                    "application",
+                    "login",
+                    "iot",
+                    "host-group",
+                    "sensor-usage",
+                  ].includes(command.name.split(" ")[0]!) ||
+                  command.name.startsWith("identity sensor ")
+                ? await inventory(domain, filter)
+                : [
+                      "vuln",
+                      "cve",
+                      "cloud-asset",
+                      "iom",
+                      "cloud-risk",
+                      "container",
+                      "image",
+                      "serverless",
+                      "shield",
+                    ].includes(command.name.split(" ")[0]!)
+                  ? await exposure(domain, filter)
+                  : await investigate(
+                      invocation,
+                      credential,
+                      session,
+                      filter,
+                      allowUnknown,
+                      signal,
+                    );
     if (
       session.rateLimit &&
       session.remaining !== undefined &&
