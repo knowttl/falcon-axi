@@ -22,7 +22,9 @@ const invalid = (): CliError =>
 
 async function text(path: string): Promise<string | undefined> {
   try {
-    return await readFile(path, "utf8");
+    return new TextDecoder("utf-8", { fatal: true, ignoreBOM: true }).decode(
+      await readFile(path),
+    );
   } catch (error) {
     if ((error as NodeJS.ErrnoException).code === "ENOENT") return undefined;
     throw error;

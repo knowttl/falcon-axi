@@ -260,7 +260,7 @@ test(
     const started = performance.now();
     const result = await post(["detection", "list"]);
     assert.equal(result.result.exitCode, 1, JSON.stringify(result));
-    assert.match(result.result.stdout, /NETWORK_UNREACHABLE/);
+    assert.match(result.result.stdout, /WAIT_TIMEOUT/);
     assert.ok(
       performance.now() - started >= 29000 &&
         performance.now() - started < 40000,
@@ -269,7 +269,7 @@ test(
       wire.filter((item) => item.url.includes("queries/alerts")).length,
       1,
     );
-    assert.equal((await terminal).errorCode, "NETWORK_UNREACHABLE");
+    assert.equal((await terminal).errorCode, "WAIT_TIMEOUT");
     const pid = await child;
     assert.throws(() => process.kill(-pid, 0), { code: "ESRCH" });
     await settled();

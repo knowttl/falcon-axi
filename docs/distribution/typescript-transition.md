@@ -1,6 +1,9 @@
 # TypeScript distribution and rollback rehearsal
 
 This is the S14 Phase A review record.
+The approved delivery split places the rollback rehearsal and inert release preparation in a Phase A PR targeting `migration/typescript`.
+Cutover tree preparation, Python removal, and publishing-workflow deactivation belong to a separate Phase B PR targeting `main`, only after Phase A merges.
+The Phase A PR body must record this approved split and its separate Phase B dependency.
 The migration branch remains an unpublished private candidate.
 The released Python implementation remains on `main` until a separately reviewed cutover.
 No registry publication, registry tag change, host rollout, or release workflow activation is part of Phase A.
@@ -122,7 +125,7 @@ Synchronizing the leaf `src/version.ts` with the package version and regenerated
 
 ## Separate cutover review
 
-After Phase A is reviewed, prepare a new branch from the then-current Python `main`.
+After Phase A merges into `migration/typescript`, prepare a new branch from the then-current Python `main` for the separate Phase B PR.
 Create a normal commit whose tree equals the reviewed migration tree after its reviewed cutover preparation, including removal of the Python implementation and inactive publishing automation.
 Do not force-push `main`, delete branches, or rewrite existing tags.
 Before opening that PR, create and push one new annotated tag `python-final-v0.9.0` on the last Python main commit, provided that the version is still 0.9.0 and the tag does not already exist.
