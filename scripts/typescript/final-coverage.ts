@@ -1,6 +1,7 @@
 import { createHash } from "node:crypto";
 import { readFileSync, readdirSync } from "node:fs";
 import { join, resolve } from "node:path";
+import { parse } from "yaml";
 import baseline from "../../tests/migration/coverage.json" with { type: "json" };
 import inventory from "../../tests/migration/coverage-s04-s05.json" with { type: "json" };
 import inspection from "../../tests/migration/coverage-s06-s07.json" with { type: "json" };
@@ -25,6 +26,23 @@ const groups = [
   ...rtr.groups,
   ...final.groups,
 ];
+
+export function checkWorkflow(text: string): void {
+  const inspect = (value: unknown): void => {
+    if (typeof value === "string") {
+      if (/FALCON_AXI_LIVE|FALCON_(?:AXI_)?CLIENT_(?:ID|SECRET)/.test(value))
+        throw new Error("Credential or live automation is forbidden");
+    } else if (Array.isArray(value)) {
+      value.forEach(inspect);
+    } else if (object(value)) {
+      for (const [key, setting] of Object.entries(value)) {
+        inspect(key);
+        inspect(setting);
+      }
+    }
+  };
+  inspect(parse(text));
+}
 
 export function checkFinalInputs(): void {
   checkRtrInputs();
@@ -74,12 +92,7 @@ export function checkFinalInputs(): void {
   )
     throw new Error("Unexpected offline automation configuration");
   for (const workflow of workflows)
-    if (
-      /FALCON_AXI_LIVE|FALCON_(?:AXI_)?CLIENT_(?:ID|SECRET)/.test(
-        readFileSync(resolve(".github/workflows", workflow), "utf8"),
-      )
-    )
-      throw new Error("Credential or live automation is forbidden");
+    checkWorkflow(readFileSync(resolve(".github/workflows", workflow), "utf8"));
   for (const category of readdirSync(resolve("tests/fixtures"), {
     withFileTypes: true,
   }).filter((entry) => entry.isDirectory()))

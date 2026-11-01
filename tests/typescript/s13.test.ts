@@ -14,6 +14,7 @@ import { dirname, join, resolve } from "node:path";
 import { directory, executable, prepareScenario, run } from "./s01.test.js";
 import type { Scenario } from "./s01.test.js";
 import "./s12.test.js";
+import "./final-coverage.test.js";
 
 test("S13 generated parser schema skill and catalog refuse drift and repair it", async () => {
   const scratch = join(directory, "generation");
