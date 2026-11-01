@@ -22,6 +22,15 @@ const allowed = new Set([
   "./exposure.js",
   "./inspection.js",
   "./inspection-commands.json",
+  "./search.js",
+  "./identity.js",
+  "./malquery.js",
+  "./cql.js",
+  "./search-commands.json",
+  "./search-help.json",
+  "./documents.json",
+  "./search-authority.js",
+  "./transport/search-authority.js",
   "./parser.js",
   "./cursor.js",
   "./windows-acl.js",
@@ -60,6 +69,8 @@ export function violations(source: string, name: string): string[] {
           !(
             allowed.has(specifier.text) ||
             (name === "transport/https.ts" && sink.has(specifier.text)) ||
+            (name === "search.ts" &&
+              specifier.text === "node:timers/promises") ||
             (name === "transport/resolver.ts" &&
               [
                 "node:child_process",

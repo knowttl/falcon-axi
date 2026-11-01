@@ -6,6 +6,9 @@ import s04 from "../fixtures/migration/S04/contracts.json" with { type: "json" }
 import s05 from "../fixtures/migration/S05/contracts.json" with { type: "json" };
 import s06 from "../fixtures/migration/S06/contracts.json" with { type: "json" };
 import s07 from "../fixtures/migration/S07/contracts.json" with { type: "json" };
+import s08 from "../fixtures/migration/S08/contracts.json" with { type: "json" };
+import s09 from "../fixtures/migration/S09/contracts.json" with { type: "json" };
+import s10 from "../fixtures/migration/S10/contracts.json" with { type: "json" };
 import { VERSION } from "../../src/version.js";
 
 export interface DiscoveryDelta {
@@ -47,6 +50,9 @@ export async function expectedDocument(
     ...s05.commandNames,
     ...s06.commandNames,
     ...s07.commandNames,
+    ...s08.commandNames,
+    ...s09.commandNames,
+    ...s10.commandNames,
   ]);
   const selected = references.filter((reference) => owned.has(reference.name));
   const names = selected.map((reference) => reference.name).join(", ");
@@ -77,16 +83,22 @@ export async function expectedDocument(
         groups.set(scope, commands);
       }
     expected =
-      `posture: read-only\nscopes[${groups.size}]{scope,access,commands,required}:\n` +
+      `posture: read-only except NGSIEM:write for search lifecycle changes and MalQuery:write for bounded pattern searches; Identity Protection GraphQL:write admits only fixed read queries\nscopes[${groups.size}]{scope,access,commands,required}:\n` +
       [...groups]
         .map(
           ([scope, commands]) =>
-            `  ${JSON.stringify(scope)},read,${commands.length > 1 ? JSON.stringify(commands.join(", ")) : commands[0]},${commands.every((name) => /^(policy|exclusion) /.test(name)) ? "selected --type" : "yes"}\n`,
+            `  ${JSON.stringify(scope)},${scope.endsWith(":write") ? "write" : "read"},${commands.length > 1 ? JSON.stringify(commands.join(", ")) : commands[0]},${commands.every((name) => /^(policy|exclusion) /.test(name)) ? "selected --type" : "yes"}\n`,
         )
         .join("") +
-      'member_cid_token_scope: unresolved (Flight Control read may be required; see design section 17.7)\nhelp[2]: "Grant these scopes in the Falcon console under Support and resources > API clients and keys","Grant read access only; falcon-axi needs no write scope"\n';
+      "member_cid_token_scope: unresolved (Flight Control read may be required; see design section 17.7)\n" +
+      expected.slice(expected.indexOf("help["));
   }
-  if (delta?.unavailableGroup)
+  if (
+    delta?.unavailableGroup &&
+    !selected.some((reference) =>
+      reference.name.startsWith(`${delta.unavailableGroup} `),
+    )
+  )
     expected = `error: unknown command ${delta.unavailableGroup}\ncode: VALIDATION_ERROR\nhelp[2]: ${JSON.stringify(`valid commands: ${names}`)},"Run \`falcon-axi --help\` for the command list"\n`;
   if (delta?.scopeGuidance)
     expected = expected.replace(
@@ -95,12 +107,18 @@ export async function expectedDocument(
     );
   if (delta?.omitSubcommands) {
     const { group, names } = delta.omitSubcommands;
+    const unavailable = names.filter(
+      (name) =>
+        !selected.some((reference) =>
+          reference.name.startsWith(`${group} ${name}`),
+        ),
+    );
     expected = expected.replace(
       new RegExp(`valid ${group} subcommands: ([^"\\n]+)`),
       (_text, verbs: string) =>
         `valid ${group} subcommands: ${verbs
           .split(", ")
-          .filter((verb) => !names.includes(verb))
+          .filter((verb) => !unavailable.includes(verb))
           .join(", ")}`,
     );
   }

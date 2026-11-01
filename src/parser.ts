@@ -4,6 +4,8 @@ import type { Command } from "./metadata.js";
 import { applicationFields } from "./inventory.js";
 import { shieldFilters } from "./exposure.js";
 import { validateInspection } from "./inspection.js";
+import { validateSearch } from "./search.js";
+import { validateIdentity } from "./identity.js";
 
 export interface Invocation {
   command: Command;
@@ -142,9 +144,17 @@ export function parse(argv: string[]): Invocation {
               ? "A CVE identifier matches CVE-<year>-<number>, for example CVE-2021-44228"
               : command.name === "vuln show"
                 ? "Run `falcon-axi vuln list --status open` to find Spotlight record identifiers"
-                : command.name === "identity sensor show"
-                  ? "Run `falcon-axi identity sensor list` to see current sensor identifiers"
-                  : `Run \`falcon-axi ${command.name.startsWith("host ") ? "host" : command.name.startsWith("detection ") ? "detection" : command.name.split(" ")[0]} list\` to see current ${command.name.startsWith("host ") ? "device" : command.name.split(" ")[0]} identifiers`,
+                : command.name.startsWith("search ")
+                  ? "A search identifier comes from `falcon-axi search start --query '<cql>'`"
+                  : ["identity show", "identity timeline"].includes(
+                        command.name,
+                      )
+                    ? "Run `falcon-axi identity list` to see current identity ids"
+                    : command.name === "identity activity"
+                      ? "Run `falcon-axi detection show <id>` for an identity detection's account_id"
+                      : command.name === "identity sensor show"
+                        ? "Run `falcon-axi identity sensor list` to see current sensor identifiers"
+                        : `Run \`falcon-axi ${command.name.startsWith("host ") ? "host" : command.name.startsWith("detection ") ? "detection" : command.name.split(" ")[0]} list\` to see current ${command.name.startsWith("host ") ? "device" : command.name.split(" ")[0]} identifiers`,
         ],
       );
     if (!command.positional && positionals.length)
@@ -255,7 +265,10 @@ export function parse(argv: string[]): Invocation {
         `valid fields: ${valid.join(", ")}`,
       ]);
   }
-  return { command, flags, id, limit };
+  const invocation = { command, flags, id, limit };
+  validateSearch(invocation);
+  validateIdentity(invocation);
+  return invocation;
 }
 
 export function filterOf(invocation: Invocation): string | undefined {

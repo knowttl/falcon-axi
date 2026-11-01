@@ -8,6 +8,12 @@ import { origin } from "../origin.js";
 import { operation } from "./operations.js";
 import { VERSION } from "../version.js";
 import { createLookup } from "./resolver.js";
+import {
+  graphqlBody,
+  registeredBody,
+  pathValue,
+  validateSearchBody,
+} from "./search-authority.js";
 
 export interface Response {
   status: number;
@@ -21,6 +27,7 @@ interface Prepared {
   path: string;
   headers: Readonly<Record<string, string>>;
   body: string;
+  exception?: "graphql-query" | "malquery-search";
 }
 const permits = new WeakSet<Prepared>();
 const timeout = (): CliError =>
@@ -54,6 +61,18 @@ async function send(
 ): Promise<Response> {
   if (!permits.has(prepared) || !Object.isFrozen(prepared))
     throw new CliError("READ_ONLY_VIOLATION", "request authority was refused");
+  if (prepared.exception) {
+    const body: unknown = JSON.parse(prepared.body);
+    if (
+      prepared.exception === "graphql-query"
+        ? !registeredBody(body)
+        : JSON.stringify(validateSearchBody(body)) !== prepared.body
+    )
+      throw new CliError(
+        "READ_ONLY_VIOLATION",
+        "request body authority was refused",
+      );
+  }
   const signal = AbortSignal.any([inherited, AbortSignal.timeout(30_000)]);
   signal.throwIfAborted();
   const resolver = createLookup(inherited, signal);
@@ -208,6 +227,7 @@ async function send(
 async function acquire(
   prepared: Prepared,
   signal: AbortSignal,
+  replay = true,
 ): Promise<Response> {
   Object.freeze(prepared.headers);
   Object.freeze(prepared);
@@ -216,7 +236,11 @@ async function acquire(
     for (let attempt = 1; ; attempt++) {
       if (signal.aborted) throw timeout();
       const response = await send(prepared, signal);
-      if (attempt >= 3 || ![429, 500, 502, 503, 504].includes(response.status))
+      if (
+        !replay ||
+        attempt >= 3 ||
+        ![429, 500, 502, 503, 504].includes(response.status)
+      )
         return response;
       const hint = Number(response.headers["x-ratelimit-retryafter"]);
       const retryAt = Math.ceil(hint * 1000);
@@ -376,6 +400,9 @@ const enabledReadOperations = new Set([
   "queryCombinedRTResponsePolicyMembers",
   "queryCombinedContentUpdatePolicies",
   "queryCombinedContentUpdatePolicyMembers",
+  "GetMalQueryMetadataV1",
+  "GetMalQueryRequestV1",
+  "GetMalQueryQuotasV1",
 ]);
 
 export function requestRead(
@@ -493,5 +520,107 @@ export function requestRead(
       },
     },
     signal,
+  );
+}
+
+export function requestException(
+  id: string,
+  base: string,
+  token: string,
+  authority: Readonly<{
+    repository?: string;
+    id?: string;
+    document?: string;
+    variables?: unknown;
+    body?: unknown;
+  }>,
+  allowUnknown: boolean,
+  signal: AbortSignal,
+): Promise<Response> {
+  const descriptor = operation(id);
+  const invalid = (): never => {
+    throw new CliError("READ_ONLY_VIOLATION", "request authority was refused");
+  };
+  let path = descriptor.path;
+  let body: unknown;
+  let exception: Prepared["exception"];
+  if (["StartSearchV1", "GetSearchStatusV1", "StopSearchV1"].includes(id)) {
+    const keys =
+      id === "StartSearchV1" ? ["repository", "body"] : ["repository", "id"];
+    if (
+      Object.keys(authority).some((key) => !keys.includes(key)) ||
+      typeof authority.repository !== "string"
+    )
+      invalid();
+    path = path.replace(
+      "{repository}",
+      pathValue("repository", authority.repository!),
+    );
+    if (id === "StartSearchV1") {
+      const supplied = authority.body;
+      if (
+        !object(supplied) ||
+        Object.keys(supplied).sort().join() !== "end,queryString,start" ||
+        typeof supplied.queryString !== "string" ||
+        !supplied.queryString.trim() ||
+        !Number.isSafeInteger(supplied.start) ||
+        !Number.isSafeInteger(supplied.end) ||
+        (supplied.start as number) > (supplied.end as number)
+      )
+        return invalid();
+      body = {
+        queryString: supplied.queryString,
+        start: supplied.start,
+        end: supplied.end,
+      };
+    } else {
+      if (typeof authority.id !== "string") invalid();
+      path = path.replace("{id}", pathValue("id", authority.id!));
+    }
+  } else if (descriptor.effect === "graphql-query") {
+    if (
+      Object.keys(authority).some(
+        (key) => !["document", "variables"].includes(key),
+      ) ||
+      typeof authority.document !== "string"
+    )
+      invalid();
+    body = graphqlBody(authority.document!, authority.variables);
+    exception = "graphql-query";
+  } else if (descriptor.effect === "malquery-search") {
+    if (Object.keys(authority).join() !== "body") invalid();
+    body = validateSearchBody(authority.body);
+    exception = "malquery-search";
+  } else invalid();
+  if (
+    /^(true|1)$/i.test(process.env.FALCON_AXI_READ_ONLY ?? "false") &&
+    (descriptor.effect === "search-lifecycle" ||
+      descriptor.effect === "malquery-search")
+  )
+    throw new CliError(
+      "READ_ONLY_VIOLATION",
+      "FALCON_AXI_READ_ONLY forbids search lifecycle changes",
+    );
+  const serialized = body === undefined ? "" : JSON.stringify(body);
+  return acquire(
+    {
+      origin: origin(base, allowUnknown),
+      method: descriptor.method,
+      path,
+      body: serialized,
+      ...(exception ? { exception } : {}),
+      headers: {
+        authorization: `Bearer ${token}`,
+        "user-agent": `falcon-axi/${VERSION}`,
+        ...(serialized
+          ? {
+              "content-type": "application/json",
+              "content-length": String(Buffer.byteLength(serialized)),
+            }
+          : {}),
+      },
+    },
+    signal,
+    id !== "StartSearchV1" && descriptor.effect !== "malquery-search",
   );
 }

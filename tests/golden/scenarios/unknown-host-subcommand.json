@@ -5,9 +5,5 @@
     "host",
     "contain"
   ],
-  "exit_code": 2,
-  "typescriptMigration": {
-    "omitSubcommands": { "group": "host", "names": ["usb"] },
-    "restore": "Restore host usb discovery when S08 ships it; S13 compares the original document with no TypeScript discovery exceptions."
-  }
+  "exit_code": 2
 }

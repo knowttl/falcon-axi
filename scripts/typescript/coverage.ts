@@ -8,6 +8,10 @@ import s04 from "../../tests/fixtures/migration/S04/contracts.json" with { type:
 import s05 from "../../tests/fixtures/migration/S05/contracts.json" with { type: "json" };
 import s06 from "../../tests/fixtures/migration/S06/contracts.json" with { type: "json" };
 import s07 from "../../tests/fixtures/migration/S07/contracts.json" with { type: "json" };
+import s08 from "../../tests/fixtures/migration/S08/contracts.json" with { type: "json" };
+import s09 from "../../tests/fixtures/migration/S09/contracts.json" with { type: "json" };
+import s10 from "../../tests/fixtures/migration/S10/contracts.json" with { type: "json" };
+import searchLedger from "../../tests/migration/coverage-s08-s10.json" with { type: "json" };
 import inspectionLedger from "../../tests/migration/coverage-s06-s07.json" with { type: "json" };
 import ledger from "../../tests/migration/coverage.json" with { type: "json" };
 import inventoryLedger from "../../tests/migration/coverage-s04-s05.json" with { type: "json" };
@@ -27,7 +31,12 @@ const groups = [
   ...ledger.groups,
   ...inventoryLedger.groups,
   ...inspectionLedger.groups,
+  ...searchLedger.groups,
 ];
+const searchSeal =
+  "2944d212ad0d0aa4a3bd4f6996cb745c46ac9bac68c9abdafd1400c73ba243a0";
+if (digest(JSON.stringify(searchLedger)) !== searchSeal)
+  throw new Error("Frozen S08-S10 safety ownership changed");
 if (digest(JSON.stringify(ledger)) !== seal)
   throw new Error(
     "Frozen safety ownership, members or parameter selections changed",
@@ -40,6 +49,9 @@ const expectedCommands = [
     ...s05.commandNames,
     ...s06.commandNames,
     ...s07.commandNames,
+    ...s08.commandNames,
+    ...s09.commandNames,
+    ...s10.commandNames,
   ]),
 ]
   .filter((name) => name !== "home")
@@ -63,10 +75,13 @@ if (
       ...s05.operationIds,
       ...s06.operationIds,
       ...s07.operationIds,
+      ...s08.operationIds,
+      ...s09.operationIds,
+      ...s10.operationIds,
     ].sort(),
   )
 )
-  throw new Error("Operation coverage differs from frozen S03-S07 ownership");
+  throw new Error("Operation coverage differs from frozen S03-S10 ownership");
 for (const group of groups)
   if (digest(readFileSync(resolve(group.source))) !== group.sourceSha256)
     throw new Error(`Pinned source changed: ${group.source}`);
@@ -80,6 +95,47 @@ for (const flag of commands.flatMap((command) => [
 // Source symbols are adapted to public observations, not historical test counts.
 // Structural entries run above; other entries bind to passing installed-artifact checks.
 const bindings: Readonly<Record<string, readonly string[]>> = {
+  "SR-014": ["S09 shell continuation"],
+  "SR-025": ["S08 pre-auth"],
+  "SR-026": ["S09 pre-auth"],
+  "SR-030": ["S08 help", "S08 literal query"],
+  "SR-031": ["S09 help", "S09 document variables"],
+  "SR-036": ["S08 repository recovery"],
+  "SR-050": ["S08 CQL structural", "S08 literal query"],
+  "SR-051": ["S08 CQL privacy"],
+  "SR-090": ["S09 document registry"],
+  "SR-091": ["S09 authority refusal", "S09 document variables"],
+  "SR-093": ["S08 wait acquisition"],
+  "SR-097": ["S08 retained search-start", "S08 retained search-stop"],
+  "SR-102": ["S09 retained identity-assessment", "S09 error response"],
+  "SR-104": ["S09 pre-auth"],
+  "SR-105": ["S09 document variables", "S09 shell continuation"],
+  "SR-106": [
+    "S09 retained identity-show",
+    "S09 association cap",
+    "S09 timeline continuation",
+  ],
+  "SR-107": ["S09 timeline continuation", "S09 error response"],
+  "SR-108": ["S08 retained identity-activity-start", "S08 fixed query"],
+  "SR-110": ["S08 repository recovery"],
+  "SR-127": [
+    "S10 retained malquery-show",
+    "S10 retained malquery-quota",
+    "S10 malformed",
+  ],
+  "SR-128": ["S10 authority refusal"],
+  "SR-129": ["S10 retained malquery-search", "S10 bounded status"],
+  "SR-130": ["S10 pre-auth", "S10 READ_ONLY", "S10 scope"],
+  "SR-131": ["S10 authority refusal", "S10 no replay"],
+  "SR-132": ["S10 bounded status", "S10 malformed", "S10 canonical body"],
+  "SR-147": ["S08 READ_ONLY"],
+  "SR-178": ["S08 retained host-usb-start", "S08 pre-auth"],
+  "SR-179": ["S08 wait acquisition", "S08 repository recovery"],
+  "SR-180": ["S08 retained search-status", "S08 wait completion"],
+  "SR-181": ["S08 scope", "S08 query rejection", "S08 warnings"],
+  "SR-182": ["S08 authority refusal", "S08 repository recovery"],
+  "SR-193": ["S09 shell continuation"],
+  "SR-209": ["S08 repeat stop"],
   "SR-041": [
     "S06/S07 retained firewall-rule-list",
     "S06/S07 retained ioa-group-list",
@@ -530,13 +586,15 @@ const managedBindings: Readonly<Record<string, readonly string[]>> = {
 const args = process.argv.slice(2);
 let evidence: string | undefined;
 let path: string | undefined;
-let slice = "S07";
+let slice = "S10";
 for (let index = 0; index < args.length; index++) {
   const flag = args[index]!;
   if (flag === "--strict") continue;
   if (
     flag === "--slice" &&
-    ["S02", "S03", "S04", "S05", "S06", "S07"].includes(args[index + 1] ?? "")
+    ["S02", "S03", "S04", "S05", "S06", "S07", "S08", "S09", "S10"].includes(
+      args[index + 1] ?? "",
+    )
   ) {
     slice = args[++index]!;
     continue;
@@ -613,6 +671,7 @@ if (evidence && path) {
         ledgerSha256: seal,
         inventoryLedgerSha256: inventorySeal,
         inspectionLedgerSha256: inspectionSeal,
+        searchLedgerSha256: searchSeal,
         reports,
         pending: ledger.reassignments.filter((row) => row.to !== "S04"),
       },

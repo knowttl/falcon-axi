@@ -38,9 +38,11 @@ export class Domain {
     readonly signal: AbortSignal,
   ) {
     const { command, flags, id } = invocation;
-    const values = /^(exclusion|policy) /.test(command.name)
-      ? [...command.values.filter((value) => value !== "type"), "type"]
-      : command.values;
+    const values = ["identity list", "identity timeline"].includes(command.name)
+      ? ["since", "limit", "name", "email", "domain", "type", "category"]
+      : /^(exclusion|policy) /.test(command.name)
+        ? [...command.values.filter((value) => value !== "type"), "type"]
+        : command.values;
     this.suggestion = `falcon-axi ${command.name}${id ? ` ${quote(id)}` : ""}${flags.has("--all") ? " --all" : ""}${values
       .filter((key) => key !== "cursor" && flags.has(`--${key}`))
       .map(

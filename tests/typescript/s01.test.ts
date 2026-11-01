@@ -48,6 +48,7 @@ type Reply = {
   status: number;
   headers?: Record<string, string>;
   body: unknown;
+  fault?: "drop" | "truncate" | "stream";
 };
 export interface Scenario {
   name: string;
@@ -118,6 +119,25 @@ let hosted:
     }
   | undefined;
 const server = createServer();
+export async function managedAudit(): Promise<unknown[]> {
+  if (!hosted) throw new Error("Managed audit requires Artium");
+  const response = await fetch(
+    `${hosted.url}/v1/admin/audit?tool=falcon-axi&event=run-terminal&limit=100`,
+    { headers: hosted.headers },
+  );
+  assert.equal(response.status, 200);
+  const body = (await response.json()) as { records: unknown[] };
+  return body.records;
+}
+function matchesRoute(id: string, method: string, path: string): boolean {
+  const descriptor = operation(id);
+  const pattern = descriptor.path
+    .replace("{vertex_type}", "processes")
+    .split(/\{[^}]+\}/)
+    .map((part) => part.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"))
+    .join("[^/]+");
+  return descriptor.method === method && new RegExp(`^${pattern}$`).test(path);
+}
 const delivery = fileURLToPath(new URL("./delivery.js", import.meta.url));
 function json(
   response: ServerResponse,
@@ -242,6 +262,22 @@ export async function run(
           value: {
             clientId: "synthetic-s01-client",
             clientSecret: "synthetic-s01-secret",
+            ...((invocation[0] === "search" && invocation[1] !== "status") ||
+            (invocation[0] === "identity" && invocation[1] === "activity") ||
+            (invocation[0] === "host" && invocation[1] === "usb") ||
+            (invocation[0] === "malquery" && invocation[1] === "search")
+              ? {
+                  writes: {
+                    allowWrites: !/^(1|true)$/i.test(
+                      extra.FALCON_AXI_READ_ONLY ?? "false",
+                    ),
+                    operations: extra.S08_HOST_OPERATIONS?.split(",") ?? [
+                      "rtr run",
+                      "malquery search",
+                    ],
+                  },
+                }
+              : {}),
             region: regionIndex >= 0 ? invocation[regionIndex + 1] : "us-1",
             ...(memberIndex >= 0
               ? { memberCid: invocation[memberIndex + 1] }
@@ -407,16 +443,28 @@ before(async () => {
         return;
       }
       const path = request.url!.split("?")[0]!;
-      const custom = [...customReplies].find(
-        ([id]) =>
-          operation(id).path.replace("{vertex_type}", "processes") === path,
+      const custom = [...customReplies].find(([id]) =>
+        matchesRoute(id, request.method!, path),
       )?.[1];
       if (custom) {
         const reply = custom(
           new URL(request.url!, "https://api.crowdstrike.com").searchParams,
           body ? (JSON.parse(body) as Record<string, unknown>) : {},
         );
-        json(response, reply.body, reply.status, reply.headers);
+        if (reply.fault === "drop") response.destroy();
+        else if (reply.fault === "stream") {
+          response.writeHead(200, { "content-type": "application/json" });
+          response.write('{"events":[');
+          const timer = setInterval(() => response.write(" "), 10);
+          response.once("close", () => clearInterval(timer));
+        } else if (reply.fault === "truncate") {
+          response.writeHead(200, {
+            "content-type": "application/json",
+            "content-length": "1000",
+            connection: "close",
+          });
+          response.end('{"id":');
+        } else json(response, reply.body, reply.status, reply.headers);
         return;
       }
       const generator = [...generated].find(
@@ -480,12 +528,8 @@ before(async () => {
         });
         return;
       }
-      const matched = recorded.find(
-        (entry) =>
-          operation(entry.operation).path.replace(
-            "{vertex_type}",
-            "processes",
-          ) === path,
+      const matched = recorded.find((entry) =>
+        matchesRoute(entry.operation, request.method!, path),
       );
       if (matched) {
         let payload = matched.response.body;
@@ -509,12 +553,10 @@ before(async () => {
                 Array.isArray(requested) && requested.includes(row.id),
             ),
           };
-        json(
-          response,
-          payload,
-          matched.response.status,
-          matched.response.headers,
-        );
+        json(response, payload, matched.response.status, {
+          "content-type": "",
+          ...matched.response.headers,
+        });
         return;
       }
       if (request.url?.startsWith("/alerts/queries/alerts/v2?")) {

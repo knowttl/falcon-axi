@@ -1,4 +1,4 @@
-# TypeScript S02-S07 candidate
+# TypeScript S02-S10 candidate
 
 The [approved settlement amendment](s01-primitive-amendment.md#dns-deadline-settlement) owns the DNS resolver and process settlement contract.
 The installed-artifact regression uses a three-second local DNS blackhole and requires WAIT_TIMEOUT and process settlement within the inherited one-second budget plus startup allowance.
@@ -10,6 +10,19 @@ S04 adds account, asset, application, login, host-group, IoT, weekly sensor usag
 S05 adds Spotlight vulnerabilities, CVE intelligence, cloud assets and misconfigurations, aggregated cloud risks, containers, images, serverless SARIF and Shield checks.
 S06 adds actors, reports and JSON MITRE mappings, marker-paginated intelligence indicators, malware families, Recon rules/notifications/exposed-data records, and existing sandbox report summaries.
 S07 adds all six policy inventories and their members, Device Control detail, identity policy rules, firewall/IOA/correlation rules, cases, four exclusion types, quarantine metadata, classifications and Data Protection policies.
+S08 adds search start/status/stop, fixed identity activity and host USB searches.
+S09 adds the six canonical Identity Protection GraphQL documents behind identity list/show/timeline/assessment.
+S10 adds bounded literal MalQuery exact/fuzzy searches and passive metadata/status/quota reads.
+Creation is sent at most once for every NG-SIEM creation command, with or without a wait.
+This approved replay correction differs from the Python origin's generic response retry loop: 429, retryable 5xx, lost responses, and missing job identifiers never trigger another creation send.
+An unknown job identifier leaves the creation outcome unknown; it does not prove that no job exists.
+OAuth, passive status, and search stop retain their separate three-attempt response policies.
+MalQuery submissions likewise never replay.
+READ_ONLY refuses lifecycle changes and MalQuery submissions before authentication, while passive status and fixed GraphQL reads remain available.
+Search waits include authentication, creation, polling, response acquisition and retry delays under one invocation deadline.
+Expiry before a job identifier is known reports WAIT_TIMEOUT; expiry after it is known returns the recoverable running job and repository-aware suggestions.
+GraphQL text comes only from the frozen canonical documents; variables travel separately and both GraphQL and MalQuery bodies are checked again by the network sink.
+Relay cursors bind identity filters, credentials, region and tenant; timeline cursors also retain their original window start.
 Policy and exclusion scopes are selected by the required type selector.
 Sandbox lookup requires exactly one hash or FQL selector and projects only report metadata; it admits no submissions or downloads.
 Recon entity reads and Device Control details accept their documented direct arrays as well as resources envelopes.
@@ -19,7 +32,7 @@ Among S04/S05 inventories, Discover assets/applications/IoT and Spotlight use op
 Account offsets remain unbounded; container/image inventory caps its window at 10000 records, while SARIF advances by source-record budget rather than run count.
 `src/metadata.ts` owns the delivered TypeScript command and flag surface.
 The released Python implementation remains present as the frozen comparison and rollback origin.
-The supported `search status synthetic-job --wait 1` acceptance path exercises OAuth under an inherited one-second budget without sending a search request; successful authentication ends with `VALIDATION_ERROR` because the search lifecycle is not delivered here.
+The earlier representative `search status synthetic-job --wait 1` budget probe now uses the delivered lifecycle and retains its shared authentication deadline.
 The remaining Python command surface remains the behaviour origin for later slices.
 No npm publication, Python release change, workflow edit or host deployment is included.
 
@@ -33,8 +46,11 @@ The S06/S07 carrier repeats the S01-S05 native checks and adds enrichment/config
 Native S06/S07 retained scenarios compare exact output bytes and exit codes, including signed cursors and suggestions.
 S06 restores the original detection-process sandbox suggestions, and S07 restores Identity rule navigation in the existing discovery scenarios.
 Managed comparisons retain data and exits while the host owns command prefixes and connection-specific cursor encodings.
-The frozen slice contracts in `tests/fixtures/migration/S02/contracts.json` through `S07/contracts.json` retain the owned operation, case, command and golden scenario identities.
+The frozen slice contracts in `tests/fixtures/migration/S02/contracts.json` through `S10/contracts.json` retain the owned operation, case, command and golden scenario identities.
 `tests/migration/coverage-s06-s07.json` retains source identities and parameter selections for the additional safety groups.
+`tests/migration/coverage-s08-s10.json` adds search, GraphQL and MalQuery ownership with executable replacement bindings.
+The S08-S10 carrier repeats the earlier suites and adds retained output comparisons, CQL vectors from the Python origin, non-replay response/failure matrices, bounded waits, shell continuation and authority-boundary refusals.
+The GraphQL parser is a development dependency used to verify the fixed documents' operation, root and variable contracts; it is excluded from the runtime package.
 The response-diagnostic replacements exercise bounded shapes at the candidate's validation boundary; Python validator-library issue annotations have no runtime producer in the hand-validated candidate.
 Native Windows evidence remains pending.
 The installed check packs an explicit compiled-source allowlist, installs outside the checkout and executes the npm bin from a directory containing spaces.
@@ -45,7 +61,7 @@ The CLI contains no fake-origin flag, config field, environment selector or reco
 The separate compiled primitive gate also requires `cc` to build its test-only network-denial launcher and fault-injection library.
 
 The optional hosted path requires a separately built frozen local Artium fixture containing the reviewed S01 host delta.
-Set `S01_ARTIUM_ROOT` to that fixture and run `npm run check:slice -- --slice S07 --paths native,artium --offline`.
+Set `S01_ARTIUM_ROOT` to that fixture and run `npm run check:slice -- --slice S10 --paths native,artium --offline`.
 Missing fixtures and unknown or empty selections fail.
 The host delta launches the candidate with its Node runtime rather than either Python launch condition, retaining Node heap limits and the existing termination grace.
 The real client, server, public credential API, private profile writer and runner execute the same installed artifact.
@@ -56,10 +72,10 @@ Final hosted evidence is bound separately to the frozen fixture and final candid
 
 The registry retains all 114 canonical operation tuples and their official scope and corroboration citations.
 A pinned canonical digest, own-key checks and recursive freezing seal the registry before networking.
-This carrier enables only the 101 passive operations owned by S03-S07 after method, registry and body validation.
+This carrier enables the 110 operations owned by S03-S10 after method, registry and body validation.
 ThreatGraph summaries always use the fixed `processes` path component.
 RTR session metadata and audit reads cannot reach session initialization, command execution, status polling or deletion.
-The remaining reads and every exception tier are unreachable until their owning slices supply their authority checks.
+The four active RTR operations remain unreachable until S11 supplies its lifecycle authority checks.
 OAuth has its own fixed POST/form route and no persistent token cache.
 Only the private HTTPS sink accepts invocation-local frozen request permits.
 Lexical origin checks precede URL normalization, so explicit ports, dot segments, userinfo and other unsafe syntax cannot disappear before validation.

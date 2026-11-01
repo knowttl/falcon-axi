@@ -1,4 +1,5 @@
 import inspectionCommands from "./inspection-commands.json" with { type: "json" };
+import searchCommands from "./search-commands.json" with { type: "json" };
 
 export interface Command {
   readonly name: string;
@@ -535,6 +536,7 @@ const declarations: Command[] = [
 export const commands: readonly Command[] = [
   ...declarations,
   ...inspectionCommands,
+  ...searchCommands,
 ].sort((a, b) => a.order - b.order);
 export const valueFlags: readonly string[] = [
   "--config",

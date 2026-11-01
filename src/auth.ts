@@ -20,6 +20,16 @@ export function responseFailure(
   const details =
     typeof meta.trace_id === "string" ? { trace_id: meta.trace_id } : {};
   if (response.status === 400) {
+    if (operationId === "api_preempt_proxy_post_graphql")
+      throw new CliError(
+        "UPSTREAM_ERROR",
+        `Falcon rejected falcon-axi's fixed Identity Protection query for ${subject}`,
+        [
+          "The query does not match this tenant's Identity Protection GraphQL schema; this is a falcon-axi bug",
+          "Quote the trace_id and the command when reporting it",
+        ],
+        details,
+      );
     const remedy: Readonly<Record<string, readonly [string, string]>> = {
       query_accounts: ["account list", "username:'synthetic-user'"],
       get_accounts: ["account list", "username:'synthetic-user'"],
@@ -124,6 +134,28 @@ export function responseFailure(
         : []),
     ]);
   if (response.status === 403) {
+    if (operation(operationId).effect === "malquery-search")
+      throw new CliError(
+        "SCOPE_DENIED",
+        "MalQuery search is not licensed or not permitted for this API client",
+        [
+          "Grant MalQuery:write in the Falcon console under Support and resources > API clients and keys",
+          "Falcon MalQuery licensing is required; if the scope is absent from the picker, the tenant may lack that subscription",
+          "Captain exception N4 admits only bounded exact and fuzzy pattern searches, never hunt or download",
+          "Run `falcon-axi scopes` for the matrix",
+        ],
+        { required_scopes: [...scopes] },
+      );
+    if (operation(operationId).effect === "search-lifecycle")
+      throw new CliError(
+        "SCOPE_DENIED",
+        `this API client is not permitted to run ${subject}`,
+        [
+          `Grant ${scopes.join(" and ")} to the API client in the Falcon console under Support and resources > API clients and keys`,
+          "Run `falcon-axi scopes` for the matrix, including which commands need this write scope",
+        ],
+        { required_scopes: [...scopes] },
+      );
     if (token && member)
       throw new CliError(
         "TENANT_DENIED",
@@ -140,6 +172,7 @@ export function responseFailure(
       ]);
     const licences: Readonly<Record<string, string>> = {
       "Assets:read": "Falcon Discover or Exposure Management",
+      "MalQuery:read": "Falcon MalQuery",
       "Sandbox (Falcon Intelligence):read": "Falcon Intelligence (Sandbox)",
       "Device Control Policies:read": "Falcon Device Control",
       "Falcon FileVantage:read": "Falcon FileVantage",

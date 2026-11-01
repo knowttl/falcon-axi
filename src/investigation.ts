@@ -558,6 +558,11 @@ export async function investigate(
       help.push(
         `Run \`falcon-axi detection show ${id} --full\` to see the complete command line`,
       );
+    const subject = text(record.source_account_object_guid) ?? account(record);
+    if (subject && /^[A-Za-z0-9._@$-]{1,256}$/.test(subject))
+      help.push(
+        `Run \`falcon-axi identity activity ${quote(subject)}\` to see what this account did`,
+      );
     return { value: { detection: detail }, help };
   }
   if (name.startsWith("host ")) {
