@@ -716,16 +716,5 @@ for (const name of [...s06.goldenScenarioIds, ...s07.goldenScenarioIds])
     delete actual.continuation_cursor;
     delete expected.help;
     delete actual.help;
-    // Continuation help contains credential-bound migration cursor encodings.
-    if (Array.isArray(expected.help))
-      expected.help = expected.help.filter(
-        (entry: unknown) =>
-          typeof entry !== "string" || !entry.includes("--cursor ey"),
-      );
-    if (Array.isArray(actual.help))
-      actual.help = actual.help.filter(
-        (entry: unknown) =>
-          typeof entry !== "string" || !entry.includes("--cursor ey"),
-      );
     assert.deepEqual(actual, expected);
   });
