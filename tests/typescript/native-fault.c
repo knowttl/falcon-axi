@@ -2,10 +2,31 @@
 #define _GNU_SOURCE
 #include <dlfcn.h>
 #include <errno.h>
+#include <fcntl.h>
+#include <stdarg.h>
+#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <sys/stat.h>
 #include <unistd.h>
+
+int openat(int directory, const char *path, int flags, ...) {
+    mode_t mode = 0;
+    if (flags & O_CREAT) {
+        va_list args;
+        va_start(args, flags);
+        mode = (mode_t)va_arg(args, int);
+        va_end(args);
+    }
+    int (*real_openat)(int, const char *, int, ...) = dlsym(RTLD_NEXT, "openat");
+    const char *selected = getenv("FALCON_TEST_SWAP_PARENT");
+    const char *moved = getenv("FALCON_TEST_MOVED_PARENT");
+    const char *replacement = getenv("FALCON_TEST_REPLACEMENT");
+    if (selected && moved && replacement && strcmp(path, "writes.log") == 0) {
+        if (rename(selected, moved) < 0 || symlink(replacement, selected) < 0) return -1;
+    }
+    return real_openat(directory, path, flags, mode);
+}
 
 static int selected(int fd) {
     const char *path = getenv("FALCON_TEST_FILE");

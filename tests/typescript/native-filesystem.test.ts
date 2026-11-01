@@ -1,5 +1,5 @@
 import assert from "node:assert/strict";
-import { test, after } from "node:test";
+import { test, before, after } from "node:test";
 import { spawnSync } from "node:child_process";
 import * as fs from "node:fs";
 import { tmpdir } from "node:os";
@@ -10,6 +10,64 @@ import { openRetainedFile } from "../../src/rtr-filesystem.js";
 const root = fs.mkdtempSync(join(tmpdir(), "falcon-native-"));
 after(() => fs.rmSync(root, { recursive: true, force: true }));
 const worker = fileURLToPath(new URL("./native-worker.js", import.meta.url));
+const shim = join(root, "fault.so");
+before(() => {
+  const source = fileURLToPath(
+    new URL("../../../tests/typescript/native-fault.c", import.meta.url),
+  );
+  const build = spawnSync(
+    "cc",
+    [
+      "-shared",
+      "-fPIC",
+      "-Wall",
+      "-Wextra",
+      "-Werror",
+      "-o",
+      shim,
+      source,
+      "-ldl",
+    ],
+    { encoding: "utf8" },
+  );
+  assert.equal(build.status, 0, build.stderr);
+});
+
+test("descriptor-relative leaf open ignores ancestor replacement between validation and openat", () => {
+  const directory = fs.mkdtempSync(join(root, "interleaved-"));
+  const selected = join(directory, "selected");
+  const moved = join(directory, "retained");
+  const replacement = join(directory, "replacement");
+  fs.mkdirSync(selected, { mode: 0o700 });
+  fs.mkdirSync(replacement, { mode: 0o700 });
+  fs.writeFileSync(join(replacement, "writes.log"), "replacement\n", {
+    mode: 0o600,
+  });
+  const child = spawnSync(
+    process.execPath,
+    [worker, "append", join(selected, "writes.log")],
+    {
+      encoding: "utf8",
+      timeout: 5000,
+      env: {
+        ...process.env,
+        LD_PRELOAD: shim,
+        FALCON_TEST_SWAP_PARENT: selected,
+        FALCON_TEST_MOVED_PARENT: moved,
+        FALCON_TEST_REPLACEMENT: replacement,
+      },
+    },
+  );
+  assert.equal(child.status, 0, child.stderr);
+  assert.equal(
+    fs.readFileSync(join(moved, "writes.log"), "utf8"),
+    "synthetic intent\n",
+  );
+  assert.equal(
+    fs.readFileSync(join(replacement, "writes.log"), "utf8"),
+    "replacement\n",
+  );
+});
 
 test("the process-level offline deny survives child launch for IPv4 and IPv6", () => {
   for (const address of ["127.0.0.1", "::1"]) {
@@ -194,26 +252,6 @@ test("nonblocking lock excludes another process until close and retains the empt
 });
 
 test("interrupted and short writes finish once; an unconfirmed flush poisons the handle", () => {
-  const shim = join(root, "fault.so");
-  const source = fileURLToPath(
-    new URL("../../../tests/typescript/native-fault.c", import.meta.url),
-  );
-  const build = spawnSync(
-    "cc",
-    [
-      "-shared",
-      "-fPIC",
-      "-Wall",
-      "-Wextra",
-      "-Werror",
-      "-o",
-      shim,
-      source,
-      "-ldl",
-    ],
-    { encoding: "utf8" },
-  );
-  assert.equal(build.status, 0, build.stderr);
   for (const fault of [
     "interrupted",
     "flush-failure",
