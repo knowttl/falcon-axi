@@ -29,17 +29,13 @@ The partial TypeScript surface must not advertise commands owned by later slices
 Every affected golden scenario carries an explicit `typescriptMigration` record describing the exact omitted suggestion or narrowed discovery output.
 The comparison derives these expectations from the retained origin documents and frozen owned-command list, never from candidate output.
 The Python expected documents remain unchanged.
+S08-S10 restored search and Identity navigation, setup guidance for search, and write-labelled scope guidance.
+The remaining exceptions are:
 
 | Affected scenarios | Temporary difference | Restore when |
 | --- | --- | --- |
-| `auth-status`, `auth-status-member-cid`, `auth-status-retargeted` | Scope guidance says `read scopes`, without advertising later write-labelled commands. | The referenced search, GraphQL and MalQuery commands ship. |
-| `auth-status-no-credential`, `home-view-no-credential`, `home-view-skill-hint` | Omit setup guidance naming unshipped search commands. | The referenced S08 commands ship. |
 | `home-view-skill-hint` | Omit installation guidance for the full Python skill. | S12 delivers the candidate's generated skill. |
-| `detection-show-identity` | Omit the identity-activity suggestion. | S08 ships that fixed search. |
-| `help-top`, `unknown-command`, `scopes` | Restrict command names, summaries and the scope matrix to frozen delivered commands; omit later execution/scope guidance. | Each additional command ships. |
-| `unknown-identity-subcommand` | Show only delivered Identity subcommands. | The remaining S08 and S09 Identity commands ship. |
-| `unknown-search-subcommand` | Treat the unavailable group as an unknown command, showing only delivered commands. | S08 ships search commands. |
-| `unknown-host-subcommand` | Omit `usb` from valid host subcommands. | S08 ships host USB history. |
+| `help-top`, `unknown-command`, `scopes` | Restrict command names, summaries and the scope matrix to frozen delivered commands; omit later RTR execution guidance. | Each additional command ships. |
 
 Restore each original discovery entry when its target ships and remove its temporary annotation.
 S13 must compare the complete original documents with no TypeScript discovery exceptions.

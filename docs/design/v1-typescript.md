@@ -93,7 +93,7 @@ The encoder emits those values as exact quoted decimal strings, its documented l
 Other numeric lexemes beyond that domain retain their exact decimal or exponent text as strings.
 IDs remain strings, and truncation counts Unicode scalar values.
 The [S02/S03 verification amendment](s02-s03-plan-amendment.md) owns the deferred test assignments and temporary discovery differences, including their restoration requirements.
-Subcommand help is seeded from the frozen Python origin in `src/help.json`.
+Subcommand help is seeded from the frozen Python origin in `src/help.json` and `src/search-help.json`.
 Errors use the Python origin's top-level error and code fields rather than S01's nested envelope.
 Opaque cursors retain the origin's signed context and exact serialization.
 No existing Python golden document is rewritten.
