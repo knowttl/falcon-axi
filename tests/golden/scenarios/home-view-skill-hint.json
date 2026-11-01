@@ -8,11 +8,5 @@
     "CODEX_THREAD_ID": "synthetic-session",
     "HOME": "/nonexistent/skill-probe-home"
   },
-  "exit_code": 1,
-  "typescriptMigration": {
-    "omitSuggestions": [
-      "Run `npx skills add knowttl/falcon-axi --skill falcon-axi` to install the falcon-axi skill"
-    ],
-    "restore": "Restore each omitted navigation or original group when its commands ship; S13 compares the original documents with no TypeScript discovery exceptions."
-  }
+  "exit_code": 1
 }

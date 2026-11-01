@@ -1,39 +1,16 @@
 import { readFile, readdir } from "node:fs/promises";
 import { resolve } from "node:path";
-import s02 from "../fixtures/migration/S02/contracts.json" with { type: "json" };
-import s03 from "../fixtures/migration/S03/contracts.json" with { type: "json" };
-import s04 from "../fixtures/migration/S04/contracts.json" with { type: "json" };
-import s05 from "../fixtures/migration/S05/contracts.json" with { type: "json" };
-import s06 from "../fixtures/migration/S06/contracts.json" with { type: "json" };
-import s07 from "../fixtures/migration/S07/contracts.json" with { type: "json" };
-import s08 from "../fixtures/migration/S08/contracts.json" with { type: "json" };
-import s09 from "../fixtures/migration/S09/contracts.json" with { type: "json" };
-import s10 from "../fixtures/migration/S10/contracts.json" with { type: "json" };
-import s11 from "../fixtures/migration/S11/contracts.json" with { type: "json" };
 import { VERSION } from "../../src/version.js";
 
-export interface DiscoveryDelta {
-  omitSuggestions?: string[];
-  scopeGuidance?: string;
-  scopeMatrix?: string;
-  topHelp?: string;
-  commandNames?: string;
-  unavailableGroup?: string;
-  omitSubcommands?: { group: string; names: string[] };
-  restore: string;
-}
 interface Reference {
   name: string;
   order: number;
   summary: string;
-  scopes: { scope: string; access: string }[];
+  scopes: { scope: string; access: string; required?: string }[];
 }
-// Expectations come only from retained origin documents and the frozen slice ownership.
-// S13 must call the original-document gate, without applying these temporary deltas.
-export async function expectedDocument(
-  name: string,
-  delta?: DiscoveryDelta,
-): Promise<string> {
+
+// Reconstruct the frozen Python documents independently of candidate metadata.
+export async function expectedDocument(name: string): Promise<string> {
   const root = resolve("tests/golden");
   const references = await Promise.all(
     (await readdir(resolve(root, "commands"))).map(
@@ -44,103 +21,46 @@ export async function expectedDocument(
     ),
   );
   references.sort((a, b) => a.order - b.order);
-  const owned = new Set([
-    ...s02.commandNames,
-    ...s03.commandNames,
-    ...s04.commandNames,
-    ...s05.commandNames,
-    ...s06.commandNames,
-    ...s07.commandNames,
-    ...s08.commandNames,
-    ...s09.commandNames,
-    ...s10.commandNames,
-    ...s11.commandNames,
-  ]);
-  const selected = references.filter((reference) => owned.has(reference.name));
-  const names = selected.map((reference) => reference.name).join(", ");
+  const groups = new Map<
+    string,
+    { access: string; names: string[]; required: Set<string> }
+  >();
+  for (const reference of references)
+    for (const { scope, access, required = "yes" } of reference.scopes) {
+      const group = groups.get(scope) ?? {
+        access,
+        names: [],
+        required: new Set<string>(),
+      };
+      group.names.push(reference.name);
+      group.required.add(required);
+      groups.set(scope, group);
+    }
+  const table =
+    `scopes[${groups.size}]{scope,access,commands,required}:\n` +
+    [...groups]
+      .map(
+        ([scope, group]) =>
+          `  ${JSON.stringify(scope)},${group.access},${group.names.length > 1 ? JSON.stringify(group.names.join(", ")) : group.names[0]},${group.required.size === 1 && group.required.has("selected --type") ? "selected --type" : "yes"}`,
+      )
+      .join("\n");
   let expected = await readFile(resolve(root, `${name}.txt`), "utf8");
-  expected = expected.replaceAll(
-    "{{description}}",
-    (await readFile(resolve(root, "description.txt"), "utf8")).trimEnd(),
-  );
-  if (delta?.commandNames)
-    expected = expected.replaceAll("{{command_names}}", names);
-  if (delta?.topHelp) {
-    expected = expected.replaceAll(
-      "{{command_summaries}}",
-      selected.map((reference) => reference.summary).join("\n"),
-    );
-    const authorization = expected.match(/^RTR execution.*?\(N3\)\./m)?.[0];
-    if (!authorization)
-      throw new Error("Retained N3 authorization guidance is missing");
-    expected =
-      expected.slice(0, expected.indexOf("\nRTR execution")) +
-      `\n${authorization}\n`;
+  for (const [key, value] of Object.entries({
+    command_summaries: references
+      .map((reference) => reference.summary)
+      .join("\n"),
+    command_names: references.map((reference) => reference.name).join(", "),
+    scope_table: table,
+    description: (
+      await readFile(resolve(root, "description.txt"), "utf8")
+    ).trimEnd(),
+  }))
+    expected = expected.replaceAll(`{{${key}}}`, value);
+  if (name === "help-top")
     expected = expected.replace(
       /^falcon-axi \S+ - /,
       `falcon-axi ${VERSION} - `,
     );
-  }
-  if (delta?.scopeMatrix) {
-    const groups = new Map<string, string[]>();
-    for (const reference of selected)
-      for (const { scope } of reference.scopes) {
-        const commands = groups.get(scope) ?? [];
-        if (!commands.includes(reference.name)) commands.push(reference.name);
-        groups.set(scope, commands);
-      }
-    expected =
-      `posture: read-only except NGSIEM:write for search lifecycle changes and MalQuery:write for bounded pattern searches; Identity Protection GraphQL:write admits only fixed read queries\nscopes[${groups.size}]{scope,access,commands,required}:\n` +
-      [...groups]
-        .map(
-          ([scope, commands]) =>
-            `  ${JSON.stringify(scope)},${scope.endsWith(":write") ? "write" : "read"},${commands.length > 1 ? JSON.stringify(commands.join(", ")) : commands[0]},${commands.every((name) => /^(policy|exclusion) /.test(name)) ? "selected --type" : "yes"}\n`,
-        )
-        .join("") +
-      "member_cid_token_scope: unresolved (Flight Control read may be required; see design section 17.7)\n" +
-      expected.slice(expected.indexOf("help["));
-  }
-  if (
-    delta?.unavailableGroup &&
-    !selected.some((reference) =>
-      reference.name.startsWith(`${delta.unavailableGroup} `),
-    )
-  )
-    expected = `error: unknown command ${delta.unavailableGroup}\ncode: VALIDATION_ERROR\nhelp[2]: ${JSON.stringify(`valid commands: ${names}`)},"Run \`falcon-axi --help\` for the command list"\n`;
-  if (delta?.scopeGuidance)
-    expected = expected.replace(
-      /^scopes: .*$/m,
-      `scopes: ${delta.scopeGuidance}`,
-    );
-  if (delta?.omitSubcommands) {
-    const { group, names } = delta.omitSubcommands;
-    const unavailable = names.filter(
-      (name) =>
-        !selected.some((reference) =>
-          reference.name.startsWith(`${group} ${name}`),
-        ),
-    );
-    expected = expected.replace(
-      new RegExp(`valid ${group} subcommands: ([^"\\n]+)`),
-      (_text, verbs: string) =>
-        `valid ${group} subcommands: ${verbs
-          .split(", ")
-          .filter((verb) => !unavailable.includes(verb))
-          .join(", ")}`,
-    );
-  }
-  if (delta?.omitSuggestions)
-    expected = expected.replace(
-      /^help\[\d+\]: (.*)\n/m,
-      (_line, values: string) => {
-        const hints = JSON.parse(`[${values}]`) as string[];
-        const kept = hints.filter(
-          (hint) => !delta.omitSuggestions!.includes(hint),
-        );
-        return kept.length
-          ? `help[${kept.length}]: ${kept.map((hint) => JSON.stringify(hint)).join(",")}\n`
-          : "";
-      },
-    );
+  if (name.startsWith("version-")) expected = `${VERSION}\n`;
   return expected;
 }

@@ -4,9 +4,5 @@
     "incident",
     "list"
   ],
-  "exit_code": 2,
-  "typescriptMigration": {
-    "commandNames": "owned commands in retained registry order",
-    "restore": "Restore each omitted navigation or original group when its commands ship; S13 compares the original documents with no TypeScript discovery exceptions."
-  }
+  "exit_code": 2
 }

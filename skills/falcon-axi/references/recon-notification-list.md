@@ -3,7 +3,7 @@
 recon-notification list       list Recon notifications
 
 ```text
-uvx falcon-axi recon-notification list [--filter <FQL>] [--limit N] [--cursor <token>]
+npx -y @knowttl/falcon-axi recon-notification list [--filter <FQL>] [--limit N] [--cursor <token>]
 
 list Recon notifications
 --filter     raw FQL; + is AND, `,` is OR, values are single-quoted
@@ -11,6 +11,6 @@ list Recon notifications
 --cursor     opaque continuation token; queries stop at 10000 results
 Requires Monitoring rules (Falcon Intelligence Recon):read. Read-only.
 Examples:
-  uvx falcon-axi recon-notification list --filter "status:'new'"
-  uvx falcon-axi recon-notification list --limit 100
+  npx -y @knowttl/falcon-axi recon-notification list --filter "status:'new'"
+  npx -y @knowttl/falcon-axi recon-notification list --limit 100
 ```

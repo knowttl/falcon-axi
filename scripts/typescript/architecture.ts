@@ -37,6 +37,8 @@ const allowed = new Set([
   "./help.json",
   "./version.js",
   "./cli.js",
+  "./executable.js",
+  "./skill.js",
   "./transport/https.js",
   "./operations.js",
   "./descriptors.json",
@@ -60,6 +62,42 @@ const sink = new Set([
 export function violations(source: string, name: string): string[] {
   const file = ts.createSourceFile(name, source, ts.ScriptTarget.Latest, true);
   const errors: string[] = [];
+  const readonlyFiles = new Set([
+    "accessSync",
+    "constants",
+    "lstat",
+    "readFileSync",
+    "realpathSync",
+    "statSync",
+  ]);
+  const scripts = new Set(
+    file.statements.flatMap((statement) =>
+      ts.isVariableStatement(statement) &&
+      statement.declarationList.flags & ts.NodeFlags.Const
+        ? statement.declarationList.declarations.flatMap((declaration) =>
+            ts.isIdentifier(declaration.name) &&
+            declaration.initializer &&
+            (ts.isStringLiteral(declaration.initializer) ||
+              ts.isNoSubstitutionTemplateLiteral(declaration.initializer))
+              ? [declaration.name.text]
+              : [],
+          )
+        : [],
+    ),
+  );
+  const fixedScript = (node: ts.Node): boolean =>
+    ts.isStringLiteral(node) ||
+    ts.isNoSubstitutionTemplateLiteral(node) ||
+    (ts.isIdentifier(node) && scripts.has(node.text)) ||
+    (ts.isBinaryExpression(node) &&
+      node.operatorToken.kind === ts.SyntaxKind.PlusToken &&
+      fixedScript(node.left) &&
+      fixedScript(node.right)) ||
+    (ts.isConditionalExpression(node) &&
+      ts.isIdentifier(node.condition) &&
+      node.condition.text === "diagnostic" &&
+      fixedScript(node.whenTrue) &&
+      fixedScript(node.whenFalse));
   const visit = (node: ts.Node): void => {
     if (ts.isImportDeclaration(node) || ts.isExportDeclaration(node)) {
       const specifier = node.moduleSpecifier;
@@ -68,9 +106,12 @@ export function violations(source: string, name: string): string[] {
         (!ts.isStringLiteral(specifier) ||
           !(
             allowed.has(specifier.text) ||
+            (name === "cli.ts" && specifier.text === "./setup.js") ||
+            (name === "setup.ts" && specifier.text === "toml-eslint-parser") ||
+            (name === "setup.ts" && specifier.text === "node:util") ||
             (name === "cli.ts" && specifier.text === "./rtr.js") ||
             (name === "transport/https.ts" && specifier.text === "../rtr.js") ||
-            (["credentials.ts", "rtr.ts"].includes(name) &&
+            (["credentials.ts", "rtr.ts", "cli.ts"].includes(name) &&
               specifier.text === "./rtr-policy.js") ||
             (name === "rtr.ts" && specifier.text === "./rtr-filesystem.js") ||
             (name === "rtr.ts" && specifier.text === "node:timers/promises") ||
@@ -95,10 +136,65 @@ export function violations(source: string, name: string): string[] {
           ))
       )
         errors.push("unauthorized dependency");
+      if (
+        ts.isImportDeclaration(node) &&
+        ts.isStringLiteral(node.moduleSpecifier)
+      ) {
+        const dependency = node.moduleSpecifier.text;
+        if (
+          ["node:fs", "node:fs/promises"].includes(dependency) &&
+          name !== "setup.ts"
+        ) {
+          const bindings = node.importClause?.namedBindings;
+          if (
+            !bindings ||
+            !ts.isNamedImports(bindings) ||
+            node.importClause?.name ||
+            bindings.elements.some((binding) => {
+              const imported = (binding.propertyName ?? binding.name).text;
+              return (
+                !readonlyFiles.has(imported) &&
+                !(
+                  name === "credentials.ts" &&
+                  imported === "open" &&
+                  binding.name.text === "open"
+                )
+              );
+            })
+          )
+            errors.push("filesystem mutation authority");
+        }
+        if (name === "windows-acl.ts" && dependency === "node:child_process") {
+          const bindings = node.importClause?.namedBindings;
+          if (
+            !bindings ||
+            !ts.isNamedImports(bindings) ||
+            bindings.elements.some(
+              (binding) =>
+                binding.name.text !== "execFile" ||
+                binding.propertyName !== undefined,
+            )
+          )
+            errors.push("ACL process authority");
+        }
+      }
     }
     if (ts.isCallExpression(node)) {
       const expression = node.expression;
       const nameText = expression.getText(file);
+      if (name === "windows-acl.ts" && nameText === "execFile") {
+        const [executable, args] = node.arguments;
+        if (
+          !executable ||
+          !ts.isStringLiteral(executable) ||
+          executable.text !== "powershell.exe" ||
+          !args ||
+          !ts.isArrayLiteralExpression(args) ||
+          args.elements.length !== 4 ||
+          !fixedScript(args.elements[3]!)
+        )
+          errors.push("dynamic ACL command");
+      }
       if (expression.kind === ts.SyntaxKind.ImportKeyword) {
         if (
           name !== "bin.ts" ||
@@ -165,6 +261,9 @@ for (const source of [
   "process.getBuiltinModule('net')",
   "import {rtrRun} from './rtr.js'",
   "import {openRetainedFile} from './rtr-filesystem.js'",
+  "import {writeFile as save} from 'node:fs/promises'",
+  "import fs from 'node:fs'",
+  "import {installHooks} from './setup.js'",
 ]) {
   if (!violations(source, "seed.ts").length)
     throw new Error("Architecture checker accepted a bypass seed");

@@ -1,4 +1,6 @@
 {
+  "setup": "falcon-axi setup\n\nPrint offline guidance without writing files.\n\nExamples:\n  falcon-axi setup\n  falcon-axi setup hooks",
+  "setup hooks": "falcon-axi setup hooks\n\nInstall or repair Claude Code, Codex, and OpenCode session integrations.\nRequires a durable installation. No network calls or skill installation.\n\nExamples:\n  falcon-axi setup hooks\n  falcon-axi setup hooks --help",
   "auth status": "falcon-axi auth status\n\nReports whether a credential resolved, from which channel, and which region it resolved to.\nNo credential value, bearer token, or tenant CID is ever printed.",
   "config path": "falcon-axi config path [--config <path>]\nReports config and write-journal paths.\nExample: falcon-axi config path",
   "profile list": "falcon-axi profile list [--config <path>]\nLists profile names without resolving secrets.\nExample: falcon-axi profile list",

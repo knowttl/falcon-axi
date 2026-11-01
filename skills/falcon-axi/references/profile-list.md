@@ -3,7 +3,7 @@
 profile list              configured profile names, without reading secrets
 
 ```text
-uvx falcon-axi profile list [--config <path>]
+npx -y @knowttl/falcon-axi profile list [--config <path>]
 Lists profile names without resolving secrets.
-Example: uvx falcon-axi profile list
+Example: npx -y @knowttl/falcon-axi profile list
 ```

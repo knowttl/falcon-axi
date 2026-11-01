@@ -5,6 +5,7 @@ import { join } from "node:path";
 import { mkdirSync, mkdtempSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { rtrCoverage } from "./rtr-coverage.js";
+import { finalCoverage } from "./final-coverage.js";
 
 const args = process.argv.slice(2);
 const selections = new Map<string, string>();
@@ -32,12 +33,14 @@ if (
     "S09",
     "S10",
     "S11",
+    "S12",
+    "S13",
   ].includes(selections.get("--slice") ?? "") ||
   selections.get("--offline") !== "true" ||
   !["native", "artium", "native,artium"].includes(paths ?? "")
 ) {
   console.error(
-    "Required selectors: --slice S01|S02|S03|S04|S05|S06|S07|S08|S09|S10|S11 --paths native[,artium] --offline",
+    "Required selectors: --slice S01|S02|S03|S04|S05|S06|S07|S08|S09|S10|S11|S12|S13 --paths native[,artium] --offline",
   );
   process.exit(2);
 }
@@ -46,7 +49,52 @@ if (paths?.includes("artium") && !process.env.S01_ARTIUM_ROOT) {
   process.exit(1);
 }
 const rtr = selections.get("--slice") === "S11";
-if (!rtr && !process.env.FALCON_TEST_NAMESPACED) {
+const complete = selections.get("--slice") === "S13";
+if (complete && paths === "artium") {
+  console.error(
+    "S13 hosted acceptance requires --paths native,artium to include its native prerequisites",
+  );
+  process.exit(2);
+}
+const evidence =
+  process.env.S01_EVIDENCE_DIR ??
+  mkdtempSync(join(tmpdir(), "falcon-s01-proof-"));
+mkdirSync(evidence, { recursive: true, mode: 0o700 });
+if (complete) {
+  for (const [script, ...arguments_] of [
+    ["generate.js", "--check"],
+    ["architecture.js"],
+    ["coverage.js", "--strict"],
+  ]) {
+    const result = spawnSync(
+      process.execPath,
+      [fileURLToPath(new URL(`./${script}`, import.meta.url)), ...arguments_],
+      { stdio: "inherit" },
+    );
+    if (result.status !== 0) process.exit(result.status ?? 1);
+  }
+  for (const slice of ["S10", "S11"]) {
+    const result = spawnSync(
+      process.execPath,
+      [
+        fileURLToPath(import.meta.url),
+        "--slice",
+        slice,
+        "--paths",
+        paths!,
+        "--offline",
+      ],
+      {
+        stdio: "inherit",
+        env: { ...process.env, S01_EVIDENCE_DIR: join(evidence, slice) },
+      },
+    );
+    if (result.status !== 0) process.exit(result.status ?? 1);
+  }
+}
+const installation = complete || selections.get("--slice") === "S12";
+const restricted = rtr || installation;
+if (!restricted && !process.env.FALCON_TEST_NAMESPACED) {
   const result = spawnSync(
     "unshare",
     [
@@ -66,7 +114,7 @@ if (!rtr && !process.env.FALCON_TEST_NAMESPACED) {
   process.exit(result.status ?? 1);
 }
 // Ordinary-read checks use loopback in a network namespace; RTR retains real inode ownership.
-const network = rtr
+const network = restricted
   ? { status: 0, stderr: "" }
   : spawnSync("/usr/sbin/ip", ["link", "set", "lo", "up"], {
       encoding: "utf8",
@@ -78,17 +126,13 @@ if (network.status !== 0) {
 const tests = [
   fileURLToPath(
     new URL(
-      `../../tests/typescript/${rtr ? "s11" : ["S08", "S09", "S10"].includes(selections.get("--slice")!) ? "s08-s10" : selections.get("--slice") === "S01" ? "s01" : ["S06", "S07"].includes(selections.get("--slice")!) ? "s06-s07" : ["S04", "S05"].includes(selections.get("--slice")!) ? "s04-s05" : "s02-s03"}.test.js`,
+      `../../tests/typescript/${complete ? "s13" : installation ? "s12" : rtr ? "s11" : ["S08", "S09", "S10"].includes(selections.get("--slice")!) ? "s08-s10" : selections.get("--slice") === "S01" ? "s01" : ["S06", "S07"].includes(selections.get("--slice")!) ? "s06-s07" : ["S04", "S05"].includes(selections.get("--slice")!) ? "s04-s05" : "s02-s03"}.test.js`,
       import.meta.url,
     ),
   ),
 ];
-const evidence =
-  process.env.S01_EVIDENCE_DIR ??
-  mkdtempSync(join(tmpdir(), "falcon-s01-proof-"));
-mkdirSync(evidence, { recursive: true, mode: 0o700 });
 const deny = join(evidence, "network-deny");
-if (rtr) {
+if (restricted) {
   const compile = spawnSync(
     "/usr/bin/gcc",
     [
@@ -108,9 +152,9 @@ if (rtr) {
 }
 const results: Record<string, unknown>[] = [];
 for (const path of paths!.split(",")) {
-  const nativeRtr = rtr && path === "native";
+  const nativeRtr = restricted && path === "native";
   let primitives = "";
-  if (nativeRtr) {
+  if (nativeRtr && rtr) {
     const probe = spawnSync(
       process.execPath,
       [
@@ -141,6 +185,9 @@ for (const path of paths!.split(",")) {
       "--test",
       "--test-reporter=tap",
       ...(rtr ? ["--test-name-pattern=S11"] : []),
+      ...(installation
+        ? [complete ? "--test-name-pattern=S1[23]" : "--test-name-pattern=S12"]
+        : []),
       ...(rtr && path === "artium"
         ? [
             fileURLToPath(
@@ -150,7 +197,19 @@ for (const path of paths!.split(",")) {
               ),
             ),
           ]
-        : tests),
+        : [
+            ...tests,
+            ...(complete && path === "artium"
+              ? [
+                  fileURLToPath(
+                    new URL(
+                      "../../tests/typescript/s13-artium.test.js",
+                      import.meta.url,
+                    ),
+                  ),
+                ]
+              : []),
+          ]),
     ],
     {
       cwd: resolve("."),
@@ -159,7 +218,10 @@ for (const path of paths!.split(",")) {
         ...process.env,
         S01_ACTIVE_PATH: path,
         S01_EVIDENCE_DIR: evidence,
-        ...(rtr ? { S11_SOCKET_DELIVERY: "1", S11_DENY_LAUNCHER: deny } : {}),
+        ...(restricted
+          ? { S11_SOCKET_DELIVERY: "1", S11_DENY_LAUNCHER: deny }
+          : {}),
+        ...(installation ? { S12_INSTALL_CHECK: "1" } : {}),
       },
     },
   );
@@ -198,7 +260,13 @@ for (const path of paths!.split(",")) {
       ) + "\n",
       { mode: 0o600 },
     );
-  } else if (selections.get("--slice") !== "S01") {
+  } else if (complete) {
+    writeFileSync(
+      join(evidence, `${path}-coverage.json`),
+      JSON.stringify(finalCoverage(path, evidence), null, 2) + "\n",
+      { mode: 0o600 },
+    );
+  } else if (!installation && selections.get("--slice") !== "S01") {
     const coverage = spawnSync(
       process.execPath,
       [

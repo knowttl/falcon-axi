@@ -1,0 +1,17 @@
+{
+  "slice": "S12",
+  "operationIds": [],
+  "commandNames": ["setup hooks", "setup", "falcon-axi-hook"],
+  "goldenScenarioIds": [
+    "help-setup-hooks",
+    "help-setup",
+    "setup-app-refused",
+    "setup",
+    "version-long",
+    "version-short-lower",
+    "version-short-upper"
+  ],
+  "acceptanceCaseIds": ["AC-WIN-BIN", "AC-HOOKS", "AC-PACKAGE", "H01"],
+  "nativeWindows": "pending",
+  "provenance": "Synthetic installation inputs; behavior retained from Python setup.py and hook.py."
+}

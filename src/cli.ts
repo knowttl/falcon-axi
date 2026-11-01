@@ -9,7 +9,7 @@ import {
 import { authenticate } from "./auth.js";
 import { resolveOrigin, REGIONS } from "./origin.js";
 import { render, Raw, registerMemberCid } from "./render.js";
-import { commands } from "./metadata.js";
+import { commands, DESCRIPTION } from "./metadata.js";
 import { operation } from "./transport/operations.js";
 import { parse, filterOf } from "./parser.js";
 import { investigate } from "./investigation.js";
@@ -19,7 +19,7 @@ import { exposure } from "./exposure.js";
 import { inspection } from "./inspection.js";
 import inspectionCommands from "./inspection-commands.json" with { type: "json" };
 import { homedir } from "node:os";
-import { resolve } from "node:path";
+import { executableCommand, shellArgument } from "./executable.js";
 import helpText from "./help.json" with { type: "json" };
 import { VERSION } from "./version.js";
 import { search } from "./search.js";
@@ -28,11 +28,17 @@ import { malquery } from "./malquery.js";
 import searchHelp from "./search-help.json" with { type: "json" };
 import { document } from "./transport/search-authority.js";
 import { rtrRun, validateRtrInvocation } from "./rtr.js";
+import { installHooks } from "./setup.js";
+import { HOME_GUIDANCE, skillHint } from "./skill.js";
+import { readOnly } from "./rtr-policy.js";
 
-const description =
-  "Read CrowdStrike Falcon from the shell with compact, structured results for agents and the humans running them.";
+const description = DESCRIPTION;
 
 export async function main(argv: string[], bin?: string): Promise<number> {
+  if (argv.length === 1 && ["-v", "-V", "--version"].includes(argv[0]!)) {
+    process.stdout.write(VERSION + "\n");
+    return 0;
+  }
   const started = performance.now();
   const controller = new AbortController();
   const cancel = (): void => controller.abort();
@@ -43,13 +49,15 @@ export async function main(argv: string[], bin?: string): Promise<number> {
   let home = false;
   let hostnameDeadline: AbortSignal | undefined;
   const homeHead = (): Record<string, unknown> => {
-    const executable = resolve(process.argv[1] ?? "falcon-axi");
+    const executable = executableCommand()
+      .map((argument) =>
+        process.platform !== "win32" && argument.startsWith(homedir() + "/")
+          ? "~/" + shellArgument(argument.slice(homedir().length + 1))
+          : shellArgument(argument),
+      )
+      .join(" ");
     return {
-      bin:
-        bin ??
-        (executable.startsWith(`${homedir()}/`)
-          ? `~/${executable.slice(homedir().length + 1)}`
-          : executable),
+      bin: bin ?? executable,
       description,
     };
   };
@@ -85,6 +93,15 @@ export async function main(argv: string[], bin?: string): Promise<number> {
     home = command.name === "home";
     memberCid = flags.get("--member-cid");
     if (flags.has("--help")) {
+      if (command.name === "setup") {
+        process.stdout.write(
+          commands
+            .filter((spec) => spec.name.startsWith("setup "))
+            .map((spec) => spec.summary)
+            .join("\n") + "\n",
+        );
+        return 0;
+      }
       if (Object.hasOwn(searchHelp, command.name)) {
         process.stdout.write(
           searchHelp[command.name as keyof typeof searchHelp] + "\n",
@@ -117,7 +134,15 @@ export async function main(argv: string[], bin?: string): Promise<number> {
         ...(command.name === "home"
           ? [
               "",
-              "RTR execution requires profile opt-in, --execute, and exact host:command --confirm (N3).",
+              "RTR execution requires profile opt-in, --execute, and exact host:command --confirm (N3). It",
+              "requires Alerts:read, Hosts:read, Vulnerabilities:read, Vulnerabilities (Falcon Intelligence):read,",
+              "NGSIEM:read, Identity Protection Entities:read, Identity Protection Timeline:read, and",
+              "Identity Protection Assessment:read, plus three",
+              "write-labelled scopes: NGSIEM:write for `search start`, `search stop`, and `identity activity`, and",
+              "Identity Protection GraphQL:write for the fixed Identity Protection query commands,",
+              "which Falcon requires even for read-only queries, and MalQuery:write for bounded exact/fuzzy searches (N4).",
+              "The `account`, `asset`, `application`, and `login` commands need license-gated Assets:read.",
+              "The `indicator` commands require the license-gated Indicators (Falcon Intelligence):read scope.",
             ]
           : []),
       ];
@@ -127,9 +152,30 @@ export async function main(argv: string[], bin?: string): Promise<number> {
     const filter = filterOf(invocation);
     if (flags.has("--region"))
       resolveOrigin(flags.get("--region"), flags.has("--allow-unknown-origin"));
-    normalizeEnvironment();
+    for (const warning of normalizeEnvironment())
+      process.stderr.write(warning + "\n");
+    if (command.name === "setup") {
+      process.stdout.write(
+        render(
+          {
+            setup:
+              "Install falcon-axi in a durable location before registering session integrations",
+          },
+          [
+            "Run `falcon-axi setup hooks` to install or repair Claude Code, Codex, and OpenCode integrations",
+            "Set FALCON_AXI_CLIENT_ID and FALCON_AXI_CLIENT_SECRET, or configure a profile with a SecretRef",
+            "Run `npx skills add knowttl/falcon-axi --skill falcon-axi` to install the agent skill separately",
+          ],
+        ),
+      );
+      return 0;
+    }
+    if (command.name === "setup hooks") {
+      process.stdout.write(render(await installHooks()));
+      return 0;
+    }
     if (
-      /^(true|1)$/i.test(process.env.FALCON_AXI_READ_ONLY ?? "false") &&
+      readOnly() &&
       [
         "search start",
         "search stop",
@@ -188,7 +234,7 @@ export async function main(argv: string[], bin?: string): Promise<number> {
         render(
           {
             posture: new Raw(
-              "read-only except NGSIEM:write for search lifecycle changes and MalQuery:write for bounded pattern searches; Identity Protection GraphQL:write admits only fixed read queries",
+              "read-only except three write-labelled scopes: NGSIEM:write for NG-SIEM search start and stop and identity activity (exception N1), and Identity Protection GraphQL:write for fixed read-only identity queries (exception N2); Real time response:read also permits guarded host execution with profile opt-in and exact confirmation (exception N3); MalQuery:write permits bounded exact/fuzzy pattern searches (exception N4)",
             ),
             scopes: [...groups].map(([scope, names]) => ({
               scope,
@@ -369,11 +415,8 @@ export async function main(argv: string[], bin?: string): Promise<number> {
         ...result.value,
       };
       result.help.push(
-        "Run `falcon-axi detection list` to see more detections",
-        "Run `falcon-axi detection list --product idp` for Identity Protection detections",
-        "Run `falcon-axi host list --filter \"hostname:'WIN-*'\"` to search hosts",
-        "Run `falcon-axi cve show <CVE-ID>` for Falcon Intelligence on one CVE",
-        "Run `falcon-axi scopes` to see what this API client needs",
+        ...HOME_GUIDANCE,
+        ...(argv.length === 0 ? skillHint() : []),
       );
     }
     process.stdout.write(render(result.value, contextualHelp(result.help)));
@@ -402,7 +445,10 @@ export async function main(argv: string[], bin?: string): Promise<number> {
           code: safe.code,
           ...safe.details,
         },
-        contextualHelp(safe.help),
+        contextualHelp([
+          ...safe.help,
+          ...(home && argv.length === 0 ? skillHint() : []),
+        ]),
       ),
     );
     return safe.exitCode;

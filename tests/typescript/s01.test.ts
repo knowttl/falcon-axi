@@ -27,7 +27,7 @@ import { decode } from "@toon-format/toon";
 import { spawnSync } from "node:child_process";
 
 export let directory: string;
-let executable: string;
+export let executable: string;
 let ca: string;
 export let config: string;
 let port: number;
@@ -40,6 +40,7 @@ export const wire: {
   body: string;
   time: number;
   epoch: number;
+  authorization: string;
 }[] = [];
 let tokenAttempt = 0;
 let respondToken: (request: IncomingMessage, response: ServerResponse) => void;
@@ -154,7 +155,9 @@ function setHostedDelivery(nextPort: string | number): Promise<void> {
     });
   });
 }
-export function nextHostedTerminal(): Promise<Record<string, unknown>> {
+export function nextHostedTerminal(
+  action: "read" | "write" | "any" = "write",
+): Promise<Record<string, unknown>> {
   assert.ok(host);
   return new Promise((resolve) => {
     const listener = (message: unknown): void => {
@@ -165,10 +168,27 @@ export function nextHostedTerminal(): Promise<Record<string, unknown>> {
         message.terminal &&
         typeof message.terminal === "object" &&
         "action" in message.terminal &&
-        message.terminal.action === "write"
+        (action === "any" || message.terminal.action === action)
       ) {
         host!.removeListener("message", listener);
         resolve(message.terminal as Record<string, unknown>);
+      }
+    };
+    host!.on("message", listener);
+  });
+}
+export function nextHostedChild(): Promise<number> {
+  assert.ok(host);
+  return new Promise((resolve) => {
+    const listener = (message: unknown): void => {
+      if (
+        message &&
+        typeof message === "object" &&
+        "falconChild" in message &&
+        typeof message.falconChild === "number"
+      ) {
+        host!.removeListener("message", listener);
+        resolve(message.falconChild);
       }
     };
     host!.on("message", listener);
@@ -463,7 +483,14 @@ function assertRead(result: RunResult): void {
 }
 
 before(async () => {
-  directory = await mkdtemp(join(tmpdir(), "falcon-s01-installed "));
+  directory = await mkdtemp(
+    join(
+      process.env.S12_INSTALL_CHECK && process.platform !== "win32"
+        ? "/var/tmp"
+        : tmpdir(),
+      "falcon-s01-installed ",
+    ),
+  );
   ca = join(directory, "ca.pem");
   const key = join(directory, "key.pem");
   execFileSync(
@@ -508,6 +535,7 @@ before(async () => {
         body,
         time: performance.now(),
         epoch: Date.now(),
+        authorization: request.headers.authorization ?? "",
       });
       if (request.url === "/oauth2/token") {
         tokenAttempt++;
@@ -732,7 +760,14 @@ before(async () => {
   assert.equal(pack.length, 1);
   for (const file of pack[0]!.files)
     assert.ok(
-      ["package.json", "LICENSE", "README.md"].includes(file.path) ||
+      [
+        "package.json",
+        "LICENSE",
+        "README.md",
+        "artium-invocations.json",
+      ].includes(file.path) ||
+        (file.path.startsWith("skills/falcon-axi/") &&
+          file.path.endsWith(".md")) ||
         file.path.startsWith(".typescript-build/src/") ||
         [
           ".typescript-build/native/checksums.json",

@@ -3,7 +3,7 @@
 vuln list                 list Spotlight vulnerabilities; a filter is required
 
 ```text
-uvx falcon-axi vuln list [--host <device id>] [--severity <name>] [--status <name>] [--since <window>] [--filter <FQL>] [--limit N] [--cursor <token>] [--fields <names>] [--all] [--max-rows N]
+npx -y @knowttl/falcon-axi vuln list [--host <device id>] [--severity <name>] [--status <name>] [--since <window>] [--filter <FQL>] [--limit N] [--cursor <token>] [--fields <names>] [--all] [--max-rows N]
 
 --host       device id (AID) whose vulnerabilities to read
 --severity   one of low, medium, high, critical
@@ -23,8 +23,8 @@ Wildcards are unsupported and a `*` is refused before the request is made.
 Filterable fields include aid, cve.id, cve.severity, cve.exprt_rating, cve.exploit_status,
 status, and created_timestamp.
 Examples:
-  uvx falcon-axi vuln list --severity critical --status open
-  uvx falcon-axi vuln list --filter "status:'open'+cve.exploit_status:'90'"
+  npx -y @knowttl/falcon-axi vuln list --severity critical --status open
+  npx -y @knowttl/falcon-axi vuln list --filter "status:'open'+cve.exploit_status:'90'"
 
 This command is read-only and requires only Vulnerabilities:read.
 ```

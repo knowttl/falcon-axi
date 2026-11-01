@@ -82,11 +82,7 @@ const observations: Readonly<Record<string, readonly string[]>> = {
   ],
 };
 
-export function rtrCoverage(
-  path: string,
-  tap: string,
-  primitives: string,
-): Record<string, unknown> {
+export function checkRtrInputs(): void {
   if (digest(JSON.stringify(ledger)) !== seal)
     throw new Error("Frozen S11 safety ownership changed");
   if (
@@ -97,6 +93,14 @@ export function rtrCoverage(
   for (const group of ledger.groups)
     if (digest(readFileSync(resolve(group.source))) !== group.sourceSha256)
       throw new Error(`Pinned S11 source changed: ${group.source}`);
+}
+
+export function rtrCoverage(
+  path: string,
+  tap: string,
+  primitives: string,
+): Record<string, unknown> {
+  checkRtrInputs();
   const passed = [...(tap + primitives).matchAll(/^ok \d+ - (.*)$/gm)].map(
     (match) => match[1]!,
   );
