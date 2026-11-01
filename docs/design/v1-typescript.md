@@ -39,7 +39,7 @@ No npm publication, Python release change, workflow edit or host deployment is i
 ## Build and offline verification
 
 Development pins Node 24.14.0, npm 11.9.0 and exact locked dependencies.
-The runtime floor is Node 24.11.0; native Windows and other Node versions remain unproved in this slice.
+The runtime floor is Node 24.11.0; native Windows controller refusal, preview and reads, and other Node versions remain unproved in this slice.
 Run `npm ci --offline --ignore-scripts` and `npm run verify`.
 The latter repeats the S10 native carrier, the native S11 lifecycle, compiled filesystem primitives, and frozen safety ownership checks.
 The S06/S07 carrier repeats the S01-S05 native checks and adds enrichment/configuration golden parity, selector-specific scope and malformed-response refusals, continuation replay, ordered batch hydration, and redaction before detail previews.
@@ -52,7 +52,6 @@ The frozen slice contracts in `tests/fixtures/migration/S02/contracts.json` thro
 The S08-S10 carrier repeats the earlier suites and adds retained output comparisons, CQL vectors from the Python origin, non-replay response/failure matrices, bounded waits, shell continuation and authority-boundary refusals.
 The GraphQL parser is a development dependency used to verify the fixed documents' operation, root and variable contracts; it is excluded from the runtime package.
 The response-diagnostic replacements exercise bounded shapes at the candidate's validation boundary; Python validator-library issue annotations have no runtime producer in the hand-validated candidate.
-Native Windows evidence remains pending.
 The installed check packs an explicit compiled-source allowlist, installs outside the checkout and executes the npm bin from a directory containing spaces.
 Linux user/network/mount namespaces and iproute2 are required for that check.
 Only loopback is enabled; an actual external connect is required to fail with ENETUNREACH.
@@ -110,7 +109,6 @@ The approved DNS settlement boundary remains unchanged.
 `src/rtr-filesystem.ts` loads it only when opening an execution journal or lock, verifies its SHA-256, and rejects unsupported controllers before loading any binary.
 Current prebuilds target Linux x64 with glibc 2.33 or newer and Windows x64.
 The Windows prebuild has no POSIX entry points; controller execution refuses while ordinary reads remain independent of native loading.
-Native Windows loading and execution evidence remains pending.
 S11 preview does not load the native adapter.
 
 The adapter exposes open, append and close over opaque retained handles.
@@ -137,7 +135,7 @@ Unknown init outcomes require manual reconciliation; a failed final journal writ
 The command grammar and conservative same-session `cat` size comparison retain the Python origin's behavior.
 Discovery and scope output deliberately gain `rtr run`; the Python goldens remain unchanged.
 Top-level help restores the retained N3 authorization sentence alongside the delivered search and MalQuery guidance.
-Native Windows execution evidence remains pending, and unsupported controllers refuse before authentication while preview stays local.
+Unsupported controllers refuse execution before authentication while preview stays local.
 The S11 installed checks preserve real filesystem ownership under the inherited process-level socket deny and deliver synthetic HTTPS over a test-owned Unix socket.
 `tests/migration/coverage-s11.json` pins the twelve retained safety groups and their public source symbols.
 `npm run check:slice -- --slice S11 --paths native --offline` requires no host fixture.
