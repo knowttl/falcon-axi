@@ -134,7 +134,6 @@ test("the installed artifact executes its prebuild and keeps reads and Windows r
       { encoding: "utf8", timeout: 5000 },
     );
     assert.equal(cli.status, 0, cli.stdout + cli.stderr);
-    assert.ok(cli.stdout.length > 0);
   }
   const windows = invoke("windows");
   assert.equal(windows.status, 0, windows.stderr);

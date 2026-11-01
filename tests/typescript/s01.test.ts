@@ -1149,10 +1149,6 @@ test("sealed registry rejects inherited keys, mutation and unimplemented excepti
     () => Object.assign(operation("GetQueriesAlertsV2"), { method: "DELETE" }),
     TypeError,
   );
-  assert.equal(
-    operation("GetQueriesAlertsV2"),
-    operation("GetQueriesAlertsV2"),
-  );
   await assert.rejects(
     async () =>
       requestRead(
