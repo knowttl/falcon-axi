@@ -42,6 +42,9 @@ Development pins Node 24.14.0, npm 11.9.0 and exact locked dependencies.
 The runtime floor is Node 24.11.0; native Windows controller refusal, preview and reads, and other Node versions remain unproved in this slice.
 Run `npm ci --offline --ignore-scripts` and `npm run verify`.
 The latter repeats the S10 native carrier, the native S11 lifecycle, compiled filesystem primitives, and frozen safety ownership checks.
+It also runs a standalone package-contract check after building: the packed allowlist must contain the bin, admission metadata, parser, credential schema, README, license and native prebuilds, without tests, source maps, local paths or recognizable secret material.
+The check installs the tarball offline outside the checkout, probes the installed bin with `--help` and `--version`, and imports the admission metadata and CLI entry point under the inherited kernel IP socket deny.
+Run `node .typescript-build/scripts/typescript/package-contract.js` after `npm run build` for a focused check; it needs no hosted fixture and reuses the test launcher's GCC prerequisite.
 The S06/S07 carrier repeats the S01-S05 native checks and adds enrichment/configuration golden parity, selector-specific scope and malformed-response refusals, continuation replay, ordered batch hydration, and redaction before detail previews.
 Native S06/S07 retained scenarios compare exact output bytes and exit codes, including signed cursors and suggestions.
 S06 restores the original detection-process sandbox suggestions, and S07 restores Identity rule navigation in the existing discovery scenarios.
