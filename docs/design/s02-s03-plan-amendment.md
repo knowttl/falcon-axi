@@ -37,8 +37,6 @@ The Python expected documents remain unchanged.
 | `home-view-skill-hint` | Omit installation guidance for the full Python skill. | S12 delivers the candidate's generated skill. |
 | `detection-process` | Omit the three recorded-hash sandbox-list suggestions. | S06 ships sandbox reads. |
 | `detection-show-identity` | Omit the identity-activity suggestion. | S08 ships that fixed search. |
-| `host-list-page`, `host-list-fields`, `host-list-filtered`, `host-show`, `host-walk-budget-at-wall` | Omit vulnerability-list suggestions. | S05 ships vulnerability reads. |
-| `home-view` | Omit the CVE-detail suggestion. | S05 ships CVE reads. |
 | `help-top`, `unknown-command`, `scopes` | Restrict command names, summaries and the scope matrix to frozen delivered commands; omit later execution/scope guidance. | Each additional command ships. |
 | `unknown-identity-subcommand` | Show only delivered Identity subcommands. | The remaining S08 and S09 Identity commands ship. |
 | `unknown-search-subcommand` | Treat the unavailable group as an unknown command, showing only delivered commands. | S08 ships search commands. |

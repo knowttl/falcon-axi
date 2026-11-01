@@ -31,6 +31,7 @@ Linux user/network/mount namespaces and iproute2 are required for that check.
 Only loopback is enabled; an actual external connect is required to fail with ENETUNREACH.
 Synthetic TLS delivery is injected only by the unpackaged test launcher after production origin and operation checks.
 The CLI contains no fake-origin flag, config field, environment selector or recorded transport.
+The separate compiled primitive gate also requires `cc` to build its test-only network-denial launcher and fault-injection library.
 
 The optional hosted path requires a separately built frozen local Artium fixture containing the reviewed S01 host delta.
 Set `S01_ARTIUM_ROOT` to that fixture and run `npm run check:slice -- --slice S05 --paths native,artium --offline`.
