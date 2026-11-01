@@ -67,7 +67,9 @@ const catalog = {
   schema: {
     path: ".typescript-build/src/axi-credential.schema.json",
     sha256: hash(
-      readFileSync(join(root, ".typescript-build/src/axi-credential.schema.json")),
+      readFileSync(
+        join(root, ".typescript-build/src/axi-credential.schema.json"),
+      ),
     ),
   },
   parser: {
