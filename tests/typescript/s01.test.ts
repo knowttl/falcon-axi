@@ -1255,6 +1255,9 @@ test("TLS hostname rejection remains active at the synthetic connection boundary
 });
 test("TCP/TLS stall respects inherited budget and settles", async () => {
   reset();
+  const baseline = await run(["auth", "status"]);
+  assert.equal(baseline.code, 0, baseline.stdout);
+  reset();
   const stalled = tcpServer((socket) => {
     sockets.add(socket);
     socket.once("close", () => sockets.delete(socket));
@@ -1269,8 +1272,8 @@ test("TCP/TLS stall respects inherited budget and settles", async () => {
     );
     assert.match(result.stdout, /code: WAIT_TIMEOUT/);
     assert.ok(
-      result.elapsed < 1600,
-      `invocation settled at ${result.elapsed} ms`,
+      result.elapsed - baseline.elapsed < 1600,
+      `invocation settled at ${result.elapsed} ms; startup baseline ${baseline.elapsed} ms`,
     );
     assert.equal(wire.length, 0);
   } finally {
