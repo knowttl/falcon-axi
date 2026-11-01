@@ -139,7 +139,9 @@ export function parse(argv: string[]): Invocation {
             ? "A CVE identifier matches CVE-<year>-<number>, for example CVE-2021-44228"
             : command.name === "vuln show"
               ? "Run `falcon-axi vuln list --status open` to find Spotlight record identifiers"
-              : `Run \`falcon-axi ${command.name.startsWith("host ") ? "host" : command.name.startsWith("detection ") ? "detection" : command.name.split(" ")[0]} list\` to see current ${command.name.startsWith("host ") ? "device" : command.name.split(" ")[0]} identifiers`,
+              : command.name === "identity sensor show"
+                ? "Run `falcon-axi identity sensor list` to see current sensor identifiers"
+                : `Run \`falcon-axi ${command.name.startsWith("host ") ? "host" : command.name.startsWith("detection ") ? "detection" : command.name.split(" ")[0]} list\` to see current ${command.name.startsWith("host ") ? "device" : command.name.split(" ")[0]} identifiers`,
         ],
       );
     if (!command.positional && positionals.length)

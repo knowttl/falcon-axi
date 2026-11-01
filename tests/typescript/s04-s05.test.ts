@@ -688,3 +688,13 @@ test("S04/S05 host-group cursor preserves commas inside the filter context", asy
     .digest("hex");
   assert.equal(payload.fingerprint, expected);
 });
+
+test("S04/S05 missing sensor identifier points to the shipped sensor inventory", async () => {
+  reset();
+  const result = await run(["identity", "sensor", "show"]);
+  assert.equal(result.code, 2, result.stdout);
+  assert.deepEqual(document(result.stdout).help, [
+    "Run `falcon-axi identity sensor list` to see current sensor identifiers",
+  ]);
+  assert.equal(wire.length, 0);
+});
