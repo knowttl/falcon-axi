@@ -202,9 +202,7 @@ for (const { op, scenario } of examples) {
 }
 
 test("S06/S07 empty MITRE is explicit", async () => {
-  const scenario = scenarios.find(
-    (entry) => entry.name === "actor-show-mitre",
-  )!;
+  const scenario = scenarios.find((entry) => entry.name === "actor-show-mitre")!;
   await prepareScenario({
     ...scenario,
     responders: scenario.responders!.map((entry) =>
@@ -230,9 +228,7 @@ for (const [name, body, empty] of [
   ["empty array", "[]", true],
 ] as const)
   test(`S06/S07 MITRE response bytes ${name}`, async () => {
-    const scenario = scenarios.find(
-      (entry) => entry.name === "actor-show-mitre",
-    )!;
+    const scenario = scenarios.find((entry) => entry.name === "actor-show-mitre")!;
     await prepareScenario(scenario);
     dynamicResponse("GetMitreReport", () => ({
       status: 200,
