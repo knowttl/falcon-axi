@@ -88,6 +88,8 @@ test("S13 C24 public credential entry rejects refs and unknown fields and has no
   assert.equal(wire.length, 0);
   const retained = await credential(identity);
   assert.equal(retained.status, 200, await retained.text());
+  const retainedHealth = await post(["auth", "status"]);
+  assert.equal(retainedHealth.result.exitCode, 0, JSON.stringify(retainedHealth));
   assert.equal(
     new URLSearchParams(wire[0]!.body).get("client_secret"),
     "synthetic-entry-secret",
@@ -131,7 +133,7 @@ test("S13 concurrent users receive private profiles and independent tokens despi
       assert.equal(calls.length, 2);
       profiles = await Promise.all(
         calls.map(async (name) => {
-          const path = join(root, name, "falcon-axi/config.json");
+          const path = join(root, name, "config/falcon-axi/config.json");
           assert.equal((await stat(path)).mode & 0o077, 0);
           return readFile(path, "utf8");
         }),
@@ -213,7 +215,7 @@ test("S13 H09 bounded API stdin does not become a Falcon query or credential", a
     stdin: "synthetic-stdin-content",
   });
   assert.equal(result.result.exitCode, 0, JSON.stringify(result));
-  assert.match(result.result.stdout, /synthetic-detection/);
+  assert.match(result.result.stdout, /ldt:synthetic-agent-02:1002/);
   assert.ok(
     wire.every((item) => !item.body.includes("synthetic-stdin-content")),
   );
@@ -269,7 +271,7 @@ test(
       wire.filter((item) => item.url.includes("queries/alerts")).length,
       1,
     );
-    assert.equal((await terminal).errorCode, "WAIT_TIMEOUT");
+    assert.equal((await terminal).error_code, "WAIT_TIMEOUT");
     const pid = await child;
     assert.throws(() => process.kill(-pid, 0), { code: "ESRCH" });
     await settled();
