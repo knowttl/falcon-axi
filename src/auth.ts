@@ -5,16 +5,69 @@ import { REGIONS } from "./origin.js";
 import { registerSecret } from "./render.js";
 import { requestToken } from "./transport/https.js";
 import type { Response } from "./transport/https.js";
+import { operation } from "./transport/operations.js";
 
 export function responseFailure(
   response: Response,
   subject: string,
   token = false,
   member = false,
+  operationId = "GetQueriesAlertsV2",
 ): never {
+  const scopes = operation(operationId).scopes;
+  const envelope = object(response.body) ? response.body : {};
+  const meta = object(envelope.meta) ? envelope.meta : {};
+  const details =
+    typeof meta.trace_id === "string" ? { trace_id: meta.trace_id } : {};
+  if (response.status === 400) {
+    const remedy: Readonly<Record<string, readonly [string, string]>> = {
+      highVolumeQueryChanges: [
+        "file-change list",
+        "host.name:'SYNTHETIC-HOST'",
+      ],
+      getChanges: ["file-change list", "host.name:'SYNTHETIC-HOST'"],
+      RTR_ListAllSessions: ["rtr session list", "hostname:'SYNTHETIC-*'"],
+      RTR_ListSessions: ["rtr session list", "hostname:'SYNTHETIC-*'"],
+      RTRAuditSessions: ["rtr audit list", "created_at:>'now-7d'"],
+      indicator_search_v1: ["ioc list", "type:'domain'"],
+      indicator_get_v1: ["ioc list", "type:'domain'"],
+    };
+    const [command, example] =
+      remedy[operationId] ??
+      (scopes.includes("Hosts:read")
+        ? ["host list", "hostname:'WIN-*'"]
+        : ["detection list", "severity_name:'High'+status:'new'"]);
+    const errors = Array.isArray(envelope.errors) ? envelope.errors : [];
+    if (
+      errors.some(
+        (error) =>
+          object(error) &&
+          typeof error.message === "string" &&
+          /\b(fql|filter|query)\b/i.test(error.message),
+      )
+    )
+      throw new CliError(
+        "FQL_INVALID",
+        `the filter for ${subject} was rejected`,
+        [
+          "FQL uses + for AND, `,` for OR, and values must be quoted",
+          `Example: \`--filter "${example}"\``,
+          `Run \`falcon-axi ${command} --help\` for the filterable fields`,
+        ],
+      );
+    throw new CliError(
+      "UPSTREAM_ERROR",
+      `Falcon rejected the request for ${subject}`,
+      ["Check the flags for this command with `--help`"],
+      details,
+    );
+  }
   if (response.status === 401)
     throw new CliError("AUTH_FAILED", "the Falcon credential was rejected", [
       "The client ID or secret is wrong, or the API client was revoked",
+      ...(!token
+        ? ["Run `falcon-axi auth status` after updating the credential"]
+        : []),
     ]);
   if (response.status === 403) {
     if (token && member)
@@ -31,14 +84,34 @@ export function responseFailure(
         "The API client has no scopes granted, or is disabled",
         "Grant `Alerts:read` (read only) in the Falcon console under Support and resources > API clients and keys",
       ]);
+    const licences: Readonly<Record<string, string>> = {
+      "Falcon FileVantage:read": "Falcon FileVantage",
+      "Threatgraph:read":
+        "a Falcon subscription with ThreatGraph API access enabled",
+      "Real time response:read":
+        "a Falcon subscription with Real Time Response enabled",
+      "Real time response audit:read":
+        "a Falcon subscription with Real Time Response audit enabled",
+    };
     throw new CliError(
       "SCOPE_DENIED",
       `this API client is not permitted to read ${subject}`,
       [
-        "Grant Alerts:read (read only) to the API client in the Falcon console under Support and resources > API clients and keys",
+        `Grant ${scopes.join(" and ")} (read only) to the API client in the Falcon console under Support and resources > API clients and keys`,
+        ...scopes
+          .filter((scope) => licences[scope])
+          .map(
+            (scope) =>
+              `${scope} needs ${licences[scope]}; if the scope is absent from the picker, the tenant lacks that subscription`,
+          ),
+        ...(operationId === "entities_processes"
+          ? [
+              "Process details may be unavailable under this tenant's subscription or API client permissions",
+            ]
+          : []),
         "A 403 can also mean the API client is disabled",
       ],
-      { required_scopes: ["Alerts:read"] },
+      { required_scopes: [...scopes] },
     );
   }
   if (response.status === 429)
@@ -54,6 +127,7 @@ export function responseFailure(
         "Retry shortly",
         "Quote the trace_id when opening a CrowdStrike support case",
       ],
+      details,
     );
   throw new CliError(
     "UPSTREAM_ERROR",
@@ -62,14 +136,35 @@ export function responseFailure(
       "Retry shortly",
       "Quote the trace_id when opening a CrowdStrike support case",
     ],
+    details,
   );
+}
+export interface Session {
+  token: string;
+  base: string;
+  rateLimit?: number;
+  remaining?: number;
+}
+export function observeRate(session: Session, response: Response): void {
+  for (const [header, field] of [
+    ["x-ratelimit-limit", "rateLimit"],
+    ["x-ratelimit-remaining", "remaining"],
+  ] as const) {
+    const value = response.headers[header];
+    if (
+      value !== undefined &&
+      /^\d+$/.test(value) &&
+      Number.isSafeInteger(Number(value))
+    )
+      session[field] = Number(value);
+  }
 }
 export async function authenticate(
   credential: Credential,
   base: string,
   allowUnknown: boolean,
   signal: AbortSignal,
-): Promise<{ token: string; base: string }> {
+): Promise<Session> {
   let response = await requestToken(base, credential, allowUnknown, signal);
   const current = Object.keys(REGIONS).find((key) => REGIONS[key] === base);
   const observed = response.headers["x-cs-region"];
@@ -92,10 +187,12 @@ export async function authenticate(
     if (!Object.hasOwn(REGIONS, observed!))
       throw new CliError(
         "REGION_MISMATCH",
-        "this credential belongs to an unverified Falcon region",
+        `this credential belongs to Falcon region ${observed}`,
         [
+          `falcon-axi has no verified base URL for ${observed}`,
           "Supply a verified full Falcon base URL with `--region <url> --allow-unknown-origin`",
         ],
+        { observed_region: observed },
       );
     const target = REGIONS[observed!]!;
     if (target === base) redirect();
@@ -120,5 +217,7 @@ export async function authenticate(
     ]);
   const token = response.body.access_token;
   registerSecret(token);
-  return { token, base };
+  const session: Session = { token, base };
+  observeRate(session, response);
+  return session;
 }

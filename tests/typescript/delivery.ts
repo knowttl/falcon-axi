@@ -13,7 +13,10 @@ https.request = ((
     !options ||
     typeof options !== "object" ||
     typeof options.hostname !== "string" ||
-    !options.hostname.endsWith(".crowdstrike.com")
+    (!options.hostname.endsWith(".crowdstrike.com") &&
+      !["synthetic-cloud.example", "synthetic.invalid"].includes(
+        options.hostname,
+      ))
   )
     throw new Error("Unmatched offline traffic");
   return original(

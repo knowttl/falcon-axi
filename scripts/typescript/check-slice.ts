@@ -19,12 +19,12 @@ for (let index = 0; index < args.length; index++) {
 }
 const paths = selections.get("--paths");
 if (
-  selections.get("--slice") !== "S01" ||
+  !["S01", "S02", "S03"].includes(selections.get("--slice") ?? "") ||
   selections.get("--offline") !== "true" ||
   !["native", "artium", "native,artium"].includes(paths ?? "")
 ) {
   console.error(
-    "Required selectors: --slice S01 --paths native[,artium] --offline",
+    "Required selectors: --slice S01|S02|S03 --paths native[,artium] --offline",
   );
   process.exit(2);
 }
@@ -41,7 +41,12 @@ if (network.status !== 0) {
   process.exit(1);
 }
 const tests = [
-  fileURLToPath(new URL("../../tests/typescript/s01.test.js", import.meta.url)),
+  fileURLToPath(
+    new URL(
+      `../../tests/typescript/${selections.get("--slice") === "S01" ? "s01" : "s02-s03"}.test.js`,
+      import.meta.url,
+    ),
+  ),
 ];
 const evidence =
   process.env.S01_EVIDENCE_DIR ??
@@ -87,12 +92,32 @@ for (const path of paths!.split(",")) {
     if (!process.exitCode) process.exitCode = 1;
     break;
   }
+  if (selections.get("--slice") !== "S01") {
+    const coverage = spawnSync(
+      process.execPath,
+      [
+        fileURLToPath(new URL("./coverage.js", import.meta.url)),
+        "--strict",
+        "--evidence",
+        evidence,
+        "--path",
+        path,
+      ],
+      { cwd: resolve("."), encoding: "utf8" },
+    );
+    process.stdout.write(coverage.stdout ?? "");
+    process.stderr.write(coverage.stderr ?? "");
+    if (coverage.status !== 0) {
+      process.exitCode = coverage.status ?? 1;
+      break;
+    }
+  }
 }
 writeFileSync(
   join(evidence, "result.json"),
   JSON.stringify(
     {
-      slice: "S01",
+      slice: selections.get("--slice"),
       command: process.argv,
       results,
       nativeWindows: "pending",

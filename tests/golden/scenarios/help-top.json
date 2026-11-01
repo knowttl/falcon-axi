@@ -5,5 +5,9 @@
   "argv": [
     "--help"
   ],
-  "exit_code": 0
+  "exit_code": 0,
+  "typescriptMigration": {
+    "topHelp": "owned command summaries; omit the paragraphs describing later-slice execution and scopes",
+    "restore": "Restore each omitted navigation or original group when its commands ship; S13 compares the original documents with no TypeScript discovery exceptions."
+  }
 }

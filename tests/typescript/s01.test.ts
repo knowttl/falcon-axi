@@ -14,7 +14,7 @@ import {
   copyFile,
 } from "node:fs/promises";
 import { tmpdir } from "node:os";
-import { join, resolve } from "node:path";
+import { join, resolve, dirname } from "node:path";
 import { fileURLToPath } from "node:url";
 import { createHash } from "node:crypto";
 import type { IncomingMessage, ServerResponse } from "node:http";
@@ -26,13 +26,13 @@ import { requestRead, requestToken } from "../../src/transport/https.js";
 import { decode } from "@toon-format/toon";
 import { spawnSync } from "node:child_process";
 
-let directory: string;
+export let directory: string;
 let executable: string;
 let ca: string;
-let config: string;
+export let config: string;
 let port: number;
 const sockets = new Set<Duplex>();
-const wire: {
+export const wire: {
   method: string;
   url: string;
   host: string;
@@ -43,6 +43,68 @@ const wire: {
 let tokenAttempt = 0;
 let respondToken: (request: IncomingMessage, response: ServerResponse) => void;
 let queryVariant = "normal";
+let goldenMode = false;
+type Reply = {
+  status: number;
+  headers?: Record<string, string>;
+  body: unknown;
+};
+export interface Scenario {
+  name: string;
+  argv: string[];
+  exit_code: number;
+  env?: string;
+  envExtra?: NodeJS.ProcessEnv;
+  responders?: {
+    op: string;
+    fixture?: string;
+    response?: Reply;
+    generate?: Record<string, unknown>;
+  }[];
+  oauth?: { fixture?: string; response?: Reply }[];
+  cursor?: { position: number };
+}
+let generated = new Map<string, Record<string, unknown>>();
+let customReplies = new Map<
+  string,
+  (query: URLSearchParams, body: Record<string, unknown>) => Reply
+>();
+export function dynamicResponse(
+  operation: string,
+  reply: (query: URLSearchParams, body: Record<string, unknown>) => Reply,
+): void {
+  customReplies.set(operation, reply);
+}
+export async function prepareScenario(scenario: Scenario): Promise<void> {
+  reset();
+  goldenMode = true;
+  for (const responder of scenario.responders ?? []) {
+    if (responder.generate) generated.set(responder.op, responder.generate);
+    else if (responder.response)
+      recorded.push({ operation: responder.op, response: responder.response });
+    else {
+      const fixture = JSON.parse(
+        await readFile(resolve("tests/fixtures", responder.fixture!), "utf8"),
+      ) as { response: Reply };
+      recorded.push({ operation: responder.op, response: fixture.response });
+    }
+  }
+  const tokens = await Promise.all(
+    (scenario.oauth ?? [{ fixture: "oauth2/token-success.json" }]).map(
+      async (entry) =>
+        entry.response ??
+        (
+          JSON.parse(
+            await readFile(resolve("tests/fixtures", entry.fixture!), "utf8"),
+          ) as { response: Reply }
+        ).response,
+    ),
+  );
+  respondToken = (_request, response) => {
+    const reply = tokens.length > 1 ? tokens.shift()! : tokens[0]!;
+    json(response, reply.body, reply.status, reply.headers);
+  };
+}
 const D1 = "ldt:synthetic-agent-01:1001";
 const D2 = "ldt:synthetic-agent-02:1002";
 const D3 = "ldt:synthetic-agent-03:1003";
@@ -69,7 +131,42 @@ function json(
   });
   response.end(JSON.stringify(body));
 }
-function reset(): void {
+let recorded: {
+  operation: string;
+  response: { status: number; headers?: Record<string, string>; body: unknown };
+}[] = [];
+export function tokenResponse(status: number, body: unknown): void {
+  respondToken = (_request, response) => json(response, body, status);
+}
+export function recordedResponse(
+  operation: string,
+  status: number,
+  body: unknown,
+): void {
+  recorded.push({ operation, response: { status, body } });
+}
+export async function recordings(fixtures: string[]): Promise<void> {
+  recorded = await Promise.all(
+    fixtures.map(async (fixture) => {
+      const data = JSON.parse(
+        await readFile(resolve("tests/fixtures", fixture), "utf8"),
+      ) as {
+        provenance: { operation: string };
+        response: {
+          status: number;
+          headers?: Record<string, string>;
+          body: unknown;
+        };
+      };
+      return { operation: data.provenance.operation, response: data.response };
+    }),
+  );
+}
+export function reset(): void {
+  goldenMode = false;
+  generated = new Map();
+  customReplies = new Map();
+  recorded = [];
   wire.length = 0;
   tokenAttempt = 0;
   queryVariant = "normal";
@@ -82,14 +179,29 @@ interface RunResult {
   stderr: string;
   elapsed: number;
 }
-async function run(
+export async function run(
   args: string[] = [],
   extra: NodeJS.ProcessEnv = {},
   cancelOnToken = false,
+  closeInput = false,
+  shellInvocation?: string,
+  rawManagedArgs = false,
 ): Promise<RunResult> {
   let start = performance.now();
   let command = executable;
   let invocation = args.length ? args : ["detection", "list", "--limit", "2"];
+  if (goldenMode && !hosted) {
+    command = process.execPath;
+    invocation = [
+      fileURLToPath(new URL("./golden-launcher.js", import.meta.url)),
+      executable,
+      ...args,
+    ];
+  }
+  if (shellInvocation) {
+    command = "/bin/sh";
+    invocation = ["-c", shellInvocation];
+  }
   let hostedEnvironment: NodeJS.ProcessEnv = {};
   if (hosted) {
     await new Promise<void>((resolve, reject) => {
@@ -98,8 +210,10 @@ async function run(
         if (error) reject(error);
       });
     });
-    const regionIndex = invocation.indexOf("--region");
-    const memberIndex = invocation.indexOf("--member-cid");
+    const regionIndex = rawManagedArgs ? -1 : invocation.indexOf("--region");
+    const memberIndex = rawManagedArgs
+      ? -1
+      : invocation.indexOf("--member-cid");
     const current = await fetch(
       `${hosted.url}/v1/admin/tools/falcon-axi/credential`,
       { headers: hosted.headers },
@@ -165,11 +279,14 @@ async function run(
     ];
     hostedEnvironment = hosted.environment;
   }
+  if (shellInvocation) {
+    command = "/bin/sh";
+    invocation = ["-c", shellInvocation];
+  }
   start = performance.now();
   const child = spawn(command, invocation, {
     cwd: directory,
     env: {
-      PATH: process.env.PATH,
       HOME: directory,
       NODE_OPTIONS: `--import=${delivery}`,
       NODE_EXTRA_CA_CERTS: ca,
@@ -182,8 +299,10 @@ async function run(
       S01_DELIVERY_PORT: String(port),
       ...extra,
       ...hostedEnvironment,
+      PATH: `${join(directory, "managed-bin")}:${dirname(executable)}:${hostedEnvironment.PATH ?? process.env.PATH ?? ""}`,
     },
   });
+  if (closeInput) child.stdin.end();
   let stdout = "";
   let stderr = "";
   child.stdout.on("data", (chunk: Buffer) => {
@@ -255,7 +374,7 @@ before(async () => {
       "-subj",
       "/CN=Synthetic Falcon S01",
       "-addext",
-      "subjectAltName=DNS:api.crowdstrike.com,DNS:api.us-2.crowdstrike.com",
+      "subjectAltName=DNS:api.crowdstrike.com,DNS:api.us-2.crowdstrike.com,DNS:api.eu-1.crowdstrike.com,DNS:synthetic-cloud.example,DNS:synthetic.invalid",
     ],
     { stdio: "ignore" },
   );
@@ -285,6 +404,117 @@ before(async () => {
         tokenAttempt++;
         respondToken(request, response);
         server.emit("token-sent");
+        return;
+      }
+      const path = request.url!.split("?")[0]!;
+      const custom = [...customReplies].find(
+        ([id]) =>
+          operation(id).path.replace("{vertex_type}", "processes") === path,
+      )?.[1];
+      if (custom) {
+        const reply = custom(
+          new URL(request.url!, "https://api.crowdstrike.com").searchParams,
+          body ? (JSON.parse(body) as Record<string, unknown>) : {},
+        );
+        json(response, reply.body, reply.status, reply.headers);
+        return;
+      }
+      const generator = [...generated].find(
+        ([id]) => operation(id).path === path,
+      )?.[1];
+      if (generator) {
+        const query = new URL(request.url!, "https://api.crowdstrike.com")
+          .searchParams;
+        const payload = body
+          ? (JSON.parse(body) as Record<string, unknown>)
+          : {};
+        let resources: unknown[];
+        if (generator.kind === "host-ids") {
+          const offset = Number(query.get("offset"));
+          resources = Array.from(
+            {
+              length: Math.max(
+                0,
+                Math.min(
+                  Number(generator.total) - offset,
+                  Number(query.get("limit")),
+                ),
+              ),
+            },
+            (_, index) => `synthetic-device-${offset + index}`,
+          );
+        } else if (generator.kind === "ids")
+          resources = Array.from(
+            { length: Number(generator.count) },
+            (_, index) => `ldt:synthetic-agent-${index}:${index}`,
+          );
+        else if (generator.kind === "host-hydrate")
+          resources = [...(payload.ids as string[])]
+            .reverse()
+            .map((device_id) => ({
+              device_id,
+              hostname: "synthetic-host",
+              platform_name: "Windows",
+              last_seen: "unknown",
+            }));
+        else {
+          const ids = payload.composite_ids as string[];
+          const taken =
+            generator.take === undefined
+              ? [...ids]
+              : ids.slice(0, Number(generator.take));
+          resources = (generator.reverse ? taken.reverse() : taken).map(
+            (composite_id) => ({
+              composite_id,
+              severity_name: generator.severity_name,
+              tactic: generator.tactic,
+              device: { hostname: generator.hostname },
+            }),
+          );
+        }
+        json(response, {
+          ...(generator.total !== undefined
+            ? { meta: { pagination: { total: generator.total } } }
+            : {}),
+          resources,
+        });
+        return;
+      }
+      const matched = recorded.find(
+        (entry) =>
+          operation(entry.operation).path.replace(
+            "{vertex_type}",
+            "processes",
+          ) === path,
+      );
+      if (matched) {
+        let payload = matched.response.body;
+        const query = new URL(request.url!, "https://api.crowdstrike.com")
+          .searchParams;
+        const requested: unknown = body
+          ? ((JSON.parse(body) as Record<string, unknown>).ids ??
+            (JSON.parse(body) as Record<string, unknown>).composite_ids)
+          : query.getAll("ids");
+        if (
+          matched.operation === "combined_summary_get" &&
+          payload &&
+          typeof payload === "object" &&
+          "resources" in payload &&
+          Array.isArray(payload.resources)
+        )
+          payload = {
+            ...payload,
+            resources: payload.resources.filter(
+              (row: { id: string }) =>
+                Array.isArray(requested) && requested.includes(row.id),
+            ),
+          };
+        json(
+          response,
+          payload,
+          matched.response.status,
+          matched.response.headers,
+        );
         return;
       }
       if (request.url?.startsWith("/alerts/queries/alerts/v2?")) {
@@ -467,6 +697,12 @@ before(async () => {
   }
   if (process.env.S01_ACTIVE_PATH === "artium") {
     const fixture = process.env.S01_ARTIUM_ROOT!;
+    await mkdir(join(directory, "managed-bin"));
+    await writeFile(
+      join(directory, "managed-bin/artium-axi"),
+      `#!/bin/sh\nexec '${process.execPath}' '${join(fixture, "dist/cli/artium-axi.mjs")}' "$@"\n`,
+      { mode: 0o700 },
+    );
     host = spawn(
       process.execPath,
       [join(fixture, "dist/test/falcon-s01-host.js")],
@@ -534,7 +770,7 @@ test("H06 installed package preserves query order, columns, total and returned c
   assert.equal(second.code, 0);
   assert.equal(
     second.stdout,
-    `count: 1 of 3 total\ndetections[1]{id,severity,tactic,hostname}:\n  "${D3}",Low,Discovery,WIN-WS-43\n`,
+    `count: 1 of 3 total\ndetections[1]{id,severity,tactic,hostname}:\n  "${D3}",Low,Discovery,WIN-WS-43\nhelp[1]: "Run \`${hosted ? "artium-axi falcon-axi" : "falcon-axi"} detection show <id>\` for the full detection"\n`,
   );
 });
 if (process.env.S01_ACTIVE_PATH !== "artium") {
@@ -575,7 +811,7 @@ if (process.env.S01_ACTIVE_PATH !== "artium") {
       const args = ["detection", "list", "--limit", "2"];
       if (source === "flag") args.push("--member-cid", member);
       if (source === "environment") {
-        extra.FALCON_AXI_PROFILE = "";
+        extra.FALCON_AXI_PROFILE = undefined;
         extra.FALCON_AXI_CLIENT_ID = "synthetic-s01-client";
         extra.FALCON_AXI_CLIENT_SECRET = "synthetic-s01-secret";
         extra.FALCON_AXI_MEMBER_CID = member;
@@ -711,17 +947,15 @@ for (const variant of ["empty", "malformed", "denied"])
     assert.equal(result.code, variant === "empty" ? 0 : 1);
     if (variant === "malformed")
       assert.deepEqual(decode(result.stdout), {
-        error: {
-          code: "UPSTREAM_ERROR",
-          message: "Falcon returned a malformed resources array",
-          status: 200,
-          contentType: "application/json",
-          shape: [
-            { path: "$", type: "object" },
-            { path: '$["resources"]', type: "string" },
-          ],
-          shapeTruncated: false,
-        },
+        error: "Falcon returned a malformed resources array",
+        code: "UPSTREAM_ERROR",
+        status: 200,
+        contentType: "application/json",
+        shape: [
+          { path: "$", type: "object" },
+          { path: '$["resources"]', type: "string" },
+        ],
+        shapeTruncated: false,
       });
     assert.equal(wire.length, 2);
   });
@@ -993,7 +1227,7 @@ if (process.env.S01_ACTIVE_PATH !== "artium")
       start = performance.now();
       assert.equal(
         spawnSync(executable, ["--version"], { env, encoding: "utf8" }).stdout,
-        "0.0.0-s01.0\n",
+        "0.0.0-s02.0\n",
       );
       versions.push(performance.now() - start);
     }
@@ -1006,7 +1240,7 @@ if (process.env.S01_ACTIVE_PATH !== "artium")
   });
 test("public fast-version aliases answer from the clean installed artifact", async () => {
   for (const flag of ["-v", "-V", "--version"])
-    assert.equal((await run([flag])).stdout, "0.0.0-s01.0\n");
+    assert.equal((await run([flag])).stdout, "0.0.0-s02.0\n");
 });
 test("TLS hostname rejection remains active at the synthetic connection boundary", async () => {
   reset();

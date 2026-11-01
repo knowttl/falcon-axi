@@ -283,9 +283,29 @@ export function requestRead(
   signal: AbortSignal,
 ): Promise<Response> {
   const descriptor = operation(id);
-  // Later slices must add their body and authority validation before they become reachable.
+  // Only the S03 passive reads are enabled. Lifecycle operations retain their own gates.
   if (
-    !["GetQueriesAlertsV2", "PostEntitiesAlertsV2"].includes(descriptor.id) ||
+    ![
+      "GetQueriesAlertsV2",
+      "PostEntitiesAlertsV2",
+      "PostAggregatesAlertsV2",
+      "QueryDevicesByFilter",
+      "PostDeviceDetailsV2",
+      "QueryDeviceLoginHistoryV2",
+      "QueryGetNetworkAddressHistoryV1",
+      "highVolumeQueryChanges",
+      "getChanges",
+      "combined_summary_get",
+      "combined_edges_get",
+      "RTR_ListAllSessions",
+      "RTR_ListSessions",
+      "RTRAuditSessions",
+      "indicator_search_v1",
+      "indicator_get_v1",
+      "DevicesRanOn",
+      "ProcessesRanOn",
+      "entities_processes",
+    ].includes(descriptor.id) ||
     descriptor.effect !== "read"
   )
     throw new CliError(
@@ -293,6 +313,44 @@ export function requestRead(
       "this operation is not available in the current slice",
     );
   const destination = origin(base, allowUnknown);
+  if (descriptor.method === "GET" && body !== undefined)
+    throw new CliError("READ_ONLY_VIOLATION", "read body is not allowed");
+  if (
+    [
+      "PostDeviceDetailsV2",
+      "QueryDeviceLoginHistoryV2",
+      "QueryGetNetworkAddressHistoryV1",
+      "RTR_ListSessions",
+    ].includes(id)
+  ) {
+    const maximum =
+      id === "PostDeviceDetailsV2" ? 5000 : id === "RTR_ListSessions" ? 100 : 1;
+    if (
+      !object(body) ||
+      Object.keys(body).join() !== "ids" ||
+      !Array.isArray(body.ids) ||
+      !body.ids.length ||
+      body.ids.length > maximum ||
+      body.ids.some((value) => typeof value !== "string" || !value)
+    )
+      throw new CliError("READ_ONLY_VIOLATION", "invalid hydration authority");
+  }
+  if (
+    id === "PostAggregatesAlertsV2" &&
+    (!Array.isArray(body) ||
+      body.length !== 1 ||
+      !object(body[0]) ||
+      body[0].name !== "severity" ||
+      body[0].type !== "terms" ||
+      body[0].field !== "severity_name" ||
+      body[0].size !== 100 ||
+      body[0].missing !== "unknown" ||
+      Object.keys(body[0]).some(
+        (key) =>
+          !["name", "type", "field", "size", "missing", "filter"].includes(key),
+      ))
+  )
+    throw new CliError("READ_ONLY_VIOLATION", "invalid aggregate authority");
   if (
     id === "GetQueriesAlertsV2" &&
     (body !== undefined ||
@@ -321,7 +379,9 @@ export function requestRead(
     {
       origin: destination,
       method: descriptor.method,
-      path: descriptor.path + (params.size ? `?${params}` : ""),
+      path:
+        descriptor.path.replace("{vertex_type}", "processes") +
+        (params.size ? `?${params}` : ""),
       body: serialized,
       headers: {
         authorization: `Bearer ${token}`,
