@@ -2,6 +2,8 @@ import { readFile, readdir } from "node:fs/promises";
 import { resolve } from "node:path";
 import s02 from "../fixtures/migration/S02/contracts.json" with { type: "json" };
 import s03 from "../fixtures/migration/S03/contracts.json" with { type: "json" };
+import s04 from "../fixtures/migration/S04/contracts.json" with { type: "json" };
+import s05 from "../fixtures/migration/S05/contracts.json" with { type: "json" };
 import { VERSION } from "../../src/version.js";
 
 export interface DiscoveryDelta {
@@ -36,7 +38,12 @@ export async function expectedDocument(
     ),
   );
   references.sort((a, b) => a.order - b.order);
-  const owned = new Set([...s02.commandNames, ...s03.commandNames]);
+  const owned = new Set([
+    ...s02.commandNames,
+    ...s03.commandNames,
+    ...s04.commandNames,
+    ...s05.commandNames,
+  ]);
   const selected = references.filter((reference) => owned.has(reference.name));
   const names = selected.map((reference) => reference.name).join(", ");
   let expected = await readFile(resolve(root, `${name}.txt`), "utf8");

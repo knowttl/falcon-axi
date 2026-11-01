@@ -11,11 +11,5 @@
       "fixture": "hosts/details-one.json"
     }
   ],
-  "exit_code": 0,
-  "typescriptMigration": {
-    "omitSuggestions": [
-      "Run `falcon-axi vuln list --host synthetic-device-01` for this host's open vulnerabilities"
-    ],
-    "restore": "Restore each omitted navigation or original group when its commands ship; S13 compares the original documents with no TypeScript discovery exceptions."
-  }
+  "exit_code": 0
 }

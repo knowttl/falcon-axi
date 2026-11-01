@@ -2,8 +2,9 @@
 
 Read CrowdStrike Falcon from the shell with compact, structured results for agents and the humans running them.
 
-This migration branch also contains a private TypeScript S02/S03 candidate for `@knowttl/falcon-axi` on Node 24.
+This migration branch also contains a private TypeScript S02-S05 candidate for `@knowttl/falcon-axi` on Node 24.
 It delivers credential diagnostics and passive detection, host, IOC, process, FileVantage and RTR-history investigation reads.
+Inventory and exposure reads include accounts, Discover assets/applications/logins, host groups, IoT, sensor usage, Identity sensors, Spotlight, CVEs, cloud resources, containers, images, SARIF and Shield checks.
 Its packaging, delivered surface and offline checks are described in [the TypeScript candidate notes](docs/design/v1-typescript.md).
 The Python implementation and installation instructions below remain the released baseline.
 

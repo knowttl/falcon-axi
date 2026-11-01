@@ -1,0 +1,1731 @@
+{
+  "sourceRevision": "75efc7e546c5ad9bae9084a610129fec22628c18",
+  "groups": [
+    {
+      "id": "SR-001",
+      "slice": "S04",
+      "requirement": "Account rows, query order and filter-bound continuation",
+      "source": "tests/offline/test_account.py",
+      "sourceSha256": "6206e459f21353a61a0631933b0576eedec150b8fdf538d364e56b99d3e0b099",
+      "members": [
+        {
+          "symbol": "test_account_list_queries_then_hydrates_and_renders_the_six_field_schema",
+          "parameterSelection": "all",
+          "obligations": "account list queries then hydrates and renders the six field schema"
+        },
+        {
+          "symbol": "test_account_list_continues_with_a_cursor_bound_to_its_filter",
+          "parameterSelection": "all",
+          "obligations": "account list continues with a cursor bound to its filter"
+        },
+        {
+          "symbol": "test_account_list_stops_offering_a_cursor_at_the_last_page",
+          "parameterSelection": "all",
+          "obligations": "account list stops offering a cursor at the last page"
+        }
+      ]
+    },
+    {
+      "id": "SR-002",
+      "slice": "S04",
+      "requirement": "Account detail, host pivot and pre-authentication refusal",
+      "source": "tests/offline/test_account.py",
+      "sourceSha256": "6206e459f21353a61a0631933b0576eedec150b8fdf538d364e56b99d3e0b099",
+      "members": [
+        {
+          "symbol": "test_account_show_renders_the_detail_and_pivots_to_the_last_login_host",
+          "parameterSelection": "all",
+          "obligations": "account show renders the detail and pivots to the last login host"
+        },
+        {
+          "symbol": "test_account_commands_are_refused_before_any_request_when_malformed",
+          "parameterSelection": "all",
+          "obligations": "account commands are refused before any request when malformed"
+        }
+      ]
+    },
+    {
+      "id": "SR-012",
+      "slice": "S04",
+      "requirement": "Shell-safe continuation argument round-trip",
+      "source": "tests/offline/test_cli.py",
+      "sourceSha256": "3d13ba00c98ddba72d67b0e2e0c434a53db8f95ff86c46157512ffb1301977f7",
+      "members": [
+        {
+          "symbol": "test_continuation_arguments_survive_shell_parsing_and_expansion",
+          "parameterSelection": {
+            "P1": [
+              2
+            ]
+          },
+          "obligations": "continuation arguments survive shell parsing and expansion"
+        }
+      ]
+    },
+    {
+      "id": "SR-013",
+      "slice": "S05",
+      "requirement": "Shell-safe continuation argument round-trip",
+      "source": "tests/offline/test_cli.py",
+      "sourceSha256": "3d13ba00c98ddba72d67b0e2e0c434a53db8f95ff86c46157512ffb1301977f7",
+      "members": [
+        {
+          "symbol": "test_continuation_arguments_survive_shell_parsing_and_expansion",
+          "parameterSelection": {
+            "P1": [
+              3,
+              6,
+              7,
+              8,
+              9
+            ]
+          },
+          "obligations": "continuation arguments survive shell parsing and expansion"
+        }
+      ]
+    },
+    {
+      "id": "SR-020",
+      "slice": "S04",
+      "requirement": "Executable continuation preserves query, credential and tenant context",
+      "source": "tests/offline/test_cli_continuations.py",
+      "sourceSha256": "e3b58af30b65778c7e589488ffba911ab5777dc7ee51975059e7d798f731d803",
+      "members": [
+        {
+          "symbol": "test_emitted_continuations_execute_with_the_same_filter_and_tenant_context",
+          "parameterSelection": {
+            "P1": [
+              0
+            ]
+          },
+          "obligations": "emitted continuations execute with the same filter and tenant context"
+        }
+      ]
+    },
+    {
+      "id": "SR-021",
+      "slice": "S05",
+      "requirement": "Executable continuation preserves query, credential and tenant context",
+      "source": "tests/offline/test_cli_continuations.py",
+      "sourceSha256": "e3b58af30b65778c7e589488ffba911ab5777dc7ee51975059e7d798f731d803",
+      "members": [
+        {
+          "symbol": "test_emitted_continuations_execute_with_the_same_filter_and_tenant_context",
+          "parameterSelection": {
+            "P1": [
+              3
+            ]
+          },
+          "obligations": "emitted continuations execute with the same filter and tenant context"
+        }
+      ]
+    },
+    {
+      "id": "SR-023",
+      "slice": "S04",
+      "requirement": "Invalid values refuse before credentials or requests",
+      "source": "tests/offline/test_cli_input_validation.py",
+      "sourceSha256": "9d60033c35d3cf94c94c437ed3c414682dd1ba20794660bc75d079af2d87a01f",
+      "members": [
+        {
+          "symbol": "test_invalid_values_fail_before_credentials_or_any_request",
+          "parameterSelection": {
+            "P1": [
+              2
+            ]
+          },
+          "obligations": "invalid values fail before credentials or any request"
+        }
+      ]
+    },
+    {
+      "id": "SR-024",
+      "slice": "S05",
+      "requirement": "Invalid values refuse before credentials or requests",
+      "source": "tests/offline/test_cli_input_validation.py",
+      "sourceSha256": "9d60033c35d3cf94c94c437ed3c414682dd1ba20794660bc75d079af2d87a01f",
+      "members": [
+        {
+          "symbol": "test_invalid_values_fail_before_credentials_or_any_request",
+          "parameterSelection": {
+            "P1": [
+              3,
+              7
+            ]
+          },
+          "obligations": "invalid values fail before credentials or any request"
+        }
+      ]
+    },
+    {
+      "id": "SR-028",
+      "slice": "S04",
+      "requirement": "Help bypass and valid input preservation",
+      "source": "tests/offline/test_cli_input_validation.py",
+      "sourceSha256": "9d60033c35d3cf94c94c437ed3c414682dd1ba20794660bc75d079af2d87a01f",
+      "members": [
+        {
+          "symbol": "test_help_bypasses_value_validation",
+          "parameterSelection": {
+            "P1": [
+              2
+            ]
+          },
+          "obligations": "help bypasses value validation"
+        },
+        {
+          "symbol": "test_valid_values_are_preserved",
+          "parameterSelection": {
+            "P1": [
+              2
+            ]
+          },
+          "obligations": "valid values are preserved"
+        }
+      ]
+    },
+    {
+      "id": "SR-029",
+      "slice": "S05",
+      "requirement": "Help bypass and valid input preservation",
+      "source": "tests/offline/test_cli_input_validation.py",
+      "sourceSha256": "9d60033c35d3cf94c94c437ed3c414682dd1ba20794660bc75d079af2d87a01f",
+      "members": [
+        {
+          "symbol": "test_help_bypasses_value_validation",
+          "parameterSelection": {
+            "P1": [
+              3,
+              7
+            ]
+          },
+          "obligations": "help bypasses value validation"
+        },
+        {
+          "symbol": "test_valid_values_are_preserved",
+          "parameterSelection": {
+            "P1": [
+              3,
+              7
+            ]
+          },
+          "obligations": "valid values are preserved"
+        }
+      ]
+    },
+    {
+      "id": "SR-034",
+      "slice": "S04",
+      "requirement": "Executable pivots preserve global identity without copying source filters",
+      "source": "tests/offline/test_cli_pivots.py",
+      "sourceSha256": "3a021d84281d1ba451db4333f712269199932fb7fb16c6ee3ba984f29cb0de39",
+      "members": [
+        {
+          "symbol": "test_emitted_pivots_preserve_global_context_without_copying_source_filters",
+          "parameterSelection": {
+            "P1": [
+              0,
+              1,
+              2,
+              3
+            ]
+          },
+          "obligations": "emitted pivots preserve global context without copying source filters"
+        }
+      ]
+    },
+    {
+      "id": "SR-035",
+      "slice": "S05",
+      "requirement": "Executable pivots preserve global identity without copying source filters",
+      "source": "tests/offline/test_cli_pivots.py",
+      "sourceSha256": "3a021d84281d1ba451db4333f712269199932fb7fb16c6ee3ba984f29cb0de39",
+      "members": [
+        {
+          "symbol": "test_emitted_pivots_preserve_global_context_without_copying_source_filters",
+          "parameterSelection": {
+            "P1": [
+              7,
+              8,
+              10
+            ]
+          },
+          "obligations": "emitted pivots preserve global context without copying source filters"
+        }
+      ]
+    },
+    {
+      "id": "SR-037",
+      "slice": "S05",
+      "requirement": "Cloud query hydration ordering, batching and identity",
+      "source": "tests/offline/test_cloud.py",
+      "sourceSha256": "7ebf76b138c13aee885cc8c890dd2c719338ab849912253e713e43f06ac1de84",
+      "members": [
+        {
+          "symbol": "test_two_step_reads_preserve_query_order_and_pagination",
+          "parameterSelection": {
+            "P1": [
+              0,
+              1
+            ]
+          },
+          "obligations": "two step reads preserve query order and pagination"
+        },
+        {
+          "symbol": "test_hydration_batches_at_100_and_reorders_across_batches",
+          "parameterSelection": {
+            "P1": [
+              0,
+              1
+            ]
+          },
+          "obligations": "hydration batches at 100 and reorders across batches"
+        },
+        {
+          "symbol": "test_show_uses_entity_read_and_keeps_finding_id_separate_from_resource_id",
+          "parameterSelection": {
+            "P1": [
+              0,
+              1
+            ]
+          },
+          "obligations": "show uses entity read and keeps finding id separate from resource id"
+        },
+        {
+          "symbol": "test_show_not_found_on_empty_entity_response",
+          "parameterSelection": {
+            "P1": [
+              0,
+              1
+            ]
+          },
+          "obligations": "show not found on empty entity response"
+        }
+      ]
+    },
+    {
+      "id": "SR-038",
+      "slice": "S05",
+      "requirement": "Cloud error, scope and hydration-failure distinctions",
+      "source": "tests/offline/test_cloud.py",
+      "sourceSha256": "7ebf76b138c13aee885cc8c890dd2c719338ab849912253e713e43f06ac1de84",
+      "members": [
+        {
+          "symbol": "test_upstream_not_found_suggests_the_corresponding_cloud_list",
+          "parameterSelection": {
+            "P1": [
+              0,
+              1,
+              2,
+              3,
+              4,
+              5,
+              6
+            ]
+          },
+          "obligations": "upstream not found suggests the corresponding cloud list"
+        },
+        {
+          "symbol": "test_scope_denied_names_the_required_cloud_scope",
+          "parameterSelection": {
+            "P1": [
+              0,
+              1,
+              2
+            ]
+          },
+          "obligations": "scope denied names the required cloud scope"
+        },
+        {
+          "symbol": "test_entity_failure_fails_the_list_instead_of_claiming_an_empty_result",
+          "parameterSelection": {
+            "P1": [
+              0,
+              1
+            ]
+          },
+          "obligations": "entity failure fails the list instead of claiming an empty result"
+        }
+      ]
+    },
+    {
+      "id": "SR-039",
+      "slice": "S05",
+      "requirement": "IOM nesting, combined risks and definitive empty data",
+      "source": "tests/offline/test_cloud.py",
+      "sourceSha256": "7ebf76b138c13aee885cc8c890dd2c719338ab849912253e713e43f06ac1de84",
+      "members": [
+        {
+          "symbol": "test_iom_reads_nested_evaluation_fields",
+          "parameterSelection": "all",
+          "obligations": "iom reads nested evaluation fields"
+        },
+        {
+          "symbol": "test_risks_use_combined_read_and_continue_by_offset",
+          "parameterSelection": "all",
+          "obligations": "risks use combined read and continue by offset"
+        },
+        {
+          "symbol": "test_empty_list_is_definitive_and_never_hydrates",
+          "parameterSelection": {
+            "P1": [
+              0,
+              1,
+              2
+            ]
+          },
+          "obligations": "empty list is definitive and never hydrates"
+        }
+      ]
+    },
+    {
+      "id": "SR-040",
+      "slice": "S05",
+      "requirement": "Cloud cursor binding and zero-request input refusal",
+      "source": "tests/offline/test_cloud.py",
+      "sourceSha256": "7ebf76b138c13aee885cc8c890dd2c719338ab849912253e713e43f06ac1de84",
+      "members": [
+        {
+          "symbol": "test_changed_query_context_refuses_cursor_before_an_operation",
+          "parameterSelection": "all",
+          "obligations": "changed query context refuses cursor before an operation"
+        },
+        {
+          "symbol": "test_unsupported_cloud_input_fails_before_any_network",
+          "parameterSelection": {
+            "P1": [
+              0,
+              1,
+              2,
+              3
+            ]
+          },
+          "obligations": "unsupported cloud input fails before any network"
+        }
+      ]
+    },
+    {
+      "id": "SR-046",
+      "slice": "S05",
+      "requirement": "Tenant filter redaction with executable continuation",
+      "source": "tests/offline/test_containers.py",
+      "sourceSha256": "66cf63a41fc1c2df20bfc449a0f3eada417dc9cc3bc06998c146a72f8834efee",
+      "members": [
+        {
+          "symbol": "test_cid_filter_continuation_omits_literals_and_reuses_the_original_query",
+          "parameterSelection": {
+            "P1": [
+              0,
+              1,
+              2,
+              3
+            ]
+          },
+          "obligations": "cid filter continuation omits literals and reuses the original query"
+        }
+      ]
+    },
+    {
+      "id": "SR-047",
+      "slice": "S05",
+      "requirement": "Combined inventory window, ceiling and cursor binding",
+      "source": "tests/offline/test_containers.py",
+      "sourceSha256": "66cf63a41fc1c2df20bfc449a0f3eada417dc9cc3bc06998c146a72f8834efee",
+      "members": [
+        {
+          "symbol": "test_list_reads_combined_rows_and_continues_with_the_same_filter",
+          "parameterSelection": {
+            "P1": [
+              0,
+              1,
+              2
+            ]
+          },
+          "obligations": "list reads combined rows and continues with the same filter"
+        },
+        {
+          "symbol": "test_last_window_page_shrinks_the_request_and_has_no_unreachable_cursor",
+          "parameterSelection": {
+            "P1": [
+              0,
+              1,
+              2
+            ]
+          },
+          "obligations": "last window page shrinks the request and has no unreachable cursor"
+        },
+        {
+          "symbol": "test_exhausted_window_fails_before_an_inventory_request",
+          "parameterSelection": {
+            "P1": [
+              0,
+              1,
+              2
+            ]
+          },
+          "obligations": "exhausted window fails before an inventory request"
+        },
+        {
+          "symbol": "test_changed_filter_rejects_the_cursor_before_an_inventory_request",
+          "parameterSelection": {
+            "P1": [
+              0,
+              1,
+              2
+            ]
+          },
+          "obligations": "changed filter rejects the cursor before an inventory request"
+        },
+        {
+          "symbol": "test_documented_page_ceiling_is_enforced_before_authentication",
+          "parameterSelection": {
+            "P1": [
+              0,
+              1,
+              2
+            ]
+          },
+          "obligations": "documented page ceiling is enforced before authentication"
+        }
+      ]
+    },
+    {
+      "id": "SR-048",
+      "slice": "S05",
+      "requirement": "Honest completion, unknown total and malformed envelopes",
+      "source": "tests/offline/test_containers.py",
+      "sourceSha256": "66cf63a41fc1c2df20bfc449a0f3eada417dc9cc3bc06998c146a72f8834efee",
+      "members": [
+        {
+          "symbol": "test_complete_page_has_no_continuation",
+          "parameterSelection": "all",
+          "obligations": "complete page has no continuation"
+        },
+        {
+          "symbol": "test_full_page_without_a_total_keeps_the_total_unknown_and_offers_continuation",
+          "parameterSelection": "all",
+          "obligations": "full page without a total keeps the total unknown and offers continuation"
+        },
+        {
+          "symbol": "test_malformed_inventory_never_masquerades_as_an_empty_success",
+          "parameterSelection": "all",
+          "obligations": "malformed inventory never masquerades as an empty success"
+        }
+      ]
+    },
+    {
+      "id": "SR-049",
+      "slice": "S05",
+      "requirement": "Domain-specific scope and filter guidance",
+      "source": "tests/offline/test_containers.py",
+      "sourceSha256": "66cf63a41fc1c2df20bfc449a0f3eada417dc9cc3bc06998c146a72f8834efee",
+      "members": [
+        {
+          "symbol": "test_scope_denial_names_the_container_image_read_scope",
+          "parameterSelection": {
+            "P1": [
+              0,
+              1,
+              2
+            ]
+          },
+          "obligations": "scope denial names the container image read scope"
+        },
+        {
+          "symbol": "test_invalid_filter_teaches_the_right_command",
+          "parameterSelection": {
+            "P1": [
+              0,
+              1,
+              2
+            ]
+          },
+          "obligations": "invalid filter teaches the right command"
+        }
+      ]
+    },
+    {
+      "id": "SR-057",
+      "slice": "S05",
+      "requirement": "Exact CVE identifier, request shape and selected-resource attribution",
+      "source": "tests/offline/test_cve.py",
+      "sourceSha256": "d0f384fa9dfeae10dc19cd2f86628cd71e318e1653c765e760bd5439cf33073d",
+      "members": [
+        {
+          "symbol": "test_cve_show_posts_the_cve_id_and_refuses_full_width_digits",
+          "parameterSelection": "all",
+          "obligations": "cve show posts the cve id and refuses full width digits"
+        },
+        {
+          "symbol": "test_cve_show_does_not_attribute_an_unidentified_or_different_resource_to_the_requested_id",
+          "parameterSelection": "all",
+          "obligations": "cve show does not attribute an unidentified or different resource to the requested id"
+        },
+        {
+          "symbol": "test_cve_show_selects_the_requested_id_from_a_mixed_response",
+          "parameterSelection": "all",
+          "obligations": "cve show selects the requested id from a mixed response"
+        }
+      ]
+    },
+    {
+      "id": "SR-058",
+      "slice": "S05",
+      "requirement": "CVE query order, filter, cursor, short hydration and scope",
+      "source": "tests/offline/test_cve_list.py",
+      "sourceSha256": "2d082d4b4a580a1ffc46727b4a9b043834a0a0a36c288e07eea1e731397a8e1f",
+      "members": [
+        {
+          "symbol": "test_cve_list_preserves_query_order_and_total_from_the_query_step",
+          "parameterSelection": "all",
+          "obligations": "cve list preserves query order and total from the query step"
+        },
+        {
+          "symbol": "test_cve_shorthands_and_cursor_resume_the_same_filter",
+          "parameterSelection": "all",
+          "obligations": "cve shorthands and cursor resume the same filter"
+        },
+        {
+          "symbol": "test_cve_bad_filter_is_refused_before_the_domain_request",
+          "parameterSelection": "all",
+          "obligations": "cve bad filter is refused before the domain request"
+        },
+        {
+          "symbol": "test_cve_short_hydrate_advances_by_ids_and_retains_total",
+          "parameterSelection": "all",
+          "obligations": "cve short hydrate advances by ids and retains total"
+        },
+        {
+          "symbol": "test_cve_scope_denial_names_the_intelligence_scope",
+          "parameterSelection": "all",
+          "obligations": "cve scope denial names the intelligence scope"
+        }
+      ]
+    },
+    {
+      "id": "SR-059",
+      "slice": "S05",
+      "requirement": "Vulnerability detail identity and not-found distinction",
+      "source": "tests/offline/test_cve_list.py",
+      "sourceSha256": "2d082d4b4a580a1ffc46727b4a9b043834a0a0a36c288e07eea1e731397a8e1f",
+      "members": [
+        {
+          "symbol": "test_vuln_show_reads_the_requested_record_without_other_requests",
+          "parameterSelection": "all",
+          "obligations": "vuln show reads the requested record without other requests"
+        },
+        {
+          "symbol": "test_vuln_show_missing_record_is_not_found",
+          "parameterSelection": "all",
+          "obligations": "vuln show missing record is not found"
+        },
+        {
+          "symbol": "test_vuln_show_rejects_a_response_for_another_record",
+          "parameterSelection": "all",
+          "obligations": "vuln show rejects a response for another record"
+        }
+      ]
+    },
+    {
+      "id": "SR-066",
+      "slice": "S04",
+      "requirement": "Application fields, raw preview, expansion and honest empty data",
+      "source": "tests/offline/test_discover.py",
+      "sourceSha256": "40b417f87a1e329f42295c46c2a912c4f84fe41c202d503275dc6ef36ecba9b5",
+      "members": [
+        {
+          "symbol": "test_application_list_preserves_all_returned_fields_and_host_details",
+          "parameterSelection": "all",
+          "obligations": "application list preserves all returned fields and host details"
+        },
+        {
+          "symbol": "test_application_fields_selects_columns_instead_of_adding_them",
+          "parameterSelection": "all",
+          "obligations": "application fields selects columns instead of adding them"
+        },
+        {
+          "symbol": "test_application_selected_optional_fields_remain_null_when_missing",
+          "parameterSelection": "all",
+          "obligations": "application selected optional fields remain null when missing"
+        },
+        {
+          "symbol": "test_application_raw_output_redacts_before_recursive_preview",
+          "parameterSelection": "all",
+          "obligations": "application raw output redacts before recursive preview"
+        },
+        {
+          "symbol": "test_application_expansion_hint_replays_current_page_and_next_hint_advances",
+          "parameterSelection": "all",
+          "obligations": "application expansion hint replays current page and next hint advances"
+        },
+        {
+          "symbol": "test_invalid_application_fields_are_rejected_before_authentication",
+          "parameterSelection": "all",
+          "obligations": "invalid application fields are rejected before authentication"
+        },
+        {
+          "symbol": "test_empty_application_and_vulnerability_results_warn_against_absence_inference",
+          "parameterSelection": {
+            "P1": [
+              0
+            ]
+          },
+          "obligations": "empty application and vulnerability results warn against absence inference"
+        }
+      ]
+    },
+    {
+      "id": "SR-067",
+      "slice": "S05",
+      "requirement": "Application fields, raw preview, expansion and honest empty data",
+      "source": "tests/offline/test_discover.py",
+      "sourceSha256": "40b417f87a1e329f42295c46c2a912c4f84fe41c202d503275dc6ef36ecba9b5",
+      "members": [
+        {
+          "symbol": "test_empty_application_and_vulnerability_results_warn_against_absence_inference",
+          "parameterSelection": {
+            "P1": [
+              1
+            ]
+          },
+          "obligations": "empty application and vulnerability results warn against absence inference"
+        }
+      ]
+    },
+    {
+      "id": "SR-069",
+      "slice": "S04",
+      "requirement": "Inventory error guidance and bound combined continuation",
+      "source": "tests/offline/test_discover.py",
+      "sourceSha256": "40b417f87a1e329f42295c46c2a912c4f84fe41c202d503275dc6ef36ecba9b5",
+      "members": [
+        {
+          "symbol": "test_inventory_filter_rejection_teaches_its_own_domain",
+          "parameterSelection": {
+            "P1": [
+              0,
+              1,
+              2,
+              3,
+              4
+            ]
+          },
+          "obligations": "inventory filter rejection teaches its own domain"
+        },
+        {
+          "symbol": "test_inventory_not_found_points_to_its_own_identifiers",
+          "parameterSelection": {
+            "P1": [
+              0,
+              1,
+              2,
+              3,
+              4
+            ]
+          },
+          "obligations": "inventory not found points to its own identifiers"
+        },
+        {
+          "symbol": "test_default_inventory_filter_is_sent_and_bound_to_continuation",
+          "parameterSelection": {
+            "P1": [
+              0,
+              1
+            ]
+          },
+          "obligations": "default inventory filter is sent and bound to continuation"
+        },
+        {
+          "symbol": "test_combined_lists_continue_with_the_server_after_token",
+          "parameterSelection": {
+            "P1": [
+              0,
+              1
+            ]
+          },
+          "obligations": "combined lists continue with the server after token"
+        }
+      ]
+    },
+    {
+      "id": "SR-070",
+      "slice": "S04",
+      "requirement": "Login hydration, asset detail, scope and validation",
+      "source": "tests/offline/test_discover.py",
+      "sourceSha256": "40b417f87a1e329f42295c46c2a912c4f84fe41c202d503275dc6ef36ecba9b5",
+      "members": [
+        {
+          "symbol": "test_login_list_restores_query_order_and_keeps_query_total_when_hydration_is_short",
+          "parameterSelection": "all",
+          "obligations": "login list restores query order and keeps query total when hydration is short"
+        },
+        {
+          "symbol": "test_empty_login_query_does_not_hydrate",
+          "parameterSelection": "all",
+          "obligations": "empty login query does not hydrate"
+        },
+        {
+          "symbol": "test_asset_show_uses_discover_id_and_renders_platform_and_sensor_association",
+          "parameterSelection": "all",
+          "obligations": "asset show uses discover id and renders platform and sensor association"
+        },
+        {
+          "symbol": "test_missing_asset_has_actionable_not_found_error",
+          "parameterSelection": "all",
+          "obligations": "missing asset has actionable not found error"
+        },
+        {
+          "symbol": "test_asset_show_preserves_available_interface_mac_addresses",
+          "parameterSelection": "all",
+          "obligations": "asset show preserves available interface mac addresses"
+        },
+        {
+          "symbol": "test_scope_denied_is_structured",
+          "parameterSelection": {
+            "P1": [
+              0,
+              1,
+              2,
+              3
+            ]
+          },
+          "obligations": "scope denied is structured"
+        },
+        {
+          "symbol": "test_blank_filter_is_rejected_without_an_operation_request",
+          "parameterSelection": {
+            "P1": [
+              0,
+              1,
+              2
+            ]
+          },
+          "obligations": "blank filter is rejected without an operation request"
+        }
+      ]
+    },
+    {
+      "id": "SR-080",
+      "slice": "S05",
+      "requirement": "Field order, deduplication, identity columns and invalid-field refusal",
+      "source": "tests/offline/test_fields.py",
+      "sourceSha256": "12df655bf1fdcd22eaab54215eff6f639a93a6e0d083f290c984311d84cdec93",
+      "members": [
+        {
+          "symbol": "test_fields_append_in_requested_order_and_ignore_duplicates",
+          "parameterSelection": {
+            "P1": [
+              2
+            ]
+          },
+          "obligations": "fields append in requested order and ignore duplicates"
+        },
+        {
+          "symbol": "test_unknown_fields_list_valid_names_before_a_domain_request",
+          "parameterSelection": {
+            "P1": [
+              2
+            ]
+          },
+          "obligations": "unknown fields list valid names before a domain request"
+        },
+        {
+          "symbol": "test_empty_field_names_are_rejected",
+          "parameterSelection": {
+            "P1": [
+              2
+            ]
+          },
+          "obligations": "empty field names are rejected"
+        }
+      ]
+    },
+    {
+      "id": "SR-084",
+      "slice": "S05",
+      "requirement": "Shorthands constrain the entire raw disjunction and preserve raw-only input",
+      "source": "tests/offline/test_fql.py",
+      "sourceSha256": "36dfee00596a999b37726ace4042c71e0bee529260545f118f505d28f650608a",
+      "members": [
+        {
+          "symbol": "test_every_shorthand_constrains_the_entire_raw_disjunction",
+          "parameterSelection": {
+            "P1": [
+              8,
+              9,
+              10,
+              11
+            ]
+          },
+          "obligations": "every shorthand constrains the entire raw disjunction"
+        },
+        {
+          "symbol": "test_a_raw_filter_without_shorthands_is_sent_unchanged",
+          "parameterSelection": {
+            "P1": [
+              2
+            ]
+          },
+          "obligations": "a raw filter without shorthands is sent unchanged"
+        }
+      ]
+    },
+    {
+      "id": "SR-086",
+      "slice": "S04",
+      "requirement": "Filter and identifier remedies name the failed domain",
+      "source": "tests/offline/test_fql_remedies.py",
+      "sourceSha256": "4c1a3a5122d7960ea37034a228929c904f9f8a408187ab242b50568ff9905bcf",
+      "members": [
+        {
+          "symbol": "test_query_and_entity_filter_rejections_teach_the_failed_domains_fields",
+          "parameterSelection": {
+            "P1": [
+              0,
+              5
+            ]
+          },
+          "obligations": "query and entity filter rejections teach the failed domains fields"
+        },
+        {
+          "symbol": "test_combined_reads_use_their_own_fql_remedy",
+          "parameterSelection": {
+            "P1": [
+              5,
+              6
+            ]
+          },
+          "obligations": "combined reads use their own fql remedy"
+        },
+        {
+          "symbol": "test_host_group_members_filter_errors_name_host_attributes",
+          "parameterSelection": "all",
+          "obligations": "host group members filter errors name host attributes"
+        },
+        {
+          "symbol": "test_sensor_not_found_errors_point_to_sensor_identifiers",
+          "parameterSelection": {
+            "P1": [
+              0,
+              1,
+              2
+            ]
+          },
+          "obligations": "sensor not found errors point to sensor identifiers"
+        },
+        {
+          "symbol": "test_iot_entity_filter_rejection_teaches_iot_fields",
+          "parameterSelection": "all",
+          "obligations": "iot entity filter rejection teaches iot fields"
+        }
+      ]
+    },
+    {
+      "id": "SR-087",
+      "slice": "S05",
+      "requirement": "Filter and identifier remedies name the failed domain",
+      "source": "tests/offline/test_fql_remedies.py",
+      "sourceSha256": "4c1a3a5122d7960ea37034a228929c904f9f8a408187ab242b50568ff9905bcf",
+      "members": [
+        {
+          "symbol": "test_query_and_entity_filter_rejections_teach_the_failed_domains_fields",
+          "parameterSelection": {
+            "P1": [
+              3,
+              4
+            ]
+          },
+          "obligations": "query and entity filter rejections teach the failed domains fields"
+        },
+        {
+          "symbol": "test_combined_reads_use_their_own_fql_remedy",
+          "parameterSelection": {
+            "P1": [
+              1,
+              2
+            ]
+          },
+          "obligations": "combined reads use their own fql remedy"
+        },
+        {
+          "symbol": "test_cve_filter_errors_name_intelligence_fields",
+          "parameterSelection": {
+            "P1": [
+              0,
+              1,
+              2
+            ]
+          },
+          "obligations": "cve filter errors name intelligence fields"
+        }
+      ]
+    },
+    {
+      "id": "SR-095",
+      "slice": "S05",
+      "requirement": "Exact registered wire paths, query parameters and request bodies",
+      "source": "tests/offline/test_harness.py",
+      "sourceSha256": "5f45191785381efb29d46d670c5f953809ff64a45c3ccca8d6efa461d4ad47f4",
+      "members": [
+        {
+          "symbol": "test_spotlight_facets_are_repeated_query_parameters",
+          "parameterSelection": "all",
+          "obligations": "spotlight facets are repeated query parameters"
+        }
+      ]
+    },
+    {
+      "id": "SR-096",
+      "slice": "S04",
+      "requirement": "Exact registered wire paths, query parameters and request bodies",
+      "source": "tests/offline/test_harness.py",
+      "sourceSha256": "5f45191785381efb29d46d670c5f953809ff64a45c3ccca8d6efa461d4ad47f4",
+      "members": [
+        {
+          "symbol": "test_identity_sensor_query_uses_falconpys_registered_route_and_parameters",
+          "parameterSelection": "all",
+          "obligations": "identity sensor query uses falconpys registered route and parameters"
+        },
+        {
+          "symbol": "test_identity_sensor_details_posts_the_ids_body_to_falconpys_registered_route",
+          "parameterSelection": "all",
+          "obligations": "identity sensor details posts the ids body to falconpys registered route"
+        }
+      ]
+    },
+    {
+      "id": "SR-103",
+      "slice": "S04",
+      "requirement": "Identity sensor query hydration, detail, scope and usage",
+      "source": "tests/offline/test_identity.py",
+      "sourceSha256": "46b15c6eefea11d258fec69f6316b60abb15d70ff56806c68c307de7a6cbe7ea",
+      "members": [
+        {
+          "symbol": "test_sensor_list_hydrates_in_query_order_and_carries_the_query_total",
+          "parameterSelection": "all",
+          "obligations": "sensor list hydrates in query order and carries the query total"
+        },
+        {
+          "symbol": "test_sensor_cursor_continues_with_the_same_filter_and_offset",
+          "parameterSelection": "all",
+          "obligations": "sensor cursor continues with the same filter and offset"
+        },
+        {
+          "symbol": "test_sensor_cursor_refuses_changed_queries_or_tampering_before_scoped_requests",
+          "parameterSelection": "all",
+          "obligations": "sensor cursor refuses changed queries or tampering before scoped requests"
+        },
+        {
+          "symbol": "test_sensor_show_returns_one_sensors_details",
+          "parameterSelection": "all",
+          "obligations": "sensor show returns one sensors details"
+        },
+        {
+          "symbol": "test_sensor_scope_errors_name_the_read_permission",
+          "parameterSelection": {
+            "P1": [
+              0,
+              1
+            ]
+          },
+          "obligations": "sensor scope errors name the read permission"
+        },
+        {
+          "symbol": "test_new_identity_usage_errors_are_refused_before_authentication",
+          "parameterSelection": {
+            "P1": [
+              1,
+              2,
+              3,
+              4,
+              5
+            ]
+          },
+          "obligations": "new identity usage errors are refused before authentication"
+        }
+      ]
+    },
+    {
+      "id": "SR-115",
+      "slice": "S04",
+      "requirement": "Inventory rows, rate note, empty, detail and scope distinctions",
+      "source": "tests/offline/test_inventory_reads.py",
+      "sourceSha256": "6fa062dccd18d39ef261111a7bdd037a57cefcbc279bd3eae360b8f63017ce5f",
+      "members": [
+        {
+          "symbol": "test_inventory_list_rate_budget",
+          "parameterSelection": {
+            "P1": [
+              1
+            ]
+          },
+          "obligations": "inventory list rate budget"
+        },
+        {
+          "symbol": "test_inventory_reads",
+          "parameterSelection": {
+            "P1": [
+              4
+            ]
+          },
+          "obligations": "inventory reads"
+        },
+        {
+          "symbol": "test_empty_query_skips_hydration",
+          "parameterSelection": {
+            "P1": [
+              2
+            ]
+          },
+          "obligations": "empty query skips hydration"
+        },
+        {
+          "symbol": "test_scope_denied",
+          "parameterSelection": {
+            "P1": [
+              2
+            ]
+          },
+          "obligations": "scope denied"
+        }
+      ]
+    },
+    {
+      "id": "SR-120",
+      "slice": "S04",
+      "requirement": "Inventory continuation binding and zero-request usage refusal",
+      "source": "tests/offline/test_inventory_reads.py",
+      "sourceSha256": "6fa062dccd18d39ef261111a7bdd037a57cefcbc279bd3eae360b8f63017ce5f",
+      "members": [
+        {
+          "symbol": "test_cursor_continuation_and_query_binding",
+          "parameterSelection": {
+            "P1": [
+              1
+            ]
+          },
+          "obligations": "cursor continuation and query binding"
+        },
+        {
+          "symbol": "test_invalid_arguments",
+          "parameterSelection": {
+            "P1": [
+              3
+            ]
+          },
+          "obligations": "invalid arguments"
+        }
+      ]
+    },
+    {
+      "id": "SR-124",
+      "slice": "S04",
+      "requirement": "IOC and host-group identity, scope, empties and continuation",
+      "source": "tests/offline/test_ioc_host_group.py",
+      "sourceSha256": "564974533b1b835c495b4338d43b7955cecae53f164dcc317897a26c4e2acb41",
+      "members": [
+        {
+          "symbol": "test_empty_reads_are_definitive",
+          "parameterSelection": {
+            "P1": [
+              3,
+              4
+            ]
+          },
+          "obligations": "empty reads are definitive"
+        },
+        {
+          "symbol": "test_read_scope_failures_name_the_required_permission",
+          "parameterSelection": {
+            "P1": [
+              3,
+              4
+            ]
+          },
+          "obligations": "read scope failures name the required permission"
+        },
+        {
+          "symbol": "test_offset_continuation_replays_the_original_query",
+          "parameterSelection": {
+            "P1": [
+              2,
+              3
+            ]
+          },
+          "obligations": "offset continuation replays the original query"
+        }
+      ]
+    },
+    {
+      "id": "SR-126",
+      "slice": "S04",
+      "requirement": "IOC query-only inputs, host-group cursor binding and guidance",
+      "source": "tests/offline/test_ioc_host_group.py",
+      "sourceSha256": "564974533b1b835c495b4338d43b7955cecae53f164dcc317897a26c4e2acb41",
+      "members": [
+        {
+          "symbol": "test_invalid_input_fails_before_authentication",
+          "parameterSelection": {
+            "P1": [
+              6,
+              9
+            ]
+          },
+          "obligations": "invalid input fails before authentication"
+        },
+        {
+          "symbol": "test_invalid_fql_suggests_the_correct_domain",
+          "parameterSelection": {
+            "P1": [
+              1
+            ]
+          },
+          "obligations": "invalid fql suggests the correct domain"
+        }
+      ]
+    },
+    {
+      "id": "SR-136",
+      "slice": "S04",
+      "requirement": "Empty continuation reports exhaustion without claiming empty inventory",
+      "source": "tests/offline/test_pagination_empty.py",
+      "sourceSha256": "f2e5b59d4004b1b834b4add25b4369e43cd116aca9c427308ea6248142e115ee",
+      "members": [
+        {
+          "symbol": "test_empty_continuations_report_exhaustion_without_claiming_an_empty_inventory",
+          "parameterSelection": {
+            "P1": [
+              0
+            ]
+          },
+          "obligations": "empty continuations report exhaustion without claiming an empty inventory"
+        }
+      ]
+    },
+    {
+      "id": "SR-137",
+      "slice": "S05",
+      "requirement": "Empty continuation reports exhaustion without claiming empty inventory",
+      "source": "tests/offline/test_pagination_empty.py",
+      "sourceSha256": "f2e5b59d4004b1b834b4add25b4369e43cd116aca9c427308ea6248142e115ee",
+      "members": [
+        {
+          "symbol": "test_empty_continuations_report_exhaustion_without_claiming_an_empty_inventory",
+          "parameterSelection": {
+            "P1": [
+              3
+            ]
+          },
+          "obligations": "empty continuations report exhaustion without claiming an empty inventory"
+        }
+      ]
+    },
+    {
+      "id": "SR-152",
+      "slice": "S04",
+      "requirement": "Recon honest totals, licensing, domain guidance and usage",
+      "source": "tests/offline/test_recon.py",
+      "sourceSha256": "80023a5c48e7d8e7c102b3ac9f8555f79dbce022673e17b1c22963128402fb59",
+      "members": [
+        {
+          "symbol": "test_scope_errors_name_required_read_scope",
+          "parameterSelection": {
+            "P1": [
+              2
+            ]
+          },
+          "obligations": "scope errors name required read scope"
+        },
+        {
+          "symbol": "test_rejected_filter_guidance_uses_the_originating_domain",
+          "parameterSelection": {
+            "P1": [
+              3
+            ]
+          },
+          "obligations": "rejected filter guidance uses the originating domain"
+        },
+        {
+          "symbol": "test_invalid_t1_commands_fail_before_authentication",
+          "parameterSelection": {
+            "P1": [
+              4
+            ]
+          },
+          "obligations": "invalid t1 commands fail before authentication"
+        }
+      ]
+    },
+    {
+      "id": "SR-153",
+      "slice": "S04",
+      "requirement": "Sensor usage preserves zeros and exact filter-only request",
+      "source": "tests/offline/test_recon.py",
+      "sourceSha256": "80023a5c48e7d8e7c102b3ac9f8555f79dbce022673e17b1c22963128402fb59",
+      "members": [
+        {
+          "symbol": "test_sensor_usage_preserves_zero_metrics_and_passes_only_filter",
+          "parameterSelection": "all",
+          "obligations": "sensor usage preserves zero metrics and passes only filter"
+        },
+        {
+          "symbol": "test_sensor_usage_empty_response_is_definitive",
+          "parameterSelection": "all",
+          "obligations": "sensor usage empty response is definitive"
+        }
+      ]
+    },
+    {
+      "id": "SR-156",
+      "slice": "S04",
+      "requirement": "HTTP error precedence, required scope, resource shape and honest 404 handling",
+      "source": "tests/offline/test_resource_errors.py",
+      "sourceSha256": "32c46bdd1c9b2528a8c1af03893872313cff2db16918c7087255c58ad0246d03",
+      "members": [
+        {
+          "symbol": "test_http_errors_precede_resource_validation",
+          "parameterSelection": {
+            "P1": [
+              4
+            ]
+          },
+          "obligations": "http errors precede resource validation"
+        },
+        {
+          "symbol": "test_scope_denied_keeps_required_scope_guidance",
+          "parameterSelection": {
+            "P1": [
+              4
+            ]
+          },
+          "obligations": "scope denied keeps required scope guidance"
+        },
+        {
+          "symbol": "test_successful_envelopes_still_require_resource_arrays",
+          "parameterSelection": {
+            "P1": [
+              4
+            ]
+          },
+          "obligations": "successful envelopes still require resource arrays"
+        },
+        {
+          "symbol": "test_hydration_404_without_resources_keeps_empty_rows",
+          "parameterSelection": {
+            "P1": [
+              1
+            ]
+          },
+          "obligations": "hydration 404 without resources keeps empty rows"
+        }
+      ]
+    },
+    {
+      "id": "SR-157",
+      "slice": "S05",
+      "requirement": "HTTP error precedence, required scope, resource shape and honest 404 handling",
+      "source": "tests/offline/test_resource_errors.py",
+      "sourceSha256": "32c46bdd1c9b2528a8c1af03893872313cff2db16918c7087255c58ad0246d03",
+      "members": [
+        {
+          "symbol": "test_http_errors_precede_resource_validation",
+          "parameterSelection": {
+            "P1": [
+              2,
+              3
+            ]
+          },
+          "obligations": "http errors precede resource validation"
+        },
+        {
+          "symbol": "test_scope_denied_keeps_required_scope_guidance",
+          "parameterSelection": {
+            "P1": [
+              2,
+              3
+            ]
+          },
+          "obligations": "scope denied keeps required scope guidance"
+        },
+        {
+          "symbol": "test_successful_envelopes_still_require_resource_arrays",
+          "parameterSelection": {
+            "P1": [
+              2,
+              3
+            ]
+          },
+          "obligations": "successful envelopes still require resource arrays"
+        },
+        {
+          "symbol": "test_detail_404_without_resources_is_not_found",
+          "parameterSelection": {
+            "P1": [
+              2
+            ]
+          },
+          "obligations": "detail 404 without resources is not found"
+        },
+        {
+          "symbol": "test_hydration_404_without_resources_keeps_empty_rows",
+          "parameterSelection": {
+            "P1": [
+              0
+            ]
+          },
+          "obligations": "hydration 404 without resources keeps empty rows"
+        }
+      ]
+    },
+    {
+      "id": "SR-183",
+      "slice": "S05",
+      "requirement": "SARIF source-record budget, rules/results and honest malformed data",
+      "source": "tests/offline/test_serverless.py",
+      "sourceSha256": "b2e93eca956f16842f83ec0fbd9767ead355b30e500eec2e2cde88c3dcd6fd8c",
+      "members": [
+        {
+          "symbol": "test_sarif_runs_preserve_rules_and_results_without_inventing_a_vulnerability_count",
+          "parameterSelection": "all",
+          "obligations": "sarif runs preserve rules and results without inventing a vulnerability count"
+        },
+        {
+          "symbol": "test_sarif_continuation_advances_by_source_record_budget_instead_of_run_count",
+          "parameterSelection": "all",
+          "obligations": "sarif continuation advances by source record budget instead of run count"
+        },
+        {
+          "symbol": "test_serverless_requires_a_nonblank_filter_before_authentication",
+          "parameterSelection": "all",
+          "obligations": "serverless requires a nonblank filter before authentication"
+        },
+        {
+          "symbol": "test_malformed_sarif_fails_instead_of_reporting_no_vulnerabilities",
+          "parameterSelection": "all",
+          "obligations": "malformed sarif fails instead of reporting no vulnerabilities"
+        },
+        {
+          "symbol": "test_serverless_failures_are_structured",
+          "parameterSelection": "all",
+          "obligations": "serverless failures are structured"
+        },
+        {
+          "symbol": "test_sarif_cursor_cannot_continue_a_different_filter",
+          "parameterSelection": "all",
+          "obligations": "sarif cursor cannot continue a different filter"
+        }
+      ]
+    },
+    {
+      "id": "SR-186",
+      "slice": "S05",
+      "requirement": "Shield projection, bound cursor, detail identity and full preview",
+      "source": "tests/offline/test_shield.py",
+      "sourceSha256": "3a2b8d46ddeeafe3e83261241b0ae7acfbcb73385dbd4b406588de727fe142c0",
+      "members": [
+        {
+          "symbol": "test_list_sends_documented_filters_and_minimal_rows",
+          "parameterSelection": "all",
+          "obligations": "list sends documented filters and minimal rows"
+        },
+        {
+          "symbol": "test_invalid_values_fail_before_authentication",
+          "parameterSelection": "all",
+          "obligations": "invalid values fail before authentication"
+        },
+        {
+          "symbol": "test_cursor_continues_the_same_query_and_preserves_filters",
+          "parameterSelection": "all",
+          "obligations": "cursor continues the same query and preserves filters"
+        },
+        {
+          "symbol": "test_show_requests_one_id_and_redacts_detail",
+          "parameterSelection": "all",
+          "obligations": "show requests one id and redacts detail"
+        },
+        {
+          "symbol": "test_show_refuses_absent_or_mismatched_checks",
+          "parameterSelection": "all",
+          "obligations": "show refuses absent or mismatched checks"
+        },
+        {
+          "symbol": "test_show_truncation_has_a_full_escape_hatch",
+          "parameterSelection": "all",
+          "obligations": "show truncation has a full escape hatch"
+        }
+      ]
+    },
+    {
+      "id": "SR-187",
+      "slice": "S05",
+      "requirement": "Shield redaction, scope and honest empty/malformed/status distinctions",
+      "source": "tests/offline/test_shield.py",
+      "sourceSha256": "3a2b8d46ddeeafe3e83261241b0ae7acfbcb73385dbd4b406588de727fe142c0",
+      "members": [
+        {
+          "symbol": "test_show_redacts_complete_private_keys_before_preview",
+          "parameterSelection": "all",
+          "obligations": "show redacts complete private keys before preview"
+        },
+        {
+          "symbol": "test_scope_denied_names_the_required_read_scope",
+          "parameterSelection": "all",
+          "obligations": "scope denied names the required read scope"
+        },
+        {
+          "symbol": "test_empty_array_is_a_successful_empty_list",
+          "parameterSelection": "all",
+          "obligations": "empty array is a successful empty list"
+        },
+        {
+          "symbol": "test_malformed_success_body_fails_instead_of_hiding_checks",
+          "parameterSelection": "all",
+          "obligations": "malformed success body fails instead of hiding checks"
+        },
+        {
+          "symbol": "test_additional_statuses_are_sent_and_rendered",
+          "parameterSelection": "all",
+          "obligations": "additional statuses are sent and rendered"
+        }
+      ]
+    },
+    {
+      "id": "SR-192",
+      "slice": "S05",
+      "requirement": "Discovery and query suggestions preserve exact context through shell replay",
+      "source": "tests/offline/test_suggestion_context.py",
+      "sourceSha256": "63958515eca09418a23878d2d63cc62d6f2d1cbe9a244dc792efde47ad09452a",
+      "members": [
+        {
+          "symbol": "test_discovery_empty_states_and_continuations_preserve_context_once",
+          "parameterSelection": {
+            "P1": [
+              7,
+              8
+            ]
+          },
+          "obligations": "discovery empty states and continuations preserve context once"
+        },
+        {
+          "symbol": "test_replayed_query_values_survive_shell_parsing_and_reach_the_next_request",
+          "parameterSelection": {
+            "P1": [
+              9,
+              18
+            ]
+          },
+          "obligations": "replayed query values survive shell parsing and reach the next request"
+        }
+      ]
+    },
+    {
+      "id": "SR-195",
+      "slice": "S05",
+      "requirement": "Spotlight facets, field selection and closed wildcard/filter grammar",
+      "source": "tests/offline/test_vuln.py",
+      "sourceSha256": "e16377b5d923df15196edb15dc407a4c752f7517b983c3d0c5421ffd8e0aa519",
+      "members": [
+        {
+          "symbol": "test_vuln_list_is_one_request_with_no_hydrate_step",
+          "parameterSelection": "all",
+          "obligations": "vuln list is one request with no hydrate step"
+        },
+        {
+          "symbol": "test_default_rows_require_the_cve_and_host_info_facets",
+          "parameterSelection": "all",
+          "obligations": "default rows require the cve and host info facets"
+        },
+        {
+          "symbol": "test_fields_extends_the_row_and_requests_only_the_facets_those_columns_need",
+          "parameterSelection": "all",
+          "obligations": "fields extends the row and requests only the facets those columns need"
+        },
+        {
+          "symbol": "test_an_unknown_field_name_is_refused_before_any_request",
+          "parameterSelection": "all",
+          "obligations": "an unknown field name is refused before any request"
+        },
+        {
+          "symbol": "test_a_wildcard_is_refused_locally_wherever_it_appears_in_the_filter",
+          "parameterSelection": "all",
+          "obligations": "a wildcard is refused locally wherever it appears in the filter"
+        },
+        {
+          "symbol": "test_the_shorthands_compose_the_documented_spotlight_fields",
+          "parameterSelection": "all",
+          "obligations": "the shorthands compose the documented spotlight fields"
+        }
+      ]
+    },
+    {
+      "id": "SR-196",
+      "slice": "S05",
+      "requirement": "Opaque vulnerability continuation, context binding and honest total",
+      "source": "tests/offline/test_vuln.py",
+      "sourceSha256": "e16377b5d923df15196edb15dc407a4c752f7517b983c3d0c5421ffd8e0aa519",
+      "members": [
+        {
+          "symbol": "test_the_after_token_travels_opaquely_and_resumes_the_same_query",
+          "parameterSelection": "all",
+          "obligations": "the after token travels opaquely and resumes the same query"
+        },
+        {
+          "symbol": "test_a_cursor_whose_filter_changed_is_rejected_before_any_request",
+          "parameterSelection": "all",
+          "obligations": "a cursor whose filter changed is rejected before any request"
+        },
+        {
+          "symbol": "test_an_offset_cursor_cannot_stand_in_for_a_token_cursor",
+          "parameterSelection": "all",
+          "obligations": "an offset cursor cannot stand in for a token cursor"
+        },
+        {
+          "symbol": "test_a_missing_total_is_reported_as_unknown_rather_than_invented",
+          "parameterSelection": "all",
+          "obligations": "a missing total is reported as unknown rather than invented"
+        }
+      ]
+    },
+    {
+      "id": "SR-198",
+      "slice": "S04",
+      "requirement": "Cross-domain row budgets, wall headroom and exact request cost",
+      "source": "tests/offline/test_walk.py",
+      "sourceSha256": "35775d29193ad8e7e9530f059ea872048ff89dfeb95c142054d03afb822d393c",
+      "members": [
+        {
+          "symbol": "test_budget_wall_reachability_and_request_cost",
+          "parameterSelection": {
+            "P1": [
+              6
+            ]
+          },
+          "obligations": "budget wall reachability and request cost"
+        },
+        {
+          "symbol": "test_default_budget_ignores_single_page_limit",
+          "parameterSelection": {
+            "P1": [
+              2
+            ]
+          },
+          "obligations": "default budget ignores single page limit"
+        },
+        {
+          "symbol": "test_partial_cursor_resumes_at_the_next_unseen_row",
+          "parameterSelection": {
+            "P1": [
+              2
+            ]
+          },
+          "obligations": "partial cursor resumes at the next unseen row"
+        },
+        {
+          "symbol": "test_short_final_page_retains_earlier_pages_without_partial_marker",
+          "parameterSelection": {
+            "P1": [
+              2
+            ]
+          },
+          "obligations": "short final page retains earlier pages without partial marker"
+        }
+      ]
+    },
+    {
+      "id": "SR-199",
+      "slice": "S05",
+      "requirement": "Cross-domain row budgets, wall headroom and exact request cost",
+      "source": "tests/offline/test_walk.py",
+      "sourceSha256": "35775d29193ad8e7e9530f059ea872048ff89dfeb95c142054d03afb822d393c",
+      "members": [
+        {
+          "symbol": "test_budget_wall_reachability_and_request_cost",
+          "parameterSelection": {
+            "P1": [
+              7
+            ]
+          },
+          "obligations": "budget wall reachability and request cost"
+        },
+        {
+          "symbol": "test_default_budget_ignores_single_page_limit",
+          "parameterSelection": {
+            "P1": [
+              3
+            ]
+          },
+          "obligations": "default budget ignores single page limit"
+        },
+        {
+          "symbol": "test_partial_cursor_resumes_at_the_next_unseen_row",
+          "parameterSelection": {
+            "P1": [
+              3
+            ]
+          },
+          "obligations": "partial cursor resumes at the next unseen row"
+        },
+        {
+          "symbol": "test_short_final_page_retains_earlier_pages_without_partial_marker",
+          "parameterSelection": {
+            "P1": [
+              3
+            ]
+          },
+          "obligations": "short final page retains earlier pages without partial marker"
+        }
+      ]
+    },
+    {
+      "id": "SR-200",
+      "slice": "S04",
+      "requirement": "Account unbounded offsets, input refusal and honest deleted/terminal pages",
+      "source": "tests/offline/test_walk.py",
+      "sourceSha256": "35775d29193ad8e7e9530f059ea872048ff89dfeb95c142054d03afb822d393c",
+      "members": [
+        {
+          "symbol": "test_discover_offsets_have_no_ten_thousand_wall",
+          "parameterSelection": "all",
+          "obligations": "discover offsets have no ten thousand wall"
+        },
+        {
+          "symbol": "test_invalid_budget_fails_before_authentication",
+          "parameterSelection": {
+            "P1": [
+              5
+            ]
+          },
+          "obligations": "invalid budget fails before authentication"
+        },
+        {
+          "symbol": "test_deleted_entities_count_only_retained_rows_and_preserve_query_cursor",
+          "parameterSelection": "all",
+          "obligations": "deleted entities count only retained rows and preserve query cursor"
+        },
+        {
+          "symbol": "test_empty_terminal_page_retains_earlier_rows_when_total_is_unknown",
+          "parameterSelection": "all",
+          "obligations": "empty terminal page retains earlier rows when total is unknown"
+        }
+      ]
+    },
+    {
+      "id": "SR-202",
+      "slice": "S05",
+      "requirement": "Account unbounded offsets, input refusal and honest deleted/terminal pages",
+      "source": "tests/offline/test_walk.py",
+      "sourceSha256": "35775d29193ad8e7e9530f059ea872048ff89dfeb95c142054d03afb822d393c",
+      "members": [
+        {
+          "symbol": "test_invalid_budget_fails_before_authentication",
+          "parameterSelection": {
+            "P1": [
+              6
+            ]
+          },
+          "obligations": "invalid budget fails before authentication"
+        }
+      ]
+    }
+  ]
+}

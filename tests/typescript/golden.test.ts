@@ -5,13 +5,20 @@ import { resolve, join } from "node:path";
 import { createHmac } from "node:crypto";
 import s02 from "../fixtures/migration/S02/contracts.json" with { type: "json" };
 import s03 from "../fixtures/migration/S03/contracts.json" with { type: "json" };
+import s04 from "../fixtures/migration/S04/contracts.json" with { type: "json" };
+import s05 from "../fixtures/migration/S05/contracts.json" with { type: "json" };
 import { prepareScenario, run } from "./s01.test.js";
 import type { Scenario } from "./s01.test.js";
 import { expectedDocument } from "./discovery.js";
 import type { DiscoveryDelta } from "./discovery.js";
 
 if (process.env.S01_ACTIVE_PATH !== "artium")
-  for (const name of [...s02.goldenScenarioIds, ...s03.goldenScenarioIds]) {
+  for (const name of [
+    ...s02.goldenScenarioIds,
+    ...s03.goldenScenarioIds,
+    ...s04.goldenScenarioIds,
+    ...s05.goldenScenarioIds,
+  ]) {
     test(`golden ${name}`, async () => {
       const scenario = JSON.parse(
         await readFile(

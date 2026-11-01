@@ -16,11 +16,5 @@
       "fixture": "hosts/details-page.json"
     }
   ],
-  "exit_code": 0,
-  "typescriptMigration": {
-    "omitSuggestions": [
-      "Run `falcon-axi vuln list --host <device_id>` for its open vulnerabilities"
-    ],
-    "restore": "Restore each omitted navigation or original group when its commands ship; S13 compares the original documents with no TypeScript discovery exceptions."
-  }
+  "exit_code": 0
 }

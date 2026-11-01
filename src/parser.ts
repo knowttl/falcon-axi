@@ -1,6 +1,8 @@
 import { CliError } from "./core.js";
 import { commands, valueFlags, boolFlags } from "./metadata.js";
 import type { Command } from "./metadata.js";
+import { applicationFields } from "./inventory.js";
+import { shieldFilters } from "./exposure.js";
 
 export interface Invocation {
   command: Command;
@@ -133,7 +135,13 @@ export function parse(argv: string[]): Invocation {
         "VALIDATION_ERROR",
         `${command.name} requires exactly one ${command.positional}`,
         [
-          `Run \`falcon-axi ${command.name.startsWith("host ") ? "host" : command.name.startsWith("detection ") ? "detection" : command.name.split(" ")[0]} list\` to see current ${command.name.startsWith("host ") ? "device" : command.name.split(" ")[0]} identifiers`,
+          command.name === "cve show"
+            ? "A CVE identifier matches CVE-<year>-<number>, for example CVE-2021-44228"
+            : command.name === "vuln show"
+              ? "Run `falcon-axi vuln list --status open` to find Spotlight record identifiers"
+              : command.name === "identity sensor show"
+                ? "Run `falcon-axi identity sensor list` to see current sensor identifiers"
+                : `Run \`falcon-axi ${command.name.startsWith("host ") ? "host" : command.name.startsWith("detection ") ? "detection" : command.name.split(" ")[0]} list\` to see current ${command.name.startsWith("host ") ? "device" : command.name.split(" ")[0]} identifiers`,
         ],
       );
     if (!command.positional && positionals.length)
@@ -172,7 +180,7 @@ export function parse(argv: string[]): Invocation {
         `${name} must be an integer from 1 to ${ceiling}`,
         name === "--limit"
           ? [
-              `${ceiling} is the documented ${command.name.startsWith("host ") ? "Hosts query" : "Alerts query"} ceiling`,
+              `${ceiling} is the documented ${command.name === "vuln list" ? "Spotlight query" : command.name.startsWith("host ") ? "Hosts query" : "Alerts query"} ceiling`,
               `Run \`falcon-axi ${command.name} --limit 20\` for the default page`,
             ]
           : [],
@@ -191,6 +199,20 @@ export function parse(argv: string[]): Invocation {
       );
   }
   const id = positionals[0];
+  if (command.name === "cve show" && id && !/^CVE-[0-9]{4}-[0-9]{4,}$/.test(id))
+    throw new CliError(
+      "VALIDATION_ERROR",
+      "cve show requires a CVE identifier such as CVE-2021-44228",
+      [
+        "A CVE identifier matches CVE-<year>-<number>, for example CVE-2021-44228",
+      ],
+    );
+  if (command.name === "serverless list" && !flags.get("--filter")?.trim())
+    throw new CliError(
+      "VALIDATION_ERROR",
+      "serverless list requires --filter <FQL>",
+    );
+  if (command.name === "shield list") shieldFilters(flags);
   if (
     command.name === "process show" &&
     id &&
@@ -214,12 +236,15 @@ export function parse(argv: string[]): Invocation {
       "VALIDATION_ERROR",
       "ioc processes requires --host <device_id>",
     );
-  for (const flag of ["--filter", "--hostname"])
+  for (const flag of ["--filter", "--hostname", "--sort"])
     if (flags.has(flag) && !flags.get(flag)!.trim())
       throw new CliError("VALIDATION_ERROR", `${flag} requires a value`);
   const fields = flags.get("--fields");
   if (fields !== undefined) {
-    const valid = command.fields ?? [];
+    const valid =
+      command.name === "application list"
+        ? applicationFields
+        : (command.fields ?? []);
     const names = fields.split(",").map((value) => value.trim());
     if (names.some((name) => !name || !valid.includes(name)))
       throw new CliError("VALIDATION_ERROR", "unknown --fields column", [
@@ -234,6 +259,8 @@ export function filterOf(invocation: Invocation): string | undefined {
   const terms: string[] = [];
   const detection = command.name.startsWith("detection ");
   const host = command.name === "host list";
+  const vuln = command.name === "vuln list";
+  const cve = command.name === "cve list";
   const oneOf = (flag: string, choices: string[]): string | undefined => {
     const value = flags.get(`--${flag}`)?.toLowerCase();
     if (value !== undefined && !choices.includes(value))
@@ -290,6 +317,22 @@ export function filterOf(invocation: Invocation): string | undefined {
     ]);
     if (status) terms.push(`status:'${status}'`);
   }
+  if (vuln || cve) {
+    if (vuln && flags.has("--host")) {
+      if (!flags.get("--host")!.trim())
+        throw new CliError("VALIDATION_ERROR", "--host requires a value");
+      terms.push(`aid:'${flags.get("--host")}'`);
+    }
+    const severity = oneOf("severity", ["low", "medium", "high", "critical"]);
+    if (severity)
+      terms.push(
+        `${vuln ? "cve.severity" : "severity"}:'${severity.toUpperCase()}'`,
+      );
+    if (vuln) {
+      const status = oneOf("status", ["open", "closed", "reopen", "expired"]);
+      if (status) terms.push(`status:'${status}'`);
+    }
+  }
   const since = flags.get("--since");
   if (since !== undefined) {
     if (!/^\d+[mhd]$/i.test(since))
@@ -301,12 +344,26 @@ export function filterOf(invocation: Invocation): string | undefined {
           "Example: `--since 7d`",
         ],
       );
-    if (detection || host)
+    if (detection || host || vuln || cve)
       terms.push(
-        `${detection ? "created_timestamp" : "last_seen"}:>'now-${since.toLowerCase()}'`,
+        `${cve ? "publish_date" : detection || vuln ? "created_timestamp" : "last_seen"}:>'now-${since.toLowerCase()}'`,
       );
   }
   const raw = flags.get("--filter");
   if (raw !== undefined) terms.push(terms.length ? `(${raw})` : raw);
+  if (vuln && !terms.length)
+    throw new CliError("VALIDATION_ERROR", "vuln list requires a filter", [
+      "Run `falcon-axi vuln list --host <device_id>` for one host's vulnerabilities",
+      "Run `falcon-axi vuln list --severity critical --status open` for the fleet's worst",
+    ]);
+  if (vuln && terms.join("+").includes("*"))
+    throw new CliError(
+      "FQL_INVALID",
+      "Spotlight filters do not support wildcards",
+      [
+        "Remove the `*` and match an exact value, for example `cve.id:'CVE-2024-3094'`",
+        "Run `falcon-axi vuln list --help` for the filterable fields",
+      ],
+    );
   return terms.length ? terms.join("+") : undefined;
 }

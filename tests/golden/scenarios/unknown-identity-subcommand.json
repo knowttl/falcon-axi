@@ -7,7 +7,17 @@
   "exit_code": 2,
   "comment": "Identity policy-rule reads add the rule group to the nested identity subcommand remedies.",
   "typescriptMigration": {
-    "unavailableGroup": "identity",
-    "restore": "Restore each omitted navigation or original group when its commands ship; S13 compares the original documents with no TypeScript discovery exceptions."
+    "omitSubcommands": {
+      "group": "identity",
+      "names": [
+        "list",
+        "show",
+        "timeline",
+        "assessment",
+        "activity",
+        "rule"
+      ]
+    },
+    "restore": "Restore remaining identity navigation when its commands ship; S13 compares the original documents without discovery exceptions."
   }
 }

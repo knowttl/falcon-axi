@@ -13,6 +13,9 @@ import { commands } from "./metadata.js";
 import { operation } from "./transport/operations.js";
 import { parse, filterOf } from "./parser.js";
 import { investigate } from "./investigation.js";
+import { Domain, quote } from "./domain.js";
+import { inventory } from "./inventory.js";
+import { exposure } from "./exposure.js";
 import { homedir } from "node:os";
 import { resolve } from "node:path";
 import helpText from "./help.json" with { type: "json" };
@@ -20,10 +23,6 @@ import { VERSION } from "./version.js";
 
 const description =
   "Read CrowdStrike Falcon from the shell with compact, structured results for agents and the humans running them.";
-const shellQuote = (value: string): string =>
-  /^[\w@%+=:,./-]+$/.test(value)
-    ? value
-    : `'${value.replaceAll("'", `'"'"'`)}'`;
 
 export async function main(argv: string[], bin?: string): Promise<number> {
   const started = performance.now();
@@ -51,7 +50,7 @@ export async function main(argv: string[], bin?: string): Promise<number> {
       ["region", "config", "profile"]
         .flatMap((name) =>
           activeFlags.has(`--${name}`)
-            ? [` --${name} ${shellQuote(activeFlags.get(`--${name}`)!)}`]
+            ? [` --${name} ${quote(activeFlags.get(`--${name}`)!)}`]
             : [],
         )
         .join("") +
@@ -233,14 +232,45 @@ export async function main(argv: string[], bin?: string): Promise<number> {
       );
       return 0;
     }
-    const result = await investigate(
+    const domain = new Domain(
       invocation,
       credential,
       session,
-      filter,
       allowUnknown,
       signal,
     );
+    const result =
+      [
+        "account",
+        "asset",
+        "application",
+        "login",
+        "iot",
+        "host-group",
+        "sensor-usage",
+      ].includes(command.name.split(" ")[0]!) ||
+      command.name.startsWith("identity sensor ")
+        ? await inventory(domain, filter)
+        : [
+              "vuln",
+              "cve",
+              "cloud-asset",
+              "iom",
+              "cloud-risk",
+              "container",
+              "image",
+              "serverless",
+              "shield",
+            ].includes(command.name.split(" ")[0]!)
+          ? await exposure(domain, filter)
+          : await investigate(
+              invocation,
+              credential,
+              session,
+              filter,
+              allowUnknown,
+              signal,
+            );
     if (
       session.rateLimit &&
       session.remaining !== undefined &&
@@ -261,6 +291,7 @@ export async function main(argv: string[], bin?: string): Promise<number> {
         "Run `falcon-axi detection list` to see more detections",
         "Run `falcon-axi detection list --product idp` for Identity Protection detections",
         "Run `falcon-axi host list --filter \"hostname:'WIN-*'\"` to search hosts",
+        "Run `falcon-axi cve show <CVE-ID>` for Falcon Intelligence on one CVE",
         "Run `falcon-axi scopes` to see what this API client needs",
       );
     }

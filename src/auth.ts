@@ -21,6 +21,60 @@ export function responseFailure(
     typeof meta.trace_id === "string" ? { trace_id: meta.trace_id } : {};
   if (response.status === 400) {
     const remedy: Readonly<Record<string, readonly [string, string]>> = {
+      query_accounts: ["account list", "username:'synthetic-user'"],
+      get_accounts: ["account list", "username:'synthetic-user'"],
+      GetSensorUsageWeekly: ["sensor-usage list", "period:'30'"],
+      combined_hosts: ["asset list", "entity_type:'managed'"],
+      get_hosts: ["asset list", "entity_type:'managed'"],
+      combined_applications: ["application list", "name:'Chrome'"],
+      query_logins: ["login list", "login_status:'Failed'"],
+      get_logins: ["login list", "login_status:'Failed'"],
+      queryCombinedHostGroups: ["host-group list", "group_type:'dynamic'"],
+      queryCombinedGroupMembers: [
+        "host-group members",
+        "platform_name:'Windows'",
+      ],
+      query_iot_hostsV2: ["iot list", "device_type:'Printer'"],
+      get_iot_hosts: ["iot list", "device_type:'Printer'"],
+      QuerySensorsByFilter: [
+        "identity sensor list",
+        "hostname:'SYNTH-DC-01'+status:'healthy'",
+      ],
+      GetSensorDetails: [
+        "identity sensor list",
+        "hostname:'SYNTH-DC-01'+status:'healthy'",
+      ],
+      cloud_security_assets_queries: [
+        "cloud-asset list",
+        "cloud_provider:'aws'",
+      ],
+      cloud_security_assets_entities_get: [
+        "cloud-asset list",
+        "cloud_provider:'aws'",
+      ],
+      cspm_evaluations_iom_queries: [
+        "iom list",
+        "severity:'critical'+status:'non-compliant'",
+      ],
+      cspm_evaluations_iom_entities: [
+        "iom list",
+        "severity:'critical'+status:'non-compliant'",
+      ],
+      combined_cloud_risks: [
+        "cloud-risk list",
+        "severity:'Critical'+status:'Open'",
+      ],
+      QueryVulnerabilities: ["cve list", "severity:'CRITICAL'"],
+      GetVulnerabilities: ["cve list", "severity:'CRITICAL'"],
+      getVulnerabilities: ["vuln list", "status:'open'"],
+      combinedQueryVulnerabilities: ["vuln list", "status:'open'"],
+      ReadContainerCombined: ["container list", "namespace:'production'"],
+      GetCombinedImages: ["image list", "repository:'example/service'"],
+      ReadCombinedVulnerabilities: ["image vulnerabilities", "cvss_score:>7"],
+      GetCombinedVulnerabilitiesSARIF: [
+        "serverless list",
+        "cloud_provider:'aws'",
+      ],
       highVolumeQueryChanges: [
         "file-change list",
         "host.name:'SYNTHETIC-HOST'",
@@ -85,6 +139,7 @@ export function responseFailure(
         "Grant `Alerts:read` (read only) in the Falcon console under Support and resources > API clients and keys",
       ]);
     const licences: Readonly<Record<string, string>> = {
+      "Assets:read": "Falcon Discover or Exposure Management",
       "Falcon FileVantage:read": "Falcon FileVantage",
       "Threatgraph:read":
         "a Falcon subscription with ThreatGraph API access enabled",

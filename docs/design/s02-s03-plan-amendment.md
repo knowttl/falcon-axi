@@ -19,7 +19,7 @@ Move only `test_host_group_member_cursor_rejects_a_different_group` from SR-125/
 Plan S04 owns host-group endpoint inventory.
 This standalone symbol requires a successful `host-group members` read before checking cross-group cursor refusal.
 The already-correct parameter selections in SR-123 and SR-125 remain unchanged.
-The moved symbol remains pending and required in S04 and S13.
+The moved symbol is covered by `S04/S05 host-group member cursor rejects a different group` in `tests/typescript/s04-s05.test.ts` and remains required in S13.
 Apply the same ownership rule to a later single-test mismatch: record the move to its existing plan owner and retain the final S13 requirement.
 A change that leaves a requirement unowned or changes scope requires a separate decision.
 
@@ -40,7 +40,8 @@ The Python expected documents remain unchanged.
 | `host-list-page`, `host-list-fields`, `host-list-filtered`, `host-show`, `host-walk-budget-at-wall` | Omit vulnerability-list suggestions. | S05 ships vulnerability reads. |
 | `home-view` | Omit the CVE-detail suggestion. | S05 ships CVE reads. |
 | `help-top`, `unknown-command`, `scopes` | Restrict command names, summaries and the scope matrix to frozen delivered commands; omit later execution/scope guidance. | Each additional command ships. |
-| `cloud-risk-show-absent`, `unknown-account-subcommand`, `unknown-identity-subcommand`, `identity-sensor-unknown-subcommand`, `unknown-search-subcommand` | Treat the unavailable group as an unknown command, showing only delivered commands. | The corresponding S04, S05, S08 or S09 group ships. |
+| `unknown-identity-subcommand` | Show only delivered Identity subcommands. | The remaining S08 and S09 Identity commands ship. |
+| `unknown-search-subcommand` | Treat the unavailable group as an unknown command, showing only delivered commands. | S08 ships search commands. |
 | `unknown-host-subcommand` | Omit `usb` from valid host subcommands. | S08 ships host USB history. |
 
 Restore each original discovery entry when its target ships and remove its temporary annotation.
