@@ -158,6 +158,7 @@ function setHostedDelivery(nextPort: string | number): Promise<void> {
 }
 export function nextHostedTerminal(
   action: "read" | "write" | "any" = "write",
+  outcome?: string,
 ): Promise<Record<string, unknown>> {
   assert.ok(host);
   return new Promise((resolve) => {
@@ -169,7 +170,10 @@ export function nextHostedTerminal(
         message.terminal &&
         typeof message.terminal === "object" &&
         "action" in message.terminal &&
-        (action === "any" || message.terminal.action === action)
+        (action === "any" || message.terminal.action === action) &&
+        (outcome === undefined ||
+          ("outcome" in message.terminal &&
+            message.terminal.outcome === outcome))
       ) {
         host!.removeListener("message", listener);
         resolve(message.terminal as Record<string, unknown>);
@@ -196,14 +200,18 @@ export function nextHostedChild(): Promise<number> {
   });
 }
 const server = createServer();
-export async function managedAudit(): Promise<unknown[]> {
+export async function managedAudit(
+  requestId?: string,
+): Promise<Record<string, unknown>[]> {
   if (!hosted) throw new Error("Managed audit requires Artium");
   const response = await fetch(
-    `${hosted.url}/v1/admin/audit?tool=falcon-axi&event=run-terminal&limit=100`,
+    `${hosted.url}/v1/admin/audit?tool=falcon-axi&event=run-terminal&limit=100${requestId ? `&requestId=${encodeURIComponent(requestId)}` : ""}`,
     { headers: hosted.headers },
   );
   assert.equal(response.status, 200);
-  const body = (await response.json()) as { records: unknown[] };
+  const body = (await response.json()) as {
+    records: Record<string, unknown>[];
+  };
   return body.records;
 }
 function matchesRoute(id: string, method: string, path: string): boolean {

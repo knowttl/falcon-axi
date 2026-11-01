@@ -1,5 +1,5 @@
 import assert from "node:assert/strict";
-import { test } from "node:test";
+import { afterEach, test } from "node:test";
 import { readFile, readdir, stat } from "node:fs/promises";
 import { join } from "node:path";
 import { request as requestHttp } from "node:http";
@@ -12,9 +12,12 @@ import {
   dynamicResponse,
   tokenResponse,
   hostedConnection,
+  managedAudit,
   nextHostedTerminal,
   nextHostedChild,
 } from "./s01.test.js";
+
+afterEach(reset);
 
 interface HostedResult {
   stdout: string;
@@ -26,7 +29,7 @@ async function post(
   args: string[],
   headers = hostedConnection().headers,
   input?: { stdin: string },
-): Promise<{ status: number; result: HostedResult }> {
+): Promise<{ status: number; result: HostedResult; requestId: string }> {
   const connection = hostedConnection();
   const response = await fetch(`${connection.url}/v1/tools/falcon-axi/run`, {
     method: "POST",
@@ -36,9 +39,12 @@ async function post(
   return {
     status: response.status,
     result: (await response.json()) as HostedResult,
+    requestId: response.headers.get("x-artium-request-id")!,
   };
 }
-async function credential(value: Record<string, unknown>): Promise<Response> {
+async function saveCredential(
+  value: Record<string, unknown>,
+): Promise<Response> {
   const { url, headers } = hostedConnection();
   const current = (await (
     await fetch(`${url}/v1/admin/tools/falcon-axi/credential`, { headers })
@@ -47,7 +53,7 @@ async function credential(value: Record<string, unknown>): Promise<Response> {
     await fetch(`${url}/v1/admin/tools/falcon-axi`, { headers })
   ).json()) as { revision: number };
   return fetch(`${url}/v1/admin/tools/falcon-axi/credential`, {
-    method: "PUT",
+    method: "PATCH",
     headers: { ...headers, "content-type": "application/json" },
     body: JSON.stringify({
       expectedRevision: current.revision,
@@ -68,34 +74,38 @@ async function settled(): Promise<void> {
 test("S13 C24 public credential entry rejects refs and unknown fields and has no missing-secret fallback", async () => {
   await run(["detection", "list"]);
   const identity = { clientId: "synthetic-entry-client", region: "us-1" };
-  const saved = await credential({
+  const saved = await saveCredential({
     ...identity,
     clientSecret: "synthetic-entry-secret",
   });
   assert.equal(saved.status, 200, await saved.text());
   reset();
-  const ref = await credential({
+  const ref = await saveCredential({
     ...identity,
     clientSecret: { env: "SYNTHETIC_SECRET" },
   });
   assert.equal(ref.status, 400, await ref.text());
-  const unknown = await credential({
+  const unknown = await saveCredential({
     ...identity,
     clientSecret: "synthetic-entry-secret",
     surprise: true,
   });
   assert.equal(unknown.status, 400, await unknown.text());
   assert.equal(wire.length, 0);
-  const retained = await credential(identity);
+  const retained = await saveCredential(identity);
   assert.equal(retained.status, 200, await retained.text());
   const retainedHealth = await post(["auth", "status"]);
-  assert.equal(retainedHealth.result.exitCode, 0, JSON.stringify(retainedHealth));
+  assert.equal(
+    retainedHealth.result.exitCode,
+    0,
+    JSON.stringify(retainedHealth),
+  );
   assert.equal(
     new URLSearchParams(wire[0]!.body).get("client_secret"),
     "synthetic-entry-secret",
   );
   reset();
-  const missing = await credential({
+  const missing = await saveCredential({
     clientId: "synthetic-new-client",
     region: "us-1",
   });
@@ -107,7 +117,7 @@ test("S13 C24 public credential entry rejects refs and unknown fields and has no
   await settled();
 });
 
-test("S13 concurrent users receive private profiles and independent tokens despite conflicting server environment", async () => {
+test("S13 concurrent users receive private profiles and independent tokens despite conflicting server environment", async (context) => {
   await run(["detection", "list"]);
   reset();
   const connection = hostedConnection();
@@ -118,6 +128,12 @@ test("S13 concurrent users receive private profiles and independent tokens despi
   });
   const holdFirst = new Promise<void>((resolve) => {
     releaseFirst = resolve;
+  });
+  const pending: Promise<unknown>[] = [];
+  context.after(async () => {
+    releaseFirst();
+    reset();
+    await Promise.allSettled(pending);
   });
   let profiles: string[] = [];
   dynamicResponse("GetQueriesAlertsV2", async (query) => {
@@ -164,15 +180,18 @@ test("S13 concurrent users receive private profiles and independent tokens despi
     expires_in: 1800,
   });
   const first = post(["detection", "list", "--filter", "hostname:'first'"]);
+  pending.push(first);
   await firstArrived;
   tokenResponse(200, {
     access_token: "synthetic-token-second",
     expires_in: 1800,
   });
-  const second = await post(
+  const secondRequest = post(
     ["detection", "list", "--filter", "hostname:'second'"],
     connection.otherHeaders,
   );
+  pending.push(secondRequest);
+  const second = await secondRequest;
   assert.equal((await first).result.exitCode, 0);
   assert.equal(second.result.exitCode, 0, JSON.stringify(second));
   for (const text of profiles) {
@@ -258,7 +277,6 @@ test(
     reset();
     dynamicResponse("GetQueriesAlertsV2", () => new Promise<never>(() => {}));
     const child = nextHostedChild();
-    const terminal = nextHostedTerminal("any");
     const started = performance.now();
     const result = await post(["detection", "list"]);
     assert.equal(result.result.exitCode, 1, JSON.stringify(result));
@@ -271,7 +289,8 @@ test(
       wire.filter((item) => item.url.includes("queries/alerts")).length,
       1,
     );
-    assert.equal((await terminal).error_code, "WAIT_TIMEOUT");
+    const [terminal] = await managedAudit(result.requestId);
+    assert.equal(terminal?.error_code, "WAIT_TIMEOUT");
     const pid = await child;
     assert.throws(() => process.kill(-pid, 0), { code: "ESRCH" });
     await settled();
@@ -310,7 +329,6 @@ test(
       };
     });
     const child = nextHostedChild();
-    const terminal = nextHostedTerminal("any");
     const started = performance.now();
     const result = await post([
       "detection",
@@ -334,7 +352,8 @@ test(
         ),
       [1000, 1000, 1],
     );
-    assert.equal((await terminal).outcome, "TIMEOUT");
+    const [terminal] = await managedAudit(result.requestId);
+    assert.equal(terminal?.outcome, "TIMEOUT");
     const pid = await child;
     assert.throws(() => process.kill(-pid, 0), { code: "ESRCH" });
     await settled();
@@ -354,7 +373,7 @@ test(
       return new Promise<never>(() => {});
     });
     const child = nextHostedChild();
-    const terminal = nextHostedTerminal("any");
+    const terminal = nextHostedTerminal("any", "CANCELLED");
     await new Promise<void>((resolve, reject) => {
       request = requestHttp(
         `${url}/v1/tools/falcon-axi/run`,
@@ -369,7 +388,7 @@ test(
       );
       request.end(JSON.stringify({ args: ["detection", "list"] }));
     });
-    assert.equal((await terminal).outcome, "CANCELLED");
+    await terminal;
     const pid = await child;
     assert.throws(() => process.kill(-pid, 0), { code: "ESRCH" });
     await settled();

@@ -36,6 +36,13 @@ The runtime package contains compiled JavaScript, the schema and admission metad
 
 The [Phase A rollback record](typescript-transition.md) owns the immutable Python artifact, matched Artium lock/runtime/schema/inventory hashes, restored hook, command-name selection, and real local Artium synthetic read.
 The configured native gate and affected cutover checks must pass before requesting cutover approval.
+The seven focused S13 hosted release-candidate cases passed against the exact `1.0.0-rc.1` tarball with SHA-256 `5e15efd970a47d7257717fe0cef19f576e5e728e6ab34bac3bab845f23cfe48a`.
+They exercise PATCH same-identity secret retention and changed-identity refusal, concurrent private profiles, bounded stdin and upload refusal, the 30-second native deadline, the 65-second host budget, and disconnect cleanup.
+Audit assertions correlate completed requests with the public response request identifier, rather than selecting unrelated background health events.
+The frozen local Artium fixture is `fc38f47ae671334ed8c6eef043fd6f1c41fb7312`, with the package lock, Node inventory and schema matching the installed artifact.
+Its unpackaged launcher adds child-PID observation for process-group settlement; no production Artium behavior or deployed host was changed.
+The schema SHA-256 is `adb248794413a7b853e36a4a75b4a53bd7f9e6dade8be040d39165f4d926ee30` and the Node 24.14.0 runtime SHA-256 is `e237a2839d0cbdc9a9a2adda1a184afc0f5b20306ffbe923af5686550472d8a8`.
+This focused hosted result does not claim the complete cumulative hosted suite was rerun.
 Native Windows certification remains pending.
 The hosted TypeScript release-candidate fold is separate from the recorded Python rollback proof; any unexecuted host scenarios remain explicitly pending rather than inferred from native results.
 No live tenant calls are authorized or performed.
