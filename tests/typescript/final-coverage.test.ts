@@ -2,7 +2,7 @@ import assert from "node:assert/strict";
 import { test } from "node:test";
 import { checkWorkflow } from "../../scripts/typescript/final-coverage.js";
 
-test("Workflow safety ignores a harmless YAML comment", () => {
+test("S13 Workflow safety ignores a harmless YAML comment", () => {
   assert.doesNotThrow(() =>
     checkWorkflow(`
 # FALCON_AXI_LIVE must remain disabled.
@@ -26,7 +26,7 @@ for (const [location, workflow] of [
     'jobs:\n  verify:\n    steps:\n      - run: "echo $FALCON_AXI_LI\\u0056E"',
   ],
 ] as const) {
-  test(`Workflow safety rejects an escaped forbidden identifier in a ${location} setting`, () => {
+  test(`S13 Workflow safety rejects an escaped forbidden identifier in a ${location} setting`, () => {
     assert.throws(
       () => checkWorkflow(workflow),
       /Credential or live automation is forbidden/,
