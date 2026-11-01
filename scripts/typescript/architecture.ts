@@ -68,7 +68,11 @@ export function violations(source: string, name: string): string[] {
             (name === "transport/dns-worker.ts" &&
               specifier.text === "node:dns/promises") ||
             (name === "windows-acl.ts" &&
-              specifier.text === "node:child_process")
+              specifier.text === "node:child_process") ||
+            (name === "rtr-filesystem.ts" &&
+              ["node:module", "node:url", "../native/checksums.json"].includes(
+                specifier.text,
+              ))
           ))
       )
         errors.push("unauthorized dependency");

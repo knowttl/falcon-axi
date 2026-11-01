@@ -611,7 +611,12 @@ before(async () => {
   for (const file of pack[0]!.files)
     assert.ok(
       ["package.json", "LICENSE", "README.md"].includes(file.path) ||
-        file.path.startsWith(".typescript-build/src/"),
+        file.path.startsWith(".typescript-build/src/") ||
+        [
+          ".typescript-build/native/checksums.json",
+          "native/prebuilds/linux-x64.node",
+          "native/prebuilds/win32-x64.node",
+        ].includes(file.path),
       `unpackaged authority: ${file.path}`,
     );
   const prefix = join(directory, "clean install");

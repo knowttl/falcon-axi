@@ -70,10 +70,36 @@ Errors use the Python origin's top-level error and code fields rather than S01's
 Opaque cursors retain the origin's signed context and exact serialization.
 No existing Python golden document is rewritten.
 
-## Primitive negative evidence
+## Native primitive proof
 
 The [approved S01 amendment](s01-primitive-amendment.md) owns the deferred primitive proof, required native-addon guarantees, and remaining STOP gates.
-The retained `npm run probe:primitive -- --slice S01 --paths native --offline` is negative evidence and exits 1 deliberately.
-It does not participate in the S01 passing check.
-The probe demonstrates that path-based O_NOFOLLOW cannot preserve a retained ancestor descriptor after pathname replacement.
+The original negative probe reproduced an append reaching a replacement ancestor despite path-based O_NOFOLLOW.
+`npm run probe:primitive -- --slice S01 --paths native --offline` now exercises the compiled adapter and must pass as part of `npm run verify`.
+This proves primitives, not the S11 lifecycle or full AC-RTR-FS acceptance.
+The approved DNS settlement boundary remains unchanged.
+
+`native/rtr_fs.c` is the single native dependency, implemented directly in C with N-API 8 and no third-party native library.
+`src/rtr-filesystem.ts` loads it only when opening an execution journal or lock, verifies its SHA-256, and rejects unsupported controllers before loading any binary.
+Current prebuilds target Linux x64 with glibc 2.33 or newer and Windows x64.
+The Windows prebuild has no POSIX entry points; controller execution refuses while ordinary reads remain independent of native loading.
+Native Windows loading and execution evidence remains pending.
+Preview integration remains part of S11, which must preserve this loading boundary.
+
+The adapter exposes open, append and close over opaque retained handles.
+It traverses absolute paths using openat with O_NOFOLLOW and directory descriptors, retaining the Python origin's ownership, sticky-ancestor, permission, regular-file and single-link policy.
+Missing directories are created privately and their parent is flushed.
+Files are opened append-only and nonblocking with close-on-exec descriptors.
+Lock handles take nonblocking flock on the retained inode, stay empty and are never unlinked.
+Journal appends recheck the retained file, finish short writes, retry EINTR, and flush the file and directory before returning success.
+An unsuccessful write or flush poisons that handle and reports CONFIG_INSECURE without replaying the record.
+Close releases descriptors deterministically; garbage collection is only a fallback.
+Serialization, redaction, bounded records and all lifecycle authority remain S11 responsibilities.
+
+Both prebuilds ship inside the package with checksums; no install script, compiler download or runtime compilation is used.
+`npm run build:native` is a maintainer-only rebuild using pinned GCC versions and SHA-256-pinned Node 24.14.0 headers.
+`native/provenance.json` records compiler flags, header pins and input hashes.
+Ordinary builds check those input and binary hashes without a compiler.
+The compiled-interface probe uses an inherited Linux seccomp IP socket deny, preserving actual filesystem ownership rather than remapping root ownership in a user namespace.
+It proves the deny in IPv4/IPv6 child processes, retained-ancestor writes, unsafe-target and ancestor refusals, cross-process lock contention and release, and injected short-write, EINTR and file/directory fsync outcomes.
+An outside-source install proves compiled appends, binary-integrity refusal, and read/help plus Windows controller refusal with the binaries removed.
 Neither fs-ext nor fs-native-extensions was adopted.
