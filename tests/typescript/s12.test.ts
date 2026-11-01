@@ -260,6 +260,29 @@ for (const kind of [
   });
 
 for (const [index, content] of [
+  '{"theme":"\xff"}',
+  '{"theme":"\xff"}',
+  'model = "\xff"\n',
+  "// Managed by falcon-axi-session\n// \xff\n",
+].entries())
+  test(`S12 invalid UTF-8 configuration preserves all files ${paths[index]}`, async () => {
+    const home = join(directory, `invalid-utf8-${index}`);
+    await mkdir(home);
+    assert.equal((await invoke(home, ["setup", "hooks"])).code, 0);
+    await writeFile(join(home, paths[index]!), Buffer.from(content, "latin1"));
+    const snapshot = await Promise.all(
+      paths.map((path) => readFile(join(home, path))),
+    );
+    const result = await invoke(home, ["setup", "hooks"]);
+    assert.equal(result.code, 2);
+    assert.match(result.stdout, /CONFIG_INVALID/);
+    assert.deepEqual(
+      await Promise.all(paths.map((path) => readFile(join(home, path)))),
+      snapshot,
+    );
+  });
+
+for (const [index, content] of [
   "{damaged",
   '{"hooks":{"SessionStart":{}}}',
   "[broken",

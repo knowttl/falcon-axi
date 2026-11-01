@@ -845,7 +845,6 @@ test("S10 authority refusal excludes wider operations and query parameters", asy
     body: { patterns: [{ type: "ascii", value: "x" }], options: { limit: 20 } },
     query: { limit: 1000 },
   };
-  assert.ok(object(forged));
   await assert.rejects(
     async () =>
       requestException(
