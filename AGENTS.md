@@ -109,7 +109,7 @@ The implementation seams are documented in `docs/design/v1-typescript.md`:
   asserts.
 
 The automation is `.github/workflows/ci.yml`, which runs `npm run verify` with no secrets, and `.github/workflows/release-please.yml`, whose release and publish jobs are disabled during cutover.
-The architecture check allows exactly those two workflows, rejects other CI configurations, and rejects `FALCON_AXI_LIVE`, both credential environment names, and their deprecated aliases in either workflow.
+The final-coverage check allows exactly those two workflow files and rejects `FALCON_AXI_LIVE`, both credential environment names, and their deprecated aliases in decoded workflow settings.
 
 ## Build to the AXI skill
 
