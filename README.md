@@ -173,7 +173,7 @@ Errors include a stable `code` and actionable `help`; unknown commands and flags
 
 - No live-tenant validation is claimed; offline checks use synthetic fixtures only.
 - This README documents the released Python package, which is the only published implementation.
-- The `migration/typescript` branch also holds an unpublished, private TypeScript candidate (`@knowttl/falcon-axi`, Node 24.11 or newer, executable `falcon-axi`).
+- The `migration/typescript` branch also holds an unpublished, private TypeScript candidate (`@knowttl/falcon-axi`, Node 24, executable `falcon-axi`).
   It is pending: it has no npm release and no install line.
   At this head it does not ship `setup`, `setup hooks`, or the hook integration, and it reports a placeholder version.
   See the [candidate notes](docs/design/v1-typescript.md) for its delivered surface and offline checks.

@@ -4,7 +4,7 @@
   "hook": ".typescript-build/src/hook.js",
   "schema": {
     "path": ".typescript-build/src/axi-credential.schema.json",
-    "sha256": "4d8bf0f455c875f34df214b75cf5fa8f349f54850799dafea64300b6b1c3d3c3"
+    "sha256": "adb248794413a7b853e36a4a75b4a53bd7f9e6dade8be040d39165f4d926ee30"
   },
   "parser": {
     "path": ".typescript-build/src/parser.js",

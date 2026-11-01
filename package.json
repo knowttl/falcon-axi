@@ -34,7 +34,7 @@
     "build": "node scripts/typescript/build.ts",
     "generate": "npm run build && node .typescript-build/scripts/typescript/generate.js",
     "lint": "prettier --check package.json tsconfig.json 'src/**/*.ts' src/axi-credential.schema.json src/help.json 'scripts/typescript/*.ts' 'tests/typescript/*.ts'",
-    "verify": "npm run build && npm run lint && node .typescript-build/scripts/typescript/check-slice.js --slice S13 --paths native --offline",
+    "verify": "npm run build && npm run lint && node .typescript-build/scripts/typescript/package-contract.js && node .typescript-build/scripts/typescript/check-slice.js --slice S13 --paths native --offline",
     "check:coverage": "npm run build && node .typescript-build/scripts/typescript/coverage.js --strict && node .typescript-build/scripts/typescript/final-coverage.js",
     "check:slice": "npm run build && node .typescript-build/scripts/typescript/check-slice.js",
     "probe:primitive": "npm run build && node .typescript-build/scripts/typescript/primitive-probe.js"

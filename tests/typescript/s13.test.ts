@@ -21,7 +21,6 @@ test("S13 generated parser schema skill and catalog refuse drift and repair it",
     ".typescript-build/src",
     "scripts/typescript",
     "skills/falcon-axi",
-    "src/axi-credential.schema.json",
     "package.json",
     "artium-invocations.json",
     ".typescript-build/scripts/typescript/generate.js",
@@ -39,7 +38,7 @@ test("S13 generated parser schema skill and catalog refuse drift and repair it",
   assert.equal(check(), 0);
   for (const path of [
     ".typescript-build/src/parser.js",
-    "src/axi-credential.schema.json",
+    ".typescript-build/src/axi-credential.schema.json",
     "skills/falcon-axi/SKILL.md",
     "artium-invocations.json",
   ]) {
