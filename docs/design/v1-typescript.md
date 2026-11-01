@@ -1,4 +1,4 @@
-# TypeScript S02/S03 candidate
+# TypeScript S02-S05 candidate
 
 The [approved settlement amendment](s01-primitive-amendment.md#dns-deadline-settlement) owns the DNS resolver and process settlement contract.
 The installed-artifact regression uses a three-second local DNS blackhole and requires WAIT_TIMEOUT and process settlement within the inherited one-second budget plus startup allowance.
@@ -6,6 +6,11 @@ The installed-artifact regression uses a three-second local DNS blackhole and re
 The migration branch preserves the released Python implementation while evaluating a Node 24 TypeScript replacement.
 The private npm candidate is `@knowttl/falcon-axi@0.0.0-s02.0` with the executable name `falcon-axi`.
 The candidate delivers local configuration diagnostics, token-checking `auth status`, `scopes`, and passive detection investigation and host, IOC, process, FileVantage and RTR history reads.
+S04 adds account, asset, application, login, host-group, IoT, weekly sensor usage and Identity sensor reads.
+S05 adds Spotlight vulnerabilities, CVE intelligence, cloud assets and misconfigurations, aggregated cloud risks, containers, images, serverless SARIF and Shield checks.
+These slices preserve the Python projections, scope distinctions and signed continuation contexts.
+Discover assets/applications/IoT and Spotlight use opaque `after` values, cloud assets use `meta.next`, and the remaining inventories use offsets.
+Account offsets remain unbounded; container/image inventory caps its window at 10000 records, while SARIF advances by source-record budget rather than run count.
 `src/metadata.ts` owns the delivered TypeScript command and flag surface.
 The released Python implementation remains present as the frozen comparison and rollback origin.
 The supported `search status synthetic-job --wait 1` acceptance path exercises OAuth under an inherited one-second budget without sending a search request; successful authentication ends with `VALIDATION_ERROR` because the search lifecycle is not delivered here.
@@ -18,8 +23,8 @@ Development pins Node 24.14.0, npm 11.9.0 and exact locked dependencies.
 The runtime floor is Node 24.11.0; native Windows and other Node versions remain unproved in this slice.
 Run `npm ci --offline --ignore-scripts` and `npm run verify`.
 The latter includes the full native offline carrier suite and the frozen safety ownership check.
-The S02/S03 carrier repeats the S01 native checks and adds credential selection, local diagnostics, parser refusals and investigation reads.
-The frozen slice contracts in `tests/fixtures/migration/S02/contracts.json` and `S03/contracts.json` retain the owned operation, case, command and golden scenario identities.
+The S04/S05 carrier repeats the S01-S03 native checks and adds inventory/exposure golden parity, continuation replay, bounded walks, malformed-response refusals and recursive numeric/Unicode detail checks.
+The frozen slice contracts in `tests/fixtures/migration/S02/contracts.json` through `S05/contracts.json` retain the owned operation, case, command and golden scenario identities.
 Native Windows evidence remains pending.
 The installed check packs an explicit compiled-source allowlist, installs outside the checkout and executes the npm bin from a directory containing spaces.
 Linux user/network/mount namespaces and iproute2 are required for that check.
@@ -28,7 +33,7 @@ Synthetic TLS delivery is injected only by the unpackaged test launcher after pr
 The CLI contains no fake-origin flag, config field, environment selector or recorded transport.
 
 The optional hosted path requires a separately built frozen local Artium fixture containing the reviewed S01 host delta.
-Set `S01_ARTIUM_ROOT` to that fixture and run `npm run check:slice -- --slice S03 --paths native,artium --offline`.
+Set `S01_ARTIUM_ROOT` to that fixture and run `npm run check:slice -- --slice S05 --paths native,artium --offline`.
 Missing fixtures and unknown or empty selections fail.
 The host delta launches the candidate with its Node runtime rather than either Python launch condition, retaining Node heap limits and the existing termination grace.
 The real client, server, public credential API, private profile writer and runner execute the same installed artifact.
@@ -39,7 +44,7 @@ Final hosted evidence is bound separately to the frozen fixture and final candid
 
 The registry retains all 114 canonical operation tuples and their official scope and corroboration citations.
 A pinned canonical digest, own-key checks and recursive freezing seal the registry before networking.
-This carrier enables only the nineteen passive operations owned by S03 after body validation.
+This carrier enables only the 47 passive operations owned by S03-S05 after method, registry and body validation.
 ThreatGraph summaries always use the fixed `processes` path component.
 RTR session metadata and audit reads cannot reach session initialization, command execution, status polling or deletion.
 The remaining reads and every exception tier are unreachable until their owning slices supply their authority checks.

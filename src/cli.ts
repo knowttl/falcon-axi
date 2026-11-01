@@ -13,6 +13,9 @@ import { commands } from "./metadata.js";
 import { operation } from "./transport/operations.js";
 import { parse, filterOf } from "./parser.js";
 import { investigate } from "./investigation.js";
+import { Domain } from "./domain.js";
+import { inventory } from "./inventory.js";
+import { exposure } from "./exposure.js";
 import { homedir } from "node:os";
 import { resolve } from "node:path";
 import helpText from "./help.json" with { type: "json" };
@@ -233,14 +236,45 @@ export async function main(argv: string[], bin?: string): Promise<number> {
       );
       return 0;
     }
-    const result = await investigate(
+    const domain = new Domain(
       invocation,
       credential,
       session,
-      filter,
       allowUnknown,
       signal,
     );
+    const result =
+      [
+        "account",
+        "asset",
+        "application",
+        "login",
+        "iot",
+        "host-group",
+        "sensor-usage",
+      ].includes(command.name.split(" ")[0]!) ||
+      command.name.startsWith("identity sensor ")
+        ? await inventory(domain, filter)
+        : [
+              "vuln",
+              "cve",
+              "cloud-asset",
+              "iom",
+              "cloud-risk",
+              "container",
+              "image",
+              "serverless",
+              "shield",
+            ].includes(command.name.split(" ")[0]!)
+          ? await exposure(domain, filter)
+          : await investigate(
+              invocation,
+              credential,
+              session,
+              filter,
+              allowUnknown,
+              signal,
+            );
     if (
       session.rateLimit &&
       session.remaining !== undefined &&

@@ -4,17 +4,30 @@ import { join, resolve } from "node:path";
 import { commands } from "../../src/metadata.js";
 import s02 from "../../tests/fixtures/migration/S02/contracts.json" with { type: "json" };
 import s03 from "../../tests/fixtures/migration/S03/contracts.json" with { type: "json" };
+import s04 from "../../tests/fixtures/migration/S04/contracts.json" with { type: "json" };
+import s05 from "../../tests/fixtures/migration/S05/contracts.json" with { type: "json" };
 import ledger from "../../tests/migration/coverage.json" with { type: "json" };
+import inventoryLedger from "../../tests/migration/coverage-s04-s05.json" with { type: "json" };
 
 const digest = (value: string | Buffer): string =>
   createHash("sha256").update(value).digest("hex");
 const seal = "2e5ed16c25d3b8beeda2127ad9664a849b78b221ea7e65fa668eb69a7fdb1674";
+const inventorySeal =
+  "7283d209cdbc0acb10497c767ccd1f6946bcbfd46fb46e82277c4b2f992638ec";
+if (digest(JSON.stringify(inventoryLedger)) !== inventorySeal)
+  throw new Error("Frozen S04/S05 safety ownership changed");
+const groups = [...ledger.groups, ...inventoryLedger.groups];
 if (digest(JSON.stringify(ledger)) !== seal)
   throw new Error(
     "Frozen safety ownership, members or parameter selections changed",
   );
 const expectedCommands = [
-  ...new Set([...s02.commandNames, ...s03.commandNames]),
+  ...new Set([
+    ...s02.commandNames,
+    ...s03.commandNames,
+    ...s04.commandNames,
+    ...s05.commandNames,
+  ]),
 ]
   .filter((name) => name !== "home")
   .sort();
@@ -28,9 +41,14 @@ if (
 const operations = [
   ...new Set(commands.flatMap((command) => command.operations)),
 ].sort();
-if (JSON.stringify(operations) !== JSON.stringify([...s03.operationIds].sort()))
-  throw new Error("Operation coverage differs from frozen S03 ownership");
-for (const group of ledger.groups) {
+if (
+  JSON.stringify(operations) !==
+  JSON.stringify(
+    [...s03.operationIds, ...s04.operationIds, ...s05.operationIds].sort(),
+  )
+)
+  throw new Error("Operation coverage differs from frozen S03-S05 ownership");
+for (const group of groups) {
   if (digest(readFileSync(resolve(group.source))) !== group.sourceSha256)
     throw new Error(`Pinned source changed: ${group.source}`);
   const source = readFileSync(resolve(group.source), "utf8");
@@ -48,6 +66,146 @@ for (const flag of commands.flatMap((command) => [
 // Source symbols are adapted to public observations, not historical test counts.
 // Structural entries run above; other entries bind to passing installed-artifact checks.
 const bindings: Readonly<Record<string, readonly string[]>> = {
+  "SR-001": ["S04/S05 continuation replay account-list-page"],
+  "SR-002": [
+    "golden account-show",
+    "S04/S05 pre-authentication input refusal account",
+  ],
+  "SR-012": ["S04/S05 continuation replay account-list-page"],
+  "SR-013": [
+    "S04/S05 continuation replay vuln-list-page",
+    "S04/S05 continuation replay cloud-asset-list",
+    "S04/S05 continuation replay iom-list",
+    "S04/S05 continuation replay cloud-risk-list",
+    "S04/S05 continuation replay shield-list",
+  ],
+  "SR-020": ["S04/S05 continuation replay account-list-page"],
+  "SR-021": ["S04/S05 continuation replay vuln-list-page"],
+  "SR-023": ["S04/S05 pre-authentication input refusal account"],
+  "SR-024": ["S04/S05 pre-authentication input refusal vuln"],
+  "SR-028": ["S04/S05 pre-authentication input refusal account"],
+  "SR-029": ["S04/S05 pre-authentication input refusal vuln"],
+  "SR-034": ["golden account-show", "golden asset-show", "golden asset-list"],
+  "SR-035": ["golden cve-show", "golden vuln-list-page"],
+  "SR-037": [
+    "S04/S05 hydration batches cloud-asset",
+    "S04/S05 hydration batches iom",
+  ],
+  "SR-038": [
+    "S04/S05 entity scope refusal cloud_security_assets_entities_get",
+    "S04/S05 entity scope refusal cspm_evaluations_iom_entities",
+  ],
+  "SR-039": ["golden iom-list", "S04/S05 continuation replay cloud-risk-list"],
+  "SR-040": [
+    "S04/S05 continuation replay cloud-asset-list",
+    "S04/S05 continuation replay iom-list",
+  ],
+  "SR-046": ["S04/S05 continuation replay cloud-asset-list"],
+  "SR-047": [
+    "S04/S05 inventory window container-list-page",
+    "S04/S05 inventory window image-list-page",
+    "S04/S05 inventory window image-vulnerabilities-page",
+  ],
+  "SR-048": ["S04/S05 malformed success refuses ReadContainerCombined"],
+  "SR-049": ["S04/S05 rejected filter remedy container-list-page"],
+  "SR-057": [
+    "S04/S05 detail identity cve-show",
+    "S04/S05 pre-authentication input refusal cve show",
+  ],
+  "SR-058": [
+    "S04/S05 continuation replay cve-list-page",
+    "S04/S05 entity scope refusal GetVulnerabilities",
+  ],
+  "SR-059": ["S04/S05 detail identity vuln-show"],
+  "SR-066": [
+    "S04/S05 recursive preview application",
+    "S04/S05 application fields",
+  ],
+  "SR-067": ["golden vuln-list-empty"],
+  "SR-069": [
+    "S04/S05 continuation replay asset-list",
+    "S04/S05 continuation replay application-list",
+    "S04/S05 rejected filter remedy asset-list",
+  ],
+  "SR-070": [
+    "S04/S05 continuation replay login-list",
+    "golden asset-show",
+    "S04/S05 entity scope refusal get_logins",
+  ],
+  "SR-080": ["S04/S05 Spotlight fields"],
+  "SR-084": ["S04/S05 continuation replay vuln-list-page"],
+  "SR-086": [
+    "S04/S05 rejected filter remedy identity-sensor-list",
+    "S04/S05 rejected filter remedy iot-list",
+    "S04/S05 rejected filter remedy host-group-members",
+  ],
+  "SR-087": [
+    "S04/S05 rejected filter remedy cve-list-page",
+    "S04/S05 rejected filter remedy container-list-page",
+  ],
+  "SR-095": ["S04/S05 Spotlight fields"],
+  "SR-096": [
+    "S04/S05 continuation replay identity-sensor-list",
+    "S04/S05 entity scope refusal GetSensorDetails",
+  ],
+  "SR-103": [
+    "S04/S05 continuation replay identity-sensor-list",
+    "golden identity-sensor-show",
+  ],
+  "SR-115": ["S04/S05 continuation replay iot-list", "golden iot-list"],
+  "SR-120": [
+    "S04/S05 continuation replay iot-list",
+    "S04/S05 pre-authentication input refusal iot",
+  ],
+  "SR-124": [
+    "S04/S05 continuation replay host-group-list",
+    "S04/S05 continuation replay host-group-members",
+  ],
+  "SR-126": [
+    "S04/S05 host-group member cursor",
+    "S04/S05 rejected filter remedy host-group-members",
+  ],
+  "SR-136": ["S04/S05 bounded walk account"],
+  "SR-137": ["S04/S05 bounded walk vuln"],
+  "SR-152": ["S04/S05 rejected filter remedy sensor-usage-list"],
+  "SR-153": ["S04/S05 sensor usage"],
+  "SR-156": [
+    "S04/S05 malformed success refuses query_accounts",
+    "S04/S05 entity scope refusal get_accounts",
+    "S04/S05 deleted account",
+  ],
+  "SR-157": [
+    "S04/S05 malformed success refuses combinedQueryVulnerabilities",
+    "S04/S05 entity scope refusal getVulnerabilities",
+  ],
+  "SR-183": [
+    "S04/S05 continuation replay serverless-list-page",
+    "S04/S05 malformed success refuses GetCombinedVulnerabilitiesSARIF",
+  ],
+  "SR-186": [
+    "S04/S05 continuation replay shield-list",
+    "S04/S05 recursive preview shield",
+  ],
+  "SR-187": [
+    "S04/S05 recursive preview shield",
+    "S04/S05 malformed success refuses GetSecurityChecksV3",
+  ],
+  "SR-192": [
+    "S04/S05 continuation replay vuln-list-page",
+    "S04/S05 continuation replay application-list",
+  ],
+  "SR-195": [
+    "S04/S05 Spotlight fields",
+    "S04/S05 pre-authentication input refusal vuln",
+  ],
+  "SR-196": [
+    "S04/S05 continuation replay vuln-list-page",
+    "S04/S05 bounded walk vuln known total false",
+  ],
+  "SR-198": ["S04/S05 bounded walk account"],
+  "SR-199": ["S04/S05 bounded walk vuln"],
+  "SR-200": ["S04/S05 deleted account", "S04/S05 bounded walk account"],
+  "SR-202": ["S04/S05 pre-authentication input refusal vuln list --all"],
   "SR-010": [],
   "SR-011": ["SR-011/SR-191 continuation"],
   "SR-015": ["tenant selector"],
@@ -168,7 +326,7 @@ const bindings: Readonly<Record<string, readonly string[]>> = {
 };
 if (
   JSON.stringify(Object.keys(bindings).sort()) !==
-  JSON.stringify(ledger.groups.map((group) => group.id).sort())
+  JSON.stringify(groups.map((group) => group.id).sort())
 )
   throw new Error("A safety group lacks an executable replacement binding");
 const localOnly = new Set([
@@ -220,9 +378,17 @@ const managedBindings: Readonly<Record<string, readonly string[]>> = {
 const args = process.argv.slice(2);
 let evidence: string | undefined;
 let path: string | undefined;
+let slice = "S05";
 for (let index = 0; index < args.length; index++) {
   const flag = args[index]!;
   if (flag === "--strict") continue;
+  if (
+    flag === "--slice" &&
+    ["S02", "S03", "S04", "S05"].includes(args[index + 1] ?? "")
+  ) {
+    slice = args[++index]!;
+    continue;
+  }
   if (flag === "--evidence" && args[index + 1]) evidence = args[++index];
   else if (
     flag === "--path" &&
@@ -247,43 +413,56 @@ if (evidence && path) {
     throw new Error(
       "Behavioral coverage requires a nonempty, passing test run",
     );
-  const reports = ledger.groups.map((group) => {
-    const selected = bindings[group.id]!;
-    const nativeOnly = path === "artium" && localOnly.has(group.id);
-    const managed =
-      path !== "artium"
-        ? selected
-        : nativeOnly
-          ? ["Managed connection override", "C22 managed auth status"]
-          : (managedBindings[group.id] ?? selected);
-    const missing = managed.filter(
-      (prefix) => !passed.some((name) => name.startsWith(prefix)),
-    );
-    if (missing.length)
-      throw new Error(
-        `${group.id} has no passing observation for ${missing.join(", ")}`,
+  const reports = groups
+    .filter((group) => group.slice <= slice)
+    .map((group) => {
+      const selected = bindings[group.id]!;
+      const nativeOnly = path === "artium" && localOnly.has(group.id);
+      const managed =
+        path !== "artium"
+          ? selected
+          : nativeOnly
+            ? ["Managed connection override", "C22 managed auth status"]
+            : (managedBindings[group.id] ??
+              selected.map((prefix) =>
+                prefix.startsWith("golden ")
+                  ? prefix.replace("golden ", "S04/S05 managed retained ")
+                  : prefix,
+              ));
+      const missing = managed.filter(
+        (prefix) => !passed.some((name) => name.startsWith(prefix)),
       );
-    return {
-      requirement: group.id,
-      source: group.source,
-      symbols: group.members.map((member) => member.symbol),
-      mode: nativeOnly
-        ? "native-owned configuration; managed override refusal and private-profile health"
-        : managed.length
-          ? "installed public observations"
-          : "structural registration check",
-      observations: passed.filter((name) =>
-        managed.some((prefix) => name.startsWith(prefix)),
-      ),
-      nativeWindows: ["SR-143", "SR-146", "SR-149"].includes(group.id)
-        ? "pending"
-        : "not applicable",
-    };
-  });
+      if (missing.length)
+        throw new Error(
+          `${group.id} has no passing observation for ${missing.join(", ")}`,
+        );
+      return {
+        requirement: group.id,
+        source: group.source,
+        symbols: group.members.map((member) => member.symbol),
+        mode: nativeOnly
+          ? "native-owned configuration; managed override refusal and private-profile health"
+          : managed.length
+            ? "installed public observations"
+            : "structural registration check",
+        observations: passed.filter((name) =>
+          managed.some((prefix) => name.startsWith(prefix)),
+        ),
+        nativeWindows: ["SR-143", "SR-146", "SR-149"].includes(group.id)
+          ? "pending"
+          : "not applicable",
+      };
+    });
   writeFileSync(
     join(evidence, `${path}-coverage.json`),
     JSON.stringify(
-      { path, ledgerSha256: seal, reports, pending: ledger.reassignments },
+      {
+        path,
+        ledgerSha256: seal,
+        inventoryLedgerSha256: inventorySeal,
+        reports,
+        pending: ledger.reassignments.filter((row) => row.to !== "S04"),
+      },
       null,
       2,
     ) + "\n",
@@ -291,5 +470,5 @@ if (evidence && path) {
   );
 }
 console.log(
-  `coverage: ${ledger.groups.length} frozen groups, ${operations.length} operations, ${expectedCommands.length} commands; native Windows pending`,
+  `coverage: ${groups.length} frozen groups, ${operations.length} operations, ${expectedCommands.length} commands; native Windows pending`,
 );

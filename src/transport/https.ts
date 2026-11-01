@@ -273,6 +273,57 @@ export function requestToken(
     signal,
   );
 }
+// Lifecycle operations retain their separate, undelivered authority gates.
+const enabledReadOperations = new Set([
+  "GetQueriesAlertsV2",
+  "PostEntitiesAlertsV2",
+  "PostAggregatesAlertsV2",
+  "QueryDevicesByFilter",
+  "PostDeviceDetailsV2",
+  "QueryDeviceLoginHistoryV2",
+  "QueryGetNetworkAddressHistoryV1",
+  "highVolumeQueryChanges",
+  "getChanges",
+  "combined_summary_get",
+  "combined_edges_get",
+  "RTR_ListAllSessions",
+  "RTR_ListSessions",
+  "RTRAuditSessions",
+  "indicator_search_v1",
+  "indicator_get_v1",
+  "DevicesRanOn",
+  "ProcessesRanOn",
+  "entities_processes",
+  "query_iot_hostsV2",
+  "get_iot_hosts",
+  "GetSensorUsageWeekly",
+  "queryCombinedHostGroups",
+  "queryCombinedGroupMembers",
+  "combined_hosts",
+  "combined_applications",
+  "get_hosts",
+  "query_logins",
+  "get_logins",
+  "QuerySensorsByFilter",
+  "GetSensorDetails",
+  "query_accounts",
+  "get_accounts",
+  "GetCombinedVulnerabilitiesSARIF",
+  "ReadContainerCombined",
+  "ReadCombinedVulnerabilities",
+  "GetSecurityChecksV3",
+  "GetCombinedImages",
+  "QueryVulnerabilities",
+  "getVulnerabilities",
+  "cloud_security_assets_queries",
+  "cloud_security_assets_entities_get",
+  "cspm_evaluations_iom_queries",
+  "cspm_evaluations_iom_entities",
+  "combined_cloud_risks",
+  "combinedQueryVulnerabilities",
+  "GetVulnerabilities",
+]);
+
 export function requestRead(
   id: string,
   base: string,
@@ -283,31 +334,7 @@ export function requestRead(
   signal: AbortSignal,
 ): Promise<Response> {
   const descriptor = operation(id);
-  // Only the S03 passive reads are enabled. Lifecycle operations retain their own gates.
-  if (
-    ![
-      "GetQueriesAlertsV2",
-      "PostEntitiesAlertsV2",
-      "PostAggregatesAlertsV2",
-      "QueryDevicesByFilter",
-      "PostDeviceDetailsV2",
-      "QueryDeviceLoginHistoryV2",
-      "QueryGetNetworkAddressHistoryV1",
-      "highVolumeQueryChanges",
-      "getChanges",
-      "combined_summary_get",
-      "combined_edges_get",
-      "RTR_ListAllSessions",
-      "RTR_ListSessions",
-      "RTRAuditSessions",
-      "indicator_search_v1",
-      "indicator_get_v1",
-      "DevicesRanOn",
-      "ProcessesRanOn",
-      "entities_processes",
-    ].includes(descriptor.id) ||
-    descriptor.effect !== "read"
-  )
+  if (!enabledReadOperations.has(descriptor.id) || descriptor.effect !== "read")
     throw new CliError(
       "READ_ONLY_VIOLATION",
       "this operation is not available in the current slice",
@@ -321,10 +348,18 @@ export function requestRead(
       "QueryDeviceLoginHistoryV2",
       "QueryGetNetworkAddressHistoryV1",
       "RTR_ListSessions",
+      "GetSensorDetails",
+      "GetVulnerabilities",
     ].includes(id)
   ) {
     const maximum =
-      id === "PostDeviceDetailsV2" ? 5000 : id === "RTR_ListSessions" ? 100 : 1;
+      id === "PostDeviceDetailsV2"
+        ? 5000
+        : id === "GetSensorDetails"
+          ? 200
+          : id === "RTR_ListSessions" || id === "GetVulnerabilities"
+            ? 100
+            : 1;
     if (
       !object(body) ||
       Object.keys(body).join() !== "ids" ||
