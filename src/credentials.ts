@@ -7,6 +7,8 @@ import schema from "./axi-credential.schema.json" with { type: "json" };
 import { CliError, object } from "./core.js";
 import { registerSecret, registerMemberCid } from "./render.js";
 import { verifyWindowsFile } from "./windows-acl.js";
+import { rtrPolicy, readOnly } from "./rtr-policy.js";
+import type { RtrPolicy } from "./rtr-policy.js";
 
 export interface Credential {
   clientId: string;
@@ -17,6 +19,7 @@ export interface Credential {
   profile?: string;
   path?: string;
   secretSource?: string;
+  rtr?: RtrPolicy;
 }
 const aliases: Readonly<Record<string, string>> = {
   FALCON_CLIENT_ID: "FALCON_AXI_CLIENT_ID",
@@ -36,13 +39,9 @@ export function normalizeEnvironment(): void {
       }
     }
   }
-  if (!/^(true|false|1|0)$/i.test(process.env.FALCON_AXI_READ_ONLY ?? "false"))
-    throw new CliError(
-      "CONFIG_INVALID",
-      "FALCON_AXI_READ_ONLY must be 1, true, 0 or false",
-    );
+  readOnly();
 }
-function directory(kind: "config" | "state"): string {
+export function directory(kind: "config" | "state"): string {
   const env = process.env;
   if (process.platform === "win32")
     return join(
@@ -130,6 +129,7 @@ export async function loadProfiles(
         "CONFIG_INVALID",
         `profile ${name} does not match the profile schema`,
       );
+    rtrPolicy(entry.rtr);
     for (const field of ["clientId", "region", "memberCid"])
       if (typeof entry[field] === "string" && !entry[field].trim())
         throw new CliError(
@@ -301,6 +301,7 @@ export async function resolveCredential(
       clientId: settings.clientId as string,
       clientSecret: secret,
       channel: "file",
+      rtr: rtrPolicy(settings.rtr),
       profile: name,
       secretSource:
         typeof ref.env === "string"

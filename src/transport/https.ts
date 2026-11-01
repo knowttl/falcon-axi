@@ -14,6 +14,7 @@ import {
   pathValue,
   validateSearchBody,
 } from "./search-authority.js";
+import { inspectRtrGrant, consumeRtrGrant } from "../rtr.js";
 
 export interface Response {
   status: number;
@@ -28,6 +29,8 @@ interface Prepared {
   headers: Readonly<Record<string, string>>;
   body: string;
   exception?: "graphql-query" | "malquery-search";
+  rtr?: object;
+  operationId?: string;
 }
 const permits = new WeakSet<Prepared>();
 const timeout = (): CliError =>
@@ -73,6 +76,13 @@ async function send(
         "request body authority was refused",
       );
   }
+  if (
+    prepared.operationId &&
+    operation(prepared.operationId).effect === "rtr-read-only-execute" &&
+    !prepared.rtr
+  )
+    throw new CliError("READ_ONLY_VIOLATION", "RTR grant is missing");
+  if (prepared.rtr) consumeRtrGrant(prepared.rtr, prepared);
   const signal = AbortSignal.any([inherited, AbortSignal.timeout(30_000)]);
   signal.throwIfAborted();
   const resolver = createLookup(inherited, signal);
@@ -171,7 +181,7 @@ async function send(
           );
           response.on("data", (chunk: Buffer) => {
             bytes += chunk.length;
-            if (bytes > 16 * 1024 * 1024) {
+            if (bytes > (prepared.rtr ? 1024 * 1024 : 16 * 1024 * 1024)) {
               request!.destroy(
                 new CliError(
                   "UPSTREAM_ERROR",
@@ -221,6 +231,37 @@ async function send(
     tunnelAgent?.destroy();
     tunnel?.destroy();
     await resolver.close();
+  }
+}
+
+export async function requestRtr(
+  grant: object,
+  signal: AbortSignal,
+): Promise<Response> {
+  const claim = inspectRtrGrant(grant);
+  const prepared: Prepared = Object.freeze({
+    origin: claim.origin,
+    method: claim.method,
+    path: claim.path,
+    body: claim.body,
+    headers: Object.freeze({
+      authorization: `Bearer ${claim.token}`,
+      "user-agent": `falcon-axi/${VERSION}`,
+      ...(claim.body
+        ? {
+            "content-type": "application/json",
+            "content-length": String(Buffer.byteLength(claim.body)),
+          }
+        : {}),
+    }),
+    rtr: grant,
+    operationId: claim.id,
+  });
+  permits.add(prepared);
+  try {
+    return await send(prepared, signal);
+  } finally {
+    permits.delete(prepared);
   }
 }
 

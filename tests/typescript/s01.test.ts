@@ -31,6 +31,7 @@ let executable: string;
 let ca: string;
 export let config: string;
 let port: number;
+let socketPath: string | undefined;
 const sockets = new Set<Duplex>();
 export const wire: {
   method: string;
@@ -46,6 +47,7 @@ let queryVariant = "normal";
 let goldenMode = false;
 type Reply = {
   status: number;
+  disconnect?: boolean;
   headers?: Record<string, string>;
   body: unknown;
   fault?: "drop" | "truncate" | "stream";
@@ -68,11 +70,17 @@ export interface Scenario {
 let generated = new Map<string, Record<string, unknown>>();
 let customReplies = new Map<
   string,
-  (query: URLSearchParams, body: Record<string, unknown>) => Reply
+  (
+    query: URLSearchParams,
+    body: Record<string, unknown>,
+  ) => Reply | Promise<Reply>
 >();
 export function dynamicResponse(
   operation: string,
-  reply: (query: URLSearchParams, body: Record<string, unknown>) => Reply,
+  reply: (
+    query: URLSearchParams,
+    body: Record<string, unknown>,
+  ) => Reply | Promise<Reply>,
 ): void {
   customReplies.set(operation, reply);
 }
@@ -116,8 +124,56 @@ let hosted:
       url: string;
       headers: Record<string, string>;
       environment: NodeJS.ProcessEnv;
+      otherHeaders?: Record<string, string>;
+      state?: string;
     }
   | undefined;
+export function hostedConnection(): NonNullable<typeof hosted> {
+  assert.ok(hosted);
+  return hosted;
+}
+function setHostedDelivery(nextPort: string | number): Promise<void> {
+  return new Promise((resolve, reject) => {
+    const ready = (message: unknown): void => {
+      if (
+        message &&
+        typeof message === "object" &&
+        "deliveryReady" in message &&
+        message.deliveryReady === true
+      ) {
+        host!.removeListener("message", ready);
+        resolve();
+      }
+    };
+    host!.on("message", ready);
+    host!.send({ port: nextPort }, (error) => {
+      if (error) {
+        host!.removeListener("message", ready);
+        reject(error);
+      }
+    });
+  });
+}
+export function nextHostedTerminal(): Promise<Record<string, unknown>> {
+  assert.ok(host);
+  return new Promise((resolve) => {
+    const listener = (message: unknown): void => {
+      if (
+        message &&
+        typeof message === "object" &&
+        "terminal" in message &&
+        message.terminal &&
+        typeof message.terminal === "object" &&
+        "action" in message.terminal &&
+        message.terminal.action === "write"
+      ) {
+        host!.removeListener("message", listener);
+        resolve(message.terminal as Record<string, unknown>);
+      }
+    };
+    host!.on("message", listener);
+  });
+}
 const server = createServer();
 export async function managedAudit(): Promise<unknown[]> {
   if (!hosted) throw new Error("Managed audit requires Artium");
@@ -154,16 +210,22 @@ function json(
 let recorded: {
   operation: string;
   response: { status: number; headers?: Record<string, string>; body: unknown };
+  once?: boolean;
 }[] = [];
-export function tokenResponse(status: number, body: unknown): void {
-  respondToken = (_request, response) => json(response, body, status);
+export function tokenResponse(
+  status: number,
+  body: unknown,
+  headers: Record<string, string> = {},
+): void {
+  respondToken = (_request, response) => json(response, body, status, headers);
 }
 export function recordedResponse(
   operation: string,
   status: number,
   body: unknown,
+  once = false,
 ): void {
-  recorded.push({ operation, response: { status, body } });
+  recorded.push({ operation, response: { status, body }, once });
 }
 export async function recordings(fixtures: string[]): Promise<void> {
   recorded = await Promise.all(
@@ -195,6 +257,7 @@ export function reset(): void {
 }
 interface RunResult {
   code: number | null;
+  signal: NodeJS.Signals | null;
   stdout: string;
   stderr: string;
   elapsed: number;
@@ -206,6 +269,7 @@ export async function run(
   closeInput = false,
   shellInvocation?: string,
   rawManagedArgs = false,
+  childStarted?: (child: ChildProcess) => void,
 ): Promise<RunResult> {
   let start = performance.now();
   let command = executable;
@@ -224,12 +288,7 @@ export async function run(
   }
   let hostedEnvironment: NodeJS.ProcessEnv = {};
   if (hosted) {
-    await new Promise<void>((resolve, reject) => {
-      host!.once("message", () => resolve());
-      host!.send({ port }, (error) => {
-        if (error) reject(error);
-      });
-    });
+    await setHostedDelivery(port);
     const regionIndex = rawManagedArgs ? -1 : invocation.indexOf("--region");
     const memberIndex = rawManagedArgs
       ? -1
@@ -279,6 +338,19 @@ export async function run(
                 }
               : {}),
             region: regionIndex >= 0 ? invocation[regionIndex + 1] : "us-1",
+            ...(["1", "malquery-only"].includes(extra.S11_HOST_RTR ?? "")
+              ? {
+                  rtr: { enabled: true },
+                  writes: {
+                    allowWrites: true,
+                    operations: [
+                      extra.S11_HOST_RTR === "malquery-only"
+                        ? "malquery search"
+                        : "rtr run",
+                    ],
+                  },
+                }
+              : {}),
             ...(memberIndex >= 0
               ? { memberCid: invocation[memberIndex + 1] }
               : {}),
@@ -292,12 +364,7 @@ export async function run(
     respondToken = tokenResponse;
     queryVariant = requestedVariant;
     if (extra.S01_DELIVERY_PORT)
-      await new Promise<void>((resolve, reject) => {
-        host!.once("message", () => resolve());
-        host!.send({ port: extra.S01_DELIVERY_PORT }, (error) => {
-          if (error) reject(error);
-        });
-      });
+      await setHostedDelivery(extra.S01_DELIVERY_PORT);
     invocation = invocation.filter(
       (_arg, index) =>
         ![
@@ -333,12 +400,14 @@ export async function run(
       FALCON_AXI_CLIENT_ID: "synthetic-wrong-server-id",
       FALCON_AXI_CLIENT_SECRET: "synthetic-wrong-server-secret",
       S01_DELIVERY_PORT: String(port),
+      ...(socketPath ? { S01_DELIVERY_SOCKET: socketPath } : {}),
       ...extra,
       ...hostedEnvironment,
       PATH: `${join(directory, "managed-bin")}:${dirname(executable)}:${hostedEnvironment.PATH ?? process.env.PATH ?? ""}`,
     },
   });
   if (closeInput) child.stdin.end();
+  childStarted?.(child);
   let stdout = "";
   let stderr = "";
   child.stdout.on("data", (chunk: Buffer) => {
@@ -352,9 +421,13 @@ export async function run(
     cancel = () => child.kill("SIGTERM");
     server.once("token-sent", cancel);
   }
+  let signal: NodeJS.Signals | null = null;
   const code = await new Promise<number | null>((resolve, reject) => {
     child.on("error", reject);
-    child.on("exit", resolve);
+    child.on("exit", (code, termination) => {
+      signal = termination;
+      resolve(code);
+    });
   });
   if (cancel) server.removeListener("token-sent", cancel);
   for (const canary of [
@@ -367,7 +440,7 @@ export async function run(
       !(stdout + stderr).includes(canary),
       "credential canary escaped output",
     );
-  return { code, stdout, stderr, elapsed: performance.now() - start };
+  return { code, signal, stdout, stderr, elapsed: performance.now() - start };
 }
 function assertRead(result: RunResult): void {
   assert.equal(result.code, 0, result.stdout + result.stderr);
@@ -427,7 +500,7 @@ before(async () => {
     request.on("data", (chunk: Buffer) => {
       body += chunk.toString();
     });
-    request.on("end", () => {
+    request.on("end", async () => {
       wire.push({
         method: request.method!,
         url: request.url!,
@@ -447,11 +520,11 @@ before(async () => {
         matchesRoute(id, request.method!, path),
       )?.[1];
       if (custom) {
-        const reply = custom(
+        const reply = await custom(
           new URL(request.url!, "https://api.crowdstrike.com").searchParams,
           body ? (JSON.parse(body) as Record<string, unknown>) : {},
         );
-        if (reply.fault === "drop") response.destroy();
+        if (reply.disconnect || reply.fault === "drop") response.destroy();
         else if (reply.fault === "stream") {
           response.writeHead(200, { "content-type": "application/json" });
           response.write('{"events":[');
@@ -532,6 +605,7 @@ before(async () => {
         matchesRoute(entry.operation, request.method!, path),
       );
       if (matched) {
+        if (matched.once) recorded.splice(recorded.indexOf(matched), 1);
         let payload = matched.response.body;
         const query = new URL(request.url!, "https://api.crowdstrike.com")
           .searchParams;
@@ -603,10 +677,16 @@ before(async () => {
       json(response, { errors: [] }, 418);
     });
   });
-  await new Promise<void>((resolve) => server.listen(0, "127.0.0.1", resolve));
+  if (process.env.S11_SOCKET_DELIVERY === "1") {
+    socketPath = join(directory, "falcon.sock");
+    await new Promise<void>((resolve) => server.listen(socketPath, resolve));
+  } else
+    await new Promise<void>((resolve) =>
+      server.listen(0, "127.0.0.1", resolve),
+    );
   const address = server.address();
-  assert.ok(address && typeof address === "object");
-  port = address.port;
+  assert.ok(address);
+  port = typeof address === "object" ? address.port : 0;
   const seed = await readFile(
     resolve("tests/fixtures/alerts/hydrate-page.json"),
   );
@@ -767,18 +847,34 @@ before(async () => {
           S01_DELIVERY_PRELOAD: delivery,
           S01_DELIVERY_PORT: String(port),
           S01_CA: ca,
+          ...(socketPath
+            ? {
+                S01_DELIVERY_SOCKET: socketPath,
+                S11_DENY_LAUNCHER: process.env.S11_DENY_LAUNCHER,
+              }
+            : {}),
         },
       },
     );
     let diagnostics = "";
     host.stderr!.on("data", (chunk: Buffer) => {
       diagnostics += chunk.toString();
+      if (process.env.S11_MUTATION) process.stderr.write(chunk);
     });
     hosted = await new Promise<NonNullable<typeof hosted>>(
       (resolve, reject) => {
-        host!.once("message", (message) =>
-          resolve(message as NonNullable<typeof hosted>),
-        );
+        const ready = (message: unknown): void => {
+          if (
+            message &&
+            typeof message === "object" &&
+            "url" in message &&
+            typeof message.url === "string"
+          ) {
+            host!.removeListener("message", ready);
+            resolve(message as NonNullable<typeof hosted>);
+          }
+        };
+        host!.on("message", ready);
         host!.once("error", reject);
         host!.once("exit", (code) =>
           reject(

@@ -12,6 +12,7 @@ import s08 from "../../tests/fixtures/migration/S08/contracts.json" with { type:
 import s09 from "../../tests/fixtures/migration/S09/contracts.json" with { type: "json" };
 import s10 from "../../tests/fixtures/migration/S10/contracts.json" with { type: "json" };
 import searchLedger from "../../tests/migration/coverage-s08-s10.json" with { type: "json" };
+import s11 from "../../tests/fixtures/migration/S11/contracts.json" with { type: "json" };
 import inspectionLedger from "../../tests/migration/coverage-s06-s07.json" with { type: "json" };
 import ledger from "../../tests/migration/coverage.json" with { type: "json" };
 import inventoryLedger from "../../tests/migration/coverage-s04-s05.json" with { type: "json" };
@@ -52,6 +53,7 @@ const expectedCommands = [
     ...s08.commandNames,
     ...s09.commandNames,
     ...s10.commandNames,
+    ...s11.commandNames,
   ]),
 ]
   .filter((name) => name !== "home")
@@ -78,6 +80,7 @@ if (
       ...s08.operationIds,
       ...s09.operationIds,
       ...s10.operationIds,
+      ...s11.operationIds,
     ].sort(),
   )
 )

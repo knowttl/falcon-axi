@@ -17,6 +17,21 @@ const detection = ["filter", "severity", "status", "product", "since"];
 const host = ["filter", "hostname", "platform", "status", "since"];
 const declarations: Command[] = [
   {
+    name: "rtr run",
+    summary:
+      "  rtr run                   preview or execute one read-only RTR command on one host",
+    order: 2383,
+    values: ["command", "confirm"],
+    booleans: ["execute"],
+    positional: "device id",
+    operations: [
+      "RTR_InitSession",
+      "RTR_ExecuteCommand",
+      "RTR_CheckCommandStatus",
+      "RTR_DeleteSession",
+    ],
+  },
+  {
     name: "account list",
     order: 700,
     summary:

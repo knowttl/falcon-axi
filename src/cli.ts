@@ -27,6 +27,7 @@ import { identity } from "./identity.js";
 import { malquery } from "./malquery.js";
 import searchHelp from "./search-help.json" with { type: "json" };
 import { document } from "./transport/search-authority.js";
+import { rtrRun, validateRtrInvocation } from "./rtr.js";
 
 const description =
   "Read CrowdStrike Falcon from the shell with compact, structured results for agents and the humans running them.";
@@ -96,26 +97,31 @@ export async function main(argv: string[], bin?: string): Promise<number> {
         );
         return 0;
       }
-      process.stdout.write(
-        [
-          `falcon-axi ${command.name === "home" ? `${VERSION} - ${description}` : command.name}`,
-          "",
-          "Commands:",
-          ...commands
-            .filter(
-              (spec) =>
-                command.name === "home" ||
-                spec.name.startsWith(`${command.name} `),
-            )
-            .map((spec) => spec.summary),
-          "",
-          "Global flags:",
-          "  --help, --region <name|url>, --allow-unknown-origin, --member-cid <cid>, --no-member-cid",
-          "  --config <path>, --profile <name>",
-          "",
-          `Regions: ${Object.keys(REGIONS).join(", ")}`,
-        ].join("\n") + "\n",
-      );
+      const lines = [
+        `falcon-axi ${command.name === "home" ? `${VERSION} - ${description}` : command.name}`,
+        "",
+        "Commands:",
+        ...commands
+          .filter(
+            (spec) =>
+              command.name === "home" ||
+              spec.name.startsWith(`${command.name} `),
+          )
+          .map((spec) => spec.summary),
+        "",
+        "Global flags:",
+        "  --help, --region <name|url>, --allow-unknown-origin, --member-cid <cid>, --no-member-cid",
+        "  --config <path>, --profile <name>",
+        "",
+        `Regions: ${Object.keys(REGIONS).join(", ")}`,
+        ...(command.name === "home"
+          ? [
+              "",
+              "RTR execution requires profile opt-in, --execute, and exact host:command --confirm (N3).",
+            ]
+          : []),
+      ];
+      process.stdout.write(lines.join("\n") + "\n");
       return 0;
     }
     const filter = filterOf(invocation);
@@ -136,6 +142,7 @@ export async function main(argv: string[], bin?: string): Promise<number> {
         "READ_ONLY_VIOLATION",
         "FALCON_AXI_READ_ONLY forbids search lifecycle changes",
       );
+    if (command.name === "rtr run") validateRtrInvocation(invocation);
     if (command.name === "config path") {
       process.stdout.write(
         render({
@@ -224,6 +231,14 @@ export async function main(argv: string[], bin?: string): Promise<number> {
       flags.get("--region") ?? credential.region,
       allowUnknown,
     );
+    if (command.name === "rtr run") {
+      process.removeListener("SIGTERM", cancel);
+      process.removeListener("SIGINT", cancel);
+      process.on("SIGTERM", cancel);
+      process.on("SIGINT", cancel);
+      await rtrRun(invocation, credential, base, controller.signal);
+      return 0;
+    }
     if (
       flags.has("--hostname") &&
       ["host logins", "host network"].includes(command.name)

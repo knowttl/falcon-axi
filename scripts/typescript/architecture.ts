@@ -68,6 +68,12 @@ export function violations(source: string, name: string): string[] {
         (!ts.isStringLiteral(specifier) ||
           !(
             allowed.has(specifier.text) ||
+            (name === "cli.ts" && specifier.text === "./rtr.js") ||
+            (name === "transport/https.ts" && specifier.text === "../rtr.js") ||
+            (["credentials.ts", "rtr.ts"].includes(name) &&
+              specifier.text === "./rtr-policy.js") ||
+            (name === "rtr.ts" && specifier.text === "./rtr-filesystem.js") ||
+            (name === "rtr.ts" && specifier.text === "node:timers/promises") ||
             (name === "transport/https.ts" && sink.has(specifier.text)) ||
             (name === "search.ts" &&
               specifier.text === "node:timers/promises") ||
@@ -157,6 +163,8 @@ for (const source of [
   "const x = globalThis['fetch']; x('url')",
   "await import('node:http')",
   "process.getBuiltinModule('net')",
+  "import {rtrRun} from './rtr.js'",
+  "import {openRetainedFile} from './rtr-filesystem.js'",
 ]) {
   if (!violations(source, "seed.ts").length)
     throw new Error("Architecture checker accepted a bypass seed");
