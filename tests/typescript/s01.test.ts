@@ -129,7 +129,7 @@ function json(
     "content-type": "application/json",
     ...headers,
   });
-  response.end(JSON.stringify(body));
+  response.end(Buffer.isBuffer(body) ? body : JSON.stringify(body));
 }
 let recorded: {
   operation: string;

@@ -221,6 +221,70 @@ test("S06/S07 empty MITRE is explicit", async () => {
   );
 });
 
+for (const [name, body, empty] of [
+  ["HTML", "<html>synthetic-private-value</html>", false],
+  ["truncated JSON", '[{"synthetic-private-value":', false],
+  ["empty bytes", "", false],
+  ["whitespace", " \n", false],
+  ["JSON null", "null", true],
+  ["empty array", "[]", true],
+] as const)
+  test(`S06/S07 MITRE response bytes ${name}`, async () => {
+    const scenario = scenarios.find(
+      (entry) => entry.name === "actor-show-mitre",
+    )!;
+    await prepareScenario(scenario);
+    dynamicResponse("GetMitreReport", () => ({
+      status: 200,
+      body: Buffer.from(body),
+    }));
+    const result = await run(scenario.argv);
+    assert.equal(result.code, empty ? 0 : 1, result.stdout);
+    if (empty)
+      assert.equal(
+        (decode(result.stdout) as Record<string, unknown>).mitre,
+        "0 ATT&CK mappings for this actor",
+      );
+    else {
+      assert.match(result.stdout, /UPSTREAM_ERROR/);
+      assert.doesNotMatch(result.stdout, /0 ATT&CK mappings/);
+    }
+    assert.doesNotMatch(result.stdout + result.stderr, /synthetic-private-value/);
+  });
+
+test("S06/S07 malware redacts PEM before preview", async () => {
+  const scenario = scenarios.find((entry) => entry.name === "malware-show")!;
+  const slug = scenario.argv.at(-1)!;
+  const description =
+    "-----BEGIN PRIVATE KEY-----\n" +
+    "synthetic-private-key-material".repeat(40) +
+    "\n-----END PRIVATE KEY-----";
+  await prepareScenario({
+    ...scenario,
+    responders: [
+      {
+        op: scenario.responders![0]!.op,
+        response: {
+          status: 200,
+          body: { resources: [{ slug, description }] },
+        },
+      },
+    ],
+  });
+  for (const args of [scenario.argv, [...scenario.argv, "--full"]]) {
+    const result = await run(args);
+    assert.equal(result.code, 0, result.stdout);
+    const output = decode(result.stdout) as {
+      malware: { description: string };
+    };
+    assert.equal(output.malware.description, "[redacted]");
+    assert.doesNotMatch(
+      result.stdout + result.stderr,
+      /synthetic-private-key-material|PRIVATE KEY/,
+    );
+  }
+});
+
 test("S06/S07 identity rule filter uses REST names and values", async () => {
   reset();
   recordedResponse("get_policy_rules_query", 200, { resources: [] });

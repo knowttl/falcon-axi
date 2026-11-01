@@ -386,10 +386,11 @@ export async function inspection(
         value: { malware: redact(record) as RecordValue },
         help: [] as string[],
       };
-      if (!flags.has("--full") && typeof record.description === "string") {
-        const preview = truncate(record.description);
+      const description = output.value.malware.description;
+      if (!flags.has("--full") && typeof description === "string") {
+        const preview = truncate(description);
         output.value.malware.description = preview;
-        if (preview !== record.description)
+        if (preview !== description)
           output.help.push(
             `Run \`${domain.suggestion} --full\` for the full description`,
           );

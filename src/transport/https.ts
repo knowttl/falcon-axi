@@ -172,7 +172,7 @@ async function send(
             for (const [key, value] of Object.entries(response.headers))
               if (value !== undefined && key !== "location")
                 headers[key] = Array.isArray(value) ? value.join(",") : value;
-            let body: unknown = null;
+            let body: unknown = undefined;
             const text = Buffer.concat(chunks).toString("utf8");
             if (text) {
               try {
