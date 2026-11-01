@@ -36,6 +36,7 @@ The runtime package contains compiled JavaScript, the schema and admission metad
 
 The [Phase A rollback record](typescript-transition.md) owns the immutable Python artifact, matched Artium lock/runtime/schema/inventory hashes, restored hook, command-name selection, and real local Artium synthetic read.
 The configured native gate and affected cutover checks must pass before requesting cutover approval.
+The complete native `npm run verify` gate passed at `74cac754ebed02a6c2a7e81937292fcd3f25c845`: 1,507 tests passed with zero failures, skips or cancellations, including package installation, architecture, generated freshness, 350 goldens and 210 retained safety groups.
 The seven focused S13 hosted release-candidate cases passed against the exact `1.0.0-rc.1` tarball with SHA-256 `5e15efd970a47d7257717fe0cef19f576e5e728e6ab34bac3bab845f23cfe48a`.
 They exercise PATCH same-identity secret retention and changed-identity refusal, concurrent private profiles, bounded stdin and upload refusal, the 30-second native deadline, the 65-second host budget, and disconnect cleanup.
 Audit assertions correlate completed requests with the public response request identifier, rather than selecting unrelated background health events.
