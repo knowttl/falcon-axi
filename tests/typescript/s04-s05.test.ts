@@ -694,7 +694,7 @@ test("S04/S05 missing sensor identifier points to the shipped sensor inventory",
   const result = await run(["identity", "sensor", "show"]);
   assert.equal(result.code, 2, result.stdout);
   assert.deepEqual(document(result.stdout).help, [
-    "Run `falcon-axi identity sensor list` to see current sensor identifiers",
+    `Run \`${process.env.S01_ACTIVE_PATH === "artium" ? "artium-axi falcon-axi" : "falcon-axi"} identity sensor list\` to see current sensor identifiers`,
   ]);
   assert.equal(wire.length, 0);
 });
