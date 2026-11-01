@@ -1,4 +1,4 @@
-# TypeScript S02-S05 candidate
+# TypeScript S02-S07 candidate
 
 The [approved settlement amendment](s01-primitive-amendment.md#dns-deadline-settlement) owns the DNS resolver and process settlement contract.
 The installed-artifact regression uses a three-second local DNS blackhole and requires WAIT_TIMEOUT and process settlement within the inherited one-second budget plus startup allowance.
@@ -8,8 +8,14 @@ The private npm candidate is `@knowttl/falcon-axi@0.0.0-s02.0` with the executab
 The candidate delivers local configuration diagnostics, token-checking `auth status`, `scopes`, and passive detection investigation and host, IOC, process, FileVantage and RTR history reads.
 S04 adds account, asset, application, login, host-group, IoT, weekly sensor usage and Identity sensor reads.
 S05 adds Spotlight vulnerabilities, CVE intelligence, cloud assets and misconfigurations, aggregated cloud risks, containers, images, serverless SARIF and Shield checks.
+S06 adds actors, reports and JSON MITRE mappings, marker-paginated intelligence indicators, malware families, Recon rules/notifications/exposed-data records, and existing sandbox report summaries.
+S07 adds all six policy inventories and their members, Device Control detail, identity policy rules, firewall/IOA/correlation rules, cases, four exclusion types, quarantine metadata, classifications and Data Protection policies.
+Policy and exclusion scopes are selected by the required type selector.
+Sandbox lookup requires exactly one hash or FQL selector and projects only report metadata; it admits no submissions or downloads.
+Recon entity reads and Device Control details accept their documented direct arrays as well as resources envelopes.
+Firewall continuation prefers a server token over numeric offsets, while intelligence indicators retain the entire advancing marker.
 These slices preserve the Python projections, scope distinctions and signed continuation contexts.
-Discover assets/applications/IoT and Spotlight use opaque `after` values, cloud assets use `meta.next`, and the remaining inventories use offsets.
+Among S04/S05 inventories, Discover assets/applications/IoT and Spotlight use opaque `after` values, cloud assets use `meta.next`, and the remaining inventories use offsets.
 Account offsets remain unbounded; container/image inventory caps its window at 10000 records, while SARIF advances by source-record budget rather than run count.
 `src/metadata.ts` owns the delivered TypeScript command and flag surface.
 The released Python implementation remains present as the frozen comparison and rollback origin.
@@ -23,8 +29,13 @@ Development pins Node 24.14.0, npm 11.9.0 and exact locked dependencies.
 The runtime floor is Node 24.11.0; native Windows and other Node versions remain unproved in this slice.
 Run `npm ci --offline --ignore-scripts` and `npm run verify`.
 The latter includes the full native offline carrier suite and the frozen safety ownership check.
-The S04/S05 carrier repeats the S01-S03 native checks and adds inventory/exposure golden parity, continuation replay, bounded walks, malformed-response refusals and recursive numeric/Unicode detail checks.
-The frozen slice contracts in `tests/fixtures/migration/S02/contracts.json` through `S05/contracts.json` retain the owned operation, case, command and golden scenario identities.
+The S06/S07 carrier repeats the S01-S05 native checks and adds enrichment/configuration golden parity, selector-specific scope and malformed-response refusals, continuation replay, ordered batch hydration, and redaction before detail previews.
+Native S06/S07 retained scenarios compare exact output bytes and exit codes, including signed cursors and suggestions.
+S06 restores the original detection-process sandbox suggestions, and S07 restores Identity rule navigation in the existing discovery scenarios.
+Managed comparisons retain data and exits while the host owns command prefixes and connection-specific cursor encodings.
+The frozen slice contracts in `tests/fixtures/migration/S02/contracts.json` through `S07/contracts.json` retain the owned operation, case, command and golden scenario identities.
+`tests/migration/coverage-s06-s07.json` retains source identities and parameter selections for the additional safety groups.
+The response-diagnostic replacements exercise bounded shapes at the candidate's validation boundary; Python validator-library issue annotations have no runtime producer in the hand-validated candidate.
 Native Windows evidence remains pending.
 The installed check packs an explicit compiled-source allowlist, installs outside the checkout and executes the npm bin from a directory containing spaces.
 Linux user/network/mount namespaces and iproute2 are required for that check.
@@ -34,7 +45,7 @@ The CLI contains no fake-origin flag, config field, environment selector or reco
 The separate compiled primitive gate also requires `cc` to build its test-only network-denial launcher and fault-injection library.
 
 The optional hosted path requires a separately built frozen local Artium fixture containing the reviewed S01 host delta.
-Set `S01_ARTIUM_ROOT` to that fixture and run `npm run check:slice -- --slice S05 --paths native,artium --offline`.
+Set `S01_ARTIUM_ROOT` to that fixture and run `npm run check:slice -- --slice S07 --paths native,artium --offline`.
 Missing fixtures and unknown or empty selections fail.
 The host delta launches the candidate with its Node runtime rather than either Python launch condition, retaining Node heap limits and the existing termination grace.
 The real client, server, public credential API, private profile writer and runner execute the same installed artifact.
@@ -45,7 +56,7 @@ Final hosted evidence is bound separately to the frozen fixture and final candid
 
 The registry retains all 114 canonical operation tuples and their official scope and corroboration citations.
 A pinned canonical digest, own-key checks and recursive freezing seal the registry before networking.
-This carrier enables only the 47 passive operations owned by S03-S05 after method, registry and body validation.
+This carrier enables only the 101 passive operations owned by S03-S07 after method, registry and body validation.
 ThreatGraph summaries always use the fixed `processes` path component.
 RTR session metadata and audit reads cannot reach session initialization, command execution, status polling or deletion.
 The remaining reads and every exception tier are unreachable until their owning slices supply their authority checks.

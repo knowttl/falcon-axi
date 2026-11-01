@@ -45,7 +45,9 @@ export function malformed(
         }
         const segment =
           /^[A-Za-z][A-Za-z0-9_]{0,39}$/.test(key) &&
-          !/^[a-f0-9]{32}$/i.test(key)
+          !/^(?:[a-f0-9]{32}|[a-f0-9]{8}(?:[-_][a-f0-9]{4}){3}[-_][a-f0-9]{12})$/i.test(
+            key,
+          )
             ? redactText(key)
             : "<key>";
         visit(child, `${path}[${JSON.stringify(segment)}]`, depth + 1);
@@ -55,7 +57,12 @@ export function malformed(
   visit(response.body, "$", 0);
   const media = response.headers["content-type"]?.split(";", 1)[0]?.trim();
   throw new CliError("UPSTREAM_ERROR", message, help, {
-    status: response.status,
+    status:
+      Number.isInteger(response.status) &&
+      response.status >= 100 &&
+      response.status <= 599
+        ? response.status
+        : null,
     contentType:
       media &&
       media.length <= 128 &&

@@ -8,7 +8,11 @@ export class Cursor {
     private readonly origin: string,
     private readonly operation: string,
     private readonly query: string | undefined,
-    private readonly model: "offset" | "token" = "offset",
+    private readonly model:
+      | "offset"
+      | "token"
+      | "marker"
+      | "offset-or-token" = "offset",
     private readonly sort: string | null = null,
   ) {}
   private fingerprint(position: string | number): string {
@@ -46,7 +50,9 @@ export class Cursor {
         !object(payload) ||
         payload.operation !== this.operation ||
         payload.model !== this.model ||
-        (this.model === "offset"
+        (this.model === "offset" ||
+        (this.model === "offset-or-token" &&
+          typeof payload.position === "number")
           ? !Number.isSafeInteger(payload.position) ||
             (payload.position as number) < 0
           : typeof payload.position !== "string" || !payload.position) ||

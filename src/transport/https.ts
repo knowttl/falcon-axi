@@ -172,7 +172,7 @@ async function send(
             for (const [key, value] of Object.entries(response.headers))
               if (value !== undefined && key !== "location")
                 headers[key] = Array.isArray(value) ? value.join(",") : value;
-            let body: unknown = null;
+            let body: unknown = undefined;
             const text = Buffer.concat(chunks).toString("utf8");
             if (text) {
               try {
@@ -322,6 +322,60 @@ const enabledReadOperations = new Set([
   "combined_cloud_risks",
   "combinedQueryVulnerabilities",
   "GetVulnerabilities",
+  "QueryMalwareEntities",
+  "QueryReports",
+  "GetSummaryReports",
+  "GetMalwareEntities",
+  "QueryRulesV1",
+  "GetRulesV1",
+  "QueryNotificationsV1",
+  "GetNotificationsDetailedV1",
+  "QueryNotificationsExposedDataRecordsV1",
+  "GetNotificationsExposedDataRecordsV1",
+  "QueryIntelActorEntities",
+  "GetIntelActorEntities",
+  "QueryIntelReportEntities",
+  "GetIntelReportEntities",
+  "GetMitreReport",
+  "QueryIntelIndicatorEntities",
+  "GetIntelIndicatorEntities",
+  "get_policy_rules_query",
+  "get_policy_rules",
+  "query_rules",
+  "get_rules",
+  "query_rule_groups",
+  "get_rule_groups",
+  "query_rule_groups_full",
+  "combined_rules_get_v2",
+  "queries_cases_get_v1",
+  "entities_cases_post_v2",
+  "exclusions_search_v2",
+  "exclusions_get_v2",
+  "ss_ioa_exclusions_search_v2",
+  "ss_ioa_exclusions_get_v2",
+  "querySensorVisibilityExclusionsV1",
+  "getSensorVisibilityExclusionsV1",
+  "cb_exclusions_query_v1",
+  "cb_exclusions_get_v1",
+  "QueryQuarantineFiles",
+  "GetQuarantineFiles",
+  "queries_classification_get_v2",
+  "entities_classification_get_v2",
+  "queries_policy_get_v2",
+  "entities_policy_get_v2",
+  "queryCombinedPreventionPolicies",
+  "queryCombinedPreventionPolicyMembers",
+  "queryCombinedSensorUpdatePoliciesV2",
+  "queryCombinedSensorUpdatePolicyMembers",
+  "queryCombinedFirewallPolicies",
+  "queryCombinedFirewallPolicyMembers",
+  "queryDeviceControlPolicies",
+  "getDeviceControlPoliciesV2",
+  "queryCombinedDeviceControlPolicyMembers",
+  "queryCombinedRTResponsePolicies",
+  "queryCombinedRTResponsePolicyMembers",
+  "queryCombinedContentUpdatePolicies",
+  "queryCombinedContentUpdatePolicyMembers",
 ]);
 
 export function requestRead(
@@ -350,6 +404,9 @@ export function requestRead(
       "RTR_ListSessions",
       "GetSensorDetails",
       "GetVulnerabilities",
+      "GetIntelIndicatorEntities",
+      "entities_cases_post_v2",
+      "GetQuarantineFiles",
     ].includes(id)
   ) {
     const maximum =
@@ -357,7 +414,13 @@ export function requestRead(
         ? 5000
         : id === "GetSensorDetails"
           ? 200
-          : id === "RTR_ListSessions" || id === "GetVulnerabilities"
+          : [
+                "RTR_ListSessions",
+                "GetVulnerabilities",
+                "GetIntelIndicatorEntities",
+                "entities_cases_post_v2",
+                "GetQuarantineFiles",
+              ].includes(id)
             ? 100
             : 1;
     if (
