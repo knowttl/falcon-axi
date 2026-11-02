@@ -131,7 +131,7 @@ Run `falcon-axi config path` to inspect config and journal paths.
 | `FALCON_AXI_WRITE_LOG` | Mandatory RTR execution journal | State directory `writes.log` |
 | `XDG_CONFIG_HOME`, `XDG_STATE_HOME` | Absolute POSIX config / state roots | `~/.config`, `~/.local/state` |
 | `APPDATA`, `LOCALAPPDATA` | Windows config / state roots | `~/AppData/Roaming`, `~/AppData/Local` |
-| `HOME`, `PATH` | Home and hook executable discovery | Process environment / OS home |
+| `HOME` | Home directory for session integrations | OS home directory |
 | `CLAUDECODE`, `CODEX_THREAD_ID`, `CODEX_SESSION_ID`, `PI_CODING_AGENT`, `OPENCODE` | Detect the host for skill-install hints | Unset |
 | `CLAUDE_CONFIG_DIR`, `PI_CODING_AGENT_DIR` | Host skill-discovery roots | `~/.claude`, `~/.pi/agent` |
 | `FALCON_CLIENT_ID`, `FALCON_CLIENT_SECRET`, `FALCON_MEMBER_CID`, `FALCON_BASE_URL`, `FALCON_PROXY_URL` | Deprecated aliases; replacements win | Unset |

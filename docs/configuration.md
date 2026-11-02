@@ -79,7 +79,6 @@ Deprecated aliases emit a stderr warning, and their replacements win when both a
 | `FALCON_BASE_URL` | `FALCON_AXI_REGION` |
 | `FALCON_PROXY_URL` | `FALCON_AXI_PROXY_URL` |
 
-`HOME` and `PATH` support home-directory and hook-binary discovery.
 Host markers only select skill-install hints; `CLAUDE_CONFIG_DIR` and `PI_CODING_AGENT_DIR` override skill-discovery locations.
 OpenCode skill discovery uses `XDG_CONFIG_HOME` when set, otherwise `~/.config`.
 Hook installation uses the fixed targets in [agent integration](agent-integration.md), independently of those discovery overrides.

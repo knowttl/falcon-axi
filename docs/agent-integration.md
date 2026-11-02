@@ -20,7 +20,7 @@ Invalid encoding returns `CONFIG_INVALID` before any configuration is written; r
 
 Hook targets must resolve to a durable CLI installation.
 Temporary installations and git worktrees are refused, including temporary executables created by one-shot runners.
-Re-run setup after relocating or reinstalling the CLI to repair paths.
+See the [executable-path and repair contract](design/v1.md#122-session-hook-and-skill) for pinned paths and when to rerun setup.
 
 | Agent | Managed configuration |
 | --- | --- |
