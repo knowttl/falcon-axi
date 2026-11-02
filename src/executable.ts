@@ -1,5 +1,5 @@
-import { realpathSync, statSync, accessSync, constants } from "node:fs";
-import { dirname, isAbsolute, join, resolve, sep, delimiter } from "node:path";
+import { realpathSync, statSync } from "node:fs";
+import { dirname, join, resolve, sep } from "node:path";
 import { CliError } from "./core.js";
 
 export function shellArgument(value: string): string {
@@ -17,25 +17,6 @@ export function executableCommand(hook = false): string[] {
       "CONFIG_INVALID",
       `cannot locate ${name}; reinstall falcon-axi`,
     );
-  // npm's Windows .cmd wrapper is a shell script, so use Node plus its entry point.
-  if (hook && process.platform !== "win32")
-    for (const directory of (process.env.PATH ?? "").split(delimiter)) {
-      const candidate = join(directory || ".", name);
-      try {
-        accessSync(candidate, constants.X_OK);
-        if (!statSync(candidate).isFile()) continue;
-        if (isAbsolute(directory) && realpathSync(candidate) === target)
-          return [name];
-        break;
-      } catch (error) {
-        if (
-          !["ENOENT", "ENOTDIR", "EACCES", "ELOOP"].includes(
-            (error as NodeJS.ErrnoException).code ?? "",
-          )
-        )
-          throw error;
-      }
-    }
   return [process.execPath, target];
 }
 
