@@ -132,6 +132,57 @@ test("S11 local preview and exact confirmation refuse all network delivery", asy
   );
   assert.equal(wire.length, 0);
 });
+test("S11 preview requires a resolved profile before any network delivery", async () => {
+  reset();
+  const result = await run(["rtr", "run", host, "--command", "ps"], {
+    FALCON_AXI_CONFIG: "/nonexistent/config.json",
+    FALCON_AXI_PROFILE: undefined,
+    FALCON_AXI_CLIENT_ID: undefined,
+    FALCON_AXI_CLIENT_SECRET: undefined,
+  });
+  assert.equal(result.code, 1, result.stdout);
+  assert.equal(
+    (decode(result.stdout) as { code: string }).code,
+    "PROFILE_REQUIRED",
+  );
+  assert.equal(wire.length, 0);
+});
+for (const [command, code, exit] of [
+  ["rm x", "READ_ONLY_VIOLATION", 1],
+  ["kill 1", "READ_ONLY_VIOLATION", 1],
+  ["put x", "READ_ONLY_VIOLATION", 1],
+  ["runscript x", "READ_ONLY_VIOLATION", 1],
+  ["reg set x", "READ_ONLY_VIOLATION", 1],
+  ["eventlog clear", "READ_ONLY_VIOLATION", 1],
+  ["ps | grep x", "VALIDATION_ERROR", 2],
+] as const)
+  test(`S11 command refusal ${command} precedes network delivery`, async () => {
+    reset();
+    const result = await run(["rtr", "run", host, "--command", command]);
+    assert.equal(result.code, exit, result.stdout);
+    assert.equal((decode(result.stdout) as { code: string }).code, code);
+    assert.equal(wire.length, 0);
+  });
+test("S11 absent execution opt-in names the profile setting", async () => {
+  reset();
+  const result = await run([
+    "rtr",
+    "run",
+    host,
+    "--command",
+    "ps",
+    "--execute",
+    "--confirm",
+    `${host}:ps`,
+  ]);
+  assert.equal(result.code, 1, result.stdout);
+  const value = decode(result.stdout) as { code: string; help: string[] };
+  assert.equal(value.code, "READ_ONLY_VIOLATION");
+  assert.ok(
+    value.help?.some((line) => line.includes('"rtr": {"enabled": true}')),
+  );
+  assert.equal(wire.length, 0);
+});
 test("S11 installed lifecycle flushes recovery records, follows returned sequence and deletes once", async () => {
   reset();
   lifecycle();
