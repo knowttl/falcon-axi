@@ -688,7 +688,7 @@
   {
     "name": "help-host-show",
     "definitionSha256": "697674254876054885cbce4184ec7a42d3b0700344d4e1392af868254447a706",
-    "expectedSha256": "f253a8eb4585977443bdacce7a3fef0af0f8b52a80d43fd9520b84fe76845ef3"
+    "expectedSha256": "8341c66153b5bd54ba37d926432b1a8bbbac201d78c1dd2686d2dbe4d3e03bf6"
   },
   {
     "name": "help-identity-activity",
@@ -1022,7 +1022,7 @@
   },
   {
     "name": "host-show-not-found",
-    "definitionSha256": "856397600bd2e3e51e764ae583d15d7c37d576f5a7977f8320bc8e8054221a82",
+    "definitionSha256": "31148a22e44c2b1e46b1a6d49d308ab93cbb1990469cfb7fc38f553beb4a9c8e",
     "expectedSha256": "8c048efdf15474e77b86516f0d4104b06a536dbdcc66c29ace8b58402e0bc14b"
   },
   {
@@ -1032,8 +1032,8 @@
   },
   {
     "name": "host-show",
-    "definitionSha256": "71c2c3027bd5868bb291bf92225e7d488ec843530703d49e567fc12311662d30",
-    "expectedSha256": "9ff007bd767a450e8139dc46bb3b45d192bcf06a40502040c963b729758575a3"
+    "definitionSha256": "6514384dfa0a05e6571111676b3076435b7ad6a94bd2d41372566467fa0cb967",
+    "expectedSha256": "35a7d51544ee4aafc893bb35f05238e573871ff5c6717ed1522213a9e105e541"
   },
   {
     "name": "host-usb-start",
@@ -1557,8 +1557,8 @@
   },
   {
     "name": "search-stop",
-    "definitionSha256": "a96d3a3a52564371f04cc563c02bf9d8da9ab475ba1fef003b26234732480daa",
-    "expectedSha256": "7b0d6ffb7f9e04ff64b995f44f9a256ef2bb882b5389e793543fe88b06c45312"
+    "definitionSha256": "90bf41ab4e4dfd2ad4327d7e4a9534d466b310014f8791bd1b0b9ecc38e45de6",
+    "expectedSha256": "94b49e299933869db79ef534d56ab3001e25e16bbbfe21101f08c384e89d449f"
   },
   {
     "name": "sensor-usage-list",

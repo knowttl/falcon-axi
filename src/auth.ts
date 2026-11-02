@@ -19,6 +19,19 @@ export function responseFailure(
   const meta = object(envelope.meta) ? envelope.meta : {};
   const details =
     typeof meta.trace_id === "string" ? { trace_id: meta.trace_id } : {};
+  const requestHelp =
+    operationId === "RTRAuditSessions"
+      ? [
+          `Check that the API client has ${scopes.join(" and ")} in the Falcon console under Support and resources > API clients and keys; run \`falcon-axi scopes\` for the matrix`,
+          "This rejection does not confirm a missing scope; if the scope is granted, report the request command and trace_id to CrowdStrike support",
+        ]
+      : operationId === "GetSearchStatusV1"
+        ? [
+            "A stopped or expired job may no longer be queryable; this rejection does not confirm that the job was stopped",
+            "Check the job identifier and pass the same `--repository` the job was started against",
+            "Run `falcon-axi search start --query '<cql>'` to start a new job if needed",
+          ]
+        : undefined;
   if (response.status === 400) {
     if (operationId === "api_preempt_proxy_post_graphql")
       throw new CliError(
@@ -103,6 +116,7 @@ export function responseFailure(
         : ["detection list", "severity_name:'High'+status:'new'"]);
     const errors = Array.isArray(envelope.errors) ? envelope.errors : [];
     if (
+      operationId !== "GetSearchStatusV1" &&
       errors.some(
         (error) =>
           object(error) &&
@@ -122,7 +136,7 @@ export function responseFailure(
     throw new CliError(
       "UPSTREAM_ERROR",
       `Falcon rejected the request for ${subject}`,
-      ["Check the flags for this command with `--help`"],
+      requestHelp ?? ["Check the flags for this command with `--help`"],
       details,
     );
   }
@@ -225,6 +239,7 @@ export function responseFailure(
     [
       "Retry shortly",
       "Quote the trace_id when opening a CrowdStrike support case",
+      ...(requestHelp ?? []),
     ],
     details,
   );

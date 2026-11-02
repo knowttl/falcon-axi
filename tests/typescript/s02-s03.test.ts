@@ -527,11 +527,6 @@ for (const entry of [
     expected: /synthetic-grandparent.exe/,
   },
   {
-    args: ["host", "show", "synthetic-device-01"],
-    fixtures: ["hosts/details-one.json"],
-    expected: /hostname: WIN-DC-01/,
-  },
-  {
     args: ["host", "logins", "synthetic-device-01"],
     fixtures: ["hosts/login-history.json"],
     expected: /synthetic-svc-backup/,
@@ -616,6 +611,37 @@ for (const entry of [
     );
   });
 
+test("S03 installed host show preserves retained data with a valid synthetic id", async () => {
+  await prepareScenario({
+    name: "host-show",
+    argv: ["host", "show", "00000000000000000000000000000001"],
+    exit_code: 0,
+    responders: [
+      {
+        op: "PostDeviceDetailsV2",
+        response: {
+          status: 200,
+          body: {
+            resources: [
+              {
+                device_id: "00000000000000000000000000000001",
+                hostname: "SYNTHETIC-HOST",
+              },
+            ],
+          },
+        },
+      },
+    ],
+  });
+  const result = await run([
+    "host",
+    "show",
+    "00000000000000000000000000000001",
+  ]);
+  assert.equal(result.code, 0, result.stdout + result.stderr);
+  assert.match(result.stdout, /hostname: SYNTHETIC-HOST/);
+});
+
 if (process.env.S01_ACTIVE_PATH !== "artium") {
   test("C12 missing explicit SecretRef never tries a competing secret", async () => {
     reset();
@@ -679,7 +705,7 @@ for (const entry of [
     expected: "NOT_FOUND",
   },
   {
-    args: ["host", "show", "synthetic-missing"],
+    args: ["host", "show", "00000000000000000000000000000099"],
     operation: "PostDeviceDetailsV2",
     body: { resources: [] },
     expected: "NOT_FOUND",

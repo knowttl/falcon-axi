@@ -50,6 +50,150 @@ const creation = (args: string[]): string =>
 const scoped = (): typeof wire =>
   wire.filter((request) => request.url !== "/oauth2/token");
 
+for (const id of [
+  "abc",
+  "a".repeat(31),
+  "a".repeat(33),
+  "g".repeat(32),
+  "0".repeat(32),
+])
+  test(`live findings host show refuses invalid id ${id} before authentication`, async () => {
+    reset();
+    recordedResponse("PostDeviceDetailsV2", 400, {
+      errors: [{ message: "synthetic invalid device id" }],
+    });
+    const result = await run(["host", "show", id]);
+    assert.equal(result.code, 2, result.stdout);
+    assert.equal(value(result.stdout).code, "VALIDATION_ERROR");
+    assert.match(result.stdout, /32-character hexadecimal device id/);
+    assert.equal(wire.length, 0);
+  });
+
+for (const found of [true, false])
+  test(`live findings host show valid synthetic id found=${found}`, async () => {
+    reset();
+    recordedResponse("PostDeviceDetailsV2", 200, {
+      resources: found ? [{ device_id: aid, hostname: "SYNTHETIC-HOST" }] : [],
+    });
+    const result = await run(["host", "show", aid]);
+    assert.equal(result.code, found ? 0 : 1, result.stdout);
+    assert.match(result.stdout, found ? /SYNTHETIC-HOST/ : /NOT_FOUND/);
+    assert.deepEqual(JSON.parse(scoped()[0]!.body), { ids: [aid] });
+  });
+
+test("live findings audit rejection retains UPSTREAM_ERROR with scope and request guidance", async () => {
+  reset();
+  recordedResponse("RTRAuditSessions", 400, {
+    meta: { trace_id: requestId },
+    errors: [{ message: "synthetic refusal" }],
+  });
+  const result = await run(["rtr", "audit", "list", "--limit", "3"]);
+  assert.equal(result.code, 1, result.stdout);
+  const data = value(result.stdout);
+  assert.equal(data.code, "UPSTREAM_ERROR");
+  assert.equal(data.trace_id, requestId);
+  assert.match(result.stdout, /Real time response audit:read/);
+  assert.match(result.stdout, /falcon-axi scopes/);
+  assert.match(result.stdout, /request.*trace_id/);
+  assert.equal(data.required_scopes, undefined);
+  assert.doesNotMatch(result.stdout, /synthetic refusal/);
+});
+
+test("live findings audit scope denial names the audit scope", async () => {
+  reset();
+  recordedResponse("RTRAuditSessions", 403, {});
+  const result = await run(["rtr", "audit", "list", "--limit", "3"]);
+  assert.equal(result.code, 1, result.stdout);
+  assert.equal(value(result.stdout).code, "SCOPE_DENIED");
+  assert.deepEqual(value(result.stdout).required_scopes, [
+    "Real time response audit:read",
+  ]);
+});
+
+for (const rows of [
+  [],
+  [{ id: "synthetic-audit-session", created_at: "2026-01-01T00:00:00Z" }],
+])
+  test(`live findings audit success with ${rows.length} rows`, async () => {
+    reset();
+    recordedResponse("RTRAuditSessions", 200, {
+      resources: rows,
+      meta: { pagination: { total: rows.length } },
+    });
+    const result = await run(["rtr", "audit", "list", "--limit", "3"]);
+    assert.equal(result.code, 0, result.stdout);
+    assert.match(
+      result.stdout,
+      rows.length ? /synthetic-audit-session/ : /0 audit_sessions/,
+    );
+  });
+
+for (const [status, exitCode, field, expected, guidance] of [
+  [200, 0, "state", "cancelled", /run the search again/],
+  [
+    400,
+    1,
+    "code",
+    "UPSTREAM_ERROR",
+    /stopped or expired job may no longer be queryable/,
+  ],
+  [404, 1, "code", "NOT_FOUND", /completed or cancelled job expires/],
+] as const)
+  test(`live findings search status after stop with synthetic ${status} response`, async () => {
+    reset();
+    recordedResponse("StopSearchV1", 204, null);
+    const stopped = await run([
+      "search",
+      "stop",
+      "synthetic-job",
+      "--repository",
+      "synthetic-repo",
+    ]);
+    assert.equal(stopped.code, 0, stopped.stdout);
+    assert.match(stopped.stdout, /stopped job may no longer be queryable/);
+    assert.doesNotMatch(stopped.stdout, /confirm the job reports cancelled/);
+    recordedResponse("GetSearchStatusV1", status, {
+      cancelled: true,
+      meta: { trace_id: requestId },
+    });
+    const result = await run([
+      "search",
+      "status",
+      "synthetic-job",
+      "--repository",
+      "synthetic-repo",
+    ]);
+    assert.equal(result.code, exitCode, result.stdout);
+    const data = value(result.stdout);
+    assert.equal(data[field], expected);
+    assert.match(result.stdout, guidance);
+    assert.deepEqual(
+      scoped().map((request) => request.method),
+      ["DELETE", "GET"],
+    );
+  });
+
+test("live findings search status rejection preserves trace and avoids FQL advice", async () => {
+  reset();
+  recordedResponse("GetSearchStatusV1", 400, {
+    meta: { trace_id: requestId },
+    errors: [{ message: "synthetic query rejection" }],
+  });
+  const result = await run(["search", "status", "synthetic-job"]);
+  assert.equal(result.code, 1, result.stdout);
+  assert.equal(value(result.stdout).code, "UPSTREAM_ERROR");
+  assert.equal(value(result.stdout).trace_id, requestId);
+  assert.match(
+    result.stdout,
+    /stopped or expired job may no longer be queryable/,
+  );
+  assert.match(result.stdout, /same.*--repository/);
+  assert.doesNotMatch(
+    result.stdout,
+    /Check the flags|FQL|synthetic query rejection/,
+  );
+});
+
 for (const [slice, names] of [
   ["S08", s08.goldenScenarioIds],
   ["S09", s09.goldenScenarioIds],

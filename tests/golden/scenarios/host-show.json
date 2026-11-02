@@ -3,13 +3,31 @@
   "argv": [
     "host",
     "show",
-    "synthetic-device-01"
+    "00000000000000000000000000000001"
   ],
   "responders": [
     {
       "op": "PostDeviceDetailsV2",
-      "fixture": "hosts/details-one.json"
+      "response": {
+        "status": 200,
+        "body": {
+          "resources": [
+            {
+              "device_id": "00000000000000000000000000000001",
+              "hostname": "WIN-DC-01",
+              "platform_name": "Windows",
+              "os_version": "Windows Server 2022",
+              "agent_version": "7.11.0000",
+              "status": "normal",
+              "machine_domain": "synthetic.example",
+              "first_seen": "2026-01-04T08:12:55Z",
+              "last_seen": "2026-07-28T11:02:14Z"
+            }
+          ]
+        }
+      }
     }
   ],
-  "exit_code": 0
+  "exit_code": 0,
+  "comment": "Issue #140 validates host show ids locally; use a synthetic nonzero 32-hex device id for the successful lookup and its output."
 }
