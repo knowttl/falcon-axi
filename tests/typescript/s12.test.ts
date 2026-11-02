@@ -24,6 +24,45 @@ const paths = [
   ".codex/config.toml",
   ".config/opencode/plugins/axi-falcon-axi.js",
 ];
+test("S12 PATH and absolute setup install identical hooks that run with minimal PATH", async () => {
+  const home = join(directory, "path invocation home");
+  await mkdir(home);
+  const setup = spawnSync("falcon-axi", ["setup", "hooks"], {
+    cwd: home,
+    encoding: "utf8",
+    env: {
+      HOME: home,
+      PATH: `${dirname(executable)}:${dirname(process.execPath)}`,
+    },
+  });
+  assert.equal(setup.status, 0, setup.stdout + setup.stderr);
+  const snapshot = await Promise.all(
+    paths.map((path) => readFile(join(home, path), "utf8")),
+  );
+  const document = JSON.parse(snapshot[0]!) as {
+    hooks: { SessionStart: { hooks: { command: string }[] }[] };
+  };
+  const result = spawnSync(document.hooks.SessionStart[0]!.hooks[0]!.command, {
+    shell: true,
+    cwd: home,
+    encoding: "utf8",
+    env: { HOME: home, PATH: "/usr/bin:/bin" },
+    timeout: 10000,
+  });
+  assert.equal(result.status, 0, result.stderr);
+  assert.match(
+    result.stdout,
+    /^falcon-axi \S+: profile unresolved \(PROFILE_REQUIRED\).*\n$/,
+  );
+  assert.match(
+    (await invoke(home, ["setup", "hooks"])).stdout,
+    /status: unchanged/,
+  );
+  assert.deepEqual(
+    await Promise.all(paths.map((path) => readFile(join(home, path), "utf8"))),
+    snapshot,
+  );
+});
 test("S12 PATH shadow cannot redirect an installed session hook", async () => {
   const home = join(directory, "shadow home");
   const shadow = join(directory, "shadow bin");

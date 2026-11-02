@@ -169,7 +169,8 @@ Neither fs-ext nor fs-native-extensions was adopted.
 S12 adds the separate `falcon-axi-hook` npm executable and the offline `setup` and `setup hooks` commands.
 The hook resolves local credentials and trusted region information, prints one safe line, and exits successfully without authentication or network access.
 Explicit setup preserves the four existing agent configuration targets, owned-entry repair, malformed-file refusal, comments, and unchanged bytes and modification times on repeat installation.
-Windows commands use the installed Node runtime plus the real JavaScript entry point when an executable wrapper cannot be used directly.
+Session integrations always use absolute paths to the current Node runtime and the resolved installed JavaScript hook entry point on every platform, independent of setup's invocation or the agent's PATH.
+Rerun setup after a Node upgrade or installation relocation to repair those pinned paths.
 Ordinary commands do not install integrations, capture transcripts, or update software.
 Build and pack with `npm run build` and `npm pack --pack-destination <directory>`.
 Install that tarball into a durable prefix with `npm install --offline --ignore-scripts --prefix <prefix> <tarball>` after acquiring the pinned dependencies during setup.
