@@ -1,5 +1,14 @@
 # Changelog
 
+## [1.0.0-rc.2](https://github.com/knowttl/falcon-axi/compare/npm-v1.0.0-rc.1...npm-v1.0.0-rc.2) (2026-11-02)
+
+
+### Bug Fixes
+
+* clarify RTR execution opt-in guidance and refusal behavior ([#149](https://github.com/knowttl/falcon-axi/issues/149)) ([3f27179](https://github.com/knowttl/falcon-axi/commit/3f27179b4ac710ef9d4fe5ad2917d7ad856685bf))
+* make installed session hooks independent of PATH ([#146](https://github.com/knowttl/falcon-axi/issues/146)) ([4f75533](https://github.com/knowttl/falcon-axi/commit/4f75533de61b8f678b3616781c138685d72c551e))
+* validate host IDs and improve audit and search error guidance ([#148](https://github.com/knowttl/falcon-axi/issues/148)) ([fb1cd6e](https://github.com/knowttl/falcon-axi/commit/fb1cd6eef3932cb7870f491626fbedff4c63812a))
+
 ## [0.9.0](https://github.com/knowttl/falcon-axi/compare/v0.8.4...v0.9.0) (2026-10-31)
 
 
