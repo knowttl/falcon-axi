@@ -158,6 +158,17 @@ export async function investigate(
     }
     if (response.status !== 200)
       responseFailure(response, subject, false, false, operation);
+    if (
+      (name === "host logins" || name === "host network") &&
+      Array.isArray(envelope.errors) &&
+      envelope.errors.length
+    )
+      invalid(
+        operation === "QueryDevicesByFilter"
+          ? "Falcon returned a partial hostname lookup; history was not read"
+          : `Falcon returned partial host ${name === "host logins" ? "login" : "network"} history`,
+        { partial: true },
+      );
     const rows: unknown = Array.isArray(response.body)
       ? response.body
       : envelope.resources;

@@ -676,6 +676,50 @@ test("SR-101 hostname history failure retains the resolved device", async () => 
   assert.match(result.stdout, /stop_reason: history_failed/);
 });
 
+for (const partial of [
+  {
+    name: "AID login history",
+    args: ["host", "logins", "synthetic-device-01"],
+    operation: "QueryDeviceLoginHistoryV2",
+    body: { resources: [{ device_id: "synthetic-device-01" }] },
+    message: "Falcon returned partial host login history",
+    requests: 1,
+  },
+  {
+    name: "AID network history",
+    args: ["host", "network", "synthetic-device-01"],
+    operation: "QueryGetNetworkAddressHistoryV1",
+    body: { resources: [{ device_id: "synthetic-device-01", history: [] }] },
+    message: "Falcon returned partial host network history",
+    requests: 1,
+  },
+  {
+    name: "hostname lookup",
+    args: ["host", "network", "--hostname", "SYNTHETIC-*"],
+    operation: "QueryDevicesByFilter",
+    body: {
+      resources: ["synthetic-device-01"],
+      meta: { pagination: { total: 1 } },
+    },
+    message: "Falcon returned a partial hostname lookup; history was not read",
+    requests: 1,
+  },
+])
+  test(`SR-106 ${partial.name} with resources and errors discloses partial`, async () => {
+    reset();
+    recordedResponse(partial.operation, 200, {
+      ...partial.body,
+      errors: [{ code: 500, message: "synthetic partial failure" }],
+    });
+    const result = await run(partial.args);
+    assert.equal(result.code, 1, result.stdout);
+    const output = document(result.stdout);
+    assert.equal(output.code, "UPSTREAM_ERROR");
+    assert.equal(output.error, partial.message);
+    assert.equal(output.partial, true);
+    assert.equal(dataRequests().length, partial.requests);
+  });
+
 test("SR-141 tree cycle stops without refetching its process", async () => {
   reset();
   dynamicResponse("combined_summary_get", (query) => ({
