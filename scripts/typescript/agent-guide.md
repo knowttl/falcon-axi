@@ -18,7 +18,7 @@ Do not allow a whole noun such as `host` or `search`: other subcommands can crea
 | Alert detail: `detection show <id>` | `falcon-axi detection show 'ldt:synthetic-agent-01:1001' --full` | `--full` removes long-field previews |
 | Alert process lineage: `detection process <id>` | `falcon-axi detection process 'ldt:synthetic-agent:1001'` | Trigger, parent, grandparent, hashes and graph pivot in one call; `--full` removes 800-character command-line previews |
 | Find host: `host list` | `falcon-axi host list --hostname 'synthetic-host-*' --limit 2 --fields status,os_version,agent_version` | `--platform windows`, `--since 24h`, `--filter <FQL>`; returns device IDs (AIDs) |
-| Host detail: `host show <device-id>` | `falcon-axi host show synthetic-device-01` | Full host record; no `--full` flag |
+| Host detail: `host show <device-id>` | `falcon-axi host show 00000000000000000000000000000001` | Full host record; no `--full` flag |
 | Host address history: `host network <device-id>` | `falcon-axi host network synthetic-device-01` | Retained IP/MAC history; no pagination or time flag |
 | Interactive logins: `host logins <device-id>` | `falcon-axi host logins synthetic-device-01 --since 24h --limit 2` | Default window 7d; default 20, maximum 100 logins; a filled window may omit older logins |
 | Graph lineage: `process tree <pid-id>` | `falcon-axi process tree pid:synthetic-device:1` | Up to five ancestors and one child level, 100 child edges per page; `--cursor <token>` continues children; `--full` for complete command lines |
