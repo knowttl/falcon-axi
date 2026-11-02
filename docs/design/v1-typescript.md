@@ -95,9 +95,11 @@ Proxy configuration uses FALCON_AXI_PROXY_URL and CONNECT, preserving target TLS
 
 The public TOON encoder is pinned to 4.1.1 and the public AXI fast-version subpath to 0.1.13.
 Falcon retains raw lines, omission and always-quoted help entries at its rendering boundary.
-Response JSON integer lexemes beyond Number's exact domain become bigint before rounding can occur.
+Response JSON numeric preservation compares the original lexeme's exact magnitude against `9007199254740991`, without using the rounded Number supplied by `JSON.parse`.
+Integer lexemes beyond that boundary become bigint.
 The encoder emits those values as exact quoted decimal strings, its documented lossless representation.
-Other numeric lexemes beyond that domain retain their exact decimal or exponent text as strings.
+Decimal and exponent lexemes beyond that boundary retain their exact source text as strings, including their sign.
+Values at or within the boundary remain numbers with normal Number rounding, including decimal and exponent forms of the boundary itself.
 IDs remain strings, and truncation counts Unicode scalar values.
 The [S02/S03 verification amendment](s02-s03-plan-amendment.md) owns the deferred test assignments and temporary discovery differences, including their restoration requirements.
 Subcommand help is seeded from the frozen Python origin in `src/help.json` and `src/search-help.json`.
