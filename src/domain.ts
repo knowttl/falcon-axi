@@ -1,5 +1,6 @@
 import { CliError, object } from "./core.js";
 import type { Invocation } from "./parser.js";
+import { recoveryHelp } from "./metadata.js";
 import type { Credential } from "./credentials.js";
 import type { Session } from "./auth.js";
 import { responseFailure } from "./auth.js";
@@ -68,16 +69,17 @@ export class Domain {
       this.signal,
     );
     if (response.status === 404 && !missing) {
-      const noun = this.invocation.command.name.startsWith("identity sensor ")
-        ? "identity sensor"
-        : this.invocation.command.name.split(" ")[0]!;
+      const { command, flags } = this.invocation;
+      const hostGroup = command.name.startsWith("host-group ");
       throw new CliError(
         "NOT_FOUND",
-        noun === "host-group"
+        hostGroup
           ? "no host group matched that identifier"
           : `no ${subject} matched that identifier`,
         [
-          `Run \`falcon-axi ${noun} list${noun === "policy" ? ` --type ${this.invocation.flags.get("--type")}` : ""}\`${noun === "host-group" ? "" : " to see current identifiers"}`,
+          hostGroup
+            ? "Run `falcon-axi host-group list`"
+            : recoveryHelp(command.name, flags),
         ],
       );
     }

@@ -8,6 +8,7 @@ import { responseFailure } from "./auth.js";
 import type { Session } from "./auth.js";
 import { malformed } from "./response.js";
 import { text, quote, project } from "./domain.js";
+import { recoveryHelp } from "./metadata.js";
 
 type RecordValue = Record<string, unknown>;
 type Query = Record<string, string | number | readonly string[]>;
@@ -142,18 +143,8 @@ export async function investigate(
           "no IOC record matched that identifier",
           ["Run `falcon-axi ioc list`"],
         );
-      const command =
-        operation === "QueryGetNetworkAddressHistoryV1"
-          ? "host list"
-          : name.startsWith("file-change ")
-            ? "file-change list"
-            : name.startsWith("rtr session ")
-              ? "rtr session list"
-              : name.startsWith("rtr audit ")
-                ? "rtr audit list"
-                : "detection list";
       throw new CliError("NOT_FOUND", `no ${subject} matched that identifier`, [
-        `Run \`falcon-axi ${command}\` to see current identifiers`,
+        recoveryHelp(name === "home" ? "detection list" : name, flags),
       ]);
     }
     if (response.status !== 200)
@@ -391,10 +382,6 @@ export async function investigate(
       help.push(
         `Run \`${suggestion} --cursor ${String(value.continuation_cursor)}\` for the next page`,
       );
-      if (filter && /\b(?:cid|member_cid)\s*:/i.test(filter))
-        help.push(
-          "Replace <original-filter> with your original --filter value when continuing; CID filters are not echoed",
-        );
     } else if (more)
       help.push(
         wallHelp[0]!,

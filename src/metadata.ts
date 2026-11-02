@@ -586,6 +586,47 @@ export const boolFlags: readonly string[] = [
   "--no-member-cid",
 ];
 export const commandNames = commands.map((command) => command.name);
+
+// Recovery guidance for an identifier or collection that Falcon did not find.
+// Commands whose list needs a selector the failed command may not carry point
+// to that list's help instead of an invalid invocation.
+export const recoveryHelp = (
+  name: string,
+  flags: ReadonlyMap<string, string>,
+  kind?: string,
+): string => {
+  if (name.startsWith("process "))
+    return "Run `falcon-axi ioc processes <type:value> --host <device_id>` to find process identifiers";
+  if (name === "malquery search")
+    return "Run `falcon-axi malquery search --help` for the supported literal pattern grammar";
+  if (name === "malquery status")
+    return "Run `falcon-axi malquery search --help` to start a search and obtain a request identifier";
+  if (name === "malquery show")
+    return "Run `falcon-axi malquery show --help` for the SHA-256 argument it expects";
+  const words = name.split(" ");
+  const collection =
+    name === "rtr run"
+      ? "host list"
+      : words.at(-1) === "list"
+        ? name
+        : words.length === 3
+          ? `${words[0]} ${words[1]} list`
+          : `${words[0]} list`;
+  const selector = (
+    { exclusion: "type", policy: "type", "data-policy": "platform" } as Record<
+      string,
+      string
+    >
+  )[words[0]!];
+  const value = selector ? flags.get(`--${selector}`) : undefined;
+  const command =
+    value !== undefined && /^[A-Za-z0-9_-]+$/.test(value)
+      ? `${collection} --${selector} ${value}`
+      : selector || ["sandbox", "serverless", "vuln"].includes(words[0]!)
+        ? `${collection} --help`
+        : collection;
+  return `Run \`falcon-axi ${command}\` to ${command.endsWith(" --help") ? "see the selectors it requires" : kind === "policy" ? "find policy ids" : `see current ${kind ? `${kind} ` : ""}identifiers`}`;
+};
 for (const flag of [
   ...valueFlags,
   ...boolFlags,
