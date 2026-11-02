@@ -625,7 +625,7 @@ export const recoveryHelp = (
       : selector || ["sandbox", "serverless", "vuln"].includes(words[0]!)
         ? `${collection} --help`
         : collection;
-  return `Run \`falcon-axi ${command}\` to see ${command.endsWith(" --help") ? "the selectors it requires" : `current ${kind ? `${kind} ` : ""}identifiers`}`;
+  return `Run \`falcon-axi ${command}\` to ${command.endsWith(" --help") ? "see the selectors it requires" : kind === "policy" ? "find policy ids" : `see current ${kind ? `${kind} ` : ""}identifiers`}`;
 };
 for (const flag of [
   ...valueFlags,
