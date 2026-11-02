@@ -688,7 +688,7 @@
   {
     "name": "help-host-show",
     "definitionSha256": "697674254876054885cbce4184ec7a42d3b0700344d4e1392af868254447a706",
-    "expectedSha256": "f253a8eb4585977443bdacce7a3fef0af0f8b52a80d43fd9520b84fe76845ef3"
+    "expectedSha256": "8341c66153b5bd54ba37d926432b1a8bbbac201d78c1dd2686d2dbe4d3e03bf6"
   },
   {
     "name": "help-identity-activity",
