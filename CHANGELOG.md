@@ -1,5 +1,15 @@
 # Changelog
 
+## [1.0.0-rc.3](https://github.com/knowttl/falcon-axi/compare/npm-v1.0.0-rc.2...npm-v1.0.0-rc.3) (2026-11-02)
+
+
+### Bug Fixes
+
+* correct CLI identifier recovery and continuation guidance ([#155](https://github.com/knowttl/falcon-axi/issues/155)) ([904c161](https://github.com/knowttl/falcon-axi/commit/904c161b4a3adf8ae45cfe9f0168091ab2287ca5))
+* preserve JSON numeric lexemes before rounding ([#151](https://github.com/knowttl/falcon-axi/issues/151)) ([7523f0f](https://github.com/knowttl/falcon-axi/commit/7523f0fdc11110b67bbe08df0ddd25b0969ac155))
+* preserve partial disclosure for host history errors ([#154](https://github.com/knowttl/falcon-axi/issues/154)) ([648fcf1](https://github.com/knowttl/falcon-axi/commit/648fcf1bf915609553544de3aa3b0d312b64c10c))
+* restore Python-compatible nested cursor serialization ([#153](https://github.com/knowttl/falcon-axi/issues/153)) ([9336c9c](https://github.com/knowttl/falcon-axi/commit/9336c9c95f9ec75b1aaa46ba170a22348ba55bd4))
+
 ## [1.0.0-rc.2](https://github.com/knowttl/falcon-axi/compare/npm-v1.0.0-rc.1...npm-v1.0.0-rc.2) (2026-11-02)
 
 
