@@ -8,7 +8,7 @@
   },
   "parser": {
     "path": ".typescript-build/src/parser.js",
-    "sha256": "245e0b7b86311cb7876ef94dc3eab0550529501d14e25073516fad1c028c5552"
+    "sha256": "1b711f8fe8d56d380c00e8ff1e16c61e2227a9f62a04d70c9af0ff0bb4c01b52"
   },
   "skill": {
     "path": "skills/falcon-axi/SKILL.md",

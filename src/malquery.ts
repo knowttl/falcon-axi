@@ -1,6 +1,7 @@
 import { CliError, object } from "./core.js";
 import { Domain, project } from "./domain.js";
 import type { Output } from "./domain.js";
+import { recoveryHelp } from "./metadata.js";
 import { Raw } from "./render.js";
 import { searchBody } from "./transport/search-authority.js";
 import { requestException, requestRead } from "./transport/https.js";
@@ -61,7 +62,18 @@ export async function malquery(domain: Domain): Promise<Output> {
     throw new CliError(
       "NOT_FOUND",
       `no ${metadata ? "MalQuery metadata" : status || submit ? "MalQuery search" : "MalQuery quota"} matched that identifier`,
-      ["Run `falcon-axi malquery quota` to see current identifiers"],
+      metadata || status || submit
+        ? [
+            recoveryHelp(
+              metadata
+                ? "malquery show"
+                : status
+                  ? "malquery status"
+                  : "malquery search",
+              new Map(),
+            ),
+          ]
+        : [],
     );
   if (response.status !== 200)
     responseFailure(

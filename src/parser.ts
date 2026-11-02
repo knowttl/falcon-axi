@@ -1,5 +1,5 @@
 import { CliError } from "./core.js";
-import { commands, valueFlags, boolFlags } from "./metadata.js";
+import { commands, valueFlags, boolFlags, recoveryHelp } from "./metadata.js";
 import type { Command } from "./metadata.js";
 import { applicationFields } from "./inventory.js";
 import { shieldFilters } from "./exposure.js";
@@ -154,7 +154,13 @@ export function parse(argv: string[]): Invocation {
                       ? "Run `falcon-axi detection show <id>` for an identity detection's account_id"
                       : command.name === "identity sensor show"
                         ? "Run `falcon-axi identity sensor list` to see current sensor identifiers"
-                        : `Run \`falcon-axi ${command.name.startsWith("host ") ? "host" : command.name.startsWith("detection ") ? "detection" : command.name.split(" ")[0]} list\` to see current ${command.name.startsWith("host ") ? "device" : command.name.split(" ")[0]} identifiers`,
+                        : recoveryHelp(
+                            command.name,
+                            flags,
+                            command.name.startsWith("host ")
+                              ? "device"
+                              : command.name.split(" ")[0],
+                          ),
         ],
       );
     if (!command.positional && positionals.length)

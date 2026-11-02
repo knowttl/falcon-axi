@@ -1,5 +1,6 @@
 import { CliError, object } from "./core.js";
 import { pythonJson } from "./cursor.js";
+import { recoveryHelp } from "./metadata.js";
 import { Domain, count, more, project, text } from "./domain.js";
 import type { Output, Query, RecordValue } from "./domain.js";
 import { Raw, redact, truncate } from "./render.js";
@@ -498,7 +499,7 @@ export async function inspection(
             ]
           : ["classification", "data-policy"].includes(noun)
             ? [`Run \`falcon-axi ${noun} list --help\` to find identifiers`]
-            : [],
+            : [recoveryHelp(command.name, flags)],
       );
     const record = records[0]!;
     if (recon || collection)

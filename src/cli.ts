@@ -80,6 +80,10 @@ export async function main(argv: string[], bin?: string): Promise<number> {
         (_, command: string) => `\`${command}${suffix}\``,
       ),
     );
+    if (help.some((item) => item.includes("<original-filter>")))
+      result.push(
+        "Replace <original-filter> with your original --filter value when continuing; CID filters are not echoed",
+      );
     if (memberCid && help.some((item) => /`falcon-axi /.test(item)))
       result.push(
         "Supply the same tenant selection used for this invocation when following these suggestions",
