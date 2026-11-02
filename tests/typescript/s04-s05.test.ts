@@ -938,20 +938,56 @@ test("S04/S05 missing sensor identifier points to the shipped sensor inventory",
 
 const suggestedCommands = (help: unknown): string[][] =>
   (help as string[]).flatMap((line) =>
-    [...line.matchAll(/`(?:artium-axi )?falcon-axi ([^`<]*)`/g)].map((match) =>
-      match[1]!.trim().split(" "),
-    ),
+    [...line.matchAll(/`(?:artium-axi )?falcon-axi ([^`]+)`/g)].map((match) => {
+      const placeholders: Record<string, string> = {
+        "<type:value>": "domain:example.invalid",
+        "<device_id>": "11111111111111111111111111111111",
+        "<id>": "ldt:synthetic-agent-01:1001",
+        "<cql>": "#event_simpleName=ProcessRollup2",
+      };
+      const command = match[1]!.replace(/<[^>]+>/g, (placeholder) => {
+        assert.ok(Object.hasOwn(placeholders, placeholder), placeholder);
+        return placeholders[placeholder]!;
+      });
+      return [...command.matchAll(/'([^']*)'|"([^"]*)"|(\S+)/g)].map(
+        (word) => word[1] ?? word[2] ?? word[3]!,
+      );
+    }),
   );
+
+const checkSuggestedCommands = async (help: unknown): Promise<void> => {
+  for (const suggested of suggestedCommands(help)) {
+    reset();
+    const check = await run(suggested);
+    assert.ok(
+      check.code === 0 || (check.code === 1 && dataRequests().length > 0),
+      `${suggested.join(" ")}: ${check.stdout}`,
+    );
+  }
+};
 
 for (const command of commands.filter((command) => command.positional))
   test(`S04/S05 missing identifier for ${command.name} suggests only shipped commands`, async () => {
     reset();
     const result = await run(command.name.split(" "));
     assert.equal(result.code, 2, result.stdout);
-    for (const suggested of suggestedCommands(document(result.stdout).help)) {
-      const check = await run([...suggested, "--help"]);
-      assert.equal(check.code, 0, `${suggested.join(" ")}: ${check.stdout}`);
-    }
+    await checkSuggestedCommands(document(result.stdout).help);
+  });
+
+for (const type of [undefined, "device-control"])
+  test(`S04/S05 missing policy members identifier preserves type=${type}`, async () => {
+    reset();
+    const result = await run([
+      "policy",
+      "members",
+      ...(type ? ["--type", type] : []),
+    ]);
+    assert.equal(result.code, 2, result.stdout);
+    const help = document(result.stdout).help;
+    assert.deepEqual(suggestedCommands(help), [
+      ["policy", "list", ...(type ? ["--type", type] : ["--help"])],
+    ]);
+    await checkSuggestedCommands(help);
   });
 
 for (const entry of [
@@ -1003,15 +1039,11 @@ for (const entry of [
     assert.equal(result.code, 1, result.stdout);
     const output = document(result.stdout);
     assert.equal(output.code, "NOT_FOUND");
-    const suggested = suggestedCommands(output.help);
     assert.ok(
       JSON.stringify(output.help).includes(`falcon-axi ${entry.expected}`),
       JSON.stringify(output.help),
     );
-    for (const words of suggested) {
-      const check = await run([...words, "--help"]);
-      assert.equal(check.code, 0, `${words.join(" ")}: ${check.stdout}`);
-    }
+    await checkSuggestedCommands(output.help);
     assert.ok(!JSON.stringify(output.help).includes("quota"));
   });
 

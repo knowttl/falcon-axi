@@ -138,29 +138,25 @@ export function parse(argv: string[]): Invocation {
         "VALIDATION_ERROR",
         `${command.name} requires exactly one ${command.positional}`,
         [
-          command.name === "policy members"
-            ? "Run `falcon-axi policy list --type prevention` to find policy ids"
-            : command.name === "cve show"
-              ? "A CVE identifier matches CVE-<year>-<number>, for example CVE-2021-44228"
-              : command.name === "vuln show"
-                ? "Run `falcon-axi vuln list --status open` to find Spotlight record identifiers"
-                : command.name.startsWith("search ")
-                  ? "A search identifier comes from `falcon-axi search start --query '<cql>'`"
-                  : ["identity show", "identity timeline"].includes(
-                        command.name,
-                      )
-                    ? "Run `falcon-axi identity list` to see current identity ids"
-                    : command.name === "identity activity"
-                      ? "Run `falcon-axi detection show <id>` for an identity detection's account_id"
-                      : command.name === "identity sensor show"
-                        ? "Run `falcon-axi identity sensor list` to see current sensor identifiers"
-                        : recoveryHelp(
-                            command.name,
-                            flags,
-                            command.name.startsWith("host ")
-                              ? "device"
-                              : command.name.split(" ")[0],
-                          ),
+          command.name === "cve show"
+            ? "A CVE identifier matches CVE-<year>-<number>, for example CVE-2021-44228"
+            : command.name === "vuln show"
+              ? "Run `falcon-axi vuln list --status open` to find Spotlight record identifiers"
+              : command.name.startsWith("search ")
+                ? "A search identifier comes from `falcon-axi search start --query '<cql>'`"
+                : ["identity show", "identity timeline"].includes(command.name)
+                  ? "Run `falcon-axi identity list` to see current identity ids"
+                  : command.name === "identity activity"
+                    ? "Run `falcon-axi detection show <id>` for an identity detection's account_id"
+                    : command.name === "identity sensor show"
+                      ? "Run `falcon-axi identity sensor list` to see current sensor identifiers"
+                      : recoveryHelp(
+                          command.name,
+                          flags,
+                          command.name.startsWith("host ")
+                            ? "device"
+                            : command.name.split(" ")[0],
+                        ),
         ],
       );
     if (!command.positional && positionals.length)
