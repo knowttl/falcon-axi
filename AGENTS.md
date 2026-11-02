@@ -108,7 +108,8 @@ The implementation seams are documented in `docs/design/v1-typescript.md`:
   Every fixture under `tests/fixtures/` is wholly synthetic and carries a provenance header that an offline test
   asserts.
 
-The automation is `.github/workflows/ci.yml`, which runs `npm run verify` with no secrets, and `.github/workflows/release-please.yml`, whose release and publish jobs are disabled during cutover.
+The automation is `.github/workflows/ci.yml`, which runs `npm run verify` with no secrets, and `.github/workflows/release-please.yml`, which proposes releases and, when one is created, builds and publishes to npm with no checks of its own.
+Prereleases publish under the `next` dist-tag and never move `latest`.
 The final-coverage check allows exactly those two workflow files and rejects `FALCON_AXI_LIVE`, both credential environment names, and their deprecated aliases in decoded workflow settings.
 
 ## Build to the AXI skill

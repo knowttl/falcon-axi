@@ -5,7 +5,7 @@ The installed-artifact regression uses a three-second local DNS blackhole and re
 
 This tree prepares the reviewed Node 24 TypeScript cutover; the Python implementation is preserved in release history rather than shipped alongside it.
 The prepared npm prerelease is `@knowttl/falcon-axi@1.0.0-rc.1` on `next`, with the executable names `falcon-axi` and `falcon-axi-hook`.
-Publication remains a manual action after the cutover merges, and both release-workflow jobs are disabled.
+`1.0.0-rc.1` was published manually; later releases publish from `.github/workflows/release-please.yml`, with prereleases on `next`.
 The [cutover record](../distribution/typescript-cutover.md) owns the imported migration tree, preservation tag, reviewable revert, and publication gates.
 The candidate delivers local configuration diagnostics, token-checking `auth status`, `scopes`, and passive detection investigation and host, IOC, process, FileVantage and RTR history reads.
 S04 adds account, asset, application, login, host-group, IoT, weekly sensor usage and Identity sensor reads.

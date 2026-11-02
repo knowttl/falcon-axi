@@ -69,8 +69,9 @@ Do not hand-edit the generated changelog.
 
 ## Releases
 
-The proposed Node release-please configuration uses the distinct `npm-v` tag namespace; its workflow is disabled.
-The first npm prerelease is prepared as `1.0.0-rc.1` on `next`, with publication performed manually only after the cutover merges.
-Future version changes must keep `package.json`, the lockfile root version, and `src/version.ts` synchronized, and regenerate metadata.
+The release-please configuration uses the distinct `npm-v` tag namespace.
+The `.github/workflows/release-please.yml` workflow publishes to npm through trusted publishing when a release is created.
+Prereleases (`1.0.0-rc.N`) publish under `next` and never become `latest`.
+Release-please updates `package.json`, the lockfile root version, `src/version.ts`, and the manifest together, so do not edit them by hand for a release.
 Python artifacts remain installable, and a final notice-only PyPI release is separately gated on confirmation of the first npm publication.
 Keep release mechanics in the workflow and package metadata; install examples should not pin release versions.

@@ -21,10 +21,9 @@ The version leaf, package metadata and lockfile agree; generated agent examples 
 The existing Python release tags and PyPI artifacts remain installable.
 
 CI installs the locked npm dependency graph and runs `npm run verify` with synthetic network isolation.
-Both the release-please and publish jobs have unconditional false guards.
-The inactive Node release-please proposal uses the `npm-v` namespace; no automation can create a release or publish a package in this tree.
-The retained release manifest still records the last Python release; it is inert until a separate release-automation review reconciles it with the manual npm release.
-The dormant PyPI publishing steps are preserved as historical workflow content; the runnable Python release path remains in the preserved Python lineage.
+The release-please workflow was activated after the cutover: it uses the `npm-v` namespace and publishes to npm only when a release is created, with prereleases on `next`.
+The manifest records `1.0.0-rc.1`, the manually published prerelease, and `bootstrap-sha` starts the changelog after the cutover commit.
+The PyPI publishing steps are gone; the runnable Python release path remains in the preserved Python lineage.
 
 The `.py` files under `tests/offline`, `tests/packaged`, and `tests/support` are frozen comparison sources.
 The TypeScript ledger reads their pinned bytes and source symbols to retain the 210 safety requirements.
