@@ -35,7 +35,19 @@ export function parseResponse(text: string): unknown {
           ? integer
           : value;
       }
-      return Math.abs(value) >= Number.MAX_SAFE_INTEGER ? source : value;
+      const [mantissa, exponent = "0"] = source.replace(/^-/, "").split(/[eE]/);
+      const [whole, fraction = ""] = mantissa!.split(".");
+      const coefficient = whole! + fraction;
+      const significant = coefficient.replace(/^0+/, "");
+      if (!significant) return value;
+      const position =
+        BigInt(whole!.length - (coefficient.length - significant.length)) +
+        BigInt(exponent);
+      const digits = significant.replace(/0+$/, "");
+      return position > 16n ||
+        (position === 16n && digits.padEnd(16, "0") > "9007199254740991")
+        ? source
+        : value;
     },
   ) as unknown;
 }
