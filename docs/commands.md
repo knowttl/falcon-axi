@@ -309,7 +309,7 @@ falcon-axi host show <device id>
 
 The device id is the agent id Falcon calls the AID, as printed by `falcon-axi host list`.
 
-Example: falcon-axi host show abc123
+Example: falcon-axi host show 0123456789abcdef0123456789abcdef
 
 This command is read-only and requires only Hosts:read.
 ```

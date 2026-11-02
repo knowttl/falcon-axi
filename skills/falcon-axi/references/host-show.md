@@ -7,7 +7,7 @@ npx -y @knowttl/falcon-axi@next host show <device id>
 
 The device id is the agent id Falcon calls the AID, as printed by `npx -y @knowttl/falcon-axi@next host list`.
 
-Example: npx -y @knowttl/falcon-axi@next host show abc123
+Example: npx -y @knowttl/falcon-axi@next host show 0123456789abcdef0123456789abcdef
 
 This command is read-only and requires only Hosts:read.
 ```
