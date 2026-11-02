@@ -1364,6 +1364,16 @@ for (const [input, expected] of [
   ["9007199254740993", 'value: "9007199254740993"\n'],
   ["9007199254740993.1", 'value: "9007199254740993.1"\n'],
   ["1e100", 'value: "1e100"\n'],
+  ["-9007199254740993", 'value: "-9007199254740993"\n'],
+  // Rounds onto the safe-integer boundary, so the fraction would be lost.
+  ["9007199254740991.1", 'value: "9007199254740991.1"\n'],
+  ["-9007199254740991.1", 'value: "-9007199254740991.1"\n'],
+  ["9.0071992547409911e15", 'value: "9.0071992547409911e15"\n'],
+  ["-9.0071992547409911E15", 'value: "-9.0071992547409911E15"\n'],
+  // Exact in Number, so it stays a plain number.
+  ["9007199254740991", "value: 9007199254740991\n"],
+  ["-9007199254740991", "value: -9007199254740991\n"],
+  ["1.5", "value: 1.5\n"],
 ])
   test(`numeric response lexeme ${input} is preserved exactly`, () => {
     assert.equal(render({ value: parseResponse(input!) }), expected);
