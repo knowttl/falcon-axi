@@ -77,3 +77,15 @@ export class Cursor {
     }
   }
 }
+
+// Serializes a cursor query context exactly as Python's json.dumps did: ASCII-only
+// output with either compact or default separators, so existing tokens stay valid.
+export function pythonJson(value: unknown, compact = false): string {
+  if (Array.isArray(value))
+    return `[${value.map((item) => pythonJson(item, compact)).join(compact ? "," : ", ")}]`;
+  return JSON.stringify(value).replace(
+    /[\u007f-\uffff]/g,
+    (character) =>
+      `\\u${character.charCodeAt(0).toString(16).padStart(4, "0")}`,
+  );
+}

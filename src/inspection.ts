@@ -1,4 +1,5 @@
 import { CliError, object } from "./core.js";
+import { pythonJson } from "./cursor.js";
 import { Domain, count, more, project, text } from "./domain.js";
 import type { Output, Query, RecordValue } from "./domain.js";
 import { Raw, redact, truncate } from "./render.js";
@@ -553,9 +554,9 @@ export async function inspection(
   if (noun === "sandbox") filter = sandboxFilter(flags);
   const sort = noun === "indicator" ? "_marker.asc" : flags.get("--sort");
   const contextFilter = data
-    ? JSON.stringify([filter ?? null, flags.get("--platform") ?? null])
+    ? pythonJson([filter ?? null, flags.get("--platform") ?? null], true)
     : noun === "policy"
-      ? JSON.stringify([filter ?? null, members ? id : null])
+      ? pythonJson([filter ?? null, members ? id : null], true)
       : filter;
   const context = domain.cursor(
     op,

@@ -782,6 +782,149 @@ test("S04/S05 host-group cursor preserves commas inside the filter context", asy
   assert.equal(payload.fingerprint, expected);
 });
 
+// Expected query contexts are written out as Python's json.dumps emitted them:
+// ASCII-only escapes, compact separators except where the origin used the default.
+for (const entry of [
+  {
+    name: "identity list",
+    args: ["identity", "list", "--name", "caf\u00e9,\u{1f600}"],
+    operation: "api_preempt_proxy_post_graphql",
+    responses: [
+      {
+        data: {
+          entities: {
+            nodes: [{ entityId: "synthetic-id" }],
+            pageInfo: { hasNextPage: true, endCursor: "synthetic-after" },
+          },
+        },
+      },
+    ],
+    model: "token",
+    position: "synthetic-after",
+    query: '[null,"caf\\u00e9,\\ud83d\\ude00",null,null]',
+  },
+  {
+    name: "data-policy list",
+    args: [
+      "data-policy",
+      "list",
+      "--platform",
+      "win",
+      "--filter",
+      "name:'caf\u00e9,x'",
+    ],
+    operation: "queries_policy_get_v2",
+    responses: [
+      { resources: ["synthetic-policy"], meta: { pagination: { total: 2 } } },
+      { resources: [{ id: "synthetic-policy" }] },
+    ],
+    model: "offset",
+    position: 1,
+    query: '["name:\'caf\\u00e9,x\'","win"]',
+  },
+  {
+    name: "policy list",
+    args: [
+      "policy",
+      "list",
+      "--type",
+      "prevention",
+      "--filter",
+      "name:'caf\u00e9,x'",
+    ],
+    operation: "queryCombinedPreventionPolicies",
+    responses: [
+      {
+        resources: [{ id: "synthetic-policy" }],
+        meta: { pagination: { total: 2 } },
+      },
+    ],
+    model: "offset",
+    position: 1,
+    query: "[\"name:'caf\\u00e9,x'\",null]",
+  },
+  {
+    name: "policy members",
+    args: ["policy", "members", "synthetic-policy", "--type", "prevention"],
+    operation: "queryCombinedPreventionPolicyMembers",
+    responses: [
+      {
+        resources: [{ device_id: "synthetic-device" }],
+        meta: { pagination: { total: 2 } },
+      },
+    ],
+    model: "offset",
+    position: 1,
+    query: '[null,"synthetic-policy"]',
+  },
+  {
+    name: "ioc hosts",
+    args: ["ioc", "hosts", "domain:caf\u00e9,x.example.invalid"],
+    operation: "DevicesRanOn",
+    responses: [
+      {
+        resources: ["synthetic-device-01"],
+        meta: { pagination: { total: 2 } },
+      },
+    ],
+    model: "offset",
+    position: 1,
+    query: '["domain", "caf\\u00e9,x.example.invalid", null]',
+  },
+  {
+    name: "ioc processes",
+    args: [
+      "ioc",
+      "processes",
+      "domain:example.invalid",
+      "--host",
+      "synthetic-device-01",
+    ],
+    operation: "ProcessesRanOn",
+    responses: [
+      {
+        resources: ["pid:synthetic-device-01:1234"],
+        meta: { pagination: { total: 2 } },
+      },
+    ],
+    model: "offset",
+    position: 1,
+    query: '["domain", "example.invalid", "synthetic-device-01"]',
+  },
+] as const)
+  test(`S04/S05 ${entry.name} cursor keeps the Python-compatible query context`, async () => {
+    reset();
+    for (const [index, body] of entry.responses.entries())
+      recordedResponse(
+        index === 0 ? entry.operation : "entities_policy_get_v2",
+        200,
+        body,
+      );
+    const result = await run([...entry.args, "--limit", "1"]);
+    assert.equal(result.code, 0, result.stdout);
+    const payload = JSON.parse(
+      Buffer.from(
+        String(document(result.stdout).continuation_cursor),
+        "base64url",
+      ).toString(),
+    ) as { fingerprint: string };
+    const expected = createHmac("sha256", "synthetic-s01-secret")
+      .update(
+        JSON.stringify({
+          client_id: "synthetic-s01-client",
+          member_cid: null,
+          model: entry.model,
+          operation: entry.operation,
+          origin: "https://api.crowdstrike.com",
+          position: entry.position,
+          query: entry.query,
+          sort: null,
+        }),
+      )
+      .digest("hex");
+    assert.equal(payload.fingerprint, expected);
+  });
+
 test("S04/S05 missing sensor identifier points to the shipped sensor inventory", async () => {
   reset();
   const result = await run(["identity", "sensor", "show"]);

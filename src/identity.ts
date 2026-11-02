@@ -1,4 +1,5 @@
 import { CliError, object } from "./core.js";
+import { pythonJson } from "./cursor.js";
 import { Domain, text } from "./domain.js";
 import type { Output, RecordValue } from "./domain.js";
 import type { Invocation } from "./parser.js";
@@ -279,12 +280,15 @@ export async function identity(domain: Domain): Promise<Output> {
     ? [entityId(id!).toLowerCase(), since.toLowerCase(), chosen.join(",")].join(
         "|",
       )
-    : JSON.stringify([
-        type ?? null,
-        flags.get("--name") ?? null,
-        flags.get("--email") ?? null,
-        flags.get("--domain") ?? null,
-      ]);
+    : pythonJson(
+        [
+          type ?? null,
+          flags.get("--name") ?? null,
+          flags.get("--email") ?? null,
+          flags.get("--domain") ?? null,
+        ],
+        true,
+      );
   const context = domain.cursor(
     "api_preempt_proxy_post_graphql",
     fingerprint,

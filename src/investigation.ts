@@ -1,7 +1,7 @@
 import { CliError, object } from "./core.js";
 import type { Credential } from "./credentials.js";
 import type { Invocation } from "./parser.js";
-import { Cursor } from "./cursor.js";
+import { Cursor, pythonJson } from "./cursor.js";
 import { Raw, redact, truncate } from "./render.js";
 import { requestRead } from "./transport/https.js";
 import { responseFailure } from "./auth.js";
@@ -846,7 +846,7 @@ export async function investigate(
     const host = flags.get("--host");
     const context = cursor(
       operation,
-      JSON.stringify([type, indicator, host ?? null]).replaceAll(",", ", "),
+      pythonJson([type, indicator, host ?? null]),
     );
     const offset = flags.has("--cursor")
       ? (context.decode(flags.get("--cursor")!) as number)
