@@ -11,7 +11,9 @@ These expectations are tested offline in `tests/typescript/s11.test.ts` with syn
 | LV-RTR-P2: `ps \| grep x` | `VALIDATION_ERROR`, exit 2. |
 | LV-RTR-P6: exact execution confirmation without profile opt-in | `READ_ONLY_VIOLATION`, exit 1, with help naming `"rtr": {"enabled": true}` on the selected profile. |
 | Preview with a resolved profile | Local policy/origin preview, exit 0, without authentication. |
-| Preview without a profile | `PROFILE_REQUIRED`, exit 1; local preview requires profile resolution and credential references. |
+| Preview without a profile | `PROFILE_REQUIRED`, exit 1. |
+
+[N3's design contract](design/v1.md#45-rtr-was-excluded-on-semantic-execution-grounds-and-captain-exception-n3-narrowly-reverses-it) owns preview prerequisites and refusal behavior.
 
 ## Historical Python artifact verification
 

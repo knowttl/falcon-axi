@@ -29,9 +29,7 @@ RTR operation admission and execution guards are owned by [N3's design contract]
 ## RTR operator guidance
 
 Use `falcon-axi rtr run <device_id> --command '<complete command>' --profile triage` for a local preview.
-Preview requires a locally resolved profile and its credential references to show the effective policy and origin, but never authenticates or sends a request.
-With no profile it returns `PROFILE_REQUIRED` (exit 1).
-Commands outside the effective read-only set return `READ_ONLY_VIOLATION` (exit 1); malformed syntax such as a pipe returns `VALIDATION_ERROR` (exit 2), also without any request.
+See [N3's preview and refusal contract](design/v1.md#45-rtr-was-excluded-on-semantic-execution-grounds-and-captain-exception-n3-narrowly-reverses-it) for required local profile and credential resolution and refusal codes.
 Before executing, check [API client permissions](commands.md#api-client-permissions) and Falcon product entitlement.
 The selected profile must explicitly set `"rtr": {"enabled": true}` before execution; its optional `commands` array can only narrow the fixed read-only set.
 Add `--execute --confirm '<device_id>:<complete command>'` to execute exactly that host and command, including all arguments.
