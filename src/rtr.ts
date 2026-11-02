@@ -163,6 +163,7 @@ export async function rtrRun(
     throw new CliError(
       "READ_ONLY_VIOLATION",
       "RTR execution requires explicit profile opt-in",
+      ['Set "rtr": {"enabled": true} on the selected file profile'],
     );
   if (executing && (process.platform !== "linux" || process.arch !== "x64"))
     throw new CliError(

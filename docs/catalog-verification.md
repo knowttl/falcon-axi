@@ -1,5 +1,22 @@
 # Offline AXI catalog verification
 
+## TypeScript RTR refusal checklist corrections
+
+Issue #143 retains the existing guarded CLI behavior for the live checklist's RTR cases.
+These expectations are tested offline in `tests/typescript/s11.test.ts` with synthetic data and zero recorded transport requests:
+
+| Case | Expected result |
+| --- | --- |
+| LV-RTR-P2: `rm x`, `kill 1`, `put x`, `runscript x`, `reg set x`, `eventlog clear` | `READ_ONLY_VIOLATION`, exit 1. |
+| LV-RTR-P2: `ps \| grep x` | `VALIDATION_ERROR`, exit 2. |
+| LV-RTR-P6: exact execution confirmation without profile opt-in | `READ_ONLY_VIOLATION`, exit 1, with help naming `"rtr": {"enabled": true}` on the selected profile. |
+| Preview with a resolved profile | Local policy/origin preview, exit 0, without authentication. |
+| Preview without a profile | `PROFILE_REQUIRED`, exit 1. |
+
+[N3's design contract](design/v1.md#45-rtr-was-excluded-on-semantic-execution-grounds-and-captain-exception-n3-narrowly-reverses-it) owns preview prerequisites and refusal behavior.
+
+## Historical Python artifact verification
+
 Verified on 2026-10-31 for issue #95 using locally built falcon-axi **0.8.4** artifacts from source revision `5a4f626e580687e943b698d648bb6991b1644f5b`.
 This change adds verification only; package source, authority, safety gates, and output contracts are unchanged.
 The environment was Linux x86_64, CPython 3.12.3, uv 0.13.1, Node 24.14.0, and the cached `skills` installer 1.7.4.
