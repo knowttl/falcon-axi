@@ -8,7 +8,6 @@ permissions: {}
 
 jobs:
   release-please:
-    if: ${{ false }}
     runs-on: ubuntu-latest
     permissions:
       contents: write
@@ -25,9 +24,8 @@ jobs:
 
   publish:
     needs: release-please
-    if: ${{ false }}
+    if: ${{ needs.release-please.outputs.release_created }}
     runs-on: ubuntu-latest
-    environment: pypi
     permissions:
       contents: read
       id-token: write
@@ -36,8 +34,34 @@ jobs:
         with:
           ref: ${{ needs.release-please.outputs.tag_name }}
           persist-credentials: false
-      - uses: astral-sh/setup-uv@v10.3.0
+
+      - uses: actions/setup-node@v6
         with:
-          python-version: "3.11"
-      - run: uv build
-      - uses: pypa/gh-action-pypi-publish@release/v1
+          node-version-file: .node-version
+          registry-url: "https://registry.npmjs.org"
+          cache: npm
+
+      # Trusted publishing needs the npm release pinned by packageManager.
+      - run: test "$(npm --version)" = 11.9.0
+
+      - run: npm ci --ignore-scripts
+
+      - run: npm run build
+
+      # Fail before publishing when the tarball cannot be produced.
+      - run: npm pack --pack-destination "$RUNNER_TEMP"
+
+      # Keep the registry setting while allowing npm OIDC trusted publishing.
+      - name: Remove placeholder auth token
+        run: sed -i '/:_authToken=/d' "$NPM_CONFIG_USERCONFIG"
+
+      # Prereleases publish under `next` and never move `latest`.
+      # Only a version without a prerelease part is published as `latest`.
+      - name: Publish
+        run: |
+          version="$(node -p 'require("./package.json").version')"
+          case "$version" in
+            *-*) dist_tag=next ;;
+            *) dist_tag=latest ;;
+          esac
+          npm publish --provenance --access public --tag "$dist_tag"

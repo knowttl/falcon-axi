@@ -7,8 +7,10 @@
       "component": "npm",
       "include-component-in-tag": true,
       "tag-separator": "-",
+      "versioning": "prerelease",
       "prerelease": true,
-      "release-as": "1.0.0-rc.1"
+      "prerelease-type": "rc",
+      "extra-files": [{ "type": "generic", "path": "src/version.ts" }]
     }
   }
 }
