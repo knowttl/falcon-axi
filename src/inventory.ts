@@ -1,4 +1,5 @@
 import { CliError, object } from "./core.js";
+import { pythonJson } from "./cursor.js";
 import { Domain, count, ids, more, project, quote, text } from "./domain.js";
 import type { Output, RecordValue, Query } from "./domain.js";
 import { Raw, redact, truncate } from "./render.js";
@@ -206,11 +207,7 @@ export async function inventory(
     const sort = members ? null : "name.asc";
     const context = domain.cursor(
       operation,
-      `[${JSON.stringify(id ? [id] : [])}, ${JSON.stringify(filter ?? null)}]`.replace(
-        /[\u007f-\uffff]/g,
-        (character) =>
-          `\\u${character.charCodeAt(0).toString(16).padStart(4, "0")}`,
-      ),
+      pythonJson([id ? [id] : [], filter ?? null]),
       "offset",
       sort,
     );
