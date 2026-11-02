@@ -20,7 +20,7 @@ import s09 from "../fixtures/migration/S09/contracts.json" with { type: "json" }
 import s10 from "../fixtures/migration/S10/contracts.json" with { type: "json" };
 import cql from "../fixtures/migration/S08/cql-vectors.json" with { type: "json" };
 import documents from "../../src/transport/documents.json" with { type: "json" };
-import { document, graphqlBody } from "../../src/transport/search-authority.js";
+import { document } from "../../src/transport/search-authority.js";
 import { requestException } from "../../src/transport/https.js";
 import { CliError, object } from "../../src/core.js";
 import { operation } from "../../src/transport/operations.js";
@@ -699,21 +699,42 @@ for (const type of [undefined, "user", "endpoint"])
     if (type) args.push("--type", type);
     const result = await run(args, { FALCON_AXI_READ_ONLY: "1" });
     assert.equal(result.code, 0, result.stdout);
-    assert.deepEqual(
-      JSON.parse(scoped()[0]!.body),
-      graphqlBody(
+    // The expected request is written out independently of the production
+    // builder: the committed document text, and literal variables.
+    const observed = JSON.parse(scoped()[0]!.body) as {
+      query: string;
+      variables: unknown;
+    };
+    assert.equal(
+      observed.query,
+      documents[
         type === "user"
           ? "identity_list_users"
           : type === "endpoint"
             ? "identity_list_endpoints"
-            : "identity_list",
-        {
-          first: 20,
-          name,
-          email: "synthetic@example.invalid",
-          domains: ["synthetic.invalid"],
-        },
-      ),
+            : "identity_list"
+      ].text,
+    );
+    assert.deepEqual(observed.variables, {
+      first: 20,
+      name,
+      email: "synthetic@example.invalid",
+      domains: ["synthetic.invalid"],
+    });
+    const types: string[] = [];
+    visit(parseGraphql(observed.query), {
+      Argument(node) {
+        if (node.name.value === "types" && node.value.kind === Kind.LIST)
+          types.push(
+            ...node.value.values.map((item) =>
+              item.kind === Kind.ENUM ? item.value : "",
+            ),
+          );
+      },
+    });
+    assert.deepEqual(
+      types,
+      type === "user" ? ["USER"] : type === "endpoint" ? ["ENDPOINT"] : [],
     );
   });
 test("S09 shell continuation preserves exact filters and context", async () => {
