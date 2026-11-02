@@ -181,6 +181,8 @@ Its generated one-shot examples use `@next` so they resolve the prerelease chann
 S13 restores complete discovery comparisons against the retained command references and all 350 golden scenarios, removing temporary discovery filtering.
 The `scopes` posture, scope rows, provisioning guidance, and exit code retain exact origin parity, including all four original exception labels and guarded RTR host execution disclosure.
 All golden comparisons retain the existing release-version substitutions and byte-for-byte output contract.
+The post-cutover fixes for issues #139 and #140 deliberately amend `search-stop` guidance and the synthetic identifiers in `host-show` and `host-show-not-found`.
+Those scenario definitions carry the reasons; the golden corpus hashes and seal advance only for those three scenarios.
 The corpus provenance includes the already merged bounded hostname-history amendment from `eae2ba801a3bcf39b2b13b4fc3799e1ee3e05e44` and §1.8 of `v1.md`.
 Its two host-history help documents precede this carrier and remain unchanged here.
 Native Windows evidence remains pending.

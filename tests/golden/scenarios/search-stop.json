@@ -11,5 +11,6 @@
       "fixture": "ngsiem/stop-search.json"
     }
   ],
-  "exit_code": 0
+  "exit_code": 0,
+  "comment": "Issue #139 removes the unsupported promise that status confirms cancellation; a stopped job may no longer be queryable, without inferring an unconfirmed response mapping."
 }

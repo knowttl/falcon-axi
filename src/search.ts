@@ -168,7 +168,7 @@ export async function search(domain: Domain): Promise<Output> {
     return {
       value: { stopped: id, repository },
       help: [
-        `Run \`${follow("status")}\` to confirm the job reports cancelled`,
+        "A stopped job may no longer be queryable with `falcon-axi search status`",
         "Run `falcon-axi search start --query '<cql>'` to run a narrower search",
       ],
     };

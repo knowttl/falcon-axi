@@ -212,6 +212,16 @@ export function parse(argv: string[]): Invocation {
       );
   }
   const id = positionals[0];
+  if (
+    command.name === "host show" &&
+    id &&
+    (!/^[a-fA-F0-9]{32}$/.test(id) || /^0{32}$/.test(id))
+  )
+    throw new CliError(
+      "VALIDATION_ERROR",
+      "host show requires a nonzero 32-character hexadecimal device id (AID)",
+      ["Run `falcon-axi host list` to see current device identifiers"],
+    );
   if (!flags.has("--help")) validateInspection(command.name, flags, limit);
   if (command.name === "cve show" && id && !/^CVE-[0-9]{4}-[0-9]{4,}$/.test(id))
     throw new CliError(

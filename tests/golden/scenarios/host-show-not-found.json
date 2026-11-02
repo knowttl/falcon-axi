@@ -3,7 +3,7 @@
   "argv": [
     "host",
     "show",
-    "synthetic-device-99"
+    "00000000000000000000000000000099"
   ],
   "responders": [
     {
@@ -17,5 +17,6 @@
       }
     }
   ],
-  "exit_code": 1
+  "exit_code": 1,
+  "comment": "Issue #140 validates host show ids locally; the missing-host control now uses a synthetic well-formed id and retains the existing NOT_FOUND output."
 }
