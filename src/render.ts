@@ -54,15 +54,15 @@ const secretKeys = new Set([
   "access_key",
 ]);
 const pairNameFields = ["key", "name", "field", "property", "attribute"];
-const pairValueFields = ["value", "values", "val", "string_value"];
-const secretPairName =
-  /password|passwd|passphrase|secret|token|apikey|privatekey|accesskey|credential|authorization|clientid|membercid/;
+const pairValueFields = ["value", "data", "values", "val", "string_value"];
+export const isSecretKey = (name: string): boolean =>
+  secretKeys.has(name.toLowerCase());
 function namesSecret(entry: Record<string, unknown>): boolean {
   return Object.entries(entry).some(
     ([field, name]) =>
       pairNameFields.includes(field.toLowerCase()) &&
       typeof name === "string" &&
-      secretPairName.test(name.toLowerCase().replace(/[^a-z0-9]/g, "")),
+      isSecretKey(name),
   );
 }
 export function redact(value: unknown): unknown {

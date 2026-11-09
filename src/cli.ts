@@ -194,7 +194,9 @@ export async function main(argv: string[], bin?: string): Promise<number> {
         "FALCON_AXI_READ_ONLY forbids search lifecycle changes",
       );
     if (command.name === "rtr run") validateRtrInvocation(invocation);
-    if (command.name.startsWith("raw ")) validateRawInvocation(invocation);
+    const rawRequest = command.name.startsWith("raw ")
+      ? validateRawInvocation(invocation)
+      : undefined;
     if (command.name === "config path") {
       process.stdout.write(
         render({
@@ -293,7 +295,7 @@ export async function main(argv: string[], bin?: string): Promise<number> {
     }
     if (command.name.startsWith("raw ")) {
       await rawRun(
-        invocation,
+        rawRequest!,
         credential,
         base,
         allowUnknown,

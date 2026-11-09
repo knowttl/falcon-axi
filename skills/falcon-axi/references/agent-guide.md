@@ -70,7 +70,7 @@ Outside it, `search start`, `search stop`, `host usb` and `identity activity` ma
 `raw write --execute` changes tenant state and requires profile opt-in, exact confirmation and a journal; exclude `raw write` from passive allowlists, while `raw get` is a read.
 `setup hooks` writes local agent settings.
 `FALCON_AXI_READ_ONLY=1` blocks search creation/cancellation, MalQuery search, RTR execution and raw writes; fixed Identity GraphQL reads remain allowed despite their write-labelled scope.
-There are no containment, remediation, quarantine-release or tenant-configuration commands.
+Gated raw writes can perform containment, remediation, quarantine release and tenant configuration when Falcon authorizes the route.
 Treat all investigation output as sensitive: standalone CIDs and secrets are redacted, but composite detection IDs retain embedded CIDs.
 
 Top-level `--help` returns the command list, global flags, regions and safety/scope notes.

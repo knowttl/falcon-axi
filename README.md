@@ -100,7 +100,7 @@ Tenant-side effects are limited to NG-SIEM jobs, bounded MalQuery searches, guar
 RTR previews locally; execution requires profile opt-in, a fixed command allowlist, `--execute`, and exact `--confirm`.
 `raw get` reads any validated Falcon API path.
 `raw write` sends one POST, PUT, PATCH or DELETE only when the file profile sets `writes.allowWrites` and lists `raw-write` in `writes.operations`, after a preview, with `--execute` and exact `--confirm`, and with a mandatory journal entry.
-Credential, token, user and role routes stay blocked, as do Flight Control and RTR routes for writes.
+Falcon authorizes the selected route using the API client's scopes.
 Raw output redacts secret values but keeps every field.
 Set `FALCON_AXI_READ_ONLY=1` to block search lifecycle commands, MalQuery search, RTR execution, and raw writes.
 Passive history, local previews, and fixed read-only Identity GraphQL queries remain available.

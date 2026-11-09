@@ -4,7 +4,7 @@ import { observeRate, authenticate } from "./auth.js";
 import { CliError, object } from "./core.js";
 import { writeLogPath } from "./credentials.js";
 import type { Credential } from "./credentials.js";
-import { redact, render, truncate } from "./render.js";
+import { isSecretKey, redact, render, truncate } from "./render.js";
 import { origin } from "./origin.js";
 import { openRetainedFile } from "./rtr-filesystem.js";
 import { readOnly } from "./rtr-policy.js";
@@ -87,15 +87,14 @@ export function validateRawInvocation(
     try {
       const file = flags.get("--body-file")!;
       const bytes = readFileSync(file === "-" ? 0 : file);
-      const parsed: unknown = JSON.parse(
-        new TextDecoder("utf-8", { fatal: true }).decode(bytes),
-      );
+      const text = new TextDecoder("utf-8", { fatal: true }).decode(bytes);
+      const parsed: unknown = JSON.parse(text);
       if (
         bytes.length > BODY_LIMIT ||
         !(object(parsed) || Array.isArray(parsed))
       )
         throw new Error("body");
-      body = JSON.stringify(parsed);
+      body = text;
     } catch {
       throw new CliError(
         "VALIDATION_ERROR",
@@ -198,13 +197,12 @@ function present(response: Response): Record<string, unknown> {
 }
 
 export async function rawRun(
-  invocation: Invocation,
+  request: ReturnType<typeof validateRawInvocation>,
   credential: Credential,
   base: string,
   allowUnknown: boolean,
   signal: AbortSignal,
 ): Promise<void> {
-  const request = validateRawInvocation(invocation);
   const { method, path, query, target, body } = request;
   if (method === "GET") {
     const session = await authenticate(credential, base, allowUnknown, signal);
@@ -238,7 +236,24 @@ export async function rawRun(
       ],
     );
   const digest = createHash("sha256").update(body).digest("hex");
-  const confirm = `${credential.profile}:${method} ${target} sha256:${body ? digest.slice(0, 16) : "none"}`;
+  const destination = origin(base, allowUnknown);
+  const confirmationHash = createHash("sha256")
+    .update(
+      JSON.stringify([
+        credential.profile,
+        destination,
+        credential.memberCid ?? "",
+        method,
+        target,
+        body,
+      ]),
+    )
+    .digest("hex");
+  const confirm = `${credential.profile}:${method} sha256:${confirmationHash}`;
+  const safeQuery = new URLSearchParams();
+  for (const [key, value] of new URLSearchParams(query))
+    safeQuery.append(key, isSecretKey(key) ? "[redacted]" : value);
+  const safeTarget = safeQuery.size ? `${path}?${safeQuery}` : path;
   if (request.executing && request.confirm !== confirm)
     throw new CliError(
       "VALIDATION_ERROR",
@@ -252,7 +267,7 @@ export async function rawRun(
           profile: credential.profile,
           origin: base,
           method,
-          path: target,
+          path: safeTarget,
           body_bytes: Buffer.byteLength(body),
           body_sha256: body ? digest : undefined,
           journal: writeLogPath(),
@@ -279,7 +294,7 @@ export async function rawRun(
             run,
             profile: credential.profile,
             method,
-            path: target,
+            path: safeTarget,
             body_sha256: body ? digest : undefined,
             ...record,
             timestamp: new Date().toISOString(),
@@ -298,6 +313,12 @@ export async function rawRun(
         allowUnknown,
         signal,
       );
+      if (origin(session.base, allowUnknown) !== destination)
+        throw new CliError(
+          "REGION_MISMATCH",
+          "authentication selected a different region than the preview",
+          ["Repeat the preview with the correct --region"],
+        );
       const grant = {};
       grants.set(grant, {
         origin: origin(session.base, allowUnknown),

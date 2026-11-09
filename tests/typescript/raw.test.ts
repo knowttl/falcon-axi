@@ -3,7 +3,6 @@ import { test, beforeEach } from "node:test";
 import { readFile, writeFile, mkdtemp } from "node:fs/promises";
 import { join } from "node:path";
 import { decode } from "@toon-format/toon";
-import { redact } from "../../src/render.js";
 import {
   directory,
   run,
@@ -123,13 +122,6 @@ test("raw get sends one bearer GET and redacts secret values while keeping every
 });
 
 for (const path of [
-  "/oauth2/token",
-  "/oauth2/revoke",
-  "/user-management/entities/users/v1",
-  "/users/entities/users/v1",
-  "/installation-tokens/entities/tokens/v1",
-  "/example/api-clients/v1",
-  "/example/entities/secrets/v1",
   "/example/../devices",
   "/example//devices",
   "/example/things?x=1",
@@ -187,7 +179,7 @@ test("raw write previews with an exact confirm value and sends nothing", async (
   assert.equal(preview.method, "PATCH");
   assert.equal(preview.path, "/example/entities/things/v1?ids=one&ids=two");
   assert.deepEqual(output.body, { name: "synthetic", enabled: true });
-  assert.match(String(preview.confirm), /^ops:PATCH \/example\//);
+  assert.match(String(preview.confirm), /^ops:PATCH sha256:/);
   assert.equal(wire.length, 0);
   await assert.rejects(readFile(env.FALCON_AXI_WRITE_LOG!));
 });
@@ -214,7 +206,7 @@ for (const path of [
   "/user-management/entities/users/v1",
   "/oauth2/token",
 ])
-  test(`raw write refuses ${path}`, async () => {
+  test(`raw write previews ${path}`, async () => {
     const result = await run([
       "raw",
       "write",
@@ -227,7 +219,7 @@ for (const path of [
       "--profile",
       "ops",
     ]);
-    assert.equal(result.code, 2, result.stdout);
+    assert.equal(result.code, 0, result.stdout);
     assert.equal(wire.length, 0);
   });
 
@@ -275,6 +267,70 @@ test("raw write changes its confirm value when the body changes", async () => {
   assert.notEqual(await confirmValue("ops", file), first);
 });
 
+test("raw write preserves stdin body numbers and confirms the destination", async () => {
+  const text = '{"number":9007199254740993}';
+  const file = join(directory, "large-number.json");
+  await writeFile(file, text);
+  const confirm = await confirmValue("ops", file);
+  const differentRegion = await run(
+    writeArgs(
+      "ops",
+      "--body-file",
+      file,
+      "--region",
+      "eu-1",
+      "--execute",
+      "--confirm",
+      confirm,
+    ),
+  );
+  assert.equal(differentRegion.code, 2, differentRegion.stdout);
+  const differentTenant = await run(
+    writeArgs(
+      "ops",
+      "--body-file",
+      file,
+      "--member-cid",
+      "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+      "--execute",
+      "--confirm",
+      confirm,
+    ),
+  );
+  assert.equal(differentTenant.code, 2, differentTenant.stdout);
+  recordedResponse("PATCH /example/entities/things/v1", 200, {}, true);
+  const result = await run(
+    writeArgs("ops", "--body-file", "-", "--execute", "--confirm", confirm),
+    await state(),
+    false,
+    false,
+    undefined,
+    false,
+    (child) => child.stdin!.end(text),
+  );
+  assert.equal(result.code, 0, result.stdout);
+  assert.equal(requests()[0]!.body, text);
+});
+
+test("raw write redacts secret query values in preview and journal", async () => {
+  const args = writeArgs(
+    "ops",
+    "--query",
+    "password=hidden&password=other&token_count=5",
+  );
+  const preview = await run(args);
+  assert.equal(preview.code, 0, preview.stdout);
+  assert.doesNotMatch(preview.stdout, /hidden|other/);
+  const confirm = (value(preview.stdout).preview as Record<string, string>)
+    .confirm!;
+  const env = await state();
+  recordedResponse("PATCH /example/entities/things/v1", 200, {}, true);
+  const result = await run([...args, "--execute", "--confirm", confirm], env);
+  assert.equal(result.code, 0, result.stdout);
+  assert.doesNotMatch(JSON.stringify(await journal(env)), /hidden|other/);
+  assert.match(result.stdout, /token_count=5/);
+});
+
 test("raw write never executes under FALCON_AXI_READ_ONLY but still previews", async () => {
   const file = await body();
   const confirm = await confirmValue("ops", file);
@@ -309,33 +365,23 @@ test("raw write records an upstream failure in the journal and reports it", asyn
   assert.equal(records.at(-1)!.status, 503);
 });
 
-for (const [name, input, expected] of [
-  [
-    "a key field naming a secret redacts its sibling value",
-    { key: "client-secret", value: "x", other: "y" },
-    { key: "client-secret", value: "[redacted]", other: "y" },
-  ],
-  [
-    "a name field naming a token redacts values",
-    { name: "accessToken", values: ["x"] },
-    { name: "accessToken", values: "[redacted]" },
-  ],
-  [
-    "pairs nested in arrays are redacted",
-    [{ attribute: "db_password", val: "x" }],
-    [{ attribute: "db_password", val: "[redacted]" }],
-  ],
-  [
-    "a non-secret key keeps its value",
-    { key: "retention", value: "30" },
-    { key: "retention", value: "30" },
-  ],
-  [
-    "password and api_key properties are redacted",
-    { password: "x", api_key: "y", user: "z" },
-    { password: "[redacted]", api_key: "[redacted]", user: "z" },
-  ],
-] as const)
-  test(`redact: ${name}`, () => {
-    assert.deepEqual(redact(input), expected);
+test("raw output redacts exact secret pairs and preserves metadata", async () => {
+  recordedResponse("GET /user-management/entities/users/v1", 200, {
+    resources: [
+      { key: "CID", data: "hidden", kind: "tenant" },
+      { attribute: "customer_id", val: "hidden" },
+      { name: "token_count", value: 5 },
+      { field: "access_token", values: ["hidden"] },
+    ],
   });
+  const result = await run(getArgs("/user-management/entities/users/v1"));
+  assert.equal(result.code, 0, result.stdout);
+  assert.deepEqual(value(result.stdout).body, {
+    resources: [
+      { key: "CID", data: "[redacted]", kind: "tenant" },
+      { attribute: "customer_id", val: "[redacted]" },
+      { name: "token_count", value: 5 },
+      { field: "access_token", values: "[redacted]" },
+    ],
+  });
+});

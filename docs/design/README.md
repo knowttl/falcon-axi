@@ -86,5 +86,5 @@ What is shipped:
 ## Deliberately excluded
 
 Tenant discovery and standalone Identity Protection incident queries remain absent.
-There is no arbitrary GraphQL, GraphQL mutation, containment, ingest, configuration change, report PDF, or rule-file download.
+There are no dedicated commands for arbitrary GraphQL, GraphQL mutation, containment, ingest, configuration change, report PDF, or rule-file download; gated raw writes can reach authorized mutation routes.
 The complete exclusion contract is in [v1 section 1.5](v1.md#15-command-surface-non-goals), and the closed exceptions are owned by [v1 section 0](v1.md#0-invariant-r-v1-is-read-only-with-five-captain-granted-exceptions).
