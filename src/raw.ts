@@ -149,6 +149,21 @@ function responseBody(response: Response): unknown {
       : undefined;
 }
 
+function redactQueryPairs(query: string): string {
+  const safe = new URLSearchParams();
+  let secretPair = false;
+  for (const [key, value] of new URLSearchParams(query)) {
+    if (isPairName(key)) secretPair = isSecretKey(value);
+    const pairedValue = isPairValue(key) && secretPair;
+    safe.append(
+      key,
+      isSecretKey(key) || pairedValue ? "[redacted]" : String(redact(value)),
+    );
+    if (isPairValue(key)) secretPair = false;
+  }
+  return safe.toString();
+}
+
 function failure(response: Response, writing = false): CliError {
   const { status } = response;
   const received = responseBody(response);
@@ -280,19 +295,8 @@ export async function rawRun(
     )
     .digest("hex");
   const confirm = `${credential.profile}:${method} sha256:${confirmationHash}`;
-  const safeQuery = new URLSearchParams();
-  const entries = new URLSearchParams(query);
-  const secretPair = [...entries].some(
-    ([key, value]) => isPairName(key) && isSecretKey(value),
-  );
-  for (const [key, value] of entries)
-    safeQuery.append(
-      key,
-      isSecretKey(key) || (secretPair && isPairValue(key))
-        ? "[redacted]"
-        : String(redact(value)),
-    );
-  const safeTarget = safeQuery.size ? `${path}?${safeQuery}` : path;
+  const safeQuery = redactQueryPairs(query);
+  const safeTarget = safeQuery ? `${path}?${safeQuery}` : path;
   if (request.executing && request.confirm !== confirm)
     throw new CliError(
       "VALIDATION_ERROR",
@@ -416,6 +420,13 @@ export async function rawRun(
       { phase: "outcome", outcome: "responded", status: response.status },
       true,
     );
+    if (response.binary)
+      throw new CliError(
+        "UPSTREAM_ERROR",
+        "the raw write was sent but the response is binary",
+        ["Reconcile the target before retrying"],
+        { status: response.status },
+      );
     if (response.status < 200 || response.status >= 300)
       throw failure(response, true);
     process.stdout.write(render({ run, ...present(response) }));

@@ -186,21 +186,25 @@ test("raw get refuses a binary error body", async () => {
   assert.equal(value(result.stdout).upstream_body, undefined);
 });
 
-test("raw write refuses a binary error body", async () => {
-  const file = await body();
-  const confirm = await confirmValue("ops", file);
-  dynamicResponse("PATCH /example/entities/things/v1", () => ({
-    status: 403,
-    body: Buffer.from([0x61, 0]),
-  }));
-  const result = await run(
-    writeArgs("ops", "--body-file", file, "--execute", "--confirm", confirm),
-    await state(),
-  );
-  assert.equal(result.code, 1, result.stdout);
-  assert.match(result.stdout, /binary/);
-  assert.equal(value(result.stdout).upstream_body, undefined);
-});
+for (const status of [200, 403])
+  test(`raw write reports a sent request with a binary ${status} response`, async () => {
+    const file = await body();
+    const confirm = await confirmValue("ops", file);
+    dynamicResponse("PATCH /example/entities/things/v1", () => ({
+      status,
+      body: Buffer.from([0x61, 0]),
+    }));
+    const result = await run(
+      writeArgs("ops", "--body-file", file, "--execute", "--confirm", confirm),
+      await state(),
+    );
+    assert.equal(result.code, 1, result.stdout);
+    assert.match(result.stdout, /binary/);
+    assert.match(result.stdout, /was sent/);
+    assert.match(result.stdout, /Reconcile the target before retrying/);
+    assert.equal(value(result.stdout).status, status);
+    assert.equal(value(result.stdout).upstream_body, undefined);
+  });
 
 test("raw get preserves a valid UTF-8 replacement character", async () => {
   recordedResponse("GET /example/entities/things/v1", 200, {
@@ -452,10 +456,9 @@ test("raw write redacts secret query values in preview and journal", async () =>
 for (const name of ["key", "name", "field", "property", "attribute"])
   test(`raw write redacts query value aliases when ${name} names a secret`, async () => {
     const query = new URLSearchParams([
-      [name.toUpperCase(), "API_KEY"],
-      ...["value", "values", "val", "data", "string_value"].map((key) => [
-        key,
-        `secret-${key}`,
+      ...["value", "values", "val", "data", "string_value"].flatMap((key) => [
+        [name.toUpperCase(), "API_KEY"],
+        [key, `secret-${key}`],
       ]),
       ["note", "visible"],
     ]);
@@ -486,6 +489,29 @@ test("raw write preserves non-secret query pairs", async () => {
   );
   assert.equal(result.code, 0, result.stdout);
   assert.match(result.stdout, /key=token_count&value=5/);
+});
+
+test("raw write associates query pairs by position", async () => {
+  const args = writeArgs(
+    "ops",
+    "--query",
+    "key=api_key&note=visible&value=hidden&key=retention_days&value=30&key=api_key&key=retention_days&value=40",
+  );
+  const preview = await run(args);
+  assert.equal(preview.code, 0, preview.stdout);
+  assert.doesNotMatch(preview.stdout, /hidden/);
+  assert.match(preview.stdout, /value=30/);
+  assert.match(preview.stdout, /value=40/);
+  const confirm = (value(preview.stdout).preview as Record<string, string>)
+    .confirm!;
+  const env = await state();
+  recordedResponse("PATCH /example/entities/things/v1", 200, {}, true);
+  const result = await run([...args, "--execute", "--confirm", confirm], env);
+  assert.equal(result.code, 0, result.stdout);
+  const records = JSON.stringify(await journal(env));
+  assert.doesNotMatch(records, /hidden/);
+  assert.match(records, /value=30/);
+  assert.match(records, /value=40/);
 });
 
 test("raw write never executes under FALCON_AXI_READ_ONLY but still previews", async () => {
