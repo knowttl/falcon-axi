@@ -77,27 +77,108 @@ function namesSecret(entry: Record<string, unknown>): boolean {
       isSecretKey(name),
   );
 }
-const json = JSON as JSON & {
-  rawJSON(source: string): object;
-  isRawJSON(value: unknown): boolean;
-};
+function redactSerialized(text: string): string {
+  type Node = {
+    start: number;
+    end: number;
+    entries?: { key: string; node: Node }[];
+    children?: Node[];
+  };
+  let position = 0;
+  const space = (): void => {
+    while (/\s/.test(text[position] ?? "") && position < text.length)
+      position++;
+  };
+  const parse = (): Node => {
+    space();
+    const start = position;
+    const character = text[position];
+    if (character === "{" || character === "[") {
+      position++;
+      const entries: { key: string; node: Node }[] = [];
+      const children: Node[] = [];
+      space();
+      while (text[position] !== (character === "{" ? "}" : "]")) {
+        if (character === "{") {
+          const key = parse();
+          space();
+          position++;
+          entries.push({
+            key: JSON.parse(text.slice(key.start, key.end)) as string,
+            node: parse(),
+          });
+        } else children.push(parse());
+        space();
+        if (text[position] !== ",") break;
+        position++;
+      }
+      position++;
+      return { start, end: position, entries, children };
+    }
+    if (character === '"') {
+      position++;
+      while (text[position] !== '"') {
+        if (text[position] === "\\") position++;
+        position++;
+      }
+      position++;
+    } else {
+      while (position < text.length && !/[\s,\]}]/.test(text[position]!))
+        position++;
+    }
+    return { start, end: position };
+  };
+  const root = parse();
+  const edits: { start: number; end: number; value: string }[] = [];
+  const visit = (node: Node): void => {
+    if (node.entries?.length) {
+      const pair = node.entries.some(
+        ({ key, node: entry }) =>
+          pairNameFields.includes(key.toLowerCase()) &&
+          text[entry.start] === '"' &&
+          isSecretKey(JSON.parse(text.slice(entry.start, entry.end)) as string),
+      );
+      for (const { key, node: entry } of node.entries) {
+        if (
+          isSecretKey(key) ||
+          (pair && pairValueFields.includes(key.toLowerCase()))
+        )
+          edits.push({
+            start: entry.start,
+            end: entry.end,
+            value: '"[redacted]"',
+          });
+        else visit(entry);
+      }
+    }
+    for (const child of node.children ?? []) visit(child);
+    if (!node.entries && !node.children && text[node.start] === '"') {
+      const original = JSON.parse(text.slice(node.start, node.end)) as string;
+      const cleaned = redact(original) as string;
+      if (cleaned !== original)
+        edits.push({
+          start: node.start,
+          end: node.end,
+          value: JSON.stringify(cleaned),
+        });
+    }
+  };
+  visit(root);
+  for (const edit of edits.sort((a, b) => b.start - a.start))
+    text = text.slice(0, edit.start) + edit.value + text.slice(edit.end);
+  return text;
+}
 export function redact(value: unknown): unknown {
   if (typeof value === "string") {
     if (/^\s*[\[{]/.test(value)) {
-      let parsed: unknown;
+      let valid = false;
       try {
-        parsed = JSON.parse(
-          value,
-          (_key, entry: unknown, context?: { source?: string }) =>
-            typeof entry === "number" && context?.source
-              ? json.rawJSON(context.source)
-              : entry,
-        );
+        JSON.parse(value);
+        valid = true;
       } catch {
-        parsed = undefined;
+        valid = false;
       }
-      if (object(parsed) || Array.isArray(parsed))
-        return JSON.stringify(redact(parsed));
+      if (valid) return redactSerialized(value);
     }
     return redactAssignments(redactText(value)).replace(
       /-----BEGIN [A-Z ]*PRIVATE KEY-----[\s\S]*?(?:-----END [A-Z ]*PRIVATE KEY-----|$)|\beyJ[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+/gi,
@@ -106,7 +187,6 @@ export function redact(value: unknown): unknown {
   }
   if (Array.isArray(value)) return value.map(redact);
   if (object(value)) {
-    if (json.isRawJSON(value)) return value;
     const pair = namesSecret(value);
     return Object.fromEntries(
       Object.entries(value).map(([key, entry]) => [

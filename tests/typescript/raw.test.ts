@@ -442,6 +442,28 @@ test("raw output redacts nested secrets and preserves metadata", async () => {
 });
 
 for (const status of [200, 403])
+  test(`raw response ${status} preserves serialized metadata bytes`, async () => {
+    const untouched =
+      ' { "label" : "visible", "label": "again", "count": 1e+02 } ';
+    const pair =
+      '{ "key" : "api_key", "value" : "secret-value", "label": 1, "label": 2 }';
+    recordedResponse("GET /example/entities/things/v1", status, {
+      untouched,
+      pair,
+    });
+    const result = await run(getArgs("/example/entities/things/v1"));
+    assert.equal(result.code, status === 200 ? 0 : 1, result.stdout);
+    const body = value(result.stdout)[
+      status === 200 ? "body" : "upstream_body"
+    ] as Record<string, string>;
+    assert.equal(body.untouched, untouched);
+    assert.equal(
+      body.pair,
+      '{ "key" : "api_key", "value" : "[redacted]", "label": 1, "label": 2 }',
+    );
+  });
+
+for (const status of [200, 403])
   test(`raw response ${status} redacts serialized pairs`, async () => {
     recordedResponse("GET /example/entities/things/v1", status, {
       payload:
@@ -456,7 +478,8 @@ for (const status of [200, 403])
   });
 
 test("raw write redacts serialized pairs in preview and journal", async () => {
-  const pair = '{"key":"api_key","value":"pairsecret","label":"visible"}';
+  const pair =
+    '{ "key" : "api_key", "value" : "pairsecret", "label": "visible", "label": 2 }';
   const file = join(directory, "pair-body.json");
   await writeFile(file, JSON.stringify({ payload: pair }));
   const args = writeArgs(
@@ -470,6 +493,13 @@ test("raw write redacts serialized pairs in preview and journal", async () => {
   assert.equal(preview.code, 0, preview.stdout);
   assert.doesNotMatch(preview.stdout, /pairsecret/);
   assert.match(preview.stdout, /visible/);
+  const previewBody = (
+    value(preview.stdout).preview as { body: { payload: string } }
+  ).body;
+  assert.equal(
+    previewBody.payload,
+    '{ "key" : "api_key", "value" : "[redacted]", "label": "visible", "label": 2 }',
+  );
   const confirm = (value(preview.stdout).preview as Record<string, string>)
     .confirm!;
   const env = await state();
@@ -480,6 +510,11 @@ test("raw write redacts serialized pairs in preview and journal", async () => {
   assert.match(
     decodeURIComponent(JSON.stringify(await journal(env))),
     /visible/,
+  );
+  const recorded = (await journal(env))[0]!.path as string;
+  assert.equal(
+    new URL(`https://example.invalid${recorded}`).searchParams.get("filter"),
+    '{ "key" : "api_key", "value" : "[redacted]", "label": "visible", "label": 2 }',
   );
 });
 
