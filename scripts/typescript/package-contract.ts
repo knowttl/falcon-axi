@@ -3,9 +3,10 @@ import { execFileSync } from "node:child_process";
 import { createHash } from "node:crypto";
 import { mkdtempSync, readFileSync, rmSync } from "node:fs";
 import { Socket } from "node:net";
-import { homedir, tmpdir } from "node:os";
+import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
+import { installPacked } from "../../tests/typescript/install-packed.js";
 
 const root = fileURLToPath(new URL("../../../", import.meta.url));
 const directory = mkdtempSync(join(tmpdir(), "falcon-package-contract "));
@@ -30,7 +31,6 @@ try {
     const env = {
       PATH: process.env.PATH,
       HOME: directory,
-      npm_config_cache: process.env.npm_config_cache ?? join(homedir(), ".npm"),
     };
     const run = (command: string, args: string[], cwd = directory): string =>
       execFileSync(command, args, {
@@ -111,16 +111,7 @@ try {
       "falcon-axi": ".typescript-build/src/bin.js",
       "falcon-axi-hook": ".typescript-build/src/hook.js",
     });
-    run("npm", [
-      "install",
-      "--offline",
-      "--ignore-scripts",
-      "--no-audit",
-      "--no-fund",
-      "--prefix",
-      directory,
-      join(directory, pack.filename),
-    ]);
+    installPacked(root, join(directory, pack.filename), directory);
     const installed = join(directory, "node_modules", source.name);
     const published = JSON.parse(
       readFileSync(join(installed, "package.json"), "utf8"),

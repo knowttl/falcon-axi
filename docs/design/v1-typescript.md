@@ -40,13 +40,14 @@ The cutover replaces CI verification with the Node offline gate and disables rel
 
 ## Build and offline verification
 
-Development pins Node 24.14.0, npm 11.9.0 and exact locked dependencies.
-The runtime floor is Node 24.11.0; native Windows evidence remains pending.
-Run `npm ci --offline --ignore-scripts` and `npm run verify`.
+Development uses pnpm, pinned by `packageManager` and provided through Corepack, with exact locked dependencies in `pnpm-lock.yaml`.
+The runtime and development floor is Node 22.18.0 with no upper bound, the first Node 22 release that runs the TypeScript build scripts without a flag; native Windows evidence remains pending.
+Run `corepack pnpm install --frozen-lockfile --ignore-scripts --config.confirm-modules-purge=false` and `corepack pnpm run verify`.
+The pipeline wraps both in `scripts/isolated-home.mjs`, which gives each run an empty throwaway home directory and removes `FALCON_AXI_*` variables.
 The latter runs the cumulative S13 native gate, including the S10 carrier, S11 lifecycle, compiled filesystem primitives, S12 installation and hook checks, generated freshness, all 350 goldens, and reconciliation of all 210 retained safety groups.
 It also runs a standalone package-contract check after building: the packed allowlist must contain the bin, admission metadata, parser, credential schema, README, license and native prebuilds, without tests, source maps, local paths or recognizable secret material.
-The check installs the tarball offline outside the checkout, probes the installed bin with `--help` and `--version`, and imports the admission metadata and CLI entry point under the inherited kernel IP socket deny.
-Run `node .typescript-build/scripts/typescript/package-contract.js` after `npm run build` for a focused check; it needs no hosted fixture and requires Linux seccomp support and `/usr/bin/gcc` to compile the socket-denial launcher.
+The check unpacks the tarball outside the checkout, links its declared dependencies from the checkout's pnpm installation because no package-manager cache exists offline, probes the installed bin with `--help` and `--version`, and imports the admission metadata and CLI entry point under the inherited kernel IP socket deny.
+Run `node .typescript-build/scripts/typescript/package-contract.js` after `corepack pnpm run build` for a focused check; it needs no hosted fixture and requires Linux seccomp support and `/usr/bin/gcc` to compile the socket-denial launcher.
 The S06/S07 carrier repeats the S01-S05 native checks and adds enrichment/configuration golden parity, selector-specific scope and malformed-response refusals, continuation replay, ordered batch hydration, and redaction before detail previews.
 Native S06/S07 retained scenarios compare exact output bytes and exit codes, including signed cursors and suggestions.
 S06 restores the original detection-process sandbox suggestions, and S07 restores Identity rule navigation in the existing discovery scenarios.
@@ -65,7 +66,7 @@ The CLI contains no fake-origin flag, config field, environment selector or reco
 The separate compiled primitive gate also requires `cc` to build its test-only network-denial launcher and fault-injection library.
 
 The optional hosted path requires a separately built frozen local Artium fixture containing the candidate's host delta.
-Set `S01_ARTIUM_ROOT` to that fixture and run `npm run check:slice -- --slice S13 --paths native,artium --offline`.
+Set `S01_ARTIUM_ROOT` to that fixture and run `corepack pnpm run check:slice --slice S13 --paths native,artium --offline`.
 Missing fixtures and unknown or empty selections fail.
 The host delta launches the candidate with its Node runtime rather than either Python launch condition, retaining Node heap limits and the existing termination grace.
 The real client, server, public credential API, private profile writer and runner execute the same installed artifact.
@@ -111,7 +112,7 @@ S12/S13 retain the original golden output contract without a scope-label change.
 
 The [approved S01 amendment](s01-primitive-amendment.md) owns the deferred primitive proof, required native-addon guarantees, and remaining STOP gates.
 The original negative probe reproduced an append reaching a replacement ancestor despite path-based O_NOFOLLOW.
-`npm run probe:primitive -- --slice S01 --paths native --offline` now exercises the compiled adapter and must pass as part of `npm run verify`.
+`corepack pnpm run probe:primitive --slice S01 --paths native --offline` now exercises the compiled adapter and must pass as part of `corepack pnpm run verify`.
 This proves primitives, not the S11 lifecycle or full AC-RTR-FS acceptance.
 The approved DNS settlement boundary remains unchanged.
 
@@ -149,7 +150,7 @@ Unsupported controllers refuse execution before authentication while preview sta
 The S11 installed checks preserve real filesystem ownership under the inherited process-level socket deny and deliver synthetic HTTPS over a test-owned Unix socket.
 `tests/migration/coverage-s11.json` pins the twelve retained safety groups and their public source symbols.
 
-`npm run check:slice -- --slice S11 --paths native --offline` requires no host fixture.
+`corepack pnpm run check:slice --slice S11 --paths native --offline` requires no host fixture.
 The additional `native,artium` path requires a frozen local fixture containing the reviewed host delta.
 The hosted fixture applies the same socket-deny launcher to the actual Falcon child while its public API remains on loopback.
 Its stable host-owned lock is keyed only by the normalized device ID, spans isolated call directories and users, and remains held through final journaling and process-group settlement.
@@ -159,7 +160,7 @@ The host delta remains a separate local review artifact and does not authorize d
 Redaction also covers unfinished PEM material when bounded acquisition ends before its closing marker.
 
 Both prebuilds ship inside the package with checksums; no install script, compiler download or runtime compilation is used.
-`npm run build:native` is a maintainer-only rebuild using pinned GCC versions and SHA-256-pinned Node 24.14.0 headers.
+`corepack pnpm run build:native` is a maintainer-only rebuild using pinned GCC versions and SHA-256-pinned Node 24.14.0 headers.
 `native/provenance.json` records compiler flags, header pins and input hashes.
 Ordinary builds check those input and binary hashes without a compiler.
 The compiled-interface probe uses an inherited Linux seccomp IP socket deny, preserving actual filesystem ownership rather than remapping root ownership in a user namespace.
@@ -186,8 +187,8 @@ The hook resolves local credentials and trusted region information, prints one s
 Explicit setup preserves the four existing agent configuration targets, owned-entry repair, malformed-file refusal, comments, and unchanged bytes and modification times on repeat installation.
 [v1.md §12.2](v1.md#122-session-hook-and-skill) owns session integration executable paths and repair requirements.
 Ordinary commands do not install integrations, capture transcripts, or update software.
-Build and pack with `npm run build` and `npm pack --pack-destination <directory>`.
-Install that tarball into a durable prefix with `npm install --offline --ignore-scripts --prefix <prefix> <tarball>` after acquiring the pinned dependencies during setup.
+Build and pack with `corepack pnpm run build` and `npm pack --pack-destination <directory>`.
+Install that tarball into a durable prefix with `npm install --ignore-scripts --prefix <prefix> <tarball>`.
 Run either executable from `<prefix>/node_modules/.bin`, or use the installed Node runtime with its compiled entry point on Windows.
 The generated skill's `npx -y @knowttl/falcon-axi` examples target the future npm release; until publication, substitute the executable from this installed tarball.
 This prepared cutover artifact has not been published to npm.

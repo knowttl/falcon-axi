@@ -17,7 +17,7 @@ What is shipped:
 - Data Protection configuration reads: `classification list`, `classification show`,
   `data-policy list`, and `data-policy show`; see [Data Protection](../commands.md#classification-list) for usage.
 - the package foundation: a TypeScript npm package, the `falcon-axi` executable, and one offline
-  `npm run verify` entry point;
+  `pnpm run verify` entry point;
 - `-v`, `-V`, and `--version`, printing the bare version;
 - the sealed transport and its closed operation registry, with evidence carried per operation,
   [closed exception tiers](v1.md#33-the-transport-is-the-enforcement-point), and a single permitted network sink;

@@ -20,7 +20,7 @@ Synthetic offline checks verify local behavior and safety constraints; they do n
 
 ## Quickstart
 
-Requires [Node.js](https://nodejs.org/) 24.11.0 or newer within Node 24.
+Requires [Node.js](https://nodejs.org/) 22.18.0 or newer.
 After the first manual npm publication, install the prerelease globally, or use `npx -y @knowttl/falcon-axi@next` for one-shot reads:
 
 ```sh
@@ -185,7 +185,8 @@ Errors include a stable `code` and actionable `help`; unknown commands and flags
 
 ## Development
 
-Run `npm ci --offline --ignore-scripts` and `npm run verify` with Node 24.14.0 and npm 11.9.0.
+Use Node.js 22.18.0 or newer and the pnpm release pinned in [package.json](package.json), provided through Corepack.
+From a checkout root, run `corepack pnpm install --frozen-lockfile --ignore-scripts --config.confirm-modules-purge=false` and `corepack pnpm run verify`.
 The [TypeScript build notes](docs/design/v1-typescript.md#build-and-offline-verification) describe the complete offline gate and installation checks.
 See [CONTRIBUTING.md](CONTRIBUTING.md) for tests, fixtures, documentation generation, and releases, and [AGENTS.md](AGENTS.md) for repository constraints.
 

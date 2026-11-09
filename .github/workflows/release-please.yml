@@ -37,16 +37,15 @@ jobs:
 
       - uses: actions/setup-node@v6
         with:
-          node-version-file: .node-version
+          node-version: "24"
           registry-url: "https://registry.npmjs.org"
-          cache: npm
+          package-manager-cache: false
 
-      # Trusted publishing needs the npm release pinned by packageManager.
-      - run: test "$(npm --version)" = 11.9.0
+      - run: corepack enable
 
-      - run: npm ci --ignore-scripts
+      - run: pnpm install --frozen-lockfile --ignore-scripts --config.confirm-modules-purge=false
 
-      - run: npm run build
+      - run: pnpm run build
 
       # Fail before publishing when the tarball cannot be produced.
       - run: npm pack --pack-destination "$RUNNER_TEMP"

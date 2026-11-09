@@ -48,7 +48,7 @@ Read it before adding or changing any command surface, and update it in the same
 Its §17 records closed decisions; check there before re-deriving a decision that was already argued, and its §18
 cites every source, so a claim can be re-verified rather than trusted.
 
-`docs/design/v1-typescript.md` owns the current Node 24 TypeScript implementation under `src/`, sealed transport, npm packaging, and offline verification.
+`docs/design/v1-typescript.md` owns the current Node TypeScript implementation under `src/`, sealed transport, npm packaging, and offline verification.
 Read it and v1.md before changing implementation structure; v1.md still owns behavior.
 `docs/design/v1-python.md` preserves the Python v0.9.0 implementation and golden-comparison history.
 The current package has no Python runtime, MCP process, falconpy, or `falcon-mcp` dependency.
@@ -70,7 +70,7 @@ Malware family reads (`malware list`, `malware show`), Identity Protection polic
 (`identity rule list`, `identity rule show`), and Discover IoT inventory (`iot list`) also ship.
 The generated command reference in `docs/commands.md` is the authoritative list of shipped commands, and
 no help text, suggestion, or skill may advertise an unshipped command.
-`npm run verify` is the single local entry point for the complete offline required-check set.
+`pnpm run verify` is the single local entry point for the complete offline required-check set.
 It runs TypeScript compilation, formatting, architecture and generated checks, clean package installation, and the cumulative native suite with network isolation.
 The Python test files remain frozen safety-ledger provenance and are read as bytes, never executed by this gate.
 `tests/golden/` is the recorded-invocation gate; `docs/design/v1-python.md` §5 owns its comparison contract and release-version exception.
@@ -108,7 +108,7 @@ The implementation seams are documented in `docs/design/v1-typescript.md`:
   Every fixture under `tests/fixtures/` is wholly synthetic and carries a provenance header that an offline test
   asserts.
 
-The automation is `.github/workflows/ci.yml`, which runs `npm run verify` with no secrets, and `.github/workflows/release-please.yml`, which proposes releases and, when one is created, builds and publishes to npm with no checks of its own.
+The automation is `.github/workflows/ci.yml`, which runs `pnpm run verify` with no secrets, and `.github/workflows/release-please.yml`, which proposes releases and, when one is created, builds and publishes to npm with no checks of its own.
 Prereleases publish under the `next` dist-tag and never move `latest`.
 The final-coverage check allows exactly those two workflow files and rejects `FALCON_AXI_LIVE`, both credential environment names, and their deprecated aliases in decoded workflow settings.
 
@@ -121,8 +121,8 @@ reviewing any CLI behavior here.
 `azure-axi` and `awx-axi` are the sibling references for these patterns; `docs/design/v1.md` §18 lists where
 their assumptions do **not** transfer to Falcon.
 `skills/falcon-axi/SKILL.md` and its per-command `references/` are this repo's generated agent-facing skill;
-regenerate them with `npm run generate`.
-Its drift check runs in `npm run verify`, and it must never name a command the CLI does not ship (`docs/design/v1.md` §12.2).
+regenerate them with `pnpm run generate`.
+Its drift check runs in `pnpm run verify`, and it must never name a command the CLI does not ship (`docs/design/v1.md` §12.2).
 
 ## Maintaining this file
 
