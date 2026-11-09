@@ -3,7 +3,7 @@ import http from "node:http";
 import tls from "node:tls";
 import type { Duplex } from "node:stream";
 import { setTimeout as delay } from "node:timers/promises";
-import { CliError, object, parseResponse } from "../core.js";
+import { CliError, object, parseRawResponse, parseResponse } from "../core.js";
 import { origin } from "../origin.js";
 import { operation } from "./operations.js";
 import { VERSION } from "../version.js";
@@ -15,11 +15,15 @@ import {
   validateSearchBody,
 } from "./search-authority.js";
 import { inspectRtrGrant, consumeRtrGrant } from "../rtr.js";
+import { consumeRawGrant } from "../raw.js";
+import { RAW_RESPONSE_LIMIT, routeProblem } from "./raw-authority.js";
 
 export interface Response {
   status: number;
   headers: Readonly<Record<string, string>>;
   body: unknown;
+  text?: string;
+  binary?: boolean;
 }
 type Query = Readonly<Record<string, string | number | readonly string[]>>;
 interface Prepared {
@@ -30,9 +34,19 @@ interface Prepared {
   body: string;
   exception?: "graphql-query" | "malquery-search";
   rtr?: object;
+  raw?: { grant: object | undefined };
   operationId?: string;
 }
 const permits = new WeakSet<Prepared>();
+const utf8Decoder = new TextDecoder("utf-8", { fatal: true, ignoreBOM: true });
+function isUtf8(bytes: Uint8Array): boolean {
+  try {
+    utf8Decoder.decode(bytes);
+    return true;
+  } catch {
+    return false;
+  }
+}
 const timeout = (): CliError =>
   new CliError("WAIT_TIMEOUT", "the Falcon request exceeded its time budget", [
     "Retry shortly",
@@ -83,6 +97,18 @@ async function send(
   )
     throw new CliError("READ_ONLY_VIOLATION", "RTR grant is missing");
   if (prepared.rtr) consumeRtrGrant(prepared.rtr, prepared);
+  if (prepared.raw) {
+    if (
+      routeProblem(prepared.method, prepared.path.split("?", 1)[0]!) ||
+      (prepared.method === "GET" && prepared.body)
+    )
+      throw new CliError(
+        "READ_ONLY_VIOLATION",
+        "raw route authority was refused",
+      );
+    if (prepared.method !== "GET")
+      consumeRawGrant(prepared.raw.grant, prepared);
+  }
   const signal = AbortSignal.any([inherited, AbortSignal.timeout(30_000)]);
   signal.throwIfAborted();
   const resolver = createLookup(inherited, signal);
@@ -181,7 +207,14 @@ async function send(
           );
           response.on("data", (chunk: Buffer) => {
             bytes += chunk.length;
-            if (bytes > (prepared.rtr ? 1024 * 1024 : 16 * 1024 * 1024)) {
+            if (
+              bytes >
+              (prepared.rtr
+                ? 1024 * 1024
+                : prepared.raw
+                  ? RAW_RESPONSE_LIMIT
+                  : 16 * 1024 * 1024)
+            ) {
               request!.destroy(
                 new CliError(
                   "UPSTREAM_ERROR",
@@ -202,10 +235,17 @@ async function send(
               if (value !== undefined && key !== "location")
                 headers[key] = Array.isArray(value) ? value.join(",") : value;
             let body: unknown = undefined;
-            const text = Buffer.concat(chunks).toString("utf8");
+            const bytes = Buffer.concat(chunks);
+            const text = bytes.toString("utf8");
+            const mediaType = headers["content-type"]
+              ?.split(";", 1)[0]
+              ?.trim()
+              .toLowerCase();
             if (text) {
               try {
-                body = parseResponse(text);
+                body = prepared.raw
+                  ? parseRawResponse(text)
+                  : parseResponse(text);
               } catch {
                 /* Non-JSON errors retain status, never raw upstream text. */
               }
@@ -214,6 +254,20 @@ async function send(
               status: response.statusCode ?? 500,
               headers: Object.freeze(headers),
               body,
+              ...(prepared.raw
+                ? {
+                    text,
+                    binary:
+                      !isUtf8(bytes) ||
+                      bytes.includes(0) ||
+                      (bytes.length > 0 &&
+                        !!mediaType &&
+                        /^(?:image|audio|video|font)\/|^application\/(?:octet-stream|pdf|zip|gzip|x-gzip|x-7z-compressed|x-rar-compressed|vnd\.rar|x-tar|wasm)$/.test(
+                          mediaType,
+                        )) ||
+                      text.startsWith("%PDF-"),
+                  }
+                : {}),
             });
           });
         },
@@ -663,5 +717,39 @@ export function requestException(
     },
     signal,
     id !== "StartSearchV1" && descriptor.effect !== "malquery-search",
+  );
+}
+
+export function requestRaw(
+  method: string,
+  path: string,
+  query: string,
+  body: string,
+  grant: object | undefined,
+  base: string,
+  token: string,
+  allowUnknown: boolean,
+  signal: AbortSignal,
+): Promise<Response> {
+  return acquire(
+    {
+      origin: origin(base, allowUnknown),
+      method,
+      path: path + (query ? `?${query}` : ""),
+      body,
+      raw: { grant },
+      headers: {
+        authorization: `Bearer ${token}`,
+        "user-agent": `falcon-axi/${VERSION}`,
+        ...(body
+          ? {
+              "content-type": "application/json",
+              "content-length": String(Buffer.byteLength(body)),
+            }
+          : {}),
+      },
+    },
+    signal,
+    false,
   );
 }

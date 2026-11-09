@@ -7,7 +7,7 @@
 Run `falcon-axi config path` to report the config file and write-journal paths without contacting Falcon.
 `--config <path>` overrides `FALCON_AXI_CONFIG`, which overrides the platform default.
 
-| Platform | Config file | RTR journal |
+| Platform | Config file | Write journal |
 | --- | --- | --- |
 | Linux / macOS | `~/.config/falcon-axi/config.json` | `~/.local/state/falcon-axi/writes.log` |
 | Windows | `%APPDATA%\falcon-axi\config.json` | `%LOCALAPPDATA%\falcon-axi\writes.log` |
@@ -15,7 +15,7 @@ Run `falcon-axi config path` to report the config file and write-journal paths w
 On POSIX, absolute `XDG_CONFIG_HOME` and `XDG_STATE_HOME` replace the corresponding roots; relative values are ignored.
 Windows ignores XDG variables and falls back to `~/AppData/Roaming` and `~/AppData/Local` when the respective environment variables are unset.
 `FALCON_AXI_WRITE_LOG` overrides the journal path.
-RTR execution requires a private, durable journal; see [RTR operator guidance](read-only.md#rtr-operator-guidance).
+RTR execution and `raw write --execute` require a private, durable journal; see [RTR operator guidance](read-only.md#rtr-operator-guidance).
 
 ## Profiles and credentials
 
@@ -52,6 +52,15 @@ falcon-axi auth status --profile triage
 `auth status` resolves credentials and authenticates against Falcon without printing credential values.
 Tokens are held in memory for an invocation; no persistent token cache is written.
 
+Raw writes are off unless a file profile opts in; environment profiles cannot enable them:
+
+```json
+{"writes": {"allowWrites": true, "operations": ["raw-write"]}}
+```
+
+Both `allowWrites: true` and `"raw-write"` in `operations` are required, including to preview a `raw write`.
+See [Raw API](read-only.md#raw-api) for the remaining gates.
+
 ## Selection and overrides
 
 Selection order is `--profile`, `FALCON_AXI_PROFILE`, a complete environment profile, `defaultProfile`, then the only configured profile.
@@ -66,7 +75,7 @@ Tenant discovery is not provided.
 The [README environment table](../README.md#configuration) lists the CLI's configuration and host-detection inputs.
 No credentials, profile, or child tenant are selected by default when no usable source exists.
 The read-only switch defaults to `false` and accepts `1` / `true` or `0` / `false`, case-insensitively; other values fail with `CONFIG_INVALID` before authentication.
-When enabled, it blocks `search start`, `search stop`, `identity activity`, `host usb`, `malquery search`, and RTR execution.
+When enabled, it blocks `search start`, `search stop`, `identity activity`, `host usb`, `malquery search`, RTR execution, and `raw write --execute`.
 Fixed read-only Identity GraphQL queries, search status, passive RTR history, and local previews remain available.
 
 Deprecated aliases emit a stderr warning, and their replacements win when both are set:

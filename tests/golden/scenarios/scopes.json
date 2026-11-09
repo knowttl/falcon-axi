@@ -1,6 +1,6 @@
 {
   "name": "scopes",
-  "comment": "N4 section 4.6 deliberately adds bounded MalQuery search and passive status to discovery and scopes, plus N4 provisioning guidance.",
+  "comment": "N5 section 4.7 updates scopes guidance to distinguish registered operations from caller-selected raw routes and gated GraphQL writes.",
   "argv": [
     "scopes"
   ],

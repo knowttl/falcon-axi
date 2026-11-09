@@ -20,6 +20,21 @@ export function object(value: unknown): value is Record<string, unknown> {
   return value !== null && typeof value === "object" && !Array.isArray(value);
 }
 
+export class RawNumber {
+  constructor(readonly text: string) {}
+}
+
+export function parseRawResponse(text: string): unknown {
+  return JSON.parse(
+    text,
+    (_key: string, value: unknown, context?: { source?: string }) => {
+      if (typeof value === "number" && context?.source)
+        return new RawNumber(context.source);
+      return value;
+    },
+  ) as unknown;
+}
+
 // Preserve numeric lexemes outside Number's exact integer domain, judged from the
 // original text because JSON.parse has already rounded the value it hands us.
 export function parseResponse(text: string): unknown {

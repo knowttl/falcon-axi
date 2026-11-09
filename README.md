@@ -90,14 +90,19 @@ Run any command with `--help` for arguments, limits, and examples.
 | `classification`, `data-policy`, `policy`, `exclusion`, `firewall`, `ioa`, `correlation-rule` | Security configuration and rule inventories | Read | [Policies](docs/commands.md#policy-list) |
 | `shield`, `file-change`, `case`, `sensor-usage`, `recon-rule`, `recon-notification`, `recon-record` | Posture, change history, cases, usage, and Recon | Read | [Posture](docs/commands.md#shield-list) |
 | `rtr` | Passive session history and guarded read-only commands | Read; execution opens a session | [RTR](docs/read-only.md#rtr-operator-guidance) |
+| `raw` | Send a GET to a validated Falcon API path or send a guarded raw write | Caller selects a read-only GET; `raw write` can change tenant state | [Raw API](docs/read-only.md#raw-api) |
 | `auth`, `profile`, `config`, `scopes`, `setup` | Credential diagnostics, permissions, and agent setup | Read; `setup hooks` writes local agent settings | [Setup](docs/commands.md#setup) |
 
 ## Safety
 
-falcon-axi is read-only by default: no containment, remediation, quarantine release, configuration changes, or arbitrary API passthrough.
-Tenant-side effects are limited to NG-SIEM jobs, bounded MalQuery searches, and guarded RTR sessions.
+falcon-axi is read-only by default for registered commands, with the exceptions below.
+Registered commands can create NG-SIEM jobs, run bounded MalQuery searches, and open guarded RTR sessions; raw requests depend on the selected route.
 RTR previews locally; execution requires profile opt-in, a fixed command allowlist, `--execute`, and exact `--confirm`.
-Set `FALCON_AXI_READ_ONLY=1` to block search lifecycle commands, MalQuery search, and RTR execution.
+`raw get` sends a GET to any validated Falcon API path; choose a route documented by CrowdStrike as a read.
+`raw write` sends one POST, PUT, PATCH or DELETE only when the file profile sets `writes.allowWrites` and lists `raw-write` in `writes.operations`, after a preview, with `--execute` and exact `--confirm`, and with a mandatory journal entry.
+Falcon authorizes the selected route using the API client's scopes.
+Raw output preserves fields while redacting secrets in their names and values.
+Set `FALCON_AXI_READ_ONLY=1` to block search lifecycle commands, MalQuery search, RTR execution, and raw writes.
 Passive history, local previews, and fixed read-only Identity GraphQL queries remain available.
 Identity GraphQL requires a write-labelled scope but accepts only registered read-only documents.
 Credentials use environment or file references; tokens stay in memory, and credentials and standalone tenant CIDs are redacted.
@@ -127,8 +132,8 @@ Run `falcon-axi config path` to inspect config and journal paths.
 | `FALCON_AXI_CLIENT_ID` | Environment profile client ID | Unset |
 | `FALCON_AXI_CLIENT_SECRET` | Environment profile secret / default SecretRef | Unset |
 | `FALCON_AXI_PROXY_URL` | HTTPS proxy URL | Direct connection |
-| `FALCON_AXI_READ_ONLY` | Block search lifecycle, MalQuery search, and RTR execution | `false`; enable with `1` / `true` |
-| `FALCON_AXI_WRITE_LOG` | Mandatory RTR execution journal | State directory `writes.log` |
+| `FALCON_AXI_READ_ONLY` | Block search lifecycle, MalQuery search, RTR execution, and raw writes | `false`; enable with `1` / `true` |
+| `FALCON_AXI_WRITE_LOG` | Mandatory RTR and raw write execution journal | State directory `writes.log` |
 | `XDG_CONFIG_HOME`, `XDG_STATE_HOME` | Absolute POSIX config / state roots | `~/.config`, `~/.local/state` |
 | `APPDATA`, `LOCALAPPDATA` | Windows config / state roots | `~/AppData/Roaming`, `~/AppData/Local` |
 | `HOME` | Home directory for session integrations | OS home directory |

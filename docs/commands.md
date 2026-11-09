@@ -103,6 +103,8 @@ Names omit the `falcon-axi` prefix; positional arguments stay inside code spans.
 | `rtr session show <id>` | read one record |
 | `rtr audit list` | read audit_sessions |
 | `rtr run` | preview or execute one read-only RTR command on one host |
+| `raw get` | read one Falcon API path with the selected profile |
+| `raw write` | preview or send one guarded Falcon API write |
 | `auth status` | whether a credential resolved, and where to |
 | `profile list` | configured profile names, without reading secrets |
 | `config path` | config and write-journal paths |
@@ -1672,6 +1674,39 @@ No shell syntax; eventlog backup/export, scripts, and file transfers are exclude
 Examples:
   falcon-axi rtr run aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa --command ps --profile triage
   falcon-axi rtr run aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa --command ps --profile triage --execute --confirm 'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa:ps'
+```
+
+## raw get
+
+```text
+falcon-axi raw get --path <api-path> [--query <key=value&...>] [--query-file <file|->]
+
+Sends one GET to the selected profile's Falcon cloud and prints the status, content type and body as TOON.
+The path must be an absolute RFC 3986 path without dot segments, repeated slashes, query or fragment.
+Use --query-file for secret query values; --query rejects secret-named keys. The file or stdin (-) must contain a JSON object of strings or string arrays.
+One request per invocation, never replayed: no pagination, no continuation cursor, no field selection. Responses are capped at 4 MiB and binary bodies are refused.
+Secret values are redacted and every field is kept, including the value beside a key that names a secret.
+Examples:
+  falcon-axi raw get --path /devices/queries/devices/v1 --query 'limit=5'
+  falcon-axi raw get --path /detects/queries/detects/v1 --query 'filter=severity:>50&limit=2'
+```
+
+## raw write
+
+```text
+falcon-axi raw write --method POST|PUT|PATCH|DELETE --path <api-path> [--query <key=value&...>] [--query-file <file|->] [--body-file <file|->] [--execute --confirm '<confirm>']
+
+Default: local preview, no network request. The preview prints the exact confirm value.
+Requires a file profile with writes.allowWrites=true and "raw-write" in writes.operations, even to preview.
+Execution also needs --execute and the exact --confirm value; FALCON_AXI_READ_ONLY always forbids execution.
+One request, never replayed. A private redacted journal records the intent before sending and the outcome after; it is mandatory.
+Use --query-file for secret query values; --query rejects secret-named keys. The file or stdin (-) must contain a JSON object of strings or string arrays.
+The body is one JSON object or array of at most 1 MiB, from a file or stdin (-), without duplicate members at any depth. Query and body cannot both read stdin.
+The same path syntax rules as raw get apply. Falcon authorizes the selected route.
+Raw writes read no target state and detect no no-ops; reconcile an unknown outcome in the Falcon console before retrying.
+Examples:
+  falcon-axi raw write --method PATCH --path /example/entities/thing/v1 --body-file body.json --profile ops
+  falcon-axi raw write --method PATCH --path /example/entities/thing/v1 --body-file body.json --profile ops --execute --confirm '<confirm>'
 ```
 
 ## auth status

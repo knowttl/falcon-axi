@@ -13,10 +13,13 @@ Run `npx -y @knowttl/falcon-axi@next ...` without a global install.
 
 ## Read-only boundary
 
-No command changes a host, detection, policy, or identity.
-Tenant-side effects are NG-SIEM jobs, guarded RTR execution, and bounded MalQuery exact/fuzzy searches (N4).
+No command changes a host, detection, policy, or identity except a confirmed `raw write`.
+Tenant-side effects are NG-SIEM jobs, guarded RTR execution, bounded MalQuery exact/fuzzy searches (N4), and guarded raw writes (N5).
 Identity GraphQL uses a write-labelled scope only for fixed read-only query documents.
-There is no arbitrary REST or GraphQL escape hatch.
+`raw get` reads any validated Falcon API path; `raw write` previews first and sends only with a profile that opts in, `--execute`, and the exact `--confirm`, and is journaled.
+Raw output redacts secret values and keeps every field.
+There is no unrestricted GraphQL escape hatch.
+Gated raw writes may POST caller-supplied JSON to GraphQL routes with profile `writes.allowWrites` and `raw-write`, preview, `--execute`, exact `--confirm`, and a journal.
 
 ## Orientation
 

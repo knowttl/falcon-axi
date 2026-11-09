@@ -47,6 +47,8 @@ const allowed = new Set([
   "../origin.js",
   "../version.js",
   "./transport/operations.js",
+  "./transport/raw-authority.js",
+  "./raw-authority.js",
   "@toon-format/toon",
   "axi-sdk-js/fast-path",
   "ajv/dist/2020.js",
@@ -110,10 +112,13 @@ export function violations(source: string, name: string): string[] {
             (name === "setup.ts" && specifier.text === "toml-eslint-parser") ||
             (name === "setup.ts" && specifier.text === "node:util") ||
             (name === "cli.ts" && specifier.text === "./rtr.js") ||
+            (name === "cli.ts" && specifier.text === "./raw.js") ||
             (name === "transport/https.ts" && specifier.text === "../rtr.js") ||
-            (["credentials.ts", "rtr.ts", "cli.ts"].includes(name) &&
+            (name === "transport/https.ts" && specifier.text === "../raw.js") ||
+            (["credentials.ts", "rtr.ts", "raw.ts", "cli.ts"].includes(name) &&
               specifier.text === "./rtr-policy.js") ||
-            (name === "rtr.ts" && specifier.text === "./rtr-filesystem.js") ||
+            (["rtr.ts", "raw.ts"].includes(name) &&
+              specifier.text === "./rtr-filesystem.js") ||
             (name === "rtr.ts" && specifier.text === "node:timers/promises") ||
             (name === "transport/https.ts" && sink.has(specifier.text)) ||
             (name === "search.ts" &&
@@ -260,6 +265,7 @@ for (const source of [
   "await import('node:http')",
   "process.getBuiltinModule('net')",
   "import {rtrRun} from './rtr.js'",
+  "import {rawRun} from './raw.js'",
   "import {openRetainedFile} from './rtr-filesystem.js'",
   "import {writeFile as save} from 'node:fs/promises'",
   "import fs from 'node:fs'",

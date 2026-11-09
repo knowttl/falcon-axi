@@ -148,6 +148,7 @@ Top-level help restores the retained N3 authorization sentence alongside the del
 Unsupported controllers refuse execution before authentication while preview stays local.
 The S11 installed checks preserve real filesystem ownership under the inherited process-level socket deny and deliver synthetic HTTPS over a test-owned Unix socket.
 `tests/migration/coverage-s11.json` pins the twelve retained safety groups and their public source symbols.
+
 `npm run check:slice -- --slice S11 --paths native --offline` requires no host fixture.
 The additional `native,artium` path requires a frozen local fixture containing the reviewed host delta.
 The hosted fixture applies the same socket-deny launcher to the actual Falcon child while its public API remains on loopback.
@@ -165,6 +166,18 @@ The compiled-interface probe uses an inherited Linux seccomp IP socket deny, pre
 It proves the deny in IPv4/IPv6 child processes, retained-ancestor writes, unsafe-target and ancestor refusals, cross-process lock contention and release, and injected short-write, EINTR and file/directory fsync outcomes.
 An outside-source install proves compiled appends, binary-integrity refusal, and read/help plus Windows controller refusal with the binaries removed.
 Neither fs-ext nor fs-native-extensions was adopted.
+
+## Raw API
+
+`src/raw.ts` implements `raw get` and `raw write` (captain exception N5, `v1.md` §4.7) outside the operation registry.
+`src/transport/raw-authority.ts` owns the route syntax rules and the 4 MiB response ceiling; the HTTPS sink revalidates the route for every raw request.
+Any syntactically valid Falcon path is available for GET or gated writes, subject to Falcon authorization.
+A non-GET raw request is accepted only with a single-use grant minted in `src/raw.ts` after the profile, confirmation and journal gates, bound to origin, method, path with query, and body; read-only mode is checked again at consumption.
+Raw writes are never replayed and reuse the RTR journal adapter, so execution needs Linux x64; previews stay local.
+Query input and secret restrictions are specified in `v1.md` §4.7.
+Successful bodies are parsed as JSON when possible, redacted with the shared redactor, and encoded as TOON; non-JSON text is printed as a redacted string and binary bodies are refused.
+Upstream failures keep their status and redacted body under `upstream_status` and `upstream_body`.
+`tests/typescript/raw.test.ts` covers the gates, the journal, the route rules and the redaction extension.
 
 ## Installation and full parity candidate
 
@@ -185,6 +198,7 @@ The `scopes` posture, scope rows, provisioning guidance, and exit code retain ex
 All golden comparisons retain the existing release-version substitutions and byte-for-byte output contract.
 The post-cutover fixes for issues #139 and #140 deliberately amend `search-stop` guidance and the synthetic identifiers in `host-show` and `host-show-not-found`.
 Those scenario definitions carry the reasons; the golden corpus hashes and seal advance only for those three scenarios plus `help-host-show`, four scenarios in total.
+The N5 raw API amendment also advances the `scopes` hashes and corpus seal for its revised provisioning guidance (§4.7 of `v1.md`).
 The corpus provenance includes the already merged bounded hostname-history amendment from `eae2ba801a3bcf39b2b13b4fc3799e1ee3e05e44` and §1.8 of `v1.md`.
 Its two host-history help documents precede this carrier and remain unchanged here.
 Native Windows evidence remains pending.

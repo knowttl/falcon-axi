@@ -58,6 +58,17 @@ for (const command of commands) {
     `# ${command.name}\n\n${command.summary.trim()}\n\n\`\`\`text\n${text.replaceAll("falcon-axi", npmCommand)}\n\`\`\`\n`,
   );
 }
+const referencePath = "docs/commands.md";
+let reference = readFileSync(join(root, referencePath), "utf8");
+for (const name of ["raw get", "raw write"] as const) {
+  const heading = `## ${name}\n\n\`\`\`text\n`;
+  const start = reference.indexOf(heading) + heading.length;
+  const end = reference.indexOf("\n```", start);
+  if (start < heading.length || end < start)
+    throw new Error(`Missing ${name} reference`);
+  reference = reference.slice(0, start) + help[name] + reference.slice(end);
+}
+expected.set(referencePath, reference);
 const hash = (text: string | Buffer): string =>
   createHash("sha256").update(text).digest("hex");
 const catalog = {
