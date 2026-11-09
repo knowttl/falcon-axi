@@ -289,6 +289,36 @@ for (const method of ["GET", "PATCH"])
       );
     });
 
+for (const method of ["GET", "PATCH"])
+  for (const status of [200, 403])
+    test(`raw ${method} preserves indented NDJSON after authorization ${status}`, async () => {
+      const args =
+        method === "GET"
+          ? getArgs("/example/entities/things/v1")
+          : writeArgs("ops");
+      const preview = method === "PATCH" ? await run(args) : undefined;
+      const confirm =
+        preview &&
+        (value(preview.stdout).preview as Record<string, string>).confirm;
+      dynamicResponse(`${method} /example/entities/things/v1`, () => ({
+        status,
+        headers: { "content-type": "application/x-ndjson" },
+        body: Buffer.from(
+          '{"message":"Authorization: Bearer hidden"}\n {"item":2}\n',
+        ),
+      }));
+      const result = await run(
+        confirm ? [...args, "--execute", "--confirm", confirm] : args,
+        await state(),
+      );
+      assert.equal(result.code, status === 200 ? 0 : 1, result.stdout);
+      const output = value(result.stdout);
+      assert.equal(
+        status === 200 ? output.body : output.upstream_body,
+        '{"message":"Authorization: [redacted]"}\n {"item":2}\n',
+      );
+    });
+
 test("raw get preserves a valid UTF-8 replacement character", async () => {
   recordedResponse("GET /example/entities/things/v1", 200, {
     description: "a�b",

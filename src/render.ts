@@ -338,18 +338,27 @@ function redactValue(
       /-----BEGIN [A-Z ]*PRIVATE KEY-----[\s\S]*?(?:-----END [A-Z ]*PRIVATE KEY-----|$)|\beyJ[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+/gi,
       "[redacted]",
     );
-    const folded = redactFoldedAuthorization(cleaned);
-    return folded.replace(/[^\r\n]+/g, (line) => {
+    const lines = cleaned.split(/(\r\n|\n|\r)/);
+    let output = "";
+    let text = "";
+    for (let index = 0; index < lines.length; index += 2) {
+      const line = lines[index]!;
+      const ending = lines[index + 1] ?? "";
+      let serialized = false;
       if (/^\s*[\[{]/.test(line)) {
         try {
           JSON.parse(line);
-          return redactSerialized(line) as string;
+          serialized = true;
         } catch {
-          return redactAssignments(line);
+          serialized = false;
         }
       }
-      return redactAssignments(line);
-    });
+      if (serialized) {
+        output += redactAssignments(text) + redactSerialized(line) + ending;
+        text = "";
+      } else text += line + ending;
+    }
+    return output + redactAssignments(text);
   }
   if (Array.isArray(value))
     return value.map((entry) =>
