@@ -147,7 +147,11 @@ function redactSerialized(text: string, detectOnly = false): string | boolean {
   const root = parse();
   if (detectOnly) return duplicate;
   const edits: { start: number; end: number; value: string }[] = [];
-  const visit = (node: Node): void => {
+  const visit = (
+    node: Node,
+    withinSecret = false,
+    hideScalar = false,
+  ): void => {
     if (node.entries?.length) {
       const pair = positionalSecretPair();
       for (const { key, keyNode, node: entry } of node.entries) {
@@ -164,17 +168,20 @@ function redactSerialized(text: string, detectOnly = false): string | boolean {
             ? (JSON.parse(text.slice(entry.start, entry.end)) as string)
             : undefined,
         );
-        if (isSecretKey(key) || pairedValue)
-          edits.push({
-            start: entry.start,
-            end: entry.end,
-            value: '"[redacted]"',
-          });
-        else visit(entry);
+        const sensitive =
+          isSecretKey(key) || pairedValue || (withinSecret && isPairValue(key));
+        visit(entry, withinSecret || sensitive, sensitive);
       }
     }
-    for (const child of node.children ?? []) visit(child);
-    if (!node.entries && !node.children && text[node.start] === '"') {
+    for (const child of node.children ?? [])
+      visit(
+        child,
+        withinSecret,
+        hideScalar && !child.entries && !child.children,
+      );
+    if (!node.entries && !node.children && hideScalar) {
+      edits.push({ start: node.start, end: node.end, value: '"[redacted]"' });
+    } else if (!node.entries && !node.children && text[node.start] === '"') {
       const original = JSON.parse(text.slice(node.start, node.end)) as string;
       const cleaned = redact(original) as string;
       if (cleaned !== original)
@@ -198,7 +205,13 @@ function redactSerialized(text: string, detectOnly = false): string | boolean {
 export function hasDuplicateJsonMembers(text: string): boolean {
   return redactSerialized(text, true) as boolean;
 }
-export function redact(value: unknown): unknown {
+function redactValue(
+  value: unknown,
+  withinSecret = false,
+  hideScalar = false,
+): unknown {
+  if (hideScalar && !object(value) && !Array.isArray(value))
+    return "[redacted]";
   if (typeof value === "string") {
     if (/^\s*[\[{]/.test(value)) {
       let valid = false;
@@ -215,19 +228,32 @@ export function redact(value: unknown): unknown {
       "[redacted]",
     );
   }
-  if (Array.isArray(value)) return value.map(redact);
+  if (Array.isArray(value))
+    return value.map((entry) =>
+      redactValue(
+        entry,
+        withinSecret,
+        hideScalar && !object(entry) && !Array.isArray(entry),
+      ),
+    );
   if (object(value)) {
     const pair = positionalSecretPair();
     return Object.fromEntries(
-      Object.entries(value).map(([key, entry]) => [
-        redactText(key),
-        secretKeys.has(key.toLowerCase()) || pair(key, entry)
-          ? "[redacted]"
-          : redact(entry),
-      ]),
+      Object.entries(value).map(([key, entry]) => {
+        const pairedValue = pair(key, entry);
+        const sensitive =
+          isSecretKey(key) || pairedValue || (withinSecret && isPairValue(key));
+        return [
+          redactText(key),
+          redactValue(entry, withinSecret || sensitive, sensitive),
+        ];
+      }),
     );
   }
   return value;
+}
+export function redact(value: unknown): unknown {
+  return redactValue(value);
 }
 export class Raw {
   constructor(readonly text: string) {}

@@ -866,8 +866,58 @@ test("raw output redacts exact secret pairs and preserves metadata", async () =>
       { key: "CID", data: "[redacted]", kind: "tenant" },
       { attribute: "customer_id", val: "[redacted]" },
       { name: "token_count", value: 5 },
-      { field: "access_token", values: "[redacted]" },
+      { field: "access_token", values: ["[redacted]"] },
       { key: "api_key", value: "[redacted]", name: "retention_days", data: 30 },
     ],
+  });
+});
+
+for (const status of [200, 403])
+  test(`raw response ${status} preserves structured secret metadata`, async () => {
+    const structured = {
+      password: {
+        value: "hidden",
+        expires: "tomorrow",
+        nested: { val: "hidden", label: "keep" },
+        tags: ["visible"],
+      },
+      key: "api_key",
+      data: { value: "hidden", expires: "later" },
+      token: ["hidden", { value: "hidden", expires: "soon" }],
+    };
+    const expected = {
+      password: {
+        value: "[redacted]",
+        expires: "tomorrow",
+        nested: { val: "[redacted]", label: "keep" },
+        tags: ["visible"],
+      },
+      key: "api_key",
+      data: { value: "[redacted]", expires: "later" },
+      token: ["[redacted]", { value: "[redacted]", expires: "soon" }],
+    };
+    recordedResponse("GET /example/entities/things/v1", status, {
+      structured,
+      serialized: JSON.stringify(structured),
+    });
+    const result = await run(getArgs("/example/entities/things/v1"));
+    assert.equal(result.code, status === 200 ? 0 : 1, result.stdout);
+    const body = value(result.stdout)[
+      status === 200 ? "body" : "upstream_body"
+    ] as { structured: unknown; serialized: string };
+    assert.deepEqual(body.structured, expected);
+    assert.deepEqual(JSON.parse(body.serialized), expected);
+  });
+
+test("raw write preview preserves structured secret metadata", async () => {
+  const file = join(directory, "structured-secret.json");
+  await writeFile(
+    file,
+    JSON.stringify({ password: { value: "hidden", expires: "tomorrow" } }),
+  );
+  const result = await run(writeArgs("ops", "--body-file", file));
+  assert.equal(result.code, 0, result.stdout);
+  assert.deepEqual((value(result.stdout).preview as { body: unknown }).body, {
+    password: { value: "[redacted]", expires: "tomorrow" },
   });
 });
