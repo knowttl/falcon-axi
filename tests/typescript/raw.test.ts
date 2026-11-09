@@ -411,7 +411,7 @@ test("raw write rejects confirmation after the API client changes", async () => 
   assert.equal(wire.length, 0);
 });
 
-test("raw error redacts serialized secret pairs before truncation", async () => {
+test("raw error preserves complete redacted serialized secret pairs", async () => {
   const body = JSON.stringify({
     key: "api_key",
     value: "secret-value",
@@ -422,8 +422,43 @@ test("raw error redacts serialized secret pairs before truncation", async () => 
   assert.equal(result.code, 1, result.stdout);
   assert.doesNotMatch(result.stdout, /secret-value/);
   assert.match(result.stdout, /\[redacted\]/);
-  assert.match(result.stdout, /truncated/);
+  assert.equal(
+    value(result.stdout).upstream_body,
+    body.replace('"secret-value"', '"[redacted]"'),
+  );
 });
+
+for (const method of ["GET", "PATCH"])
+  test(`raw ${method} preserves a complete duplicate-member error`, async () => {
+    const payload = `{"role":"admin","role":"viewer","password":"hidden","padding":"${"x".repeat(2200)}","tail":"visible"}`;
+    dynamicResponse(`${method} /example/entities/things/v1`, () => ({
+      status: 403,
+      body: Buffer.from(payload),
+    }));
+    let result;
+    if (method === "GET")
+      result = await run(getArgs("/example/entities/things/v1"));
+    else {
+      const file = await body();
+      const confirm = await confirmValue("ops", file);
+      result = await run(
+        writeArgs(
+          "ops",
+          "--body-file",
+          file,
+          "--execute",
+          "--confirm",
+          confirm,
+        ),
+        await state(),
+      );
+    }
+    assert.equal(result.code, 1, result.stdout);
+    assert.equal(
+      value(result.stdout).upstream_body,
+      payload.replace('"hidden"', '"[redacted]"'),
+    );
+  });
 
 test("raw write preserves stdin body numbers and confirms the destination", async () => {
   const text = '{"number":9007199254740993}';

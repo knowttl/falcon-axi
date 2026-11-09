@@ -11,7 +11,6 @@ import {
   Raw,
   redact,
   render,
-  truncate,
 } from "./render.js";
 import { origin } from "./origin.js";
 import { openRetainedFile } from "./rtr-filesystem.js";
@@ -171,11 +170,7 @@ function redactQueryPairs(query: string): string {
 
 function failure(response: Response, writing = false): CliError {
   const { status } = response;
-  const received = responseBody(response);
-  const body =
-    typeof received === "string"
-      ? truncate(String(redact(received)), 2000)
-      : received;
+  const body = redact(responseBody(response));
   const details = {
     upstream_status: status,
     ...(body === undefined
