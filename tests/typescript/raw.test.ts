@@ -419,6 +419,47 @@ test("raw write accepts the redacted confirmation shown in its preview", async (
   assert.equal(requests().length, 1);
 });
 
+for (const status of [200, 403])
+  test(`raw write ${status} preserves envelope fields with matching credentials`, async () => {
+    const document = JSON.parse(await readFile(config, "utf8")) as {
+      profiles: { ops: { clientId: string } };
+    };
+    document.profiles.ops.clientId = "confirm";
+    await writeFile(config, JSON.stringify(document));
+    const file = join(directory, "envelope-body.json");
+    await writeFile(file, JSON.stringify({ confirm: "hidden", label: "visible" }));
+    const preview = await run(writeArgs("ops", "--body-file", file));
+    assert.equal(preview.code, 0, preview.stdout);
+    const details = value(preview.stdout).preview as {
+      confirm: string;
+      body: unknown;
+      body_sha256: string;
+    };
+    assert.match(details.confirm, /^ops:PATCH sha256:/);
+    assert.match(details.body_sha256, /^[a-f0-9]{64}$/);
+    assert.deepEqual(details.body, {
+      "[redacted-key-1]": "[redacted]",
+      label: "visible",
+    });
+    recordedResponse(
+      "PATCH /example/entities/things/v1",
+      status,
+      { confirm: "hidden", label: "visible" },
+      true,
+    );
+    const result = await run(
+      writeArgs("ops", "--body-file", file, "--execute", "--confirm", details.confirm),
+      await state(),
+    );
+    assert.equal(result.code, status === 200 ? 0 : 1, result.stdout);
+    const output = value(result.stdout);
+    assert.equal(output[status === 200 ? "status" : "upstream_status"], status);
+    assert.deepEqual(output[status === 200 ? "body" : "upstream_body"], {
+      "[redacted-key-1]": "[redacted]",
+      label: "visible",
+    });
+  });
+
 test("raw write accepts confirmation when a credential occurs in the marker", async () => {
   const document = JSON.parse(await readFile(config, "utf8")) as {
     profiles: Record<string, { clientId: string }>;

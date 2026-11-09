@@ -91,9 +91,11 @@ export async function main(argv: string[], bin?: string): Promise<number> {
       );
     return result;
   };
+  let rawEnvelope = false;
   try {
     const invocation = parse(argv);
     const { command, flags } = invocation;
+    rawEnvelope = command.name === "raw get" || command.name === "raw write";
     activeFlags = flags;
     home = command.name === "home";
     memberCid = flags.get("--member-cid");
@@ -467,6 +469,7 @@ export async function main(argv: string[], bin?: string): Promise<number> {
           ...safe.help,
           ...(home && argv.length === 0 ? skillHint() : []),
         ]),
+        rawEnvelope,
       ),
     );
     return safe.exitCode;

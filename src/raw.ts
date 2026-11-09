@@ -172,7 +172,7 @@ function redactQueryPairs(query: string): string {
 
 function failure(response: Response, writing = false): CliError {
   const { status } = response;
-  const body = redact(responseBody(response));
+  const body = responseBody(response);
   const details = {
     upstream_status: status,
     ...(body === undefined
@@ -266,7 +266,7 @@ export async function rawRun(
     observeRate(session, response);
     if (response.status < 200 || response.status >= 300)
       throw failure(response);
-    process.stdout.write(render(present(response)));
+    process.stdout.write(render(present(response), [], true));
     return;
   }
   if (
@@ -338,6 +338,7 @@ export async function rawRun(
             "Add --execute --confirm '<confirm>' to send this request once; it is never replayed automatically",
             "Raw writes read no target state and detect no no-ops; reconcile an unknown outcome before retrying",
           ],
+      true,
     ),
   );
   if (!request.executing) return;
@@ -443,7 +444,7 @@ export async function rawRun(
       );
     if (response.status < 200 || response.status >= 300)
       throw failure(response, true);
-    process.stdout.write(render({ run, ...present(response) }));
+    process.stdout.write(render({ run, ...present(response) }, [], true));
   } finally {
     journal.close();
   }

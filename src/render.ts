@@ -344,6 +344,29 @@ export function redact(value: unknown): unknown {
 export class Raw {
   constructor(readonly text: string) {}
 }
+const rawEnvelopeFields = new Set([
+  "preview", "run", "status", "content_type", "body", "error", "code",
+  "upstream_status", "upstream_body",
+]);
+const rawPreviewFields = new Set([
+  "profile", "origin", "method", "path", "query_sha256", "body_bytes",
+  "body_sha256", "journal", "confirm", "body",
+]);
+const rawGeneratedValues = new Set([
+  "run", "status", "upstream_status", "content_type", "code", "method",
+  "query_sha256", "body_bytes", "body_sha256",
+]);
+function redactRawEnvelope(value: Record<string, unknown>, preview = false): unknown {
+  const fields = preview ? rawPreviewFields : rawEnvelopeFields;
+  return Object.fromEntries(
+    Object.entries(value).flatMap(([key, entry]) => {
+      if (!fields.has(key)) return Object.entries(redact({ [key]: entry }) as Record<string, unknown>);
+      if (key === "preview" && object(entry))
+        return [[key, redactRawEnvelope(entry, true)]];
+      return [[key, rawGeneratedValues.has(key) ? entry : redact(entry)]];
+    }),
+  );
+}
 function quote(value: string): string {
   return JSON.stringify(redactText(value)).replace(
     /[\u0000-\u001f]/g,
@@ -353,6 +376,7 @@ function quote(value: string): string {
 export function render(
   value: Record<string, unknown>,
   help: readonly string[] = [],
+  rawEnvelope = false,
 ): string {
   let output = "";
   let pending: Record<string, unknown> = {};
@@ -372,7 +396,9 @@ export function render(
           );
         return value;
       };
-      let encoded = encode(prepare(redact(pending))).trimEnd();
+      let encoded = encode(
+        prepare(rawEnvelope ? redactRawEnvelope(pending) : redact(pending)),
+      ).trimEnd();
       encoded = encoded.replace(/raw_number_[0-9a-f]{32}/g, (marker) =>
         numbers.get(marker) ?? marker,
       );
