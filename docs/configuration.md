@@ -7,7 +7,7 @@
 Run `falcon-axi config path` to report the config file and write-journal paths without contacting Falcon.
 `--config <path>` overrides `FALCON_AXI_CONFIG`, which overrides the platform default.
 
-| Platform | Config file | RTR journal |
+| Platform | Config file | Write journal |
 | --- | --- | --- |
 | Linux / macOS | `~/.config/falcon-axi/config.json` | `~/.local/state/falcon-axi/writes.log` |
 | Windows | `%APPDATA%\falcon-axi\config.json` | `%LOCALAPPDATA%\falcon-axi\writes.log` |

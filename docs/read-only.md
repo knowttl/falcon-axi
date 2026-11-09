@@ -1,7 +1,8 @@
 # Read-only enforcement
 
-The shipped CLI reads Falcon data without changing hosts, detections, policies, or identities, except through the opt-in raw write gate below.
-Tenant-side effects are NG-SIEM search jobs, explicitly authorized read-only RTR sessions, bounded MalQuery exact/fuzzy searches, and guarded raw writes.
+Registered commands read Falcon data without changing hosts, detections, policies, or identities.
+Raw requests follow the separate boundary below.
+Registered commands can create NG-SIEM search jobs, open explicitly authorized read-only RTR sessions, and run bounded MalQuery exact/fuzzy searches.
 Identity Protection commands use the write-labelled GraphQL scope solely for registered read-only query documents; gated raw writes may reach GraphQL routes.
 
 ## Closed transport boundary
@@ -22,7 +23,7 @@ See [search lifecycle](design/v1.md#43-ng-siem-search-was-excluded-on-the-creden
 Search status, local RTR previews, raw write previews, and passive RTR history remain available.
 See the [switch contract](design/v1.md#52-accepted-input-channels-in-precedence-order) for accepted values.
 It does not change the fixed read-only GraphQL contract.
-Apart from guarded raw writes, there is no host containment, quarantine release, ingest, configuration write, or GraphQL mutation surface.
+Registered commands provide no host containment, quarantine release, ingest, configuration write, or GraphQL mutation surface.
 RTR history reads session metadata and audit records without opening or executing a session, including under READ_ONLY.
 RTR operation admission and execution guards are owned by [N3's design contract](design/v1.md#45-rtr-was-excluded-on-semantic-execution-grounds-and-captain-exception-n3-narrowly-reverses-it).
 
@@ -55,12 +56,12 @@ Avoid simultaneous runs for the same host/API client across machines; local host
 ## Raw API
 
 Captain exception N5 admits `raw get` and `raw write`; the [N5 design contract](design/v1.md#47-raw-api-captain-exception-n5) owns the boundary.
-`raw get --path <api-path> [--query <key=value&...>]` sends one GET to the selected cloud with the profile's bearer token and prints the status, content type, and redacted body as TOON.
+`raw get --path <api-path> [--query <key=value&...>] [--query-file <file|->]` sends one GET to the selected cloud with the profile's bearer token and prints the status, content type, and redacted body as TOON.
 It is not limited to the registry, so read-only is the caller's responsibility: choose paths whose CrowdStrike documentation describes a read.
 The GET is never replayed.
 There is no pagination, cursor, or field selection; a response is capped at 4 MiB and a binary body is refused.
 
-`raw write --method POST|PUT|PATCH|DELETE --path <api-path> [--query ...] [--body-file <file|->]` sends one write.
+`raw write --method POST|PUT|PATCH|DELETE --path <api-path> [--query ...] [--query-file <file|->] [--body-file <file|->]` sends one write.
 Every one of these gates must hold to execute, and the first three apply even to a preview:
 
 1. The selected profile is a file profile with `writes.allowWrites: true` and `"raw-write"` in `writes.operations`.
@@ -76,6 +77,7 @@ An outcome of `unknown` means the request may have been applied; read the target
 Raw writes read no target state and detect no no-ops.
 
 Falcon decides what the API client may do, so grant the client only the scopes the intended route needs.
+Supply secret query values through `--query-file`, not `--query`; see the [N5 design contract](design/v1.md#47-raw-api-captain-exception-n5) for input rules.
 Output redaction preserves fields while redacting secrets in names and values, including a value paired with a secret-naming `key` or `name` field.
 
 ## Sensitive output
