@@ -152,7 +152,8 @@ The S11 installed checks preserve real filesystem ownership under the inherited 
 ## Raw API
 
 `src/raw.ts` implements `raw get` and `raw write` (captain exception N5, `v1.md` §4.7) outside the operation registry.
-`src/transport/raw-authority.ts` owns the route rules and the 4 MiB response ceiling; the HTTPS sink revalidates the route for every raw request.
+`src/transport/raw-authority.ts` owns the route syntax rules and the 4 MiB response ceiling; the HTTPS sink revalidates the route for every raw request.
+Any syntactically valid Falcon path is available for reads or gated writes, subject to Falcon authorization.
 A non-GET raw request is accepted only with a single-use grant minted in `src/raw.ts` after the profile, confirmation and journal gates, bound to origin, method, path with query, and body; read-only mode is checked again at consumption.
 Raw writes are never replayed and reuse the RTR journal adapter, so execution needs Linux x64; previews stay local.
 Successful bodies are parsed as JSON when possible, redacted with the shared redactor, and encoded as TOON; non-JSON text is printed as a redacted string and binary bodies are refused.

@@ -1,7 +1,7 @@
 import { createHash, randomUUID } from "node:crypto";
 import { readFileSync } from "node:fs";
 import { observeRate, authenticate } from "./auth.js";
-import { CliError, object } from "./core.js";
+import { CliError, object, parseResponse } from "./core.js";
 import { writeLogPath } from "./credentials.js";
 import type { Credential } from "./credentials.js";
 import { isSecretKey, redact, render, truncate } from "./render.js";
@@ -126,13 +126,28 @@ export function validateRawInvocation(
   };
 }
 
-function failure(response: Response): CliError {
+function safeText(text: string): string {
+  return text.replace(
+    /(^|[^\w.#-])([\w.#-]+)(\s*[:=]\s*)(?:bearer\s+)?("(?:\\.|[^"\\])*"|'(?:\\.|[^'\\])*'|[^\s&,;]+)/gi,
+    (match, prefix: string, key: string, separator: string) =>
+      isSecretKey(key) ? `${prefix}${key}${separator}[redacted]` : match,
+  );
+}
+
+function responseBody(response: Response): unknown {
+  return typeof response.body === "string"
+    ? safeText(response.body)
+    : (response.body ?? (response.text ? safeText(response.text) : undefined));
+}
+
+function failure(response: Response, writing = false): CliError {
   const { status } = response;
+  const received = responseBody(response);
   const body =
-    response.body ?? (response.text ? truncate(response.text, 2000) : null);
+    typeof received === "string" ? truncate(received, 2000) : received;
   const details = {
     upstream_status: status,
-    ...(body === null ? {} : { upstream_body: body }),
+    ...(body === undefined ? {} : { upstream_body: body }),
   };
   if (status >= 300 && status < 400)
     return new CliError(
@@ -162,13 +177,21 @@ function failure(response: Response): CliError {
             ? [
                 "RATE_LIMITED",
                 "Falcon rate limited this API client",
-                ["Wait for the rate limit window to reset and retry"],
+                [
+                  writing
+                    ? "Reconcile the target before retrying"
+                    : "Wait for the rate limit window to reset and retry",
+                ],
               ]
             : [502, 503, 504].includes(status)
               ? [
                   "UPSTREAM_UNAVAILABLE",
                   "Falcon is temporarily unavailable",
-                  ["Retry shortly"],
+                  [
+                    writing
+                      ? "Reconcile the target before retrying"
+                      : "Retry shortly",
+                  ],
                 ]
               : [
                   "UPSTREAM_ERROR",
@@ -192,7 +215,7 @@ function present(response: Response): Record<string, unknown> {
   return {
     status: response.status,
     content_type: response.headers["content-type"],
-    body: response.body ?? (text || undefined),
+    body: responseBody(response),
   };
 }
 
@@ -272,8 +295,8 @@ export async function rawRun(
           body_sha256: body ? digest : undefined,
           journal: writeLogPath(),
           confirm,
+          ...(body ? { body: parseResponse(body) } : {}),
         },
-        ...(body ? { body: JSON.parse(body) as unknown } : {}),
       },
       request.executing
         ? []
@@ -341,11 +364,22 @@ export async function rawRun(
       observeRate(session, response);
     } catch (error) {
       append({ phase: "outcome", outcome: sent ? "unknown" : "not_sent" });
+      if (sent)
+        throw error instanceof CliError
+          ? new CliError(
+              error.code,
+              error.message,
+              ["Reconcile the target before retrying"],
+              error.details,
+            )
+          : new CliError("UNKNOWN", "the raw write outcome is unknown", [
+              "Reconcile the target before retrying",
+            ]);
       throw error;
     }
     append({ phase: "outcome", outcome: "responded", status: response.status });
     if (response.status < 200 || response.status >= 300)
-      throw failure(response);
+      throw failure(response, true);
     process.stdout.write(render({ run, ...present(response) }));
   } finally {
     journal.close();

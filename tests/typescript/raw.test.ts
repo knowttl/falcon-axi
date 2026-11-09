@@ -178,7 +178,7 @@ test("raw write previews with an exact confirm value and sends nothing", async (
   const preview = output.preview as Record<string, unknown>;
   assert.equal(preview.method, "PATCH");
   assert.equal(preview.path, "/example/entities/things/v1?ids=one&ids=two");
-  assert.deepEqual(output.body, { name: "synthetic", enabled: true });
+  assert.deepEqual(preview.body, { name: "synthetic", enabled: true });
   assert.match(String(preview.confirm), /^ops:PATCH sha256:/);
   assert.equal(wire.length, 0);
   await assert.rejects(readFile(env.FALCON_AXI_WRITE_LOG!));
@@ -238,6 +238,11 @@ test("raw write sends the confirmed request once and journals intent before outc
     env,
   );
   assert.equal(result.code, 0, result.stdout);
+  assert.deepEqual(
+    (value(result.stdout).preview as Record<string, unknown>).body,
+    { name: "synthetic", enabled: true },
+  );
+  assert.deepEqual(value(result.stdout).body, { resources: [{ id: "one" }] });
   assert.equal(requests().length, 1);
   assert.equal(requests()[0]!.method, "PATCH");
   assert.equal(
@@ -271,6 +276,9 @@ test("raw write preserves stdin body numbers and confirms the destination", asyn
   const text = '{"number":9007199254740993}';
   const file = join(directory, "large-number.json");
   await writeFile(file, text);
+  const preview = await run(writeArgs("ops", "--body-file", file));
+  assert.match(preview.stdout, /9007199254740993/);
+  assert.doesNotMatch(preview.stdout, /9007199254740992/);
   const confirm = await confirmValue("ops", file);
   const differentRegion = await run(
     writeArgs(
@@ -360,10 +368,30 @@ test("raw write records an upstream failure in the journal and reports it", asyn
   );
   assert.equal(result.code, 1, result.stdout);
   assert.equal(value(result.stdout).code, "UPSTREAM_UNAVAILABLE");
+  assert.match(result.stdout, /Reconcile the target before retrying/);
+  assert.doesNotMatch(result.stdout, /Retry shortly/);
+  assert.deepEqual(
+    (value(result.stdout).preview as Record<string, unknown>).body,
+    { name: "synthetic", enabled: true },
+  );
   assert.equal(requests().length, 1);
   const records = await journal(env);
   assert.equal(records.at(-1)!.status, 503);
 });
+
+for (const status of [200, 403])
+  test(`raw get redacts secret assignments in text response ${status}`, async () => {
+    dynamicResponse("GET /example/entities/things/v1", () => ({
+      status,
+      headers: { "content-type": "text/plain" },
+      body: Buffer.from("access_token=hidden&token_count=5"),
+    }));
+    const result = await run(getArgs("/example/entities/things/v1"));
+    assert.equal(result.code, status === 200 ? 0 : 1, result.stdout);
+    assert.doesNotMatch(result.stdout, /hidden/);
+    assert.match(result.stdout, /token_count=5/);
+    assert.match(result.stdout, /\[redacted\]/);
+  });
 
 test("raw output redacts exact secret pairs and preserves metadata", async () => {
   recordedResponse("GET /user-management/entities/users/v1", 200, {
