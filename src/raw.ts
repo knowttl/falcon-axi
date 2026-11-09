@@ -4,7 +4,15 @@ import { observeRate, authenticate } from "./auth.js";
 import { CliError, object, parseResponse } from "./core.js";
 import { writeLogPath } from "./credentials.js";
 import type { Credential } from "./credentials.js";
-import { isSecretKey, Raw, redact, render, truncate } from "./render.js";
+import {
+  isPairName,
+  isPairValue,
+  isSecretKey,
+  Raw,
+  redact,
+  render,
+  truncate,
+} from "./render.js";
 import { origin } from "./origin.js";
 import { openRetainedFile } from "./rtr-filesystem.js";
 import { readOnly } from "./rtr-policy.js";
@@ -127,6 +135,13 @@ export function validateRawInvocation(
 }
 
 function responseBody(response: Response): unknown {
+  if (response.binary)
+    throw new CliError(
+      "UPSTREAM_ERROR",
+      "the response is binary, which raw requests do not print",
+      [],
+      { status: response.status },
+    );
   return response.body !== undefined
     ? response.body
     : response.text
@@ -202,13 +217,6 @@ function failure(response: Response, writing = false): CliError {
 }
 
 function present(response: Response): Record<string, unknown> {
-  if (response.binary)
-    throw new CliError(
-      "UPSTREAM_ERROR",
-      "the response is binary, which raw requests do not print",
-      [],
-      { status: response.status },
-    );
   const body = responseBody(response);
   return {
     status: response.status,
@@ -273,10 +281,16 @@ export async function rawRun(
     .digest("hex");
   const confirm = `${credential.profile}:${method} sha256:${confirmationHash}`;
   const safeQuery = new URLSearchParams();
-  for (const [key, value] of new URLSearchParams(query))
+  const entries = new URLSearchParams(query);
+  const secretPair = [...entries].some(
+    ([key, value]) => isPairName(key) && isSecretKey(value),
+  );
+  for (const [key, value] of entries)
     safeQuery.append(
       key,
-      isSecretKey(key) ? "[redacted]" : String(redact(value)),
+      isSecretKey(key) || (secretPair && isPairValue(key))
+        ? "[redacted]"
+        : String(redact(value)),
     );
   const safeTarget = safeQuery.size ? `${path}?${safeQuery}` : path;
   if (request.executing && request.confirm !== confirm)

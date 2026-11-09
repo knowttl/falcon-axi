@@ -57,10 +57,14 @@ const secretKeys = new Set([
 ]);
 const pairNameFields = ["key", "name", "field", "property", "attribute"];
 const pairValueFields = ["value", "data", "values", "val", "string_value"];
+export const isPairName = (name: string): boolean =>
+  pairNameFields.includes(name.toLowerCase());
+export const isPairValue = (name: string): boolean =>
+  pairValueFields.includes(name.toLowerCase());
 export const isSecretKey = (name: string): boolean =>
   secretKeys.has(name.toLowerCase());
 const assignment = new RegExp(
-  `(?<![\\w.#-])(${[...secretKeys].map((key) => key.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")).join("|")})(["']?[ \\t]*[:=][ \\t]*)(?:bearer[ \\t]+)?("(?:\\\\.|[^"\\\\])*"|'(?:\\\\.|[^'\\\\])*'|[^\\r\\n]+?(?=[\\r\\n]|[ \\t,;&]+[\\w.#-]+[ \\t]*[:=]|$))`,
+  `(?<![\\w.#-])(${[...secretKeys].map((key) => key.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")).join("|")})(["']?[ \\t]*[:=][ \\t]*)(?:bearer[ \\t]+)?(\\[redacted\\]|"(?:\\\\.|[^"\\\\])*"|'(?:\\\\.|[^'\\\\])*'|[^\\s,;&\\]})"']+)`,
   "gi",
 );
 export function redactAssignments(value: string): string {
@@ -72,9 +76,7 @@ export function redactAssignments(value: string): string {
 function namesSecret(entry: Record<string, unknown>): boolean {
   return Object.entries(entry).some(
     ([field, name]) =>
-      pairNameFields.includes(field.toLowerCase()) &&
-      typeof name === "string" &&
-      isSecretKey(name),
+      isPairName(field) && typeof name === "string" && isSecretKey(name),
   );
 }
 function redactSerialized(text: string): string {
@@ -135,7 +137,7 @@ function redactSerialized(text: string): string {
     if (node.entries?.length) {
       const pair = node.entries.some(
         ({ key, node: entry }) =>
-          pairNameFields.includes(key.toLowerCase()) &&
+          isPairName(key) &&
           text[entry.start] === '"' &&
           isSecretKey(JSON.parse(text.slice(entry.start, entry.end)) as string),
       );
@@ -147,10 +149,7 @@ function redactSerialized(text: string): string {
             end: keyNode.end,
             value: JSON.stringify(safeKey),
           });
-        if (
-          isSecretKey(key) ||
-          (pair && pairValueFields.includes(key.toLowerCase()))
-        )
+        if (isSecretKey(key) || (pair && isPairValue(key)))
           edits.push({
             start: entry.start,
             end: entry.end,
@@ -199,8 +198,7 @@ export function redact(value: unknown): unknown {
     return Object.fromEntries(
       Object.entries(value).map(([key, entry]) => [
         redactText(key),
-        secretKeys.has(key.toLowerCase()) ||
-        (pair && pairValueFields.includes(key.toLowerCase()))
+        secretKeys.has(key.toLowerCase()) || (pair && isPairValue(key))
           ? "[redacted]"
           : redact(entry),
       ]),
