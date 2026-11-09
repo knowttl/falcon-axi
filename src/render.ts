@@ -101,6 +101,21 @@ export function positionalSecretPairs(
   entries: readonly (readonly [string, unknown])[],
 ): Set<number> {
   const sensitive = new Set<number>();
+  const secretNames = new Set<number>();
+  const laterSecret = new Set<number>();
+  let upcomingSecret = false;
+  for (let index = entries.length - 1; index >= 0; index--) {
+    const [key, value] = entries[index]!;
+    if (upcomingSecret) laterSecret.add(index);
+    if (isPairName(key) && typeof value === "string" && isSecretKey(value)) {
+      secretNames.add(index);
+      upcomingSecret = true;
+    } else if (
+      key.toLowerCase() === "key" ||
+      (isPairValue(key) && key.toLowerCase() !== "data")
+    )
+      upcomingSecret = false;
+  }
   let pending: { index: number; name: boolean } | undefined;
   entries.forEach(([key], index) => {
     const name = isPairName(key);
@@ -108,18 +123,24 @@ export function positionalSecretPairs(
     if (
       name &&
       key.toLowerCase() !== "key" &&
+      pending &&
+      !pending.name &&
+      !secretNames.has(index) &&
+      laterSecret.has(index)
+    )
+      return;
+    if (
+      name &&
+      key.toLowerCase() !== "key" &&
       pending?.name &&
       entries[pending.index]![0].toLowerCase() === "key" &&
-      typeof entries[pending.index]![1] === "string" &&
-      isSecretKey(entries[pending.index]![1] as string)
+      secretNames.has(pending.index)
     )
       return;
     if (pending && pending.name !== name) {
       const nameIndex = name ? index : pending.index;
       const valueIndex = name ? pending.index : index;
-      const pairName = entries[nameIndex]![1];
-      if (typeof pairName === "string" && isSecretKey(pairName))
-        sensitive.add(valueIndex);
+      if (secretNames.has(nameIndex)) sensitive.add(valueIndex);
       pending = undefined;
     } else pending = { index, name };
   });

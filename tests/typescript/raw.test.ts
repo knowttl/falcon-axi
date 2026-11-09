@@ -633,11 +633,12 @@ test("raw write redacts reversed query pairs in preview and journal", async () =
   const args = writeArgs(
     "ops",
     "--query",
-    "value=hidden&key=api_key&value=30&key=retention_days",
+    "value=hidden&name=display&field=label&key=api_key&value=30&key=retention_days",
   );
   const preview = await run(args);
   assert.equal(preview.code, 0, preview.stdout);
   assert.doesNotMatch(preview.stdout, /hidden/);
+  assert.match(preview.stdout, /name=display&field=label/);
   assert.match(preview.stdout, /value=30/);
   const confirm = (value(preview.stdout).preview as Record<string, string>)
     .confirm!;
@@ -647,8 +648,31 @@ test("raw write redacts reversed query pairs in preview and journal", async () =
   assert.equal(result.code, 0, result.stdout);
   const records = JSON.stringify(await journal(env));
   assert.doesNotMatch(records, /hidden/);
+  assert.match(records, /name=display&field=label/);
   assert.match(records, /value=30/);
 });
+
+for (const status of [200, 403])
+  test(`raw response ${status} redacts reversed pairs across name aliases`, async () => {
+    const pair = {
+      value: "hidden",
+      name: "display",
+      field: "label",
+      key: "api_key",
+    };
+    const expected = { ...pair, value: "[redacted]" };
+    recordedResponse("GET /example/entities/things/v1", status, {
+      pair,
+      serialized: JSON.stringify(pair),
+    });
+    const result = await run(getArgs("/example/entities/things/v1"));
+    assert.equal(result.code, status === 200 ? 0 : 1, result.stdout);
+    const body = value(result.stdout)[
+      status === 200 ? "body" : "upstream_body"
+    ] as { pair: unknown; serialized: string };
+    assert.deepEqual(body.pair, expected);
+    assert.deepEqual(JSON.parse(body.serialized), expected);
+  });
 
 test("raw write ignores non-pair query aliases", async () => {
   const args = writeArgs(
@@ -842,24 +866,31 @@ for (const status of [200, 403])
       "[redacted-key-2]": "[redacted]",
       "[redacted-key-1]": "visible",
     };
+    const reversed = {
+      value: "hidden-reverse",
+      name: "display",
+      key: "api_key",
+    };
+    const expectedReversed = { ...reversed, value: "[redacted]" };
     const file = join(directory, "intervening-pair.json");
     await writeFile(
       file,
-      JSON.stringify({ pair, serialized: JSON.stringify(pair) }),
+      JSON.stringify({ pair, reversed, serialized: JSON.stringify(reversed) }),
     );
     const args = writeArgs("ops", "--body-file", file);
     const preview = await run(args);
     assert.equal(preview.code, 0, preview.stdout);
     const previewData = value(preview.stdout).preview as {
-      body: { pair: unknown; serialized: string };
+      body: { pair: unknown; reversed: unknown; serialized: string };
       confirm: string;
     };
     assert.deepEqual(previewData.body.pair, expected);
-    assert.deepEqual(JSON.parse(previewData.body.serialized), expected);
+    assert.deepEqual(previewData.body.reversed, expectedReversed);
+    assert.deepEqual(JSON.parse(previewData.body.serialized), expectedReversed);
     recordedResponse(
       "PATCH /example/entities/things/v1",
       status,
-      { pair, serialized: JSON.stringify(pair) },
+      { pair, reversed, serialized: JSON.stringify(reversed) },
       true,
     );
     const result = await run(
@@ -869,9 +900,10 @@ for (const status of [200, 403])
     assert.equal(result.code, status === 200 ? 0 : 1, result.stdout);
     const body = value(result.stdout)[
       status === 200 ? "body" : "upstream_body"
-    ] as { pair: unknown; serialized: string };
+    ] as { pair: unknown; reversed: unknown; serialized: string };
     assert.deepEqual(body.pair, expected);
-    assert.deepEqual(JSON.parse(body.serialized), expected);
+    assert.deepEqual(body.reversed, expectedReversed);
+    assert.deepEqual(JSON.parse(body.serialized), expectedReversed);
     assert.doesNotMatch(
       result.stdout,
       /synthetic-s01-secret|hidden-pair|hidden-key/,
