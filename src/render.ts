@@ -88,7 +88,14 @@ export const isPairValue = (name: string): boolean =>
 export const isSecretKey = (name: string): boolean =>
   secretKeys.has(name.toLowerCase());
 const assignment = new RegExp(
-  `(?<![\\w.#-])(?:(authorization)(["']?[ \\t]*[:=][ \\t]*)(?:[a-z][a-z0-9+.-]*[ \\t]+)?|(${[...secretKeys].filter((key) => key !== "authorization").map((key) => key.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")).join("|")})(["']?[ \\t]*[:=][ \\t]*)(?:bearer[ \\t]+)?)(\\[redacted\\]|"(?:\\\\.|[^"\\\\])*"|'(?:\\\\.|[^'\\\\])*'|[^\\s,;&\\]})"']+)`,
+  `(?<![\\w.#-])(?:(authorization)(["']?[ \\t]*[:=][ \\t]*)(?:[a-z][a-z0-9+.-]*[ \\t]+)?|(${[
+    ...secretKeys,
+  ]
+    .filter((key) => key !== "authorization")
+    .map((key) => key.replace(/[.*+?^${}()|[\]\\]/g, "\\$&"))
+    .join(
+      "|",
+    )})(["']?[ \\t]*[:=][ \\t]*)(?:bearer[ \\t]+)?)(\\[redacted\\]|"(?:\\\\.|[^"\\\\])*"|'(?:\\\\.|[^'\\\\])*'|[^\\s,;&\\]})"']+)`,
   "gi",
 );
 const redactFoldedAuthorization = (value: string): string =>
@@ -100,7 +107,8 @@ export function redactAssignments(value: string): string {
   return redactFoldedAuthorization(value)
     .replace(
       /(?<![\w.#-])(authorization)(["']?[ \t]*[:=][ \t]*)(?:[a-z][a-z0-9+.-]*[ \t]+)?[\w-]+[ \t]*=[^\r\n]*/gi,
-      (_match, key: string, separator: string) => `${key}${separator}[redacted]`,
+      (_match, key: string, separator: string) =>
+        `${key}${separator}[redacted]`,
     )
     .replace(
       assignment,
@@ -258,7 +266,10 @@ function redactSerialized(text: string, detectOnly = false): string | boolean {
         ]),
       );
       const keys = redactedKeys(node.entries.map(({ key }) => key));
-      for (const [index, { key, keyNode, node: entry }] of node.entries.entries()) {
+      for (const [
+        index,
+        { key, keyNode, node: entry },
+      ] of node.entries.entries()) {
         if (keys[index] !== key)
           edits.push({
             start: keyNode.start,
@@ -364,9 +375,7 @@ function redactValue(
     return output + redactAssignments(text);
   }
   if (Array.isArray(value))
-    return value.map((entry) =>
-      redactValue(entry, withinSecret, hideScalar),
-    );
+    return value.map((entry) => redactValue(entry, withinSecret, hideScalar));
   if (object(value)) {
     const entries = Object.entries(value);
     const pairs = positionalSecretPairs(entries);
@@ -379,10 +388,7 @@ function redactValue(
           redactText(key) !== key ||
           pairs.has(index) ||
           (withinSecret && isPairValue(key));
-        return [
-          keys[index]!,
-          redactValue(entry, sensitive, sensitive),
-        ];
+        return [keys[index]!, redactValue(entry, sensitive, sensitive)];
       }),
     );
   }
@@ -395,29 +401,68 @@ export class Raw {
   constructor(readonly text: string) {}
 }
 const rawEnvelopeFields = new Set([
-  "preview", "run", "status", "content_type", "body", "error", "code",
-  "upstream_status", "upstream_body",
+  "preview",
+  "run",
+  "status",
+  "content_type",
+  "body",
+  "error",
+  "code",
+  "upstream_status",
+  "upstream_body",
 ]);
 const rawPreviewFields = new Set([
-  "profile", "origin", "method", "path", "query_sha256", "body_bytes",
-  "body_sha256", "journal", "confirm", "body",
+  "profile",
+  "origin",
+  "method",
+  "path",
+  "query_sha256",
+  "body_bytes",
+  "body_sha256",
+  "journal",
+  "confirm",
+  "body",
 ]);
 const rawJournalFields = new Set([
-  "run", "profile", "method", "path", "body_sha256", "phase", "outcome",
-  "status", "timestamp",
+  "run",
+  "profile",
+  "method",
+  "path",
+  "body_sha256",
+  "phase",
+  "outcome",
+  "status",
+  "timestamp",
 ]);
 const rawGeneratedValues = new Set([
-  "run", "status", "upstream_status", "code", "method",
-  "query_sha256", "body_bytes", "body_sha256", "phase", "outcome", "timestamp",
+  "run",
+  "status",
+  "upstream_status",
+  "code",
+  "method",
+  "query_sha256",
+  "body_bytes",
+  "body_sha256",
+  "phase",
+  "outcome",
+  "timestamp",
 ]);
 export function redactRawEnvelope(
   value: Record<string, unknown>,
   kind: "envelope" | "preview" | "journal" = "envelope",
 ): Record<string, unknown> {
-  const fields = kind === "preview" ? rawPreviewFields : kind === "journal" ? rawJournalFields : rawEnvelopeFields;
+  const fields =
+    kind === "preview"
+      ? rawPreviewFields
+      : kind === "journal"
+        ? rawJournalFields
+        : rawEnvelopeFields;
   return Object.fromEntries(
     Object.entries(value).flatMap(([key, entry]) => {
-      if (!fields.has(key)) return Object.entries(redact({ [key]: entry }) as Record<string, unknown>);
+      if (!fields.has(key))
+        return Object.entries(
+          redact({ [key]: entry }) as Record<string, unknown>,
+        );
       if (key === "preview" && object(entry))
         return [[key, redactRawEnvelope(entry, "preview")]];
       return [[key, rawGeneratedValues.has(key) ? entry : redact(entry)]];
@@ -456,8 +501,9 @@ export function render(
       let encoded = encode(
         prepare(rawEnvelope ? redactRawEnvelope(pending) : redact(pending)),
       ).trimEnd();
-      encoded = encoded.replace(/raw_number_[0-9a-f]{32}/g, (marker) =>
-        numbers.get(marker) ?? marker,
+      encoded = encoded.replace(
+        /raw_number_[0-9a-f]{32}/g,
+        (marker) => numbers.get(marker) ?? marker,
       );
       output += encoded + "\n";
     }

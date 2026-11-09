@@ -52,7 +52,10 @@ export function consumeRawGrant(
 }
 
 const BODY_LIMIT = 1024 * 1024;
-function readJsonInput(file: string, flag: string): { text: string; value: unknown } {
+function readJsonInput(
+  file: string,
+  flag: string,
+): { text: string; value: unknown } {
   try {
     const bytes = readFileSync(file === "-" ? 0 : file);
     const text = new TextDecoder("utf-8", { fatal: true }).decode(bytes);
@@ -128,7 +131,8 @@ export function validateRawInvocation(
       Object.values(value).some(
         (entry) =>
           typeof entry !== "string" &&
-          (!Array.isArray(entry) || entry.some((item) => typeof item !== "string")),
+          (!Array.isArray(entry) ||
+            entry.some((item) => typeof item !== "string")),
       )
     )
       throw new CliError(
@@ -149,7 +153,10 @@ export function validateRawInvocation(
     );
   const query = params.toString();
   if (query.length > 4096)
-    throw new CliError("VALIDATION_ERROR", "the combined query exceeds 4096 characters");
+    throw new CliError(
+      "VALIDATION_ERROR",
+      "the combined query exceeds 4096 characters",
+    );
   let body = "";
   if (flags.has("--body-file")) {
     if (!writing)

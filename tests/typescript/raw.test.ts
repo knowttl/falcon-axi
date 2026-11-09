@@ -87,7 +87,9 @@ async function body(): Promise<string> {
   await writeFile(file, JSON.stringify({ name: "synthetic", enabled: true }));
   return file;
 }
-async function queryFile(query: Record<string, string | string[]>): Promise<string> {
+async function queryFile(
+  query: Record<string, string | string[]>,
+): Promise<string> {
   const file = join(directory, "raw-query.json");
   await writeFile(file, JSON.stringify(query));
   return file;
@@ -544,7 +546,10 @@ for (const status of [200, 403])
     document.profiles.ops.clientId = "confirm";
     await writeFile(config, JSON.stringify(document));
     const file = join(directory, "envelope-body.json");
-    await writeFile(file, JSON.stringify({ confirm: "hidden", label: "visible" }));
+    await writeFile(
+      file,
+      JSON.stringify({ confirm: "hidden", label: "visible" }),
+    );
     const preview = await run(writeArgs("ops", "--body-file", file));
     assert.equal(preview.code, 0, preview.stdout);
     const details = value(preview.stdout).preview as {
@@ -565,7 +570,14 @@ for (const status of [200, 403])
       true,
     );
     const result = await run(
-      writeArgs("ops", "--body-file", file, "--execute", "--confirm", details.confirm),
+      writeArgs(
+        "ops",
+        "--body-file",
+        file,
+        "--execute",
+        "--confirm",
+        details.confirm,
+      ),
       await state(),
     );
     assert.equal(result.code, status === 200 ? 0 : 1, result.stdout);
@@ -602,13 +614,18 @@ for (const method of ["GET", "PATCH"])
     };
     document.profiles[method === "GET" ? "reader" : "ops"]!.clientId = "json";
     await writeFile(config, JSON.stringify(document));
-    const args = method === "GET" ? getArgs("/example/entities/things/v1") : writeArgs("ops");
+    const args =
+      method === "GET"
+        ? getArgs("/example/entities/things/v1")
+        : writeArgs("ops");
     const preview = method === "PATCH" ? await run(args) : undefined;
-    const confirm = preview && (value(preview.stdout).preview as Record<string, string>).confirm;
+    const confirm =
+      preview &&
+      (value(preview.stdout).preview as Record<string, string>).confirm;
     dynamicResponse(`${method} /example/entities/things/v1`, () => ({
       status: 200,
       headers: { "content-type": "application/json" },
-      body: Buffer.from('{}'),
+      body: Buffer.from("{}"),
     }));
     const result = await run(
       confirm ? [...args, "--execute", "--confirm", confirm] : args,
@@ -632,7 +649,8 @@ for (const clientId of ["phase", "run", "path", "status", "outcome", "PATCH"])
       (value(preview.stdout).preview as Record<string, unknown>).method,
       "PATCH",
     );
-    const confirm = (value(preview.stdout).preview as Record<string, string>).confirm!;
+    const confirm = (value(preview.stdout).preview as Record<string, string>)
+      .confirm!;
     const env = await state();
     const status = clientId === "status" ? 503 : 200;
     recordedResponse(
@@ -644,10 +662,13 @@ for (const clientId of ["phase", "run", "path", "status", "outcome", "PATCH"])
     const result = await run([...args, "--execute", "--confirm", confirm], env);
     assert.equal(result.code, status === 200 ? 0 : 1, result.stdout);
     const records = await journal(env);
-    assert.deepEqual(records.map(({ phase, outcome }) => [phase, outcome]), [
-      ["intent", "not_sent"],
-      ["outcome", "responded"],
-    ]);
+    assert.deepEqual(
+      records.map(({ phase, outcome }) => [phase, outcome]),
+      [
+        ["intent", "not_sent"],
+        ["outcome", "responded"],
+      ],
+    );
     assert.equal(records[1]!.status, status);
     assert.equal(records[0]!.run, records[1]!.run);
     assert.equal(records[0]!.method, "PATCH");
@@ -686,7 +707,12 @@ test("raw write binds the exact redacted query", async () => {
   );
   assert.doesNotMatch(preview.stdout, /first/);
   await writeFile(file, JSON.stringify({ password: "second" }));
-  const result = await run([...args, "--execute", "--confirm", output.confirm!]);
+  const result = await run([
+    ...args,
+    "--execute",
+    "--confirm",
+    output.confirm!,
+  ]);
   assert.equal(result.code, 2, result.stdout);
   assert.equal(requests().length, 0);
   assert.doesNotMatch(result.stdout, /first|second/);
@@ -820,13 +846,7 @@ test("raw write redacts secret query values in preview and journal", async () =>
     url: "https://example.invalid/?sig=sasvalue",
     token_count: "5",
   });
-  const args = writeArgs(
-    "ops",
-    "--query",
-    "ordinary=1",
-    "--query-file",
-    file,
-  );
+  const args = writeArgs("ops", "--query", "ordinary=1", "--query-file", file);
   const preview = await run(args);
   assert.equal(preview.code, 0, preview.stdout);
   assert.doesNotMatch(preview.stdout, /hidden|other|nestedsecret|sasvalue/);
@@ -850,9 +870,10 @@ test("raw write redacts secret query values in preview and journal", async () =>
 
 for (const method of ["GET", "PATCH"])
   test(`raw ${method} rejects secret-named argv query parameters`, async () => {
-    const args = method === "GET"
-      ? getArgs("/example/entities/things/v1", "--query", "PaSS%77ord=hidden")
-      : writeArgs("ops", "--query", "PaSS%77ord=hidden");
+    const args =
+      method === "GET"
+        ? getArgs("/example/entities/things/v1", "--query", "PaSS%77ord=hidden")
+        : writeArgs("ops", "--query", "PaSS%77ord=hidden");
     const result = await run(args);
     assert.equal(result.code, 2, result.stdout);
     assert.match(result.stdout, /--query-file/);
@@ -871,33 +892,53 @@ for (const method of ["GET", "PATCH"])
         const query = new URLSearchParams(
           position === "key" ? [[secret, "ordinary"]] : [["note", secret]],
         ).toString();
-        const args = method === "GET"
-          ? getArgs("/example/entities/things/v1", "--query", query)
-          : writeArgs("ops", "--query", query);
+        const args =
+          method === "GET"
+            ? getArgs("/example/entities/things/v1", "--query", query)
+            : writeArgs("ops", "--query", query);
         const result = await run([...args, "--member-cid", "synthetic-member"]);
         assert.equal(result.code, 2, result.stdout);
         assert.match(result.stdout, /--query-file/);
-        assert.doesNotMatch(result.stdout, /synthetic-s01-client|synthetic-s01-secret|synthetic-member/);
+        assert.doesNotMatch(
+          result.stdout,
+          /synthetic-s01-client|synthetic-s01-secret|synthetic-member/,
+        );
         assert.equal(requests().length, 0);
       });
 
 for (const method of ["GET", "PATCH"])
   for (const [kind, input] of [
     ["basic authorization", "Authorization: Basic dXNlcjpwYXNz"],
-    ["digest authorization", 'Authorization: Digest username="alice", response="hidden"'],
-    ["signed authorization", "Authorization: AWS4-HMAC-SHA256 Credential=example, Signature=hidden"],
-    ["folded authorization", 'Authorization: Digest username="alice",\r\n response="hidden"'],
+    [
+      "digest authorization",
+      'Authorization: Digest username="alice", response="hidden"',
+    ],
+    [
+      "signed authorization",
+      "Authorization: AWS4-HMAC-SHA256 Credential=example, Signature=hidden",
+    ],
+    [
+      "folded authorization",
+      'Authorization: Digest username="alice",\r\n response="hidden"',
+    ],
     ["secret assignment", "password=hidden"],
     ["serialized secret pair", '{"key":"api_key","value":"hidden"}'],
-    ["JSON lines secret pair", '{"key":"api_key","value":"hidden"}\n{"item":2}'],
+    [
+      "JSON lines secret pair",
+      '{"key":"api_key","value":"hidden"}\n{"item":2}',
+    ],
     ["JWT", "eyJhbGciOiJIUzI1NiJ9.cGF5bG9hZA.c2lnbmF0dXJl"],
-    ["private key", "-----BEGIN PRIVATE KEY-----\nhidden\n-----END PRIVATE KEY-----"],
+    [
+      "private key",
+      "-----BEGIN PRIVATE KEY-----\nhidden\n-----END PRIVATE KEY-----",
+    ],
   ] as const)
     test(`raw ${method} rejects embedded ${kind} in argv`, async () => {
       const query = new URLSearchParams({ note: input }).toString();
-      const args = method === "GET"
-        ? getArgs("/example/entities/things/v1", "--query", query)
-        : writeArgs("ops", "--query", query);
+      const args =
+        method === "GET"
+          ? getArgs("/example/entities/things/v1", "--query", query)
+          : writeArgs("ops", "--query", query);
       const result = await run(args);
       assert.equal(result.code, 2, result.stdout);
       assert.match(result.stdout, /--query-file/);
@@ -907,12 +948,20 @@ for (const method of ["GET", "PATCH"])
 
 for (const method of ["GET", "PATCH"])
   test(`raw ${method} accepts secret query values on stdin`, async () => {
-    const args = method === "GET"
-      ? getArgs("/example/entities/things/v1", "--query-file", "-")
-      : writeArgs("ops", "--query-file", "-");
-    if (method === "GET") recordedResponse("GET /example/entities/things/v1", 200, {});
-    const result = await run(args, {}, false, false, undefined, false, (child) =>
-      child.stdin!.end('{"password":"hidden"}'),
+    const args =
+      method === "GET"
+        ? getArgs("/example/entities/things/v1", "--query-file", "-")
+        : writeArgs("ops", "--query-file", "-");
+    if (method === "GET")
+      recordedResponse("GET /example/entities/things/v1", 200, {});
+    const result = await run(
+      args,
+      {},
+      false,
+      false,
+      undefined,
+      false,
+      (child) => child.stdin!.end('{"password":"hidden"}'),
     );
     assert.equal(result.code, 0, result.stdout);
     assert.doesNotMatch(result.stdout, /hidden/);
@@ -927,7 +976,9 @@ test("raw get sends secret query values from a file", async () => {
   );
   assert.equal(result.code, 0, result.stdout);
   assert.deepEqual(
-    new URL(requests()[0]!.url, "https://example.invalid").searchParams.getAll("password"),
+    new URL(requests()[0]!.url, "https://example.invalid").searchParams.getAll(
+      "password",
+    ),
     ["first", "second"],
   );
   assert.doesNotMatch(result.stdout, /first|second/);
@@ -958,7 +1009,10 @@ for (const method of ["GET", "PATCH"])
     for (const alias of ["value", "val", "values", "string_value"])
       for (const reversed of [false, true])
         test(`raw ${method} rejects ${name}/${alias} secret pairs${reversed ? " reversed" : ""}`, async () => {
-          const pair = [[name, "API_KEY"], [alias, "hidden"]];
+          const pair = [
+            [name, "API_KEY"],
+            [alias, "hidden"],
+          ];
           const query = new URLSearchParams(
             reversed ? pair.reverse() : pair,
           ).toString();
@@ -978,7 +1032,13 @@ for (const method of ["GET", "PATCH"])
     const file = await queryFile({ key: "api_key" });
     const args =
       method === "GET"
-        ? getArgs("/example/entities/things/v1", "--query", "value=hidden", "--query-file", file)
+        ? getArgs(
+            "/example/entities/things/v1",
+            "--query",
+            "value=hidden",
+            "--query-file",
+            file,
+          )
         : writeArgs("ops", "--query", "value=hidden", "--query-file", file);
     const result = await run(args);
     assert.equal(result.code, 2, result.stdout);
@@ -999,10 +1059,7 @@ for (const name of ["key", "name", "field", "property", "attribute"])
     const args = writeArgs("ops", "--query-file", file);
     const preview = await run(args);
     assert.equal(preview.code, 0, preview.stdout);
-    assert.doesNotMatch(
-      preview.stdout,
-      /secret-value/,
-    );
+    assert.doesNotMatch(preview.stdout, /secret-value/);
     assert.match(preview.stdout, /field=display/);
     const confirm = (value(preview.stdout).preview as Record<string, string>)
       .confirm!;
@@ -1010,10 +1067,7 @@ for (const name of ["key", "name", "field", "property", "attribute"])
     recordedResponse("PATCH /example/entities/things/v1", 200, {}, true);
     const result = await run([...args, "--execute", "--confirm", confirm], env);
     assert.equal(result.code, 0, result.stdout);
-    assert.doesNotMatch(
-      JSON.stringify(await journal(env)),
-      /secret-value/,
-    );
+    assert.doesNotMatch(JSON.stringify(await journal(env)), /secret-value/);
     assert.match(decodeURIComponent(requests()[0]!.url), /secret-value/);
     assert.match(result.stdout, /note=visible/);
   });
@@ -1027,7 +1081,16 @@ test("raw write preserves non-secret query pairs", async () => {
 });
 
 test("raw write associates query pairs by position", async () => {
-  const file = await queryFile({ key: "api_key", note: "visible", value: "hidden", KEY: "retention_days", VALUE: "30", Key: "api_key", kEy: "retention_days", Value: "40" });
+  const file = await queryFile({
+    key: "api_key",
+    note: "visible",
+    value: "hidden",
+    KEY: "retention_days",
+    VALUE: "30",
+    Key: "api_key",
+    kEy: "retention_days",
+    Value: "40",
+  });
   const args = writeArgs("ops", "--query-file", file);
   const preview = await run(args);
   assert.equal(preview.code, 0, preview.stdout);
@@ -1047,7 +1110,14 @@ test("raw write associates query pairs by position", async () => {
 });
 
 test("raw write retains secret key association across name aliases", async () => {
-  const file = await queryFile({ name: "api_key", field: "label", key: "display", value: "hidden", KEY: "retention_days", VALUE: "30" });
+  const file = await queryFile({
+    name: "api_key",
+    field: "label",
+    key: "display",
+    value: "hidden",
+    KEY: "retention_days",
+    VALUE: "30",
+  });
   const args = writeArgs("ops", "--query-file", file);
   const preview = await run(args);
   assert.equal(preview.code, 0, preview.stdout);
@@ -1067,7 +1137,14 @@ test("raw write retains secret key association across name aliases", async () =>
 });
 
 test("raw write redacts reversed query pairs in preview and journal", async () => {
-  const file = await queryFile({ value: "public", key: "display", field: "label", name: "api_key", VALUE: "hidden", KEY: "retention_days" });
+  const file = await queryFile({
+    value: "public",
+    key: "display",
+    field: "label",
+    name: "api_key",
+    VALUE: "hidden",
+    KEY: "retention_days",
+  });
   const args = writeArgs("ops", "--query-file", file);
   const preview = await run(args);
   assert.equal(preview.code, 0, preview.stdout);
@@ -1087,13 +1164,19 @@ test("raw write redacts reversed query pairs in preview and journal", async () =
 });
 
 test("raw write pairs the following secret value before a preceding value", async () => {
-  const file = await queryFile({ value: "public", name: "label", key: "api_key", val: "hidden" });
+  const file = await queryFile({
+    value: "public",
+    name: "label",
+    key: "api_key",
+    val: "hidden",
+  });
   const args = writeArgs("ops", "--query-file", file);
   const preview = await run(args);
   assert.equal(preview.code, 0, preview.stdout);
   assert.match(preview.stdout, /value=public/);
   assert.doesNotMatch(preview.stdout, /hidden/);
-  const confirm = (value(preview.stdout).preview as Record<string, string>).confirm!;
+  const confirm = (value(preview.stdout).preview as Record<string, string>)
+    .confirm!;
   const env = await state();
   recordedResponse("PATCH /example/entities/things/v1", 200, {}, true);
   const result = await run([...args, "--execute", "--confirm", confirm], env);
@@ -1105,7 +1188,12 @@ test("raw write pairs the following secret value before a preceding value", asyn
 
 for (const status of [200, 403])
   test(`raw response ${status} pairs the following secret value`, async () => {
-    const pair = { value: "public", name: "label", key: "api_key", val: "hidden" };
+    const pair = {
+      value: "public",
+      name: "label",
+      key: "api_key",
+      val: "hidden",
+    };
     const expected = { ...pair, val: "[redacted]" };
     recordedResponse("GET /example/entities/things/v1", status, {
       pair,
@@ -1113,7 +1201,9 @@ for (const status of [200, 403])
     });
     const result = await run(getArgs("/example/entities/things/v1"));
     assert.equal(result.code, status === 200 ? 0 : 1, result.stdout);
-    const body = value(result.stdout)[status === 200 ? "body" : "upstream_body"] as {
+    const body = value(result.stdout)[
+      status === 200 ? "body" : "upstream_body"
+    ] as {
       pair: unknown;
       serialized: string;
     };
@@ -1122,14 +1212,24 @@ for (const status of [200, 403])
   });
 
 test("raw write preview pairs the following secret value", async () => {
-  const pair = { value: "public", name: "label", key: "api_key", val: "hidden" };
+  const pair = {
+    value: "public",
+    name: "label",
+    key: "api_key",
+    val: "hidden",
+  };
   const file = join(directory, "adjacent-pair.json");
-  await writeFile(file, JSON.stringify({ pair, serialized: JSON.stringify(pair) }));
+  await writeFile(
+    file,
+    JSON.stringify({ pair, serialized: JSON.stringify(pair) }),
+  );
   const result = await run(writeArgs("ops", "--body-file", file));
   assert.equal(result.code, 0, result.stdout);
-  const body = (value(result.stdout).preview as {
-    body: { pair: unknown; serialized: string };
-  }).body;
+  const body = (
+    value(result.stdout).preview as {
+      body: { pair: unknown; serialized: string };
+    }
+  ).body;
   const expected = { ...pair, val: "[redacted]" };
   assert.deepEqual(body.pair, expected);
   assert.deepEqual(JSON.parse(body.serialized), expected);
@@ -1137,13 +1237,44 @@ test("raw write preview pairs the following secret value", async () => {
 
 test("raw pair ordering preserves metadata and redacts paired values", async () => {
   const cases = [
-    [{ key: "api_key", value: "hidden" }, { key: "api_key", value: "[redacted]" }],
-    [{ value: "hidden", key: "api_key" }, { value: "[redacted]", key: "api_key" }],
-    [{ name: "api_key", field: "label", value: "hidden" }, { name: "api_key", field: "label", value: "[redacted]" }],
-    [{ value: "hidden", field: "label", name: "api_key" }, { value: "[redacted]", field: "label", name: "api_key" }],
-    [{ value: "public", key: "api_key", val: "hidden", name: "label" }, { value: "public", key: "api_key", val: "[redacted]", name: "label" }],
-    [{ value: "public", name: "label", key: "api_key", val: "hidden" }, { value: "public", name: "label", key: "api_key", val: "[redacted]" }],
-    [{ key: "api_key", value: "hidden", name: "retention_days", val: "public" }, { key: "api_key", value: "[redacted]", name: "retention_days", val: "public" }],
+    [
+      { key: "api_key", value: "hidden" },
+      { key: "api_key", value: "[redacted]" },
+    ],
+    [
+      { value: "hidden", key: "api_key" },
+      { value: "[redacted]", key: "api_key" },
+    ],
+    [
+      { name: "api_key", field: "label", value: "hidden" },
+      { name: "api_key", field: "label", value: "[redacted]" },
+    ],
+    [
+      { value: "hidden", field: "label", name: "api_key" },
+      { value: "[redacted]", field: "label", name: "api_key" },
+    ],
+    [
+      { value: "public", key: "api_key", val: "hidden", name: "label" },
+      { value: "public", key: "api_key", val: "[redacted]", name: "label" },
+    ],
+    [
+      { value: "public", name: "label", key: "api_key", val: "hidden" },
+      { value: "public", name: "label", key: "api_key", val: "[redacted]" },
+    ],
+    [
+      {
+        key: "api_key",
+        value: "hidden",
+        name: "retention_days",
+        val: "public",
+      },
+      {
+        key: "api_key",
+        value: "[redacted]",
+        name: "retention_days",
+        val: "public",
+      },
+    ],
   ] as const;
   recordedResponse("GET /example/entities/things/v1", 200, {
     pairs: cases.map(([input]) => input),
@@ -1151,7 +1282,10 @@ test("raw pair ordering preserves metadata and redacts paired values", async () 
   });
   const result = await run(getArgs("/example/entities/things/v1"));
   assert.equal(result.code, 0, result.stdout);
-  const body = value(result.stdout).body as { pairs: unknown; serialized: string };
+  const body = value(result.stdout).body as {
+    pairs: unknown;
+    serialized: string;
+  };
   const expected = cases.map(([, output]) => output);
   assert.deepEqual(body.pairs, expected);
   assert.deepEqual(JSON.parse(body.serialized), expected);
@@ -1189,7 +1323,11 @@ for (const status of [200, 403])
   });
 
 test("raw write ignores non-pair query aliases", async () => {
-  const file = await queryFile({ data: "visible", key: "api_key", value: "hidden" });
+  const file = await queryFile({
+    data: "visible",
+    key: "api_key",
+    value: "hidden",
+  });
   const args = writeArgs("ops", "--query-file", file);
   const preview = await run(args);
   assert.equal(preview.code, 0, preview.stdout);
@@ -1344,7 +1482,10 @@ for (const status of [200, 403])
     }));
     const result = await run(getArgs("/example/entities/things/v1"));
     assert.equal(result.code, status === 200 ? 0 : 1, result.stdout);
-    assert.doesNotMatch(result.stdout, /Credential|SignedHeaders|Signature|hidden/);
+    assert.doesNotMatch(
+      result.stdout,
+      /Credential|SignedHeaders|Signature|hidden/,
+    );
     assert.match(result.stdout, /Authorization: \[redacted\]/);
   });
 
@@ -1355,14 +1496,20 @@ test("raw write redacts signed authorization in preview and journal", async () =
   const args = writeArgs("ops", "--query-file", file);
   const preview = await run(args);
   assert.equal(preview.code, 0, preview.stdout);
-  assert.doesNotMatch(preview.stdout, /Credential|SignedHeaders|Signature|hidden/);
+  assert.doesNotMatch(
+    preview.stdout,
+    /Credential|SignedHeaders|Signature|hidden/,
+  );
   const confirm = (value(preview.stdout).preview as Record<string, string>)
     .confirm!;
   const env = await state();
   recordedResponse("PATCH /example/entities/things/v1", 200, {}, true);
   const result = await run([...args, "--execute", "--confirm", confirm], env);
   assert.equal(result.code, 0, result.stdout);
-  assert.doesNotMatch(JSON.stringify(await journal(env)), /SignedHeaders|hidden/);
+  assert.doesNotMatch(
+    JSON.stringify(await journal(env)),
+    /SignedHeaders|hidden/,
+  );
 });
 
 for (const status of [200, 403])
@@ -1481,18 +1628,26 @@ for (const status of [200, 403])
     });
     const result = await run(getArgs("/example/entities/things/v1"));
     assert.equal(result.code, status === 200 ? 0 : 1, result.stdout);
-    const body = value(result.stdout)[status === 200 ? "body" : "upstream_body"] as {
+    const body = value(result.stdout)[
+      status === 200 ? "body" : "upstream_body"
+    ] as {
       pair: unknown;
       payload: string;
     };
-    const expected = { "[redacted-key-2]": "[redacted]", "[redacted-key-1]": "visible" };
+    const expected = {
+      "[redacted-key-2]": "[redacted]",
+      "[redacted-key-1]": "visible",
+    };
     assert.deepEqual(body.pair, expected);
     assert.deepEqual(JSON.parse(body.payload), expected);
     assert.doesNotMatch(result.stdout, /hidden|private/);
   });
 
 test("raw write redacts patterned query keys in preview and journal", async () => {
-  const file = await queryFile({ "password=hidden": "private", "[redacted-key-1]": "visible" });
+  const file = await queryFile({
+    "password=hidden": "private",
+    "[redacted-key-1]": "visible",
+  });
   const args = writeArgs("ops", "--query-file", file);
   const preview = await run(args);
   assert.equal(preview.code, 0, preview.stdout);
@@ -1501,7 +1656,8 @@ test("raw write redacts patterned query keys in preview and journal", async () =
   const params = new URL(path, "https://example.invalid").searchParams;
   assert.equal(params.get("[redacted-key-2]"), "[redacted]");
   assert.equal(params.get("[redacted-key-1]"), "visible");
-  const confirm = (value(preview.stdout).preview as Record<string, string>).confirm!;
+  const confirm = (value(preview.stdout).preview as Record<string, string>)
+    .confirm!;
   const env = await state();
   recordedResponse("PATCH /example/entities/things/v1", 200, {}, true);
   const result = await run([...args, "--execute", "--confirm", confirm], env);
@@ -1516,7 +1672,10 @@ test("raw write preview replaces credential keys without collisions", async () =
     "[redacted-key-1]": "visible",
     "[redacted]": "other",
   };
-  await writeFile(file, JSON.stringify({ pair, payload: JSON.stringify(pair) }));
+  await writeFile(
+    file,
+    JSON.stringify({ pair, payload: JSON.stringify(pair) }),
+  );
   const result = await run(writeArgs("ops", "--body-file", file));
   assert.equal(result.code, 0, result.stdout);
   const body = (
@@ -1612,13 +1771,7 @@ test("raw write redacts serialized pairs in preview and journal", async () => {
   const file = join(directory, "pair-body.json");
   await writeFile(file, JSON.stringify({ payload: pair }));
   const query = await queryFile({ filter: pair });
-  const args = writeArgs(
-    "ops",
-    "--body-file",
-    file,
-    "--query-file",
-    query,
-  );
+  const args = writeArgs("ops", "--body-file", file, "--query-file", query);
   const preview = await run(args);
   assert.equal(preview.code, 0, preview.stdout);
   assert.doesNotMatch(preview.stdout, /pairsecret/);
@@ -1788,9 +1941,11 @@ test("raw write preview preserves structured secret metadata", async () => {
   );
   const result = await run(writeArgs("ops", "--body-file", file));
   assert.equal(result.code, 0, result.stdout);
-  const body = (value(result.stdout).preview as {
-    body: { password: unknown; serialized: string };
-  }).body;
+  const body = (
+    value(result.stdout).preview as {
+      body: { password: unknown; serialized: string };
+    }
+  ).body;
   const expected = {
     password: { value: "[redacted]", expires: { value: "tomorrow" } },
   };
@@ -1822,10 +1977,7 @@ for (const status of [200, 403])
     assert.deepEqual(body.structured, {
       value: "[redacted]",
       key: "api_key",
-      token: [
-        ["[redacted]"],
-        [{ value: "[redacted]", expires: "tomorrow" }],
-      ],
+      token: [["[redacted]"], [{ value: "[redacted]", expires: "tomorrow" }]],
     });
     assert.equal(
       body.serialized,
@@ -1837,7 +1989,11 @@ test("raw write preview redacts reversed pairs and nested arrays", async () => {
   const file = join(directory, "reversed-pair.json");
   await writeFile(
     file,
-    JSON.stringify({ value: "hidden-pair", key: "api_key", token: [["hidden-array"]] }),
+    JSON.stringify({
+      value: "hidden-pair",
+      key: "api_key",
+      token: [["hidden-array"]],
+    }),
   );
   const result = await run(writeArgs("ops", "--body-file", file));
   assert.equal(result.code, 0, result.stdout);
@@ -1889,34 +2045,41 @@ for (const status of [200, 403])
 
 for (const status of [200, 403])
   test(`raw write preview and response ${status} redact numeric credentials`, async () => {
-  const file = join(directory, "numeric-secret.json");
-  await writeFile(file, '{"reference":1.23456789e8,"count":1.0}');
-  const args = writeArgs("ops", "--body-file", file);
-  const result = await run(args, {
-    ARTIUM_SECRET_0: "123456789",
-  });
-  assert.equal(result.code, 0, result.stdout);
-  assert.doesNotMatch(result.stdout, /123456789/);
-  const body = (value(result.stdout).preview as {
-    body: Record<string, unknown>;
-  }).body;
-  assert.equal(body.reference, "[redacted]");
-  assert.match(result.stdout, /count: 1\.0/);
-  const confirm = (value(result.stdout).preview as Record<string, string>).confirm!;
-  dynamicResponse("PATCH /example/entities/things/v1", () => ({
-    status,
-    body: Buffer.from('{"reference":1.23456789e8,"count":1.0}'),
-  }));
-  const executed = await run([...args, "--execute", "--confirm", confirm], {
-    ...(await state()),
-    ARTIUM_SECRET_0: "123456789",
-  });
-  assert.equal(executed.code, status === 200 ? 0 : 1, executed.stdout);
-  assert.doesNotMatch(executed.stdout, /123456789/);
-  assert.equal(
-    (value(executed.stdout)[status === 200 ? "body" : "upstream_body"] as Record<string, unknown>).reference,
-    "[redacted]",
-  );
+    const file = join(directory, "numeric-secret.json");
+    await writeFile(file, '{"reference":1.23456789e8,"count":1.0}');
+    const args = writeArgs("ops", "--body-file", file);
+    const result = await run(args, {
+      ARTIUM_SECRET_0: "123456789",
+    });
+    assert.equal(result.code, 0, result.stdout);
+    assert.doesNotMatch(result.stdout, /123456789/);
+    const body = (
+      value(result.stdout).preview as {
+        body: Record<string, unknown>;
+      }
+    ).body;
+    assert.equal(body.reference, "[redacted]");
+    assert.match(result.stdout, /count: 1\.0/);
+    const confirm = (value(result.stdout).preview as Record<string, string>)
+      .confirm!;
+    dynamicResponse("PATCH /example/entities/things/v1", () => ({
+      status,
+      body: Buffer.from('{"reference":1.23456789e8,"count":1.0}'),
+    }));
+    const executed = await run([...args, "--execute", "--confirm", confirm], {
+      ...(await state()),
+      ARTIUM_SECRET_0: "123456789",
+    });
+    assert.equal(executed.code, status === 200 ? 0 : 1, executed.stdout);
+    assert.doesNotMatch(executed.stdout, /123456789/);
+    assert.equal(
+      (
+        value(executed.stdout)[
+          status === 200 ? "body" : "upstream_body"
+        ] as Record<string, unknown>
+      ).reference,
+      "[redacted]",
+    );
   });
 
 for (const status of [200, 403])
@@ -1953,9 +2116,11 @@ for (const status of [200, 403])
     const env = { ...(await state()), ARTIUM_SECRET_0: "123456789" };
     const preview = await run(args, env);
     assert.equal(preview.code, 0, preview.stdout);
-    const body = (value(preview.stdout).preview as {
-      body: Record<string, unknown>;
-    }).body;
+    const body = (
+      value(preview.stdout).preview as {
+        body: Record<string, unknown>;
+      }
+    ).body;
     assert.equal(body.number, 91234567890);
     assert.equal(body.match, "[redacted]");
     const confirm = (value(preview.stdout).preview as Record<string, string>)
@@ -2004,9 +2169,11 @@ for (const status of [200, 403])
     const args = writeArgs("ops", "--body-file", file);
     const preview = await run(args);
     assert.equal(preview.code, 0, preview.stdout);
-    const previewBody = (value(preview.stdout).preview as {
-      body: Record<string, unknown>;
-    }).body;
+    const previewBody = (
+      value(preview.stdout).preview as {
+        body: Record<string, unknown>;
+      }
+    ).body;
     assert.equal(previewBody.value, "[redacted]");
     assert.equal(previewBody.threshold, 0.1);
     assert.equal(previewBody.count, 1);
@@ -2050,16 +2217,23 @@ for (const alias of ["value", "val", "values", "string_value"])
       pairs: Record<string, string>[];
       serialized: string;
     };
-    assert.deepEqual(body.pairs.map((pair) => [pair.data, pair[alias]]), [
-      ["visible", "[redacted]"],
-      ["visible", "[redacted]"],
-    ]);
+    assert.deepEqual(
+      body.pairs.map((pair) => [pair.data, pair[alias]]),
+      [
+        ["visible", "[redacted]"],
+        ["visible", "[redacted]"],
+      ],
+    );
     assert.deepEqual(JSON.parse(body.serialized), body.pairs);
   });
 
 for (const alias of ["val", "values", "string_value"])
   test(`raw write redacts ${alias} query pairs in preview and journal`, async () => {
-    const file = await queryFile({ data: "visible", [alias]: "hidden", key: "api_key" });
+    const file = await queryFile({
+      data: "visible",
+      [alias]: "hidden",
+      key: "api_key",
+    });
     const args = writeArgs("ops", "--query-file", file);
     const preview = await run(args);
     assert.equal(preview.code, 0, preview.stdout);

@@ -28,7 +28,11 @@ import { malquery } from "./malquery.js";
 import searchHelp from "./search-help.json" with { type: "json" };
 import { document } from "./transport/search-authority.js";
 import { rtrRun, validateRtrInvocation } from "./rtr.js";
-import { rawRun, validateRawInvocation, validateRawQuerySecrets } from "./raw.js";
+import {
+  rawRun,
+  validateRawInvocation,
+  validateRawQuerySecrets,
+} from "./raw.js";
 import { installHooks } from "./setup.js";
 import { HOME_GUIDANCE, skillHint } from "./skill.js";
 import { readOnly } from "./rtr-policy.js";

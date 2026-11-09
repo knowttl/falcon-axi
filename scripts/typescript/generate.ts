@@ -64,7 +64,8 @@ for (const name of ["raw get", "raw write"] as const) {
   const heading = `## ${name}\n\n\`\`\`text\n`;
   const start = reference.indexOf(heading) + heading.length;
   const end = reference.indexOf("\n```", start);
-  if (start < heading.length || end < start) throw new Error(`Missing ${name} reference`);
+  if (start < heading.length || end < start)
+    throw new Error(`Missing ${name} reference`);
   reference = reference.slice(0, start) + help[name] + reference.slice(end);
 }
 expected.set(referencePath, reference);
