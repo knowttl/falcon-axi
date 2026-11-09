@@ -1109,6 +1109,61 @@ for (const status of [200, 403])
   });
 
 for (const status of [200, 403])
+  test(`raw response ${status} preserves numeric credential substrings`, async () => {
+    const serialized = '{"number":91234567890,"match":1.23456789e8}';
+    dynamicResponse("GET /example/entities/things/v1", () => ({
+      status,
+      body: Buffer.from(
+        `{"number":91234567890,"match":1.23456789e8,"serialized":${JSON.stringify(serialized)}}`,
+      ),
+    }));
+    const result = await run(getArgs("/example/entities/things/v1"), {
+      ARTIUM_SECRET_0: "123456789",
+    });
+    assert.equal(result.code, status === 200 ? 0 : 1, result.stdout);
+    const body = value(result.stdout)[
+      status === 200 ? "body" : "upstream_body"
+    ] as { number: number; match: string; serialized: string };
+    assert.equal(body.number, 91234567890);
+    assert.equal(body.match, "[redacted]");
+    assert.equal(
+      body.serialized,
+      '{"number":91234567890,"match":"[redacted]"}',
+    );
+    assert.match(result.stdout, /91234567890/);
+  });
+
+for (const status of [200, 403])
+  test(`raw write ${status} preserves numeric credential substrings`, async () => {
+    const text = '{"number":91234567890,"match":1.23456789e8}';
+    const file = join(directory, "numeric-substring.json");
+    await writeFile(file, text);
+    const args = writeArgs("ops", "--body-file", file);
+    const env = { ...(await state()), ARTIUM_SECRET_0: "123456789" };
+    const preview = await run(args, env);
+    assert.equal(preview.code, 0, preview.stdout);
+    const body = (value(preview.stdout).preview as {
+      body: Record<string, unknown>;
+    }).body;
+    assert.equal(body.number, 91234567890);
+    assert.equal(body.match, "[redacted]");
+    const confirm = (value(preview.stdout).preview as Record<string, string>)
+      .confirm!;
+    dynamicResponse("PATCH /example/entities/things/v1", () => ({
+      status,
+      body: Buffer.from(text),
+    }));
+    const result = await run([...args, "--execute", "--confirm", confirm], env);
+    assert.equal(result.code, status === 200 ? 0 : 1, result.stdout);
+    const response = value(result.stdout)[
+      status === 200 ? "body" : "upstream_body"
+    ] as Record<string, unknown>;
+    assert.equal(response.number, 91234567890);
+    assert.equal(response.match, "[redacted]");
+    assert.match(result.stdout, /91234567890/);
+  });
+
+for (const status of [200, 403])
   test(`raw response ${status} preserves non-pair aliases and decimal text`, async () => {
     const text =
       '{"data":"visible","key":"api_key","value":"hidden","threshold":0.10000000000000001,"count":1.0}';

@@ -49,7 +49,7 @@ function redactNumber(value: string): string {
     [...secrets, ...memberCids].some((secret) => normalize(secret) === number)
   )
     return "[redacted]";
-  return redactText(value);
+  return value;
 }
 const secretKeys = new Set([
   "access_token",
