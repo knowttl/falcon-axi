@@ -20,6 +20,19 @@ export function object(value: unknown): value is Record<string, unknown> {
   return value !== null && typeof value === "object" && !Array.isArray(value);
 }
 
+export function parseRawResponse(text: string): unknown {
+  let changedNumber = false;
+  JSON.parse(
+    text,
+    (_key: string, value: unknown, context?: { source?: string }) => {
+      if (typeof value === "number" && context?.source !== JSON.stringify(value))
+        changedNumber = true;
+      return value;
+    },
+  );
+  return changedNumber ? text : parseResponse(text);
+}
+
 // Preserve numeric lexemes outside Number's exact integer domain, judged from the
 // original text because JSON.parse has already rounded the value it hands us.
 export function parseResponse(text: string): unknown {

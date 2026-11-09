@@ -1,7 +1,7 @@
 import { createHash, randomUUID } from "node:crypto";
 import { readFileSync } from "node:fs";
 import { observeRate, authenticate } from "./auth.js";
-import { CliError, object, parseResponse } from "./core.js";
+import { CliError, object, parseRawResponse } from "./core.js";
 import { writeLogPath } from "./credentials.js";
 import type { Credential } from "./credentials.js";
 import {
@@ -317,7 +317,7 @@ export async function rawRun(
           body_sha256: body ? digest : undefined,
           journal: writeLogPath(),
           confirm,
-          ...(body ? { body: parseResponse(body) } : {}),
+          ...(body ? { body: parseRawResponse(body) } : {}),
         },
       },
       request.executing

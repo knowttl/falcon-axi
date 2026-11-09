@@ -548,12 +548,10 @@ test("raw write redacts secret query values in preview and journal", async () =>
 });
 
 for (const name of ["key", "name", "field", "property", "attribute"])
-  test(`raw write redacts query value aliases when ${name} names a secret`, async () => {
+  test(`raw write redacts query value when ${name} names a secret`, async () => {
     const query = new URLSearchParams([
-      ...["value", "values", "val", "data", "string_value"].flatMap((key) => [
-        [name.toUpperCase(), "API_KEY"],
-        [key, `secret-${key}`],
-      ]),
+      [name.toUpperCase(), "API_KEY"],
+      ["value", "secret-value"],
       ["note", "visible"],
     ]);
     const args = writeArgs("ops", "--query", query.toString());
@@ -561,7 +559,7 @@ for (const name of ["key", "name", "field", "property", "attribute"])
     assert.equal(preview.code, 0, preview.stdout);
     assert.doesNotMatch(
       preview.stdout,
-      /secret-(value|values|val|data|string_value)/,
+      /secret-value/,
     );
     const confirm = (value(preview.stdout).preview as Record<string, string>)
       .confirm!;
@@ -571,7 +569,7 @@ for (const name of ["key", "name", "field", "property", "attribute"])
     assert.equal(result.code, 0, result.stdout);
     assert.doesNotMatch(
       JSON.stringify(await journal(env)),
-      /secret-(value|values|val|data|string_value)/,
+      /secret-value/,
     );
     assert.match(decodeURIComponent(requests()[0]!.url), /secret-value/);
     assert.match(result.stdout, /note=visible/);
@@ -627,6 +625,27 @@ test("raw write redacts reversed query pairs in preview and journal", async () =
   const records = JSON.stringify(await journal(env));
   assert.doesNotMatch(records, /hidden/);
   assert.match(records, /value=30/);
+});
+
+test("raw write ignores non-pair query aliases", async () => {
+  const args = writeArgs(
+    "ops",
+    "--query",
+    "data=visible&key=api_key&value=hidden",
+  );
+  const preview = await run(args);
+  assert.equal(preview.code, 0, preview.stdout);
+  assert.match(preview.stdout, /data=visible/);
+  assert.doesNotMatch(preview.stdout, /hidden/);
+  const confirm = (value(preview.stdout).preview as Record<string, string>)
+    .confirm!;
+  const env = await state();
+  recordedResponse("PATCH /example/entities/things/v1", 200, {}, true);
+  const result = await run([...args, "--execute", "--confirm", confirm], env);
+  assert.equal(result.code, 0, result.stdout);
+  const records = JSON.stringify(await journal(env));
+  assert.match(records, /data=visible/);
+  assert.doesNotMatch(records, /hidden/);
 });
 
 test("raw write never executes under FALCON_AXI_READ_ONLY but still previews", async () => {
@@ -873,10 +892,10 @@ test("raw write reports a failed outcome journal after sending", async () => {
 test("raw output redacts exact secret pairs and preserves metadata", async () => {
   recordedResponse("GET /user-management/entities/users/v1", 200, {
     resources: [
-      { key: "CID", data: "hidden", kind: "tenant" },
-      { attribute: "customer_id", val: "hidden" },
+      { key: "CID", value: "hidden", kind: "tenant" },
+      { attribute: "customer_id", value: "hidden" },
       { name: "token_count", value: 5 },
-      { field: "access_token", values: ["hidden"] },
+      { field: "access_token", value: ["hidden"] },
       { key: "api_key", value: "hidden", name: "retention_days", data: 30 },
     ],
   });
@@ -884,10 +903,10 @@ test("raw output redacts exact secret pairs and preserves metadata", async () =>
   assert.equal(result.code, 0, result.stdout);
   assert.deepEqual(value(result.stdout).body, {
     resources: [
-      { key: "CID", data: "[redacted]", kind: "tenant" },
-      { attribute: "customer_id", val: "[redacted]" },
+      { key: "CID", value: "[redacted]", kind: "tenant" },
+      { attribute: "customer_id", value: "[redacted]" },
       { name: "token_count", value: 5 },
-      { field: "access_token", values: ["[redacted]"] },
+      { field: "access_token", value: ["[redacted]"] },
       { key: "api_key", value: "[redacted]", name: "retention_days", data: 30 },
     ],
   });
@@ -903,7 +922,7 @@ for (const status of [200, 403])
         tags: ["visible"],
       },
       key: "api_key",
-      data: { value: "hidden", expires: "later" },
+      value: { value: "hidden", expires: "later" },
       token: ["hidden", { value: "hidden", expires: "soon" }],
     };
     const expected = {
@@ -914,7 +933,7 @@ for (const status of [200, 403])
         tags: ["visible"],
       },
       key: "api_key",
-      data: { value: "[redacted]", expires: "later" },
+      value: { value: "[redacted]", expires: "later" },
       token: ["[redacted]", { value: "[redacted]", expires: "soon" }],
     };
     recordedResponse("GET /example/entities/things/v1", status, {
@@ -992,3 +1011,66 @@ test("raw write preview redacts reversed pairs and nested arrays", async () => {
     token: [["[redacted]"]],
   });
 });
+
+for (const status of [200, 403])
+  test(`raw response ${status} ignores non-pair aliases`, async () => {
+    const pair = { data: "visible", key: "api_key", value: "hidden" };
+    recordedResponse("GET /example/entities/things/v1", status, {
+      pair,
+      serialized: JSON.stringify(pair),
+    });
+    const result = await run(getArgs("/example/entities/things/v1"));
+    assert.equal(result.code, status === 200 ? 0 : 1, result.stdout);
+    const body = value(result.stdout)[
+      status === 200 ? "body" : "upstream_body"
+    ] as { pair: unknown; serialized: string };
+    const expected = { data: "visible", key: "api_key", value: "[redacted]" };
+    assert.deepEqual(body.pair, expected);
+    assert.deepEqual(JSON.parse(body.serialized), expected);
+  });
+
+for (const status of [200, 403])
+  test(`raw response ${status} preserves non-pair aliases and decimal text`, async () => {
+    const text =
+      '{"data":"visible","key":"api_key","value":"hidden","threshold":0.10000000000000001}';
+    dynamicResponse("GET /example/entities/things/v1", () => ({
+      status,
+      body: Buffer.from(text),
+    }));
+    const result = await run(getArgs("/example/entities/things/v1"));
+    assert.equal(result.code, status === 200 ? 0 : 1, result.stdout);
+    assert.equal(
+      value(result.stdout)[status === 200 ? "body" : "upstream_body"],
+      text.replace('"hidden"', '"[redacted]"'),
+    );
+  });
+
+for (const status of [200, 403])
+  test(`raw write preserves decimal text in preview and response ${status}`, async () => {
+    const text =
+      '{"data":"visible","key":"api_key","value":"hidden","threshold":0.10000000000000001}';
+    const file = join(directory, "decimal-body.json");
+    await writeFile(file, text);
+    const args = writeArgs("ops", "--body-file", file);
+    const preview = await run(args);
+    assert.equal(preview.code, 0, preview.stdout);
+    assert.equal(
+      (value(preview.stdout).preview as { body: string }).body,
+      text.replace('"hidden"', '"[redacted]"'),
+    );
+    const confirm = (value(preview.stdout).preview as Record<string, string>)
+      .confirm!;
+    dynamicResponse("PATCH /example/entities/things/v1", () => ({
+      status,
+      body: Buffer.from(text),
+    }));
+    const result = await run(
+      [...args, "--execute", "--confirm", confirm],
+      await state(),
+    );
+    assert.equal(result.code, status === 200 ? 0 : 1, result.stdout);
+    assert.equal(
+      value(result.stdout)[status === 200 ? "body" : "upstream_body"],
+      text.replace('"hidden"', '"[redacted]"'),
+    );
+  });

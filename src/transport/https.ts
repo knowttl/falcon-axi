@@ -4,7 +4,7 @@ import http from "node:http";
 import tls from "node:tls";
 import type { Duplex } from "node:stream";
 import { setTimeout as delay } from "node:timers/promises";
-import { CliError, object, parseResponse } from "../core.js";
+import { CliError, object, parseRawResponse, parseResponse } from "../core.js";
 import { origin } from "../origin.js";
 import { operation } from "./operations.js";
 import { VERSION } from "../version.js";
@@ -231,7 +231,9 @@ async function send(
             const text = bytes.toString("utf8");
             if (text) {
               try {
-                body = parseResponse(text);
+                body = prepared.raw
+                  ? parseRawResponse(text)
+                  : parseResponse(text);
               } catch {
                 /* Non-JSON errors retain status, never raw upstream text. */
               }

@@ -80,7 +80,7 @@ export function positionalSecretPairs(
   let pending: { index: number; name: boolean } | undefined;
   entries.forEach(([key], index) => {
     const name = isPairName(key);
-    if (!name && !isPairValue(key)) return;
+    if (!name && key.toLowerCase() !== "value") return;
     if (pending && pending.name !== name) {
       const nameIndex = name ? index : pending.index;
       const valueIndex = name ? pending.index : index;
