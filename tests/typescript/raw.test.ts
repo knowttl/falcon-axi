@@ -608,6 +608,27 @@ test("raw write associates query pairs by position", async () => {
   assert.match(records, /value=40/);
 });
 
+test("raw write redacts reversed query pairs in preview and journal", async () => {
+  const args = writeArgs(
+    "ops",
+    "--query",
+    "value=hidden&key=api_key&value=30&key=retention_days",
+  );
+  const preview = await run(args);
+  assert.equal(preview.code, 0, preview.stdout);
+  assert.doesNotMatch(preview.stdout, /hidden/);
+  assert.match(preview.stdout, /value=30/);
+  const confirm = (value(preview.stdout).preview as Record<string, string>)
+    .confirm!;
+  const env = await state();
+  recordedResponse("PATCH /example/entities/things/v1", 200, {}, true);
+  const result = await run([...args, "--execute", "--confirm", confirm], env);
+  assert.equal(result.code, 0, result.stdout);
+  const records = JSON.stringify(await journal(env));
+  assert.doesNotMatch(records, /hidden/);
+  assert.match(records, /value=30/);
+});
+
 test("raw write never executes under FALCON_AXI_READ_ONLY but still previews", async () => {
   const file = await body();
   const confirm = await confirmValue("ops", file);
@@ -919,5 +940,55 @@ test("raw write preview preserves structured secret metadata", async () => {
   assert.equal(result.code, 0, result.stdout);
   assert.deepEqual((value(result.stdout).preview as { body: unknown }).body, {
     password: { value: "[redacted]", expires: "tomorrow" },
+  });
+});
+
+for (const status of [200, 403])
+  test(`raw response ${status} redacts reversed pairs and nested arrays`, async () => {
+    const structured = {
+      value: "hidden-pair",
+      key: "api_key",
+      token: [
+        ["hidden-array"],
+        [{ value: "hidden-object", expires: "tomorrow" }],
+      ],
+    };
+    const serialized =
+      '{"value":"hidden-pair","key":"api_key","value":30,"key":"retention_days","token":[["hidden-array"]]}';
+    recordedResponse("GET /example/entities/things/v1", status, {
+      structured,
+      serialized,
+    });
+    const result = await run(getArgs("/example/entities/things/v1"));
+    assert.equal(result.code, status === 200 ? 0 : 1, result.stdout);
+    const body = value(result.stdout)[
+      status === 200 ? "body" : "upstream_body"
+    ] as { structured: unknown; serialized: string };
+    assert.deepEqual(body.structured, {
+      value: "[redacted]",
+      key: "api_key",
+      token: [
+        ["[redacted]"],
+        [{ value: "[redacted]", expires: "tomorrow" }],
+      ],
+    });
+    assert.equal(
+      body.serialized,
+      '{"value":"[redacted]","key":"api_key","value":30,"key":"retention_days","token":[["[redacted]"]]}',
+    );
+  });
+
+test("raw write preview redacts reversed pairs and nested arrays", async () => {
+  const file = join(directory, "reversed-pair.json");
+  await writeFile(
+    file,
+    JSON.stringify({ value: "hidden-pair", key: "api_key", token: [["hidden-array"]] }),
+  );
+  const result = await run(writeArgs("ops", "--body-file", file));
+  assert.equal(result.code, 0, result.stdout);
+  assert.deepEqual((value(result.stdout).preview as { body: unknown }).body, {
+    value: "[redacted]",
+    key: "api_key",
+    token: [["[redacted]"]],
   });
 });

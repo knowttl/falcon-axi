@@ -73,19 +73,24 @@ export function redactAssignments(value: string): string {
     (_match, key: string, separator: string) => `${key}${separator}[redacted]`,
   );
 }
-export function positionalSecretPair(): (
-  key: string,
-  value: unknown,
-) => boolean {
-  let secret = false;
-  return (key, value) => {
-    if (isPairName(key))
-      secret = typeof value === "string" && isSecretKey(value);
-    if (!isPairValue(key)) return false;
-    const result = secret;
-    secret = false;
-    return result;
-  };
+export function positionalSecretPairs(
+  entries: readonly (readonly [string, unknown])[],
+): Set<number> {
+  const sensitive = new Set<number>();
+  let pending: { index: number; name: boolean } | undefined;
+  entries.forEach(([key], index) => {
+    const name = isPairName(key);
+    if (!name && !isPairValue(key)) return;
+    if (pending && pending.name !== name) {
+      const nameIndex = name ? index : pending.index;
+      const valueIndex = name ? pending.index : index;
+      const pairName = entries[nameIndex]![1];
+      if (typeof pairName === "string" && isSecretKey(pairName))
+        sensitive.add(valueIndex);
+      pending = undefined;
+    } else pending = { index, name };
+  });
+  return sensitive;
 }
 function redactSerialized(text: string, detectOnly = false): string | boolean {
   type Node = {
@@ -153,8 +158,15 @@ function redactSerialized(text: string, detectOnly = false): string | boolean {
     hideScalar = false,
   ): void => {
     if (node.entries?.length) {
-      const pair = positionalSecretPair();
-      for (const { key, keyNode, node: entry } of node.entries) {
+      const pairs = positionalSecretPairs(
+        node.entries.map(({ key, node: entry }) => [
+          key,
+          text[entry.start] === '"'
+            ? (JSON.parse(text.slice(entry.start, entry.end)) as string)
+            : undefined,
+        ]),
+      );
+      for (const [index, { key, keyNode, node: entry }] of node.entries.entries()) {
         const safeKey = redactText(key);
         if (safeKey !== key)
           edits.push({
@@ -162,23 +174,15 @@ function redactSerialized(text: string, detectOnly = false): string | boolean {
             end: keyNode.end,
             value: JSON.stringify(safeKey),
           });
-        const pairedValue = pair(
-          key,
-          text[entry.start] === '"'
-            ? (JSON.parse(text.slice(entry.start, entry.end)) as string)
-            : undefined,
-        );
         const sensitive =
-          isSecretKey(key) || pairedValue || (withinSecret && isPairValue(key));
+          isSecretKey(key) ||
+          pairs.has(index) ||
+          (withinSecret && isPairValue(key));
         visit(entry, withinSecret || sensitive, sensitive);
       }
     }
     for (const child of node.children ?? [])
-      visit(
-        child,
-        withinSecret,
-        hideScalar && !child.entries && !child.children,
-      );
+      visit(child, withinSecret, hideScalar);
     if (!node.entries && !node.children && hideScalar) {
       edits.push({ start: node.start, end: node.end, value: '"[redacted]"' });
     } else if (!node.entries && !node.children && text[node.start] === '"') {
@@ -230,19 +234,17 @@ function redactValue(
   }
   if (Array.isArray(value))
     return value.map((entry) =>
-      redactValue(
-        entry,
-        withinSecret,
-        hideScalar && !object(entry) && !Array.isArray(entry),
-      ),
+      redactValue(entry, withinSecret, hideScalar),
     );
   if (object(value)) {
-    const pair = positionalSecretPair();
+    const entries = Object.entries(value);
+    const pairs = positionalSecretPairs(entries);
     return Object.fromEntries(
-      Object.entries(value).map(([key, entry]) => {
-        const pairedValue = pair(key, entry);
+      entries.map(([key, entry], index) => {
         const sensitive =
-          isSecretKey(key) || pairedValue || (withinSecret && isPairValue(key));
+          isSecretKey(key) ||
+          pairs.has(index) ||
+          (withinSecret && isPairValue(key));
         return [
           redactText(key),
           redactValue(entry, withinSecret || sensitive, sensitive),

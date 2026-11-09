@@ -7,7 +7,7 @@ import type { Credential } from "./credentials.js";
 import {
   hasDuplicateJsonMembers,
   isSecretKey,
-  positionalSecretPair,
+  positionalSecretPairs,
   Raw,
   redact,
   render,
@@ -157,12 +157,14 @@ function responseBody(response: Response): unknown {
 
 function redactQueryPairs(query: string): string {
   const safe = new URLSearchParams();
-  const pair = positionalSecretPair();
-  for (const [key, value] of new URLSearchParams(query)) {
-    const pairedValue = pair(key, value);
+  const entries = [...new URLSearchParams(query)];
+  const pairs = positionalSecretPairs(entries);
+  for (const [index, [key, value]] of entries.entries()) {
     safe.append(
       key,
-      isSecretKey(key) || pairedValue ? "[redacted]" : String(redact(value)),
+      isSecretKey(key) || pairs.has(index)
+        ? "[redacted]"
+        : String(redact(value)),
     );
   }
   return safe.toString();
