@@ -107,6 +107,12 @@ export function validateRawInvocation(
       "--query cannot contain secret-named parameters",
       ["Use --query-file <path|-> with a JSON object for secret query values"],
     );
+  if ([...params.values()].some((value) => redact(value) !== value))
+    throw new CliError(
+      "VALIDATION_ERROR",
+      "--query cannot contain recognized secret values",
+      ["Use --query-file <path|-> with a JSON object for secret query values"],
+    );
   const queryFile = flags.get("--query-file");
   if (queryFile === "-" && flags.get("--body-file") === "-")
     throw new CliError(

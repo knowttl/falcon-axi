@@ -861,6 +861,30 @@ for (const method of ["GET", "PATCH"])
   });
 
 for (const method of ["GET", "PATCH"])
+  for (const [kind, input] of [
+    ["basic authorization", "Authorization: Basic dXNlcjpwYXNz"],
+    ["digest authorization", 'Authorization: Digest username="alice", response="hidden"'],
+    ["signed authorization", "Authorization: AWS4-HMAC-SHA256 Credential=example, Signature=hidden"],
+    ["folded authorization", 'Authorization: Digest username="alice",\r\n response="hidden"'],
+    ["secret assignment", "password=hidden"],
+    ["serialized secret pair", '{"key":"api_key","value":"hidden"}'],
+    ["JSON lines secret pair", '{"key":"api_key","value":"hidden"}\n{"item":2}'],
+    ["JWT", "eyJhbGciOiJIUzI1NiJ9.cGF5bG9hZA.c2lnbmF0dXJl"],
+    ["private key", "-----BEGIN PRIVATE KEY-----\nhidden\n-----END PRIVATE KEY-----"],
+  ] as const)
+    test(`raw ${method} rejects embedded ${kind} in argv`, async () => {
+      const query = new URLSearchParams({ note: input }).toString();
+      const args = method === "GET"
+        ? getArgs("/example/entities/things/v1", "--query", query)
+        : writeArgs("ops", "--query", query);
+      const result = await run(args);
+      assert.equal(result.code, 2, result.stdout);
+      assert.match(result.stdout, /--query-file/);
+      assert.doesNotMatch(result.stdout, /hidden|dXNlcjpwYXNz|cGF5bG9hZA/);
+      assert.equal(requests().length, 0);
+    });
+
+for (const method of ["GET", "PATCH"])
   test(`raw ${method} accepts secret query values on stdin`, async () => {
     const args = method === "GET"
       ? getArgs("/example/entities/things/v1", "--query-file", "-")
@@ -1240,10 +1264,10 @@ for (const status of [200, 403])
   });
 
 test("raw write redacts authorization in preview and journal queries", async () => {
-  const query = new URLSearchParams({
+  const file = await queryFile({
     note: "Authorization: Basic dXNlcjpwYXNz",
-  }).toString();
-  const args = writeArgs("ops", "--query", query);
+  });
+  const args = writeArgs("ops", "--query-file", file);
   const preview = await run(args);
   assert.equal(preview.code, 0, preview.stdout);
   assert.doesNotMatch(preview.stdout, /dXNlcjpwYXNz/);
@@ -1272,10 +1296,10 @@ for (const status of [200, 403])
   });
 
 test("raw write redacts Digest authorization in preview and journal", async () => {
-  const query = new URLSearchParams({
+  const file = await queryFile({
     note: 'Authorization: Digest username="alice", response="secret"',
-  }).toString();
-  const args = writeArgs("ops", "--query", query);
+  });
+  const args = writeArgs("ops", "--query-file", file);
   const preview = await run(args);
   assert.equal(preview.code, 0, preview.stdout);
   assert.doesNotMatch(preview.stdout, /alice|secret/);
@@ -1304,10 +1328,10 @@ for (const status of [200, 403])
   });
 
 test("raw write redacts signed authorization in preview and journal", async () => {
-  const query = new URLSearchParams({
+  const file = await queryFile({
     note: "Authorization: AWS4-HMAC-SHA256 Credential=example, SignedHeaders=host, Signature=hidden",
-  }).toString();
-  const args = writeArgs("ops", "--query", query);
+  });
+  const args = writeArgs("ops", "--query-file", file);
   const preview = await run(args);
   assert.equal(preview.code, 0, preview.stdout);
   assert.doesNotMatch(preview.stdout, /Credential|SignedHeaders|Signature|hidden/);
@@ -1336,10 +1360,10 @@ for (const status of [200, 403])
   });
 
 test("raw write redacts folded authorization in preview and journal", async () => {
-  const query = new URLSearchParams({
+  const file = await queryFile({
     note: 'Authorization: Digest username="alice",\r\n response="hidden"',
-  }).toString();
-  const args = writeArgs("ops", "--query", query);
+  });
+  const args = writeArgs("ops", "--query-file", file);
   const preview = await run(args);
   assert.equal(preview.code, 0, preview.stdout);
   assert.doesNotMatch(preview.stdout, /alice|hidden/);
@@ -1526,12 +1550,13 @@ test("raw write redacts serialized pairs in preview and journal", async () => {
     '{ "key" : "api_key", "value" : "pairsecret", "label": "visible", "label": 2 }';
   const file = join(directory, "pair-body.json");
   await writeFile(file, JSON.stringify({ payload: pair }));
+  const query = await queryFile({ filter: pair });
   const args = writeArgs(
     "ops",
     "--body-file",
     file,
-    "--query",
-    new URLSearchParams({ filter: pair }).toString(),
+    "--query-file",
+    query,
   );
   const preview = await run(args);
   assert.equal(preview.code, 0, preview.stdout);
