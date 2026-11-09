@@ -18,7 +18,8 @@ Tenant-side effects are NG-SIEM jobs, guarded RTR execution, bounded MalQuery ex
 Identity GraphQL uses a write-labelled scope only for fixed read-only query documents.
 `raw get` reads any validated Falcon API path; `raw write` previews first and sends only with a profile that opts in, `--execute`, and the exact `--confirm`, and is journaled.
 Raw output redacts secret values and keeps every field.
-There is no arbitrary GraphQL escape hatch.
+There is no unrestricted GraphQL escape hatch.
+Gated raw writes may POST caller-supplied JSON to GraphQL routes with profile `writes.allowWrites` and `raw-write`, preview, `--execute`, exact `--confirm`, and a journal.
 
 ## Orientation
 

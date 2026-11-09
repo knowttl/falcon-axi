@@ -4,7 +4,7 @@ import { observeRate, authenticate } from "./auth.js";
 import { CliError, object, parseResponse } from "./core.js";
 import { writeLogPath } from "./credentials.js";
 import type { Credential } from "./credentials.js";
-import { isSecretKey, redact, render, truncate } from "./render.js";
+import { isSecretKey, Raw, redact, render, truncate } from "./render.js";
 import { origin } from "./origin.js";
 import { openRetainedFile } from "./rtr-filesystem.js";
 import { readOnly } from "./rtr-policy.js";
@@ -128,7 +128,7 @@ export function validateRawInvocation(
 
 function safeText(text: string): string {
   return text.replace(
-    /(^|[^\w.#-])([\w.#-]+)(\s*[:=]\s*)(?:bearer\s+)?("(?:\\.|[^"\\])*"|'(?:\\.|[^'\\])*'|[^\s&,;]+)/gi,
+    /(^|[^\w.#-])([\w.#-]+)([ \t]*[:=][ \t]*)(?:bearer[ \t]+)?("(?:\\.|[^"\\])*"|'(?:\\.|[^'\\])*'|[^\r\n&,;]+?)(?=[\r\n&,;]|[ \t]+[\w.#-]+[ \t]*[:=]|$)/gi,
     (match, prefix: string, key: string, separator: string) =>
       isSecretKey(key) ? `${prefix}${key}${separator}[redacted]` : match,
   );
@@ -137,7 +137,11 @@ function safeText(text: string): string {
 function responseBody(response: Response): unknown {
   return typeof response.body === "string"
     ? safeText(response.body)
-    : (response.body ?? (response.text ? safeText(response.text) : undefined));
+    : response.body !== undefined
+      ? response.body
+      : response.text
+        ? safeText(response.text)
+        : undefined;
 }
 
 function failure(response: Response, writing = false): CliError {
@@ -147,7 +151,9 @@ function failure(response: Response, writing = false): CliError {
     typeof received === "string" ? truncate(received, 2000) : received;
   const details = {
     upstream_status: status,
-    ...(body === undefined ? {} : { upstream_body: body }),
+    ...(body === undefined
+      ? {}
+      : { upstream_body: body === null ? new Raw("null") : body }),
   };
   if (status >= 300 && status < 400)
     return new CliError(
@@ -212,10 +218,11 @@ function present(response: Response): Record<string, unknown> {
       [],
       { status: response.status },
     );
+  const body = responseBody(response);
   return {
     status: response.status,
     content_type: response.headers["content-type"],
-    body: responseBody(response),
+    body: body === null ? new Raw("null") : body,
   };
 }
 
@@ -309,22 +316,38 @@ export async function rawRun(
   if (!request.executing) return;
   const journal = openRetainedFile(writeLogPath());
   const run = randomUUID().replaceAll("-", "");
-  const append = (record: Record<string, unknown>): void =>
-    journal.append(
-      Buffer.from(
-        JSON.stringify(
-          redact({
-            run,
-            profile: credential.profile,
-            method,
-            path: safeTarget,
-            body_sha256: body ? digest : undefined,
-            ...record,
-            timestamp: new Date().toISOString(),
-          }),
-        ) + "\n",
-      ),
-    );
+  const append = (record: Record<string, unknown>, sent = false): void => {
+    try {
+      journal.append(
+        Buffer.from(
+          JSON.stringify(
+            redact({
+              run,
+              profile: credential.profile,
+              method,
+              path: safeTarget,
+              body_sha256: body ? digest : undefined,
+              ...record,
+              timestamp: new Date().toISOString(),
+            }),
+          ) + "\n",
+        ),
+      );
+    } catch (error) {
+      if (sent)
+        throw new CliError(
+          "CONFIG_INSECURE",
+          "the raw write was sent but its outcome could not be recorded",
+          ["Reconcile the target before retrying"],
+          {
+            ...(record.status === undefined
+              ? {}
+              : { upstream_status: record.status }),
+          },
+        );
+      throw error;
+    }
+  };
   try {
     append({ phase: "intent", outcome: "not_sent" });
     let sent = false;
@@ -363,7 +386,10 @@ export async function rawRun(
       );
       observeRate(session, response);
     } catch (error) {
-      append({ phase: "outcome", outcome: sent ? "unknown" : "not_sent" });
+      append(
+        { phase: "outcome", outcome: sent ? "unknown" : "not_sent" },
+        sent,
+      );
       if (sent)
         throw error instanceof CliError
           ? new CliError(
@@ -377,7 +403,10 @@ export async function rawRun(
             ]);
       throw error;
     }
-    append({ phase: "outcome", outcome: "responded", status: response.status });
+    append(
+      { phase: "outcome", outcome: "responded", status: response.status },
+      true,
+    );
     if (response.status < 200 || response.status >= 300)
       throw failure(response, true);
     process.stdout.write(render({ run, ...present(response) }));

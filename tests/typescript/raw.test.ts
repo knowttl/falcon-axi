@@ -2,6 +2,7 @@ import assert from "node:assert/strict";
 import { test, beforeEach } from "node:test";
 import { readFile, writeFile, mkdtemp } from "node:fs/promises";
 import { join } from "node:path";
+import { execFileSync } from "node:child_process";
 import { decode } from "@toon-format/toon";
 import {
   directory,
@@ -384,14 +385,59 @@ for (const status of [200, 403])
     dynamicResponse("GET /example/entities/things/v1", () => ({
       status,
       headers: { "content-type": "text/plain" },
-      body: Buffer.from("access_token=hidden&token_count=5"),
+      body: Buffer.from("password: two words\ntoken_count=5"),
     }));
     const result = await run(getArgs("/example/entities/things/v1"));
     assert.equal(result.code, status === 200 ? 0 : 1, result.stdout);
-    assert.doesNotMatch(result.stdout, /hidden/);
+    assert.doesNotMatch(result.stdout, /two|words/);
     assert.match(result.stdout, /token_count=5/);
     assert.match(result.stdout, /\[redacted\]/);
   });
+
+for (const status of [200, 403])
+  test(`raw get preserves JSON null in response ${status}`, async () => {
+    recordedResponse("GET /example/entities/things/v1", status, null);
+    const result = await run(getArgs("/example/entities/things/v1"));
+    assert.equal(result.code, status === 200 ? 0 : 1, result.stdout);
+    assert.equal(
+      value(result.stdout)[status === 200 ? "body" : "upstream_body"],
+      null,
+    );
+  });
+
+test("raw write reports a failed outcome journal after sending", async () => {
+  const shim = join(process.cwd(), ".typescript-build", "raw-fault.so");
+  execFileSync("/usr/bin/gcc", [
+    "-B/usr/bin/",
+    "-shared",
+    "-fPIC",
+    "-Wall",
+    "-Wextra",
+    "-Werror",
+    "-o",
+    shim,
+    "tests/typescript/native-fault.c",
+    "-ldl",
+  ]);
+  const file = await body();
+  const confirm = await confirmValue("ops", file);
+  const env = await state();
+  recordedResponse("PATCH /example/entities/things/v1", 200, {}, true);
+  const result = await run(
+    writeArgs("ops", "--body-file", file, "--execute", "--confirm", confirm),
+    {
+      ...env,
+      LD_PRELOAD: shim,
+      FALCON_TEST_FILE: env.FALCON_AXI_WRITE_LOG,
+      FALCON_TEST_FLUSH_NUMBER: "3",
+    },
+  );
+  assert.equal(result.code, 1, result.stdout);
+  assert.equal(requests().length, 1);
+  assert.match(result.stdout, /was sent/);
+  assert.match(result.stdout, /Reconcile the target before retrying/);
+  assert.equal(value(result.stdout).upstream_status, 200);
+});
 
 test("raw output redacts exact secret pairs and preserves metadata", async () => {
   recordedResponse("GET /user-management/entities/users/v1", 200, {
