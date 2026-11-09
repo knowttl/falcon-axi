@@ -1,6 +1,6 @@
 no_ci: true
 commands:
-  prepare: 'test "$(node --version)" = v24.14.0 && test "$(npm --version)" = 11.9.0 && npm ci --offline --ignore-scripts'
+  prepare: 'test "$(node --version)" = v24.21.0 && test "$(npm --version)" = 11.19.0 && npm ci --offline --ignore-scripts'
   test: 'npm run verify'
   lint: 'npm run lint'
 review:
