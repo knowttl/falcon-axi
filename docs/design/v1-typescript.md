@@ -197,6 +197,7 @@ The `scopes` posture, scope rows, provisioning guidance, and exit code retain ex
 All golden comparisons retain the existing release-version substitutions and byte-for-byte output contract.
 The post-cutover fixes for issues #139 and #140 deliberately amend `search-stop` guidance and the synthetic identifiers in `host-show` and `host-show-not-found`.
 Those scenario definitions carry the reasons; the golden corpus hashes and seal advance only for those three scenarios plus `help-host-show`, four scenarios in total.
+The N5 raw API amendment also advances the `scopes` hashes and corpus seal for its revised provisioning guidance (§4.7 of `v1.md`).
 The corpus provenance includes the already merged bounded hostname-history amendment from `eae2ba801a3bcf39b2b13b4fc3799e1ee3e05e44` and §1.8 of `v1.md`.
 Its two host-history help documents precede this carrier and remain unchanged here.
 Native Windows evidence remains pending.

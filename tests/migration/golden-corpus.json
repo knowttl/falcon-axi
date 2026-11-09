@@ -1507,8 +1507,8 @@
   },
   {
     "name": "scopes",
-    "definitionSha256": "076f8918222e46e3e3ad9050cd868573ed2c17dd887803d6b04fcba9c1afeba8",
-    "expectedSha256": "305679cf96e64a84841fe8da29c6cca7b18d3453a96d5545839f72f0a43997e5"
+    "definitionSha256": "c79a60c5399a81b63c9d50c3f596f9daa49ab82398c436464b0718a3c0698a89",
+    "expectedSha256": "7ebb5d613bf34642573784b25cdd78ee466135dfb9b4ab1b1687f3de398e1a5a"
   },
   {
     "name": "search-start-scope-denied",
