@@ -14,13 +14,13 @@ Merge the cutover with a merge commit so that a separately reviewed `git revert 
 
 ## Package and automation
 
-The proposed npm artifact is `@knowttl/falcon-axi@1.0.0-rc.1`, exposing `falcon-axi` and `falcon-axi-hook`, with Node 24.11.0 or newer within Node 24.
+The proposed npm artifact was `@knowttl/falcon-axi@1.0.0-rc.1`, exposing `falcon-axi` and `falcon-axi-hook`, with Node 24.11.0 or newer within Node 24.
 `publishConfig` selects public access and the distinct `next` prerelease channel.
 The package is prepared for a manual publication, and this change performs no publication or npm tag operation.
 The version leaf, package metadata and lockfile agree; generated agent examples use `@next` until a separate reviewed stable transition.
 The existing Python release tags and PyPI artifacts remain installable.
 
-CI installs the locked npm dependency graph and runs `npm run verify` with synthetic network isolation.
+For the current verification gate, see the [TypeScript build notes](../design/v1-typescript.md#build-and-offline-verification).
 The release-please workflow was activated after the cutover: it uses the `npm-v` namespace and publishes to npm only when a release is created, with prereleases on `next`.
 The manifest records `1.0.0-rc.1`, the manually published prerelease, and `bootstrap-sha` starts the changelog after the cutover commit.
 The PyPI publishing steps are gone; the runnable Python release path remains in the preserved Python lineage.

@@ -2,7 +2,7 @@
 
 Read CrowdStrike Falcon from the shell with compact, structured results for agents and the humans running them.
 
-This TypeScript tree prepares `@knowttl/falcon-axi@1.0.0-rc.1` for Node 24, with the `falcon-axi` and `falcon-axi-hook` executables.
+This TypeScript tree prepares `@knowttl/falcon-axi@1.0.0-rc.1`, with the `falcon-axi` and `falcon-axi-hook` executables.
 The first npm publication is pending and will be performed manually from merged `main`.
 The [distribution record](docs/distribution/typescript-transition.md) preserves the Python rollback proof and separate publication gates.
 Python 0.9.0 remains available from its [release source](https://github.com/knowttl/falcon-axi/tree/v0.9.0) and existing PyPI artifacts.

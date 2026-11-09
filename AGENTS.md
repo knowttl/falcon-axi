@@ -71,7 +71,7 @@ Malware family reads (`malware list`, `malware show`), Identity Protection polic
 The generated command reference in `docs/commands.md` is the authoritative list of shipped commands, and
 no help text, suggestion, or skill may advertise an unshipped command.
 `pnpm run verify` is the single local entry point for the complete offline required-check set.
-It runs TypeScript compilation, formatting, architecture and generated checks, clean package installation, and the cumulative native suite with network isolation.
+It runs TypeScript compilation, formatting, architecture and generated checks, package artifact checks, and the cumulative native suite with network isolation.
 The Python test files remain frozen safety-ledger provenance and are read as bytes, never executed by this gate.
 `tests/golden/` is the recorded-invocation gate; `docs/design/v1-python.md` §5 owns its comparison contract and release-version exception.
 Its stage 1 scenarios are also the cross-language parity gate, because the TypeScript stage 1 this port
