@@ -261,6 +261,34 @@ for (const method of ["GET", "PATCH"])
       );
     });
 
+for (const method of ["GET", "PATCH"])
+  for (const status of [200, 403])
+    test(`raw ${method} redacts NDJSON pairs in response ${status}`, async () => {
+      const args =
+        method === "GET"
+          ? getArgs("/example/entities/things/v1")
+          : writeArgs("ops");
+      const preview = method === "PATCH" ? await run(args) : undefined;
+      const confirm =
+        preview &&
+        (value(preview.stdout).preview as Record<string, string>).confirm;
+      dynamicResponse(`${method} /example/entities/things/v1`, () => ({
+        status,
+        headers: { "content-type": "application/x-ndjson" },
+        body: Buffer.from('{"key":"api_key","value":"hidden"}\n{"item":2}\n'),
+      }));
+      const result = await run(
+        confirm ? [...args, "--execute", "--confirm", confirm] : args,
+        await state(),
+      );
+      assert.equal(result.code, status === 200 ? 0 : 1, result.stdout);
+      const output = value(result.stdout);
+      assert.equal(
+        status === 200 ? output.body : output.upstream_body,
+        '{"key":"api_key","value":"[redacted]"}\n{"item":2}\n',
+      );
+    });
+
 test("raw get preserves a valid UTF-8 replacement character", async () => {
   recordedResponse("GET /example/entities/things/v1", 200, {
     description: "a�b",
@@ -1170,6 +1198,38 @@ test("raw write redacts signed authorization in preview and journal", async () =
   const result = await run([...args, "--execute", "--confirm", confirm], env);
   assert.equal(result.code, 0, result.stdout);
   assert.doesNotMatch(JSON.stringify(await journal(env)), /SignedHeaders|hidden/);
+});
+
+for (const status of [200, 403])
+  test(`raw response ${status} redacts folded authorization`, async () => {
+    dynamicResponse("GET /example/entities/things/v1", () => ({
+      status,
+      headers: { "content-type": "text/plain" },
+      body: Buffer.from(
+        'Authorization: Digest username="alice",\r\n response="hidden"\r\nNext: visible',
+      ),
+    }));
+    const result = await run(getArgs("/example/entities/things/v1"));
+    assert.equal(result.code, status === 200 ? 0 : 1, result.stdout);
+    assert.doesNotMatch(result.stdout, /alice|hidden/);
+    assert.match(result.stdout, /Next: visible/);
+  });
+
+test("raw write redacts folded authorization in preview and journal", async () => {
+  const query = new URLSearchParams({
+    note: 'Authorization: Digest username="alice",\r\n response="hidden"',
+  }).toString();
+  const args = writeArgs("ops", "--query", query);
+  const preview = await run(args);
+  assert.equal(preview.code, 0, preview.stdout);
+  assert.doesNotMatch(preview.stdout, /alice|hidden/);
+  const confirm = (value(preview.stdout).preview as Record<string, string>)
+    .confirm!;
+  const env = await state();
+  recordedResponse("PATCH /example/entities/things/v1", 200, {}, true);
+  const result = await run([...args, "--execute", "--confirm", confirm], env);
+  assert.equal(result.code, 0, result.stdout);
+  assert.doesNotMatch(JSON.stringify(await journal(env)), /alice|hidden/);
 });
 
 test("raw output redacts nested secrets and preserves metadata", async () => {

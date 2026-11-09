@@ -91,8 +91,13 @@ const assignment = new RegExp(
   `(?<![\\w.#-])(?:(authorization)(["']?[ \\t]*[:=][ \\t]*)(?:[a-z][a-z0-9+.-]*[ \\t]+)?|(${[...secretKeys].filter((key) => key !== "authorization").map((key) => key.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")).join("|")})(["']?[ \\t]*[:=][ \\t]*)(?:bearer[ \\t]+)?)(\\[redacted\\]|"(?:\\\\.|[^"\\\\])*"|'(?:\\\\.|[^'\\\\])*'|[^\\s,;&\\]})"']+)`,
   "gi",
 );
+const redactFoldedAuthorization = (value: string): string =>
+  value.replace(
+    /(?<![\w.#-])(authorization)(["']?[ \t]*[:=][ \t]*)[^\r\n]*(?:\r?\n[ \t]+[^\r\n]*)+/gi,
+    (_match, key: string, separator: string) => `${key}${separator}[redacted]`,
+  );
 export function redactAssignments(value: string): string {
-  return value
+  return redactFoldedAuthorization(value)
     .replace(
       /(?<![\w.#-])(authorization)(["']?[ \t]*[:=][ \t]*)(?:[a-z][a-z0-9+.-]*[ \t]+)?[\w-]+[ \t]*=[^\r\n]*/gi,
       (_match, key: string, separator: string) => `${key}${separator}[redacted]`,
@@ -329,10 +334,22 @@ function redactValue(
       }
       if (valid) return redactSerialized(value) as string;
     }
-    return redactAssignments(redactText(value)).replace(
+    const cleaned = redactText(value).replace(
       /-----BEGIN [A-Z ]*PRIVATE KEY-----[\s\S]*?(?:-----END [A-Z ]*PRIVATE KEY-----|$)|\beyJ[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+/gi,
       "[redacted]",
     );
+    const folded = redactFoldedAuthorization(cleaned);
+    return folded.replace(/[^\r\n]+/g, (line) => {
+      if (/^\s*[\[{]/.test(line)) {
+        try {
+          JSON.parse(line);
+          return redactSerialized(line) as string;
+        } catch {
+          return redactAssignments(line);
+        }
+      }
+      return redactAssignments(line);
+    });
   }
   if (Array.isArray(value))
     return value.map((entry) =>
