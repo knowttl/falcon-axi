@@ -52,13 +52,15 @@ const secretKeys = new Set([
   "private_key",
   "secret_key",
   "access_key",
+  "sig",
+  "accountkey",
 ]);
 const pairNameFields = ["key", "name", "field", "property", "attribute"];
 const pairValueFields = ["value", "data", "values", "val", "string_value"];
 export const isSecretKey = (name: string): boolean =>
   secretKeys.has(name.toLowerCase());
 const assignment = new RegExp(
-  `(?<![\\w.#-])(${[...secretKeys].map((key) => key.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")).join("|")})([ \\t]*[:=][ \\t]*)(?:bearer[ \\t]+)?("(?:\\\\.|[^"\\\\])*"|'(?:\\\\.|[^'\\\\])*'|[^\\r\\n]+?)(?=[\\r\\n]|[ \\t,;&]+[\\w.#-]+[ \\t]*[:=]|$)`,
+  `(?<![\\w.#-])(${[...secretKeys].map((key) => key.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")).join("|")})(["']?[ \\t]*[:=][ \\t]*)(?:bearer[ \\t]+)?("(?:\\\\.|[^"\\\\])*"|'(?:\\\\.|[^'\\\\])*'|[^\\r\\n]+?(?=[\\r\\n]|[ \\t,;&]+[\\w.#-]+[ \\t]*[:=]|$))`,
   "gi",
 );
 export function redactAssignments(value: string): string {
@@ -78,7 +80,7 @@ function namesSecret(entry: Record<string, unknown>): boolean {
 export function redact(value: unknown): unknown {
   if (typeof value === "string")
     return redactAssignments(redactText(value)).replace(
-      /-----BEGIN [A-Z ]*PRIVATE KEY-----[\s\S]*?(?:-----END [A-Z ]*PRIVATE KEY-----|$)|\beyJ[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+|AccountKey=[^;\s]+|(?<![\w])sig=[A-Za-z0-9%+/=]+/gi,
+      /-----BEGIN [A-Z ]*PRIVATE KEY-----[\s\S]*?(?:-----END [A-Z ]*PRIVATE KEY-----|$)|\beyJ[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+/gi,
       "[redacted]",
     );
   if (Array.isArray(value)) return value.map(redact);

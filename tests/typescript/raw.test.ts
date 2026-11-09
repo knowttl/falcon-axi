@@ -342,11 +342,11 @@ test("raw write redacts secret query values in preview and journal", async () =>
   const args = writeArgs(
     "ops",
     "--query",
-    "password=hidden&password=other&filter=note%3A%20password%3A%27nestedsecret%27&token_count=5",
+    "password=hidden&password=other&filter=note%3A%20password%3A%27nestedsecret%27&url=https%3A%2F%2Fexample.invalid%2F%3Fsig%3Dsasvalue&token_count=5",
   );
   const preview = await run(args);
   assert.equal(preview.code, 0, preview.stdout);
-  assert.doesNotMatch(preview.stdout, /hidden|other|nestedsecret/);
+  assert.doesNotMatch(preview.stdout, /hidden|other|nestedsecret|sasvalue/);
   const confirm = (value(preview.stdout).preview as Record<string, string>)
     .confirm!;
   const env = await state();
@@ -355,7 +355,11 @@ test("raw write redacts secret query values in preview and journal", async () =>
   assert.equal(result.code, 0, result.stdout);
   assert.doesNotMatch(
     JSON.stringify(await journal(env)),
-    /hidden|other|nestedsecret/,
+    /hidden|other|nestedsecret|sasvalue/,
+  );
+  assert.match(
+    decodeURIComponent(JSON.stringify(await journal(env))),
+    /sig=\[redacted\]/,
   );
   assert.match(decodeURIComponent(requests()[0]!.url), /nestedsecret/);
   assert.match(result.stdout, /token_count=5/);
@@ -418,13 +422,23 @@ for (const status of [200, 403])
 test("raw output redacts nested secrets and preserves metadata", async () => {
   recordedResponse("GET /example/entities/things/v1", 200, {
     message: "note: password=hunter2",
+    serialized: '{"password":"quotedsecret","label":"kept"}',
     metadata: "design=blue token_count=5",
     sas: "https://example.invalid/?sig=syntheticsignature&x=1",
+    account: "AccountKey=accountsecret;name=visible",
   });
   const result = await run(getArgs("/example/entities/things/v1"));
   assert.equal(result.code, 0, result.stdout);
-  assert.doesNotMatch(result.stdout, /hunter2|syntheticsignature/);
+  assert.doesNotMatch(
+    result.stdout,
+    /hunter2|syntheticsignature|quotedsecret|accountsecret/,
+  );
   assert.match(result.stdout, /design=blue token_count=5/);
+  const body = value(result.stdout).body as Record<string, string>;
+  assert.equal(body.sas, "https://example.invalid/?sig=[redacted]&x=1");
+  assert.equal(body.account, "AccountKey=[redacted];name=visible");
+  assert.match(body.serialized!, /password/);
+  assert.match(body.serialized!, /label/);
 });
 
 test("scopes distinguishes raw routes from registered commands", async () => {

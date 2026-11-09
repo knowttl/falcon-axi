@@ -4,14 +4,7 @@ import { observeRate, authenticate } from "./auth.js";
 import { CliError, object, parseResponse } from "./core.js";
 import { writeLogPath } from "./credentials.js";
 import type { Credential } from "./credentials.js";
-import {
-  isSecretKey,
-  Raw,
-  redact,
-  redactAssignments,
-  render,
-  truncate,
-} from "./render.js";
+import { isSecretKey, Raw, redact, render, truncate } from "./render.js";
 import { origin } from "./origin.js";
 import { openRetainedFile } from "./rtr-filesystem.js";
 import { readOnly } from "./rtr-policy.js";
@@ -281,7 +274,7 @@ export async function rawRun(
   for (const [key, value] of new URLSearchParams(query))
     safeQuery.append(
       key,
-      isSecretKey(key) ? "[redacted]" : redactAssignments(value),
+      isSecretKey(key) ? "[redacted]" : String(redact(value)),
     );
   const safeTarget = safeQuery.size ? `${path}?${safeQuery}` : path;
   if (request.executing && request.confirm !== confirm)
