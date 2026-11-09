@@ -441,6 +441,48 @@ test("raw output redacts nested secrets and preserves metadata", async () => {
   assert.match(body.serialized!, /label/);
 });
 
+for (const status of [200, 403])
+  test(`raw response ${status} redacts serialized pairs`, async () => {
+    recordedResponse("GET /example/entities/things/v1", status, {
+      payload:
+        '[{"key":"api_key","value":"pairsecret","count":9007199254740993},{"name":"token_count","value":5}]',
+    });
+    const result = await run(getArgs("/example/entities/things/v1"));
+    assert.equal(result.code, status === 200 ? 0 : 1, result.stdout);
+    assert.doesNotMatch(result.stdout, /pairsecret/);
+    assert.match(result.stdout, /9007199254740993/);
+    assert.match(result.stdout, /token_count/);
+    assert.match(result.stdout, /\[redacted\]/);
+  });
+
+test("raw write redacts serialized pairs in preview and journal", async () => {
+  const pair = '{"key":"api_key","value":"pairsecret","label":"visible"}';
+  const file = join(directory, "pair-body.json");
+  await writeFile(file, JSON.stringify({ payload: pair }));
+  const args = writeArgs(
+    "ops",
+    "--body-file",
+    file,
+    "--query",
+    new URLSearchParams({ filter: pair }).toString(),
+  );
+  const preview = await run(args);
+  assert.equal(preview.code, 0, preview.stdout);
+  assert.doesNotMatch(preview.stdout, /pairsecret/);
+  assert.match(preview.stdout, /visible/);
+  const confirm = (value(preview.stdout).preview as Record<string, string>)
+    .confirm!;
+  const env = await state();
+  recordedResponse("PATCH /example/entities/things/v1", 200, {}, true);
+  const result = await run([...args, "--execute", "--confirm", confirm], env);
+  assert.equal(result.code, 0, result.stdout);
+  assert.doesNotMatch(JSON.stringify(await journal(env)), /pairsecret/);
+  assert.match(
+    decodeURIComponent(JSON.stringify(await journal(env))),
+    /visible/,
+  );
+});
+
 test("scopes distinguishes raw routes from registered commands", async () => {
   const result = await run(["scopes"]);
   assert.equal(result.code, 0, result.stdout);

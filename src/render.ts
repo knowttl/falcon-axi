@@ -77,14 +77,36 @@ function namesSecret(entry: Record<string, unknown>): boolean {
       isSecretKey(name),
   );
 }
+const json = JSON as JSON & {
+  rawJSON(source: string): object;
+  isRawJSON(value: unknown): boolean;
+};
 export function redact(value: unknown): unknown {
-  if (typeof value === "string")
+  if (typeof value === "string") {
+    if (/^\s*[\[{]/.test(value)) {
+      let parsed: unknown;
+      try {
+        parsed = JSON.parse(
+          value,
+          (_key, entry: unknown, context?: { source?: string }) =>
+            typeof entry === "number" && context?.source
+              ? json.rawJSON(context.source)
+              : entry,
+        );
+      } catch {
+        parsed = undefined;
+      }
+      if (object(parsed) || Array.isArray(parsed))
+        return JSON.stringify(redact(parsed));
+    }
     return redactAssignments(redactText(value)).replace(
       /-----BEGIN [A-Z ]*PRIVATE KEY-----[\s\S]*?(?:-----END [A-Z ]*PRIVATE KEY-----|$)|\beyJ[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+/gi,
       "[redacted]",
     );
+  }
   if (Array.isArray(value)) return value.map(redact);
   if (object(value)) {
+    if (json.isRawJSON(value)) return value;
     const pair = namesSecret(value);
     return Object.fromEntries(
       Object.entries(value).map(([key, entry]) => [
