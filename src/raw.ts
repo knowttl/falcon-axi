@@ -202,8 +202,7 @@ function failure(response: Response, writing = false): CliError {
 }
 
 function present(response: Response): Record<string, unknown> {
-  const text = response.text ?? "";
-  if (text.includes("\0") || text.includes(String.fromCharCode(0xfffd)))
+  if (response.binary)
     throw new CliError(
       "UPSTREAM_ERROR",
       "the response is binary, which raw requests do not print",

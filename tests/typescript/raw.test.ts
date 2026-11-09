@@ -168,11 +168,37 @@ test("raw get refuses a binary response", async () => {
   dynamicResponse("GET /example/entities/things/v1", () => ({
     status: 200,
     headers: { "content-type": "application/octet-stream" },
-    body: Buffer.from([0x37, 0x7a, 0x00, 0xff]),
+    body: Buffer.from([0x37, 0x7a, 0xff]),
   }));
   const result = await run(getArgs("/example/entities/things/v1"));
   assert.equal(result.code, 1, result.stdout);
   assert.match(result.stdout, /binary/);
+});
+
+test("raw get preserves a valid UTF-8 replacement character", async () => {
+  recordedResponse("GET /example/entities/things/v1", 200, {
+    description: "a�b",
+  });
+  const result = await run(getArgs("/example/entities/things/v1"));
+  assert.equal(result.code, 0, result.stdout);
+  assert.deepEqual(value(result.stdout).body, { description: "a�b" });
+});
+
+test("raw write preserves a valid UTF-8 replacement character", async () => {
+  const file = await body();
+  const confirm = await confirmValue("ops", file);
+  recordedResponse(
+    "PATCH /example/entities/things/v1",
+    200,
+    { description: "a�b" },
+    true,
+  );
+  const result = await run(
+    writeArgs("ops", "--body-file", file, "--execute", "--confirm", confirm),
+    await state(),
+  );
+  assert.equal(result.code, 0, result.stdout);
+  assert.deepEqual(value(result.stdout).body, { description: "a�b" });
 });
 
 for (const [profile, why] of [
@@ -492,6 +518,19 @@ for (const status of [200, 403])
       body.pair,
       '{ "key" : "api_key", "value" : "[redacted]", "label": 1, "label": 2 }',
     );
+  });
+
+for (const status of [200, 403])
+  test(`raw response ${status} redacts credentials in serialized keys`, async () => {
+    recordedResponse("GET /example/entities/things/v1", status, {
+      payload: '{ "synthetic-s01-secret" : "visible", "safe": 1 }',
+    });
+    const result = await run(getArgs("/example/entities/things/v1"));
+    assert.equal(result.code, status === 200 ? 0 : 1, result.stdout);
+    const body = value(result.stdout)[
+      status === 200 ? "body" : "upstream_body"
+    ] as Record<string, string>;
+    assert.equal(body.payload, '{ "[redacted]" : "visible", "safe": 1 }');
   });
 
 for (const status of [200, 403])

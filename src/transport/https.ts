@@ -1,4 +1,5 @@
 import https from "node:https";
+import { isUtf8 } from "node:buffer";
 import http from "node:http";
 import tls from "node:tls";
 import type { Duplex } from "node:stream";
@@ -23,6 +24,7 @@ export interface Response {
   headers: Readonly<Record<string, string>>;
   body: unknown;
   text?: string;
+  binary?: boolean;
 }
 type Query = Readonly<Record<string, string | number | readonly string[]>>;
 interface Prepared {
@@ -225,7 +227,8 @@ async function send(
               if (value !== undefined && key !== "location")
                 headers[key] = Array.isArray(value) ? value.join(",") : value;
             let body: unknown = undefined;
-            const text = Buffer.concat(chunks).toString("utf8");
+            const bytes = Buffer.concat(chunks);
+            const text = bytes.toString("utf8");
             if (text) {
               try {
                 body = parseResponse(text);
@@ -237,7 +240,9 @@ async function send(
               status: response.statusCode ?? 500,
               headers: Object.freeze(headers),
               body,
-              ...(prepared.raw ? { text } : {}),
+              ...(prepared.raw
+                ? { text, binary: !isUtf8(bytes) || bytes.includes(0) }
+                : {}),
             });
           });
         },

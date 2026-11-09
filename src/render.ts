@@ -81,7 +81,7 @@ function redactSerialized(text: string): string {
   type Node = {
     start: number;
     end: number;
-    entries?: { key: string; node: Node }[];
+    entries?: { key: string; keyNode: Node; node: Node }[];
     children?: Node[];
   };
   let position = 0;
@@ -95,7 +95,7 @@ function redactSerialized(text: string): string {
     const character = text[position];
     if (character === "{" || character === "[") {
       position++;
-      const entries: { key: string; node: Node }[] = [];
+      const entries: { key: string; keyNode: Node; node: Node }[] = [];
       const children: Node[] = [];
       space();
       while (text[position] !== (character === "{" ? "}" : "]")) {
@@ -105,6 +105,7 @@ function redactSerialized(text: string): string {
           position++;
           entries.push({
             key: JSON.parse(text.slice(key.start, key.end)) as string,
+            keyNode: key,
             node: parse(),
           });
         } else children.push(parse());
@@ -138,7 +139,14 @@ function redactSerialized(text: string): string {
           text[entry.start] === '"' &&
           isSecretKey(JSON.parse(text.slice(entry.start, entry.end)) as string),
       );
-      for (const { key, node: entry } of node.entries) {
+      for (const { key, keyNode, node: entry } of node.entries) {
+        const safeKey = redactText(key);
+        if (safeKey !== key)
+          edits.push({
+            start: keyNode.start,
+            end: keyNode.end,
+            value: JSON.stringify(safeKey),
+          });
         if (
           isSecretKey(key) ||
           (pair && pairValueFields.includes(key.toLowerCase()))
