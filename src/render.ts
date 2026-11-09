@@ -179,7 +179,7 @@ function redactSerialized(text: string, detectOnly = false): string | boolean {
           isSecretKey(key) ||
           pairs.has(index) ||
           (withinSecret && isPairValue(key));
-        visit(entry, withinSecret || sensitive, sensitive);
+        visit(entry, sensitive, sensitive);
       }
     }
     for (const child of node.children ?? [])
@@ -249,7 +249,7 @@ function redactValue(
           (withinSecret && isPairValue(key));
         return [
           redactText(key),
-          redactValue(entry, withinSecret || sensitive, sensitive),
+          redactValue(entry, sensitive, sensitive),
         ];
       }),
     );

@@ -917,8 +917,8 @@ for (const status of [200, 403])
     const structured = {
       password: {
         value: "hidden",
-        expires: "tomorrow",
-        nested: { val: "hidden", label: "keep" },
+        expires: { value: "tomorrow" },
+        nested: { val: "visible", label: "keep", token: "hidden" },
         tags: ["visible"],
       },
       key: "api_key",
@@ -928,8 +928,8 @@ for (const status of [200, 403])
     const expected = {
       password: {
         value: "[redacted]",
-        expires: "tomorrow",
-        nested: { val: "[redacted]", label: "keep" },
+        expires: { value: "tomorrow" },
+        nested: { val: "visible", label: "keep", token: "[redacted]" },
         tags: ["visible"],
       },
       key: "api_key",
@@ -951,15 +951,23 @@ for (const status of [200, 403])
 
 test("raw write preview preserves structured secret metadata", async () => {
   const file = join(directory, "structured-secret.json");
+  const structured = {
+    password: { value: "hidden", expires: { value: "tomorrow" } },
+  };
   await writeFile(
     file,
-    JSON.stringify({ password: { value: "hidden", expires: "tomorrow" } }),
+    JSON.stringify({ ...structured, serialized: JSON.stringify(structured) }),
   );
   const result = await run(writeArgs("ops", "--body-file", file));
   assert.equal(result.code, 0, result.stdout);
-  assert.deepEqual((value(result.stdout).preview as { body: unknown }).body, {
-    password: { value: "[redacted]", expires: "tomorrow" },
-  });
+  const body = (value(result.stdout).preview as {
+    body: { password: unknown; serialized: string };
+  }).body;
+  const expected = {
+    password: { value: "[redacted]", expires: { value: "tomorrow" } },
+  };
+  assert.deepEqual(body.password, expected.password);
+  assert.deepEqual(JSON.parse(body.serialized), expected);
 });
 
 for (const status of [200, 403])
