@@ -195,6 +195,19 @@ function redactSerialized(text: string, detectOnly = false): string | boolean {
           end: node.end,
           value: JSON.stringify(cleaned),
         });
+    } else if (
+      !node.entries &&
+      !node.children &&
+      /[-0-9]/.test(text[node.start] ?? "")
+    ) {
+      const original = text.slice(node.start, node.end);
+      const cleaned = redactText(original);
+      if (cleaned !== original)
+        edits.push({
+          start: node.start,
+          end: node.end,
+          value: JSON.stringify(cleaned),
+        });
     }
   };
   visit(root);
@@ -215,7 +228,10 @@ function redactValue(
   withinSecret = false,
   hideScalar = false,
 ): unknown {
-  if (value instanceof RawNumber) return hideScalar ? "[redacted]" : value;
+  if (value instanceof RawNumber) {
+    const cleaned = redactText(value.text);
+    return hideScalar ? "[redacted]" : cleaned === value.text ? value : cleaned;
+  }
   if (hideScalar && !object(value) && !Array.isArray(value))
     return "[redacted]";
   if (typeof value === "string") {

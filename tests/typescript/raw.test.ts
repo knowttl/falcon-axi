@@ -1038,6 +1038,57 @@ for (const status of [200, 403])
   });
 
 for (const status of [200, 403])
+  test(`raw response ${status} redacts registered numeric credentials`, async () => {
+    const serialized = '{"reference":123456789,"count":1.0}';
+    recordedResponse("GET /example/entities/things/v1", status, {
+      reference: 123456789,
+      serialized,
+    });
+    const result = await run(getArgs("/example/entities/things/v1"), {
+      ARTIUM_SECRET_0: "123456789",
+    });
+    assert.equal(result.code, status === 200 ? 0 : 1, result.stdout);
+    assert.doesNotMatch(result.stdout, /123456789/);
+    const body = value(result.stdout)[
+      status === 200 ? "body" : "upstream_body"
+    ] as { reference: string; serialized: string };
+    assert.equal(body.reference, "[redacted]");
+    assert.equal(body.serialized, '{"reference":"[redacted]","count":1.0}');
+  });
+
+for (const status of [200, 403])
+  test(`raw write preview and response ${status} redact numeric credentials`, async () => {
+  const file = join(directory, "numeric-secret.json");
+  await writeFile(file, '{"reference":123456789,"count":1.0}');
+  const args = writeArgs("ops", "--body-file", file);
+  const result = await run(args, {
+    ARTIUM_SECRET_0: "123456789",
+  });
+  assert.equal(result.code, 0, result.stdout);
+  assert.doesNotMatch(result.stdout, /123456789/);
+  const body = (value(result.stdout).preview as {
+    body: Record<string, unknown>;
+  }).body;
+  assert.equal(body.reference, "[redacted]");
+  assert.match(result.stdout, /count: 1\.0/);
+  const confirm = (value(result.stdout).preview as Record<string, string>).confirm!;
+  dynamicResponse("PATCH /example/entities/things/v1", () => ({
+    status,
+    body: Buffer.from('{"reference":123456789,"count":1.0}'),
+  }));
+  const executed = await run([...args, "--execute", "--confirm", confirm], {
+    ...(await state()),
+    ARTIUM_SECRET_0: "123456789",
+  });
+  assert.equal(executed.code, status === 200 ? 0 : 1, executed.stdout);
+  assert.doesNotMatch(executed.stdout, /123456789/);
+  assert.equal(
+    (value(executed.stdout)[status === 200 ? "body" : "upstream_body"] as Record<string, unknown>).reference,
+    "[redacted]",
+  );
+  });
+
+for (const status of [200, 403])
   test(`raw response ${status} preserves non-pair aliases and decimal text`, async () => {
     const text =
       '{"data":"visible","key":"api_key","value":"hidden","threshold":0.10000000000000001,"count":1.0}';
