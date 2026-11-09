@@ -79,7 +79,7 @@ function namesSecret(entry: Record<string, unknown>): boolean {
       isPairName(field) && typeof name === "string" && isSecretKey(name),
   );
 }
-function redactSerialized(text: string): string {
+function redactSerialized(text: string, detectOnly = false): string | boolean {
   type Node = {
     start: number;
     end: number;
@@ -87,6 +87,7 @@ function redactSerialized(text: string): string {
     children?: Node[];
   };
   let position = 0;
+  let duplicate = false;
   const space = (): void => {
     while (/\s/.test(text[position] ?? "") && position < text.length)
       position++;
@@ -99,14 +100,18 @@ function redactSerialized(text: string): string {
       position++;
       const entries: { key: string; keyNode: Node; node: Node }[] = [];
       const children: Node[] = [];
+      const keys = new Set<string>();
       space();
       while (text[position] !== (character === "{" ? "}" : "]")) {
         if (character === "{") {
           const key = parse();
           space();
           position++;
+          const name = JSON.parse(text.slice(key.start, key.end)) as string;
+          if (keys.has(name)) duplicate = true;
+          keys.add(name);
           entries.push({
-            key: JSON.parse(text.slice(key.start, key.end)) as string,
+            key: name,
             keyNode: key,
             node: parse(),
           });
@@ -132,6 +137,7 @@ function redactSerialized(text: string): string {
     return { start, end: position };
   };
   const root = parse();
+  if (detectOnly) return duplicate;
   const edits: { start: number; end: number; value: string }[] = [];
   const visit = (node: Node): void => {
     if (node.entries?.length) {
@@ -175,6 +181,9 @@ function redactSerialized(text: string): string {
     text = text.slice(0, edit.start) + edit.value + text.slice(edit.end);
   return text;
 }
+export function hasDuplicateJsonMembers(text: string): boolean {
+  return redactSerialized(text, true) as boolean;
+}
 export function redact(value: unknown): unknown {
   if (typeof value === "string") {
     if (/^\s*[\[{]/.test(value)) {
@@ -185,7 +194,7 @@ export function redact(value: unknown): unknown {
       } catch {
         valid = false;
       }
-      if (valid) return redactSerialized(value);
+      if (valid) return redactSerialized(value) as string;
     }
     return redactAssignments(redactText(value)).replace(
       /-----BEGIN [A-Z ]*PRIVATE KEY-----[\s\S]*?(?:-----END [A-Z ]*PRIVATE KEY-----|$)|\beyJ[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+/gi,

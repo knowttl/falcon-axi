@@ -259,6 +259,46 @@ test("raw write previews with an exact confirm value and sends nothing", async (
   await assert.rejects(readFile(env.FALCON_AXI_WRITE_LOG!));
 });
 
+test("raw write previews every duplicate JSON member before sending", async () => {
+  const text =
+    '{"role":"admin","role":"viewer","nested":{"password":"hidden","password":"alsohidden"}}';
+  const file = join(directory, "duplicate-body.json");
+  await writeFile(file, text);
+  const args = writeArgs("ops", "--body-file", file);
+  const preview = await run(args);
+  assert.equal(preview.code, 0, preview.stdout);
+  const shown = (value(preview.stdout).preview as { body: string }).body;
+  assert.equal(
+    shown,
+    '{"role":"admin","role":"viewer","nested":{"password":"[redacted]","password":"[redacted]"}}',
+  );
+  const confirm = (value(preview.stdout).preview as Record<string, string>)
+    .confirm!;
+  recordedResponse("PATCH /example/entities/things/v1", 200, {}, true);
+  const result = await run(
+    [...args, "--execute", "--confirm", confirm],
+    await state(),
+  );
+  assert.equal(result.code, 0, result.stdout);
+  assert.equal(requests()[0]!.body, text);
+});
+
+for (const status of [200, 403])
+  test(`raw response ${status} preserves duplicate JSON members`, async () => {
+    dynamicResponse("GET /example/entities/things/v1", () => ({
+      status,
+      body: Buffer.from(
+        '{"items":[{"role":"admin","role":"viewer","token":"hidden"}]}',
+      ),
+    }));
+    const result = await run(getArgs("/example/entities/things/v1"));
+    assert.equal(result.code, status === 200 ? 0 : 1, result.stdout);
+    assert.equal(
+      value(result.stdout)[status === 200 ? "body" : "upstream_body"],
+      '{"items":[{"role":"admin","role":"viewer","token":"[redacted]"}]}',
+    );
+  });
+
 test("raw write refuses a wrong confirm value before any request", async () => {
   const file = await body();
   const result = await run(

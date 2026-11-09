@@ -5,6 +5,7 @@ import { CliError, object, parseResponse } from "./core.js";
 import { writeLogPath } from "./credentials.js";
 import type { Credential } from "./credentials.js";
 import {
+  hasDuplicateJsonMembers,
   isPairName,
   isPairValue,
   isSecretKey,
@@ -142,6 +143,12 @@ function responseBody(response: Response): unknown {
       [],
       { status: response.status },
     );
+  if (
+    (object(response.body) || Array.isArray(response.body)) &&
+    response.text &&
+    hasDuplicateJsonMembers(response.text)
+  )
+    return response.text;
   return response.body !== undefined
     ? response.body
     : response.text
@@ -315,7 +322,13 @@ export async function rawRun(
           body_sha256: body ? digest : undefined,
           journal: writeLogPath(),
           confirm,
-          ...(body ? { body: parseResponse(body) } : {}),
+          ...(body
+            ? {
+                body: hasDuplicateJsonMembers(body)
+                  ? body
+                  : parseResponse(body),
+              }
+            : {}),
         },
       },
       request.executing
