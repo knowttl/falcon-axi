@@ -66,7 +66,7 @@ Every one of these gates must hold to execute, and the first three apply even to
 1. The selected profile is a file profile with `writes.allowWrites: true` and `"raw-write"` in `writes.operations`.
 2. The path satisfies the same syntax checks as `raw get`.
 3. The body, when given, is one JSON object or array of at most 1 MiB.
-4. The preview prints the exact `confirm` value, which binds the profile, origin, tenant, method, path, query, and body.
+4. The preview prints the exact `confirm` value, which binds the profile, resolved API client identity, origin, tenant, method, path, query, and body.
 5. Execution adds `--execute --confirm '<confirm>'` with that exact value.
 6. `FALCON_AXI_READ_ONLY` is not enabled, and the private journal can be opened.
 

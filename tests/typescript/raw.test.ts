@@ -290,6 +290,37 @@ test("raw write changes its confirm value when the body changes", async () => {
   assert.notEqual(await confirmValue("ops", file), first);
 });
 
+test("raw write rejects confirmation after the API client changes", async () => {
+  const file = await body();
+  const confirm = await confirmValue("ops", file);
+  const document = JSON.parse(await readFile(config, "utf8")) as {
+    profiles: { ops: { clientId: string } };
+  };
+  document.profiles.ops.clientId = "synthetic-different-client";
+  await writeFile(config, JSON.stringify(document));
+  const result = await run(
+    writeArgs("ops", "--body-file", file, "--execute", "--confirm", confirm),
+  );
+  assert.equal(result.code, 2, result.stdout);
+  assert.match(result.stdout, /--confirm must match/);
+  assert.doesNotMatch(result.stdout, /synthetic-different-client/);
+  assert.equal(wire.length, 0);
+});
+
+test("raw error redacts serialized secret pairs before truncation", async () => {
+  const body = JSON.stringify({
+    key: "api_key",
+    value: "secret-value",
+    metadata: "x".repeat(2200),
+  });
+  recordedResponse("GET /example/entities/things/v1", 403, body);
+  const result = await run(getArgs("/example/entities/things/v1"));
+  assert.equal(result.code, 1, result.stdout);
+  assert.doesNotMatch(result.stdout, /secret-value/);
+  assert.match(result.stdout, /\[redacted\]/);
+  assert.match(result.stdout, /truncated/);
+});
+
 test("raw write preserves stdin body numbers and confirms the destination", async () => {
   const text = '{"number":9007199254740993}';
   const file = join(directory, "large-number.json");

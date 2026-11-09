@@ -138,7 +138,9 @@ function failure(response: Response, writing = false): CliError {
   const { status } = response;
   const received = responseBody(response);
   const body =
-    typeof received === "string" ? truncate(received, 2000) : received;
+    typeof received === "string"
+      ? truncate(String(redact(received)), 2000)
+      : received;
   const details = {
     upstream_status: status,
     ...(body === undefined
@@ -261,6 +263,7 @@ export async function rawRun(
     .update(
       JSON.stringify([
         credential.profile,
+        credential.clientId,
         destination,
         credential.memberCid ?? "",
         method,
