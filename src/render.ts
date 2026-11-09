@@ -73,11 +73,19 @@ export function redactAssignments(value: string): string {
     (_match, key: string, separator: string) => `${key}${separator}[redacted]`,
   );
 }
-function namesSecret(entry: Record<string, unknown>): boolean {
-  return Object.entries(entry).some(
-    ([field, name]) =>
-      isPairName(field) && typeof name === "string" && isSecretKey(name),
-  );
+export function positionalSecretPair(): (
+  key: string,
+  value: unknown,
+) => boolean {
+  let secret = false;
+  return (key, value) => {
+    if (isPairName(key))
+      secret = typeof value === "string" && isSecretKey(value);
+    if (!isPairValue(key)) return false;
+    const result = secret;
+    secret = false;
+    return result;
+  };
 }
 function redactSerialized(text: string, detectOnly = false): string | boolean {
   type Node = {
@@ -141,12 +149,7 @@ function redactSerialized(text: string, detectOnly = false): string | boolean {
   const edits: { start: number; end: number; value: string }[] = [];
   const visit = (node: Node): void => {
     if (node.entries?.length) {
-      const pair = node.entries.some(
-        ({ key, node: entry }) =>
-          isPairName(key) &&
-          text[entry.start] === '"' &&
-          isSecretKey(JSON.parse(text.slice(entry.start, entry.end)) as string),
-      );
+      const pair = positionalSecretPair();
       for (const { key, keyNode, node: entry } of node.entries) {
         const safeKey = redactText(key);
         if (safeKey !== key)
@@ -155,7 +158,13 @@ function redactSerialized(text: string, detectOnly = false): string | boolean {
             end: keyNode.end,
             value: JSON.stringify(safeKey),
           });
-        if (isSecretKey(key) || (pair && isPairValue(key)))
+        const pairedValue = pair(
+          key,
+          text[entry.start] === '"'
+            ? (JSON.parse(text.slice(entry.start, entry.end)) as string)
+            : undefined,
+        );
+        if (isSecretKey(key) || pairedValue)
           edits.push({
             start: entry.start,
             end: entry.end,
@@ -203,11 +212,11 @@ export function redact(value: unknown): unknown {
   }
   if (Array.isArray(value)) return value.map(redact);
   if (object(value)) {
-    const pair = namesSecret(value);
+    const pair = positionalSecretPair();
     return Object.fromEntries(
       Object.entries(value).map(([key, entry]) => [
         redactText(key),
-        secretKeys.has(key.toLowerCase()) || (pair && isPairValue(key))
+        secretKeys.has(key.toLowerCase()) || pair(key, entry)
           ? "[redacted]"
           : redact(entry),
       ]),

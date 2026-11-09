@@ -6,9 +6,8 @@ import { writeLogPath } from "./credentials.js";
 import type { Credential } from "./credentials.js";
 import {
   hasDuplicateJsonMembers,
-  isPairName,
-  isPairValue,
   isSecretKey,
+  positionalSecretPair,
   Raw,
   redact,
   render,
@@ -100,14 +99,15 @@ export function validateRawInvocation(
       const parsed: unknown = JSON.parse(text);
       if (
         bytes.length > BODY_LIMIT ||
-        !(object(parsed) || Array.isArray(parsed))
+        !(object(parsed) || Array.isArray(parsed)) ||
+        hasDuplicateJsonMembers(text)
       )
         throw new Error("body");
       body = text;
     } catch {
       throw new CliError(
         "VALIDATION_ERROR",
-        "--body-file must contain one JSON object or array of at most 1 MiB",
+        "--body-file must contain one JSON object or array of at most 1 MiB without duplicate members",
       );
     }
   }
@@ -158,15 +158,13 @@ function responseBody(response: Response): unknown {
 
 function redactQueryPairs(query: string): string {
   const safe = new URLSearchParams();
-  let secretPair = false;
+  const pair = positionalSecretPair();
   for (const [key, value] of new URLSearchParams(query)) {
-    if (isPairName(key)) secretPair = isSecretKey(value);
-    const pairedValue = isPairValue(key) && secretPair;
+    const pairedValue = pair(key, value);
     safe.append(
       key,
       isSecretKey(key) || pairedValue ? "[redacted]" : String(redact(value)),
     );
-    if (isPairValue(key)) secretPair = false;
   }
   return safe.toString();
 }
@@ -322,13 +320,7 @@ export async function rawRun(
           body_sha256: body ? digest : undefined,
           journal: writeLogPath(),
           confirm,
-          ...(body
-            ? {
-                body: hasDuplicateJsonMembers(body)
-                  ? body
-                  : parseResponse(body),
-              }
-            : {}),
+          ...(body ? { body: parseResponse(body) } : {}),
         },
       },
       request.executing

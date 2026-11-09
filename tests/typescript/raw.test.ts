@@ -259,29 +259,36 @@ test("raw write previews with an exact confirm value and sends nothing", async (
   await assert.rejects(readFile(env.FALCON_AXI_WRITE_LOG!));
 });
 
-test("raw write previews every duplicate JSON member before sending", async () => {
-  const text =
-    '{"role":"admin","role":"viewer","nested":{"password":"hidden","password":"alsohidden"}}';
-  const file = join(directory, "duplicate-body.json");
-  await writeFile(file, text);
-  const args = writeArgs("ops", "--body-file", file);
-  const preview = await run(args);
-  assert.equal(preview.code, 0, preview.stdout);
-  const shown = (value(preview.stdout).preview as { body: string }).body;
-  assert.equal(
-    shown,
-    '{"role":"admin","role":"viewer","nested":{"password":"[redacted]","password":"[redacted]"}}',
-  );
-  const confirm = (value(preview.stdout).preview as Record<string, string>)
-    .confirm!;
-  recordedResponse("PATCH /example/entities/things/v1", 200, {}, true);
-  const result = await run(
-    [...args, "--execute", "--confirm", confirm],
-    await state(),
-  );
-  assert.equal(result.code, 0, result.stdout);
-  assert.equal(requests()[0]!.body, text);
-});
+for (const text of [
+  '{"role":"admin","role":"viewer"}',
+  '{"nested":[{"role":"admin","role":"viewer"}]}',
+])
+  test("raw write rejects duplicate JSON members before preview", async () => {
+    const file = join(directory, "duplicate-body.json");
+    await writeFile(file, text);
+    const args = writeArgs("ops", "--body-file", file);
+    const preview = await run(args);
+    assert.equal(preview.code, 2, preview.stdout);
+    assert.equal(value(preview.stdout).code, "VALIDATION_ERROR");
+    assert.equal(value(preview.stdout).preview, undefined);
+    assert.equal(wire.length, 0);
+  });
+
+for (const status of [200, 403])
+  test(`raw response ${status} associates duplicate pairs by position`, async () => {
+    const pair =
+      '{ "key":"api_key", "value":"hidden", "key":"retention_days", "value":30 }';
+    dynamicResponse("GET /example/entities/things/v1", () => ({
+      status,
+      body: Buffer.from(pair),
+    }));
+    const result = await run(getArgs("/example/entities/things/v1"));
+    assert.equal(result.code, status === 200 ? 0 : 1, result.stdout);
+    assert.equal(
+      value(result.stdout)[status === 200 ? "body" : "upstream_body"],
+      '{ "key":"api_key", "value":"[redacted]", "key":"retention_days", "value":30 }',
+    );
+  });
 
 for (const status of [200, 403])
   test(`raw response ${status} preserves duplicate JSON members`, async () => {
@@ -726,6 +733,20 @@ test("raw write redacts serialized pairs in preview and journal", async () => {
   );
 });
 
+test("raw write preview preserves metadata in serialized duplicate pairs", async () => {
+  const pair =
+    '{"key":"api_key","value":"hidden","key":"retention_days","value":30}';
+  const file = join(directory, "serialized-pairs.json");
+  await writeFile(file, JSON.stringify({ payload: pair }));
+  const result = await run(writeArgs("ops", "--body-file", file));
+  assert.equal(result.code, 0, result.stdout);
+  const preview = value(result.stdout).preview as { body: { payload: string } };
+  assert.equal(
+    preview.body.payload,
+    '{"key":"api_key","value":"[redacted]","key":"retention_days","value":30}',
+  );
+});
+
 test("scopes distinguishes raw routes from registered commands", async () => {
   const result = await run(["scopes"]);
   assert.equal(result.code, 0, result.stdout);
@@ -788,6 +809,7 @@ test("raw output redacts exact secret pairs and preserves metadata", async () =>
       { attribute: "customer_id", val: "hidden" },
       { name: "token_count", value: 5 },
       { field: "access_token", values: ["hidden"] },
+      { key: "api_key", value: "hidden", name: "retention_days", data: 30 },
     ],
   });
   const result = await run(getArgs("/user-management/entities/users/v1"));
@@ -798,6 +820,7 @@ test("raw output redacts exact secret pairs and preserves metadata", async () =>
       { attribute: "customer_id", val: "[redacted]" },
       { name: "token_count", value: 5 },
       { field: "access_token", values: "[redacted]" },
+      { key: "api_key", value: "[redacted]", name: "retention_days", data: 30 },
     ],
   });
 });
