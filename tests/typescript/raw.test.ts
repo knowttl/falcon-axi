@@ -551,6 +551,7 @@ for (const name of ["key", "name", "field", "property", "attribute"])
   test(`raw write redacts query value when ${name} names a secret`, async () => {
     const query = new URLSearchParams([
       [name.toUpperCase(), "API_KEY"],
+      ["field", "display"],
       ["value", "secret-value"],
       ["note", "visible"],
     ]);
@@ -561,6 +562,7 @@ for (const name of ["key", "name", "field", "property", "attribute"])
       preview.stdout,
       /secret-value/,
     );
+    assert.match(preview.stdout, /field=display/);
     const confirm = (value(preview.stdout).preview as Record<string, string>)
       .confirm!;
     const env = await state();
@@ -593,7 +595,7 @@ test("raw write associates query pairs by position", async () => {
   assert.equal(preview.code, 0, preview.stdout);
   assert.doesNotMatch(preview.stdout, /hidden/);
   assert.match(preview.stdout, /value=30/);
-  assert.match(preview.stdout, /value=40/);
+  assert.doesNotMatch(preview.stdout, /value=40/);
   const confirm = (value(preview.stdout).preview as Record<string, string>)
     .confirm!;
   const env = await state();
@@ -603,19 +605,19 @@ test("raw write associates query pairs by position", async () => {
   const records = JSON.stringify(await journal(env));
   assert.doesNotMatch(records, /hidden/);
   assert.match(records, /value=30/);
-  assert.match(records, /value=40/);
+  assert.doesNotMatch(records, /value=40/);
 });
 
 test("raw write retains secret key association across name aliases", async () => {
   const args = writeArgs(
     "ops",
     "--query",
-    "key=api_key&name=display&field=label&value=hidden&key=api_key&key=retention_days&value=30",
+    "name=api_key&field=label&key=display&value=hidden&key=retention_days&value=30",
   );
   const preview = await run(args);
   assert.equal(preview.code, 0, preview.stdout);
   assert.doesNotMatch(preview.stdout, /hidden/);
-  assert.match(preview.stdout, /name=display&field=label/);
+  assert.match(preview.stdout, /field=label&key=display/);
   assert.match(preview.stdout, /value=30/);
   const confirm = (value(preview.stdout).preview as Record<string, string>)
     .confirm!;
@@ -625,7 +627,7 @@ test("raw write retains secret key association across name aliases", async () =>
   assert.equal(result.code, 0, result.stdout);
   const records = JSON.stringify(await journal(env));
   assert.doesNotMatch(records, /hidden/);
-  assert.match(records, /name=display&field=label/);
+  assert.match(records, /field=label&key=display/);
   assert.match(records, /value=30/);
 });
 
@@ -633,12 +635,12 @@ test("raw write redacts reversed query pairs in preview and journal", async () =
   const args = writeArgs(
     "ops",
     "--query",
-    "value=hidden&name=display&field=label&key=api_key&value=30&key=retention_days",
+    "value=hidden&key=display&field=label&name=api_key&value=30&key=retention_days",
   );
   const preview = await run(args);
   assert.equal(preview.code, 0, preview.stdout);
   assert.doesNotMatch(preview.stdout, /hidden/);
-  assert.match(preview.stdout, /name=display&field=label/);
+  assert.match(preview.stdout, /key=display&field=label/);
   assert.match(preview.stdout, /value=30/);
   const confirm = (value(preview.stdout).preview as Record<string, string>)
     .confirm!;
@@ -648,7 +650,7 @@ test("raw write redacts reversed query pairs in preview and journal", async () =
   assert.equal(result.code, 0, result.stdout);
   const records = JSON.stringify(await journal(env));
   assert.doesNotMatch(records, /hidden/);
-  assert.match(records, /name=display&field=label/);
+  assert.match(records, /key=display&field=label/);
   assert.match(records, /value=30/);
 });
 
@@ -656,9 +658,9 @@ for (const status of [200, 403])
   test(`raw response ${status} redacts reversed pairs across name aliases`, async () => {
     const pair = {
       value: "hidden",
-      name: "display",
+      key: "display",
       field: "label",
-      key: "api_key",
+      name: "api_key",
     };
     const expected = { ...pair, value: "[redacted]" };
     recordedResponse("GET /example/entities/things/v1", status, {
@@ -853,15 +855,15 @@ test("raw write preview replaces credential keys without collisions", async () =
 for (const status of [200, 403])
   test(`raw write ${status} redacts embedded credentials and intervening aliases`, async () => {
     const pair = {
-      key: "api_key",
-      name: "display label",
+      name: "api_key",
+      key: "display label",
       value: "hidden-pair",
       "prefix-synthetic-s01-secret": "hidden-key",
       "[redacted-key-1]": "visible",
     };
     const expected = {
-      key: "api_key",
-      name: "display label",
+      name: "api_key",
+      key: "display label",
       value: "[redacted]",
       "[redacted-key-2]": "[redacted]",
       "[redacted-key-1]": "visible",

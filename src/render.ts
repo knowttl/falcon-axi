@@ -110,10 +110,7 @@ export function positionalSecretPairs(
     if (isPairName(key) && typeof value === "string" && isSecretKey(value)) {
       secretNames.add(index);
       upcomingSecret = true;
-    } else if (
-      key.toLowerCase() === "key" ||
-      (isPairValue(key) && key.toLowerCase() !== "data")
-    )
+    } else if (isPairValue(key) && key.toLowerCase() !== "data")
       upcomingSecret = false;
   }
   let pending: { index: number; name: boolean } | undefined;
@@ -122,7 +119,6 @@ export function positionalSecretPairs(
     if (!name && (!isPairValue(key) || key.toLowerCase() === "data")) return;
     if (
       name &&
-      key.toLowerCase() !== "key" &&
       pending &&
       !pending.name &&
       !secretNames.has(index) &&
@@ -131,10 +127,9 @@ export function positionalSecretPairs(
       return;
     if (
       name &&
-      key.toLowerCase() !== "key" &&
       pending?.name &&
-      entries[pending.index]![0].toLowerCase() === "key" &&
-      secretNames.has(pending.index)
+      secretNames.has(pending.index) &&
+      !secretNames.has(index)
     )
       return;
     if (pending && pending.name !== name) {
