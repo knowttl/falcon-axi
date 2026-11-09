@@ -325,18 +325,22 @@ test("raw write redacts secret query values in preview and journal", async () =>
   const args = writeArgs(
     "ops",
     "--query",
-    "password=hidden&password=other&token_count=5",
+    "password=hidden&password=other&filter=password%3A%27nestedsecret%27&token_count=5",
   );
   const preview = await run(args);
   assert.equal(preview.code, 0, preview.stdout);
-  assert.doesNotMatch(preview.stdout, /hidden|other/);
+  assert.doesNotMatch(preview.stdout, /hidden|other|nestedsecret/);
   const confirm = (value(preview.stdout).preview as Record<string, string>)
     .confirm!;
   const env = await state();
   recordedResponse("PATCH /example/entities/things/v1", 200, {}, true);
   const result = await run([...args, "--execute", "--confirm", confirm], env);
   assert.equal(result.code, 0, result.stdout);
-  assert.doesNotMatch(JSON.stringify(await journal(env)), /hidden|other/);
+  assert.doesNotMatch(
+    JSON.stringify(await journal(env)),
+    /hidden|other|nestedsecret/,
+  );
+  assert.match(decodeURIComponent(requests()[0]!.url), /nestedsecret/);
   assert.match(result.stdout, /token_count=5/);
 });
 
@@ -385,14 +389,24 @@ for (const status of [200, 403])
     dynamicResponse("GET /example/entities/things/v1", () => ({
       status,
       headers: { "content-type": "text/plain" },
-      body: Buffer.from("password: two words\ntoken_count=5"),
+      body: Buffer.from("password: alpha,beta;gamma&delta\ntoken_count=5"),
     }));
     const result = await run(getArgs("/example/entities/things/v1"));
     assert.equal(result.code, status === 200 ? 0 : 1, result.stdout);
-    assert.doesNotMatch(result.stdout, /two|words/);
+    assert.doesNotMatch(result.stdout, /alpha|beta|gamma|delta/);
     assert.match(result.stdout, /token_count=5/);
     assert.match(result.stdout, /\[redacted\]/);
   });
+
+test("scopes distinguishes raw routes from registered commands", async () => {
+  const result = await run(["scopes"]);
+  assert.equal(result.code, 0, result.stdout);
+  assert.match(result.stdout, /raw routes require the scopes Falcon documents/);
+  assert.match(
+    result.stdout,
+    /gated raw writes under N5 can send caller-supplied GraphQL/,
+  );
+});
 
 for (const status of [200, 403])
   test(`raw get preserves JSON null in response ${status}`, async () => {

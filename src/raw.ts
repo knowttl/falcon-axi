@@ -128,7 +128,7 @@ export function validateRawInvocation(
 
 function safeText(text: string): string {
   return text.replace(
-    /(^|[^\w.#-])([\w.#-]+)([ \t]*[:=][ \t]*)(?:bearer[ \t]+)?("(?:\\.|[^"\\])*"|'(?:\\.|[^'\\])*'|[^\r\n&,;]+?)(?=[\r\n&,;]|[ \t]+[\w.#-]+[ \t]*[:=]|$)/gi,
+    /(^|[^\w.#-])([\w.#-]+)([ \t]*[:=][ \t]*)(?:bearer[ \t]+)?("(?:\\.|[^"\\])*"|'(?:\\.|[^'\\])*'|[^\r\n]+?)(?=[\r\n]|[ \t,;&]+[\w.#-]+[ \t]*[:=]|$)/gi,
     (match, prefix: string, key: string, separator: string) =>
       isSecretKey(key) ? `${prefix}${key}${separator}[redacted]` : match,
   );
@@ -282,7 +282,7 @@ export async function rawRun(
   const confirm = `${credential.profile}:${method} sha256:${confirmationHash}`;
   const safeQuery = new URLSearchParams();
   for (const [key, value] of new URLSearchParams(query))
-    safeQuery.append(key, isSecretKey(key) ? "[redacted]" : value);
+    safeQuery.append(key, isSecretKey(key) ? "[redacted]" : safeText(value));
   const safeTarget = safeQuery.size ? `${path}?${safeQuery}` : path;
   if (request.executing && request.confirm !== confirm)
     throw new CliError(

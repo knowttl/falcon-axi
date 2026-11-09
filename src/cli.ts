@@ -242,7 +242,7 @@ export async function main(argv: string[], bin?: string): Promise<number> {
         render(
           {
             posture: new Raw(
-              "read-only except three write-labelled scopes: NGSIEM:write for NG-SIEM search start and stop and identity activity (captain exception N1), and Identity Protection GraphQL:write for fixed read-only identity queries (captain exception N2); Real time response:read also permits guarded host execution with profile opt-in and exact confirmation (captain exception N3); MalQuery:write permits bounded exact/fuzzy pattern searches (captain exception N4)",
+              "registered commands are read-only except NGSIEM:write for search lifecycle and identity activity (N1), Identity Protection GraphQL:write for fixed reads (N2), guarded RTR execution (N3), and bounded MalQuery searches (N4); raw writes are separately gated (N5)",
             ),
             scopes: [...groups].map(([scope, names]) => ({
               scope,
@@ -258,8 +258,8 @@ export async function main(argv: string[], bin?: string): Promise<number> {
           },
           [
             "Grant these scopes in the Falcon console under Support and resources > API clients and keys",
-            "Grant read access only, apart from NGSIEM:write, Identity Protection GraphQL:write, and MalQuery:write; falcon-axi needs no other write scope",
-            "Identity Protection GraphQL:write is labelled write because Falcon requires it even for read-only queries; falcon-axi sends only its own fixed read queries, never caller-supplied GraphQL (captain exception N2)",
+            "Registered commands need read access and only the listed NGSIEM:write, Identity Protection GraphQL:write, and MalQuery:write scopes; raw routes require the scopes Falcon documents for each chosen operation",
+            "Identity commands send fixed read queries under N2; gated raw writes under N5 can send caller-supplied GraphQL",
             "Omit NGSIEM:write and `search start`, `search stop`, and `identity activity` fail with SCOPE_DENIED",
             "Omit Identity Protection GraphQL:write and `identity list`, `identity show`, `identity timeline`, and `identity assessment` fail with SCOPE_DENIED",
             "MalQuery:write needs Falcon MalQuery licensing and admits only bounded exact/fuzzy search under N4; hunt and sample downloads remain excluded",
