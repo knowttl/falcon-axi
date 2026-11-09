@@ -4,7 +4,7 @@
   "hook": ".typescript-build/src/hook.js",
   "schema": {
     "path": ".typescript-build/src/axi-credential.schema.json",
-    "sha256": "adb248794413a7b853e36a4a75b4a53bd7f9e6dade8be040d39165f4d926ee30"
+    "sha256": "09f9cdb3e033a2b4e076ee82b46e57f8e04574f19e8917935473b9dbd975ba42"
   },
   "parser": {
     "path": ".typescript-build/src/parser.js",
@@ -12,7 +12,7 @@
   },
   "skill": {
     "path": "skills/falcon-axi/SKILL.md",
-    "sha256": "c4929199fc77842e1a55779f9551499376c311effb8c5879042e5be4ee2beafd"
+    "sha256": "a4c8b0be839d4b5fb7053e4a99aefb8e0ead8dd30ae26a87816747b564e84037"
   },
   "globalFlags": [
     "help",
@@ -1308,6 +1308,38 @@
         "member-cid": "value",
         "execute": "boolean",
         "command": "value",
+        "confirm": "value"
+      }
+    },
+    {
+      "command": "raw get",
+      "flags": {
+        "help": "boolean",
+        "allow-unknown-origin": "boolean",
+        "no-member-cid": "boolean",
+        "config": "value",
+        "profile": "value",
+        "region": "value",
+        "member-cid": "value",
+        "path": "value",
+        "query": "value"
+      }
+    },
+    {
+      "command": "raw write",
+      "flags": {
+        "help": "boolean",
+        "allow-unknown-origin": "boolean",
+        "no-member-cid": "boolean",
+        "config": "value",
+        "profile": "value",
+        "region": "value",
+        "member-cid": "value",
+        "execute": "boolean",
+        "method": "value",
+        "path": "value",
+        "query": "value",
+        "body-file": "value",
         "confirm": "value"
       }
     },

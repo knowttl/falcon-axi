@@ -215,6 +215,7 @@ export async function managedAudit(
   return body.records;
 }
 function matchesRoute(id: string, method: string, path: string): boolean {
+  if (id.includes(" ")) return id === `${method} ${path}`;
   const descriptor = operation(id);
   const pattern = descriptor.path
     .replace("{vertex_type}", "processes")

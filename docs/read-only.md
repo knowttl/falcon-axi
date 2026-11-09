@@ -1,12 +1,12 @@
 # Read-only enforcement
 
-The shipped CLI reads Falcon data without changing hosts, detections, policies, or identities.
-Tenant-side effects are NG-SIEM search jobs, explicitly authorized read-only RTR sessions, and bounded MalQuery exact/fuzzy searches.
+The shipped CLI reads Falcon data without changing hosts, detections, policies, or identities, except through the opt-in raw write gate below.
+Tenant-side effects are NG-SIEM search jobs, explicitly authorized read-only RTR sessions, bounded MalQuery exact/fuzzy searches, and guarded raw writes.
 Identity Protection's write-labelled GraphQL scope is used solely for registered read-only query documents.
 
 ## Closed transport boundary
 
-The [design invariant](design/v1.md#0-invariant-r-v1-is-read-only-with-four-captain-granted-exceptions) is enforced through a closed operation registry before the SDK is constructed.
+The [design invariant](design/v1.md#0-invariant-r-v1-is-read-only-with-five-captain-granted-exceptions) is enforced through a closed operation registry before the SDK is constructed.
 HTTP verbs and scope names alone do not prove a read: Falcon uses POST for reads, and some read-scoped operations have effects.
 Every registered operation carries its documented scope and corroborating source evidence.
 Only the permitted network sink can import and call the FalconPy harness.
@@ -18,11 +18,11 @@ These are closed ID allowlists; they do not authorize additional writes.
 The GraphQL sink accepts registered documents only, with caller inputs in variables, never caller-supplied query text.
 See [search lifecycle](design/v1.md#43-ng-siem-search-was-excluded-on-the-credential-scope-test-and-captain-exception-n1-reversed-it) and [Identity Protection](design/v1.md#44-the-identity-protection-directory-was-excluded-on-the-credential-scope-test-and-captain-exception-n2-reversed-it) for exception history and contracts.
 
-`FALCON_AXI_READ_ONLY=1` blocks `search start`, `search stop`, `identity activity`, `host usb`, `malquery search`, and RTR execution before authentication.
-Search status, local RTR previews, and passive RTR history remain available.
+`FALCON_AXI_READ_ONLY=1` blocks `search start`, `search stop`, `identity activity`, `host usb`, `malquery search`, RTR execution, and `raw write --execute` before authentication.
+Search status, local RTR previews, raw write previews, and passive RTR history remain available.
 See the [switch contract](design/v1.md#52-accepted-input-channels-in-precedence-order) for accepted values.
 It does not change the fixed read-only GraphQL contract.
-There is no host containment, quarantine release, ingest, configuration write, or GraphQL mutation surface.
+Apart from guarded raw writes, there is no host containment, quarantine release, ingest, configuration write, or GraphQL mutation surface.
 RTR history reads session metadata and audit records without opening or executing a session, including under READ_ONLY.
 RTR operation admission and execution guards are owned by [N3's design contract](design/v1.md#45-rtr-was-excluded-on-semantic-execution-grounds-and-captain-exception-n3-narrowly-reverses-it).
 
@@ -52,9 +52,34 @@ Close any remaining session before retrying.
 Never assume an unreachable API proves deletion.
 Avoid simultaneous runs for the same host/API client across machines; local host locks cannot protect another machine's run.
 
+## Raw API
+
+Captain exception N5 admits `raw get` and `raw write`; the [N5 design contract](design/v1.md#47-raw-api-captain-exception-n5) owns the boundary.
+`raw get --path <api-path> [--query <key=value&...>]` sends one GET to the selected cloud with the profile's bearer token and prints the status, content type, and redacted body as TOON.
+It is not limited to the registry, so read-only is the caller's responsibility: choose paths whose CrowdStrike documentation describes a read.
+There is no pagination, cursor, or field selection; a response is capped at 4 MiB and a binary body is refused.
+
+`raw write --method POST|PUT|PATCH|DELETE --path <api-path> [--query ...] [--body-file <file|->]` sends one write.
+Every one of these gates must hold to execute, and the first three apply even to a preview:
+
+1. The selected profile is a file profile with `writes.allowWrites: true` and `"raw-write"` in `writes.operations`.
+2. The path is valid and not blocked; the same checks as `raw get` apply, and Flight Control (`mssp`) and Real Time Response (`real-time-response`) routes are also blocked for writes.
+3. The body, when given, is one JSON object or array of at most 1 MiB.
+4. The preview prints the exact `confirm` value, which binds the profile, method, path, query, and body digest.
+5. Execution adds `--execute --confirm '<confirm>'` with that exact value.
+6. `FALCON_AXI_READ_ONLY` is not enabled, and the private journal can be opened.
+
+The journal records the intent before authentication and the outcome after, with a body digest and never the body.
+The request is sent once and never replayed, including after a timeout or a 5xx answer.
+An outcome of `unknown` means the request may have been applied; read the target in the Falcon console before any retry.
+Raw writes read no target state and detect no no-ops.
+
+Falcon decides what the API client may do, so grant the client only the scopes the intended route needs.
+Output redaction keeps every field and redacts only secret values, including the value that sits beside a `key` or `name` field naming a secret.
+
 ## Sensitive output
 
-Credentials and standalone CID fields are redacted on stdout and stderr.
+Credentials and standalone CID fields are redacted on stdout and stderr, including raw API responses.
 Composite detection IDs retain their embedded tenant CID so callers can use them as detail identifiers.
 Search event `cid` and `#repo.cid` fields are redacted.
 See [redaction](design/v1.md#55-redaction) for the precise contract.

@@ -23,7 +23,7 @@ Three consequences that catch people out:
   falconpy's generated endpoint table plus PSFalcon wrapping it (`docs/design/v1.md` §2.2).
   The transport's operation registry carries that evidence as a required field and the local required-check
   set asserts it, per tier as defined in `docs/design/v1.md` §2.2.
-- **The exceptions are closed by id allowlists, not by discipline.**
+- **Exceptions N1-N4 are closed by id allowlists, not by discipline; N5, the raw API, is closed by its profile, confirmation and journal gates (`docs/design/v1.md` §4.7).**
   The `search-lifecycle` allowlist in `src/transport/operations.ts` is exactly `StartSearchV1` and `StopSearchV1`,
   and registry sealing rejects any other descriptor claiming `effect: "search-lifecycle"`, any scope other than
   `NGSIEM:write` on one, and any `:write` scope on a `read` descriptor.
@@ -36,7 +36,7 @@ Three consequences that catch people out:
   Admitting a further state-changing operation requires editing its closed allowlist (§3.3), which is the reviewable diff §1.6 demands.
 
 See `docs/design/v1.md` §0 (the invariant), §1.5 (excluded capability classes), §2.2 (the two-citation rule),
-§3 (transport enforcement), §4.3-§4.6 (captain exceptions N1-N4 and their boundaries), §5.7
+§3 (transport enforcement), §4.3-§4.7 (captain exceptions N1-N5 and their boundaries), §5.7
 (provisioning), and §15 (live-test boundary).
 
 ## The v1 design is authoritative

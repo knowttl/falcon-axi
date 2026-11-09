@@ -87,4 +87,4 @@ What is shipped:
 
 Tenant discovery and standalone Identity Protection incident queries remain absent.
 There is no arbitrary GraphQL, GraphQL mutation, containment, ingest, configuration change, report PDF, or rule-file download.
-The complete exclusion contract is in [v1 section 1.5](v1.md#15-command-surface-non-goals), and the closed exceptions are owned by [v1 section 0](v1.md#0-invariant-r-v1-is-read-only-with-four-captain-granted-exceptions).
+The complete exclusion contract is in [v1 section 1.5](v1.md#15-command-surface-non-goals), and the closed exceptions are owned by [v1 section 0](v1.md#0-invariant-r-v1-is-read-only-with-five-captain-granted-exceptions).

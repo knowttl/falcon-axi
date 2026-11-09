@@ -103,6 +103,8 @@ Names omit the `falcon-axi` prefix; positional arguments stay inside code spans.
 | `rtr session show <id>` | read one record |
 | `rtr audit list` | read audit_sessions |
 | `rtr run` | preview or execute one read-only RTR command on one host |
+| `raw get` | read one Falcon API path with the selected profile |
+| `raw write` | preview or send one guarded Falcon API write |
 | `auth status` | whether a credential resolved, and where to |
 | `profile list` | configured profile names, without reading secrets |
 | `config path` | config and write-journal paths |
@@ -1672,6 +1674,37 @@ No shell syntax; eventlog backup/export, scripts, and file transfers are exclude
 Examples:
   falcon-axi rtr run aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa --command ps --profile triage
   falcon-axi rtr run aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa --command ps --profile triage --execute --confirm 'aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa:ps'
+```
+
+## raw get
+
+```text
+falcon-axi raw get --path <api-path> [--query <key=value&...>]
+
+Sends one GET to the selected profile's Falcon cloud and prints the status, content type and body as TOON.
+The path must be absolute (for example /devices/queries/devices/v1) and cannot reach oauth2, user, role, permission, token, key, secret or credential routes.
+One request per invocation: no pagination, no continuation cursor, no field selection. Responses are capped at 4 MiB and binary bodies are refused.
+Secret values are redacted and every field is kept, including the value beside a key that names a secret.
+Examples:
+  falcon-axi raw get --path /devices/queries/devices/v1 --query 'limit=5'
+  falcon-axi raw get --path /detects/queries/detects/v1 --query 'filter=severity:>50&limit=2'
+```
+
+## raw write
+
+```text
+falcon-axi raw write --method POST|PUT|PATCH|DELETE --path <api-path> [--query <key=value&...>] [--body-file <file|->] [--execute --confirm '<confirm>']
+
+Default: local preview, no network request. The preview prints the exact confirm value.
+Requires a file profile with writes.allowWrites=true and "raw-write" in writes.operations, even to preview.
+Execution also needs --execute and the exact --confirm value; FALCON_AXI_READ_ONLY always forbids execution.
+One request, never replayed. A private redacted journal records the intent before sending and the outcome after; it is mandatory.
+The body is one JSON object or array of at most 1 MiB, from a file or stdin (-).
+The same path rules as raw get apply, and Flight Control (mssp) and Real Time Response routes are also blocked; use rtr run for RTR.
+Raw writes read no target state and detect no no-ops; reconcile an unknown outcome in the Falcon console before retrying.
+Examples:
+  falcon-axi raw write --method PATCH --path /example/entities/thing/v1 --body-file body.json --profile ops
+  falcon-axi raw write --method PATCH --path /example/entities/thing/v1 --body-file body.json --profile ops --execute --confirm '<confirm>'
 ```
 
 ## auth status

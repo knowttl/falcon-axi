@@ -15,11 +15,14 @@ import {
   validateSearchBody,
 } from "./search-authority.js";
 import { inspectRtrGrant, consumeRtrGrant } from "../rtr.js";
+import { consumeRawGrant } from "../raw.js";
+import { RAW_RESPONSE_LIMIT, routeProblem } from "./raw-authority.js";
 
 export interface Response {
   status: number;
   headers: Readonly<Record<string, string>>;
   body: unknown;
+  text?: string;
 }
 type Query = Readonly<Record<string, string | number | readonly string[]>>;
 interface Prepared {
@@ -30,6 +33,7 @@ interface Prepared {
   body: string;
   exception?: "graphql-query" | "malquery-search";
   rtr?: object;
+  raw?: { grant: object | undefined };
   operationId?: string;
 }
 const permits = new WeakSet<Prepared>();
@@ -83,6 +87,18 @@ async function send(
   )
     throw new CliError("READ_ONLY_VIOLATION", "RTR grant is missing");
   if (prepared.rtr) consumeRtrGrant(prepared.rtr, prepared);
+  if (prepared.raw) {
+    if (
+      routeProblem(prepared.method, prepared.path.split("?", 1)[0]!) ||
+      (prepared.method === "GET" && prepared.body)
+    )
+      throw new CliError(
+        "READ_ONLY_VIOLATION",
+        "raw route authority was refused",
+      );
+    if (prepared.method !== "GET")
+      consumeRawGrant(prepared.raw.grant, prepared);
+  }
   const signal = AbortSignal.any([inherited, AbortSignal.timeout(30_000)]);
   signal.throwIfAborted();
   const resolver = createLookup(inherited, signal);
@@ -181,7 +197,14 @@ async function send(
           );
           response.on("data", (chunk: Buffer) => {
             bytes += chunk.length;
-            if (bytes > (prepared.rtr ? 1024 * 1024 : 16 * 1024 * 1024)) {
+            if (
+              bytes >
+              (prepared.rtr
+                ? 1024 * 1024
+                : prepared.raw
+                  ? RAW_RESPONSE_LIMIT
+                  : 16 * 1024 * 1024)
+            ) {
               request!.destroy(
                 new CliError(
                   "UPSTREAM_ERROR",
@@ -214,6 +237,7 @@ async function send(
               status: response.statusCode ?? 500,
               headers: Object.freeze(headers),
               body,
+              ...(prepared.raw ? { text } : {}),
             });
           });
         },
@@ -663,5 +687,39 @@ export function requestException(
     },
     signal,
     id !== "StartSearchV1" && descriptor.effect !== "malquery-search",
+  );
+}
+
+export function requestRaw(
+  method: string,
+  path: string,
+  query: string,
+  body: string,
+  grant: object | undefined,
+  base: string,
+  token: string,
+  allowUnknown: boolean,
+  signal: AbortSignal,
+): Promise<Response> {
+  return acquire(
+    {
+      origin: origin(base, allowUnknown),
+      method,
+      path: path + (query ? `?${query}` : ""),
+      body,
+      raw: { grant },
+      headers: {
+        authorization: `Bearer ${token}`,
+        "user-agent": `falcon-axi/${VERSION}`,
+        ...(body
+          ? {
+              "content-type": "application/json",
+              "content-length": String(Buffer.byteLength(body)),
+            }
+          : {}),
+      },
+    },
+    signal,
+    method === "GET",
   );
 }

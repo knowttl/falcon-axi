@@ -28,6 +28,7 @@ import { malquery } from "./malquery.js";
 import searchHelp from "./search-help.json" with { type: "json" };
 import { document } from "./transport/search-authority.js";
 import { rtrRun, validateRtrInvocation } from "./rtr.js";
+import { rawRun, validateRawInvocation } from "./raw.js";
 import { installHooks } from "./setup.js";
 import { HOME_GUIDANCE, skillHint } from "./skill.js";
 import { readOnly } from "./rtr-policy.js";
@@ -193,6 +194,7 @@ export async function main(argv: string[], bin?: string): Promise<number> {
         "FALCON_AXI_READ_ONLY forbids search lifecycle changes",
       );
     if (command.name === "rtr run") validateRtrInvocation(invocation);
+    if (command.name.startsWith("raw ")) validateRawInvocation(invocation);
     if (command.name === "config path") {
       process.stdout.write(
         render({
@@ -287,6 +289,16 @@ export async function main(argv: string[], bin?: string): Promise<number> {
       process.on("SIGTERM", cancel);
       process.on("SIGINT", cancel);
       await rtrRun(invocation, credential, base, controller.signal);
+      return 0;
+    }
+    if (command.name.startsWith("raw ")) {
+      await rawRun(
+        invocation,
+        credential,
+        base,
+        allowUnknown,
+        controller.signal,
+      );
       return 0;
     }
     if (

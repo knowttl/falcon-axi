@@ -43,8 +43,10 @@ if (digest(JSON.stringify(ledger)) !== seal)
   throw new Error(
     "Frozen safety ownership, members or parameter selections changed",
   );
+const postMigrationCommandNames = ["raw get", "raw write"];
 const expectedCommands = [
   ...new Set([
+    ...postMigrationCommandNames,
     ...s02.commandNames,
     ...s03.commandNames,
     ...s04.commandNames,

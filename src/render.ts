@@ -43,7 +43,28 @@ const secretKeys = new Set([
   "membercid",
   "refresh_token",
   "privatekey",
+  "password",
+  "passwd",
+  "passphrase",
+  "secret",
+  "api_key",
+  "apikey",
+  "private_key",
+  "secret_key",
+  "access_key",
 ]);
+const pairNameFields = ["key", "name", "field", "property", "attribute"];
+const pairValueFields = ["value", "values", "val", "string_value"];
+const secretPairName =
+  /password|passwd|passphrase|secret|token|apikey|privatekey|accesskey|credential|authorization|clientid|membercid/;
+function namesSecret(entry: Record<string, unknown>): boolean {
+  return Object.entries(entry).some(
+    ([field, name]) =>
+      pairNameFields.includes(field.toLowerCase()) &&
+      typeof name === "string" &&
+      secretPairName.test(name.toLowerCase().replace(/[^a-z0-9]/g, "")),
+  );
+}
 export function redact(value: unknown): unknown {
   if (typeof value === "string")
     return redactText(value).replace(
@@ -51,13 +72,18 @@ export function redact(value: unknown): unknown {
       "[redacted]",
     );
   if (Array.isArray(value)) return value.map(redact);
-  if (object(value))
+  if (object(value)) {
+    const pair = namesSecret(value);
     return Object.fromEntries(
       Object.entries(value).map(([key, entry]) => [
         redactText(key),
-        secretKeys.has(key.toLowerCase()) ? "[redacted]" : redact(entry),
+        secretKeys.has(key.toLowerCase()) ||
+        (pair && pairValueFields.includes(key.toLowerCase()))
+          ? "[redacted]"
+          : redact(entry),
       ]),
     );
+  }
   return value;
 }
 export class Raw {

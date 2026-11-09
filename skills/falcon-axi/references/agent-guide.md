@@ -67,8 +67,9 @@ Cancel an unneeded job with `falcon-axi search stop synthetic-search-job-01`; th
 The passive allowlist above changes no tenant data or endpoint state.
 Outside it, `search start`, `search stop`, `host usb` and `identity activity` manage NG-SIEM jobs; `malquery search` creates bounded exact/fuzzy searches.
 `rtr run --execute` opens a real endpoint session even for read-only commands and requires profile opt-in plus exact confirmation; exclude it from passive allowlists.
+`raw write --execute` changes tenant state and requires profile opt-in, exact confirmation and a journal; exclude `raw write` from passive allowlists, while `raw get` is a read.
 `setup hooks` writes local agent settings.
-`FALCON_AXI_READ_ONLY=1` blocks search creation/cancellation, MalQuery search and RTR execution; fixed Identity GraphQL reads remain allowed despite their write-labelled scope.
+`FALCON_AXI_READ_ONLY=1` blocks search creation/cancellation, MalQuery search, RTR execution and raw writes; fixed Identity GraphQL reads remain allowed despite their write-labelled scope.
 There are no containment, remediation, quarantine-release or tenant-configuration commands.
 Treat all investigation output as sensitive: standalone CIDs and secrets are redacted, but composite detection IDs retain embedded CIDs.
 

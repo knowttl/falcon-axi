@@ -20,6 +20,7 @@ export interface Credential {
   path?: string;
   secretSource?: string;
   rtr?: RtrPolicy;
+  writes?: { allowWrites: boolean; operations: readonly string[] };
 }
 const aliases: Readonly<Record<string, string>> = {
   FALCON_CLIENT_ID: "FALCON_AXI_CLIENT_ID",
@@ -303,6 +304,11 @@ export async function resolveCredential(
       clientSecret: secret,
       channel: "file",
       rtr: rtrPolicy(settings.rtr),
+      ...(object(settings.writes)
+        ? {
+            writes: settings.writes as NonNullable<Credential["writes"]>,
+          }
+        : {}),
       profile: name,
       secretSource:
         typeof ref.env === "string"

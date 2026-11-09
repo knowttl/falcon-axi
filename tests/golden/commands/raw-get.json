@@ -1,0 +1,6 @@
+{
+  "name": "raw get",
+  "order": 2384,
+  "summary": "  raw get                   read one Falcon API path with the selected profile",
+  "scopes": []
+}

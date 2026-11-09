@@ -53,6 +53,24 @@ const declarations: Command[] = [
     ],
   },
   {
+    name: "raw get",
+    summary:
+      "  raw get                   read one Falcon API path with the selected profile",
+    order: 2384,
+    values: ["path", "query"],
+    booleans: [],
+    operations: [],
+  },
+  {
+    name: "raw write",
+    summary:
+      "  raw write                 preview or send one guarded Falcon API write",
+    order: 2385,
+    values: ["method", "path", "query", "body-file", "confirm"],
+    booleans: ["execute"],
+    operations: [],
+  },
+  {
     name: "account list",
     order: 700,
     summary:
