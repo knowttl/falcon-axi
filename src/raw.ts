@@ -51,6 +51,21 @@ export function consumeRawGrant(
 }
 
 const BODY_LIMIT = 1024 * 1024;
+function readJsonInput(file: string, flag: string): { text: string; value: unknown } {
+  try {
+    const bytes = readFileSync(file === "-" ? 0 : file);
+    const text = new TextDecoder("utf-8", { fatal: true }).decode(bytes);
+    const value: unknown = JSON.parse(text);
+    if (bytes.length > BODY_LIMIT || hasDuplicateJsonMembers(text))
+      throw new Error("invalid input");
+    return { text, value };
+  } catch {
+    throw new CliError(
+      "VALIDATION_ERROR",
+      `${flag} must contain valid UTF-8 JSON of at most 1 MiB without duplicate members`,
+    );
+  }
+}
 interface RawRequest {
   method: string;
   path: string;
@@ -84,7 +99,40 @@ export function validateRawInvocation(
       "VALIDATION_ERROR",
       "--query must be key=value pairs joined by &, at most 4096 characters, without a leading ?",
     );
-  const query = new URLSearchParams(queryText).toString();
+  const params = new URLSearchParams(queryText);
+  if ([...params.keys()].some(isSecretKey))
+    throw new CliError(
+      "VALIDATION_ERROR",
+      "--query cannot contain secret-named parameters",
+      ["Use --query-file <path|-> with a JSON object for secret query values"],
+    );
+  const queryFile = flags.get("--query-file");
+  if (queryFile === "-" && flags.get("--body-file") === "-")
+    throw new CliError(
+      "VALIDATION_ERROR",
+      "--query-file and --body-file cannot both read stdin",
+    );
+  if (queryFile !== undefined) {
+    const { value } = readJsonInput(queryFile, "--query-file");
+    if (
+      !object(value) ||
+      Object.values(value).some(
+        (entry) =>
+          typeof entry !== "string" &&
+          (!Array.isArray(entry) || entry.some((item) => typeof item !== "string")),
+      )
+    )
+      throw new CliError(
+        "VALIDATION_ERROR",
+        "--query-file must contain a JSON object with string or string-array values",
+      );
+    for (const [key, entry] of Object.entries(value))
+      for (const item of Array.isArray(entry) ? entry : [entry])
+        params.append(key, item as string);
+  }
+  const query = params.toString();
+  if (query.length > 4096)
+    throw new CliError("VALIDATION_ERROR", "the combined query exceeds 4096 characters");
   let body = "";
   if (flags.has("--body-file")) {
     if (!writing)
@@ -92,24 +140,13 @@ export function validateRawInvocation(
         "VALIDATION_ERROR",
         "--body-file is only valid for raw write",
       );
-    try {
-      const file = flags.get("--body-file")!;
-      const bytes = readFileSync(file === "-" ? 0 : file);
-      const text = new TextDecoder("utf-8", { fatal: true }).decode(bytes);
-      const parsed: unknown = JSON.parse(text);
-      if (
-        bytes.length > BODY_LIMIT ||
-        !(object(parsed) || Array.isArray(parsed)) ||
-        hasDuplicateJsonMembers(text)
-      )
-        throw new Error("body");
-      body = text;
-    } catch {
+    const input = readJsonInput(flags.get("--body-file")!, "--body-file");
+    if (!(object(input.value) || Array.isArray(input.value)))
       throw new CliError(
         "VALIDATION_ERROR",
         "--body-file must contain one JSON object or array of at most 1 MiB without duplicate members",
       );
-    }
+    body = input.text;
   }
   const executing = flags.has("--execute");
   if (writing && executing && readOnly())

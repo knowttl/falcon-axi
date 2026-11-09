@@ -1679,10 +1679,11 @@ Examples:
 ## raw get
 
 ```text
-falcon-axi raw get --path <api-path> [--query <key=value&...>]
+falcon-axi raw get --path <api-path> [--query <key=value&...>] [--query-file <file|->]
 
 Sends one GET to the selected profile's Falcon cloud and prints the status, content type and body as TOON.
 The path must be an absolute RFC 3986 path without dot segments, repeated slashes, query or fragment.
+Use --query-file for secret query values; --query rejects secret-named keys. The file or stdin (-) must contain a JSON object of strings or string arrays.
 One request per invocation, never replayed: no pagination, no continuation cursor, no field selection. Responses are capped at 4 MiB and binary bodies are refused.
 Secret values are redacted and every field is kept, including the value beside a key that names a secret.
 Examples:
@@ -1693,13 +1694,14 @@ Examples:
 ## raw write
 
 ```text
-falcon-axi raw write --method POST|PUT|PATCH|DELETE --path <api-path> [--query <key=value&...>] [--body-file <file|->] [--execute --confirm '<confirm>']
+falcon-axi raw write --method POST|PUT|PATCH|DELETE --path <api-path> [--query <key=value&...>] [--query-file <file|->] [--body-file <file|->] [--execute --confirm '<confirm>']
 
 Default: local preview, no network request. The preview prints the exact confirm value.
 Requires a file profile with writes.allowWrites=true and "raw-write" in writes.operations, even to preview.
 Execution also needs --execute and the exact --confirm value; FALCON_AXI_READ_ONLY always forbids execution.
 One request, never replayed. A private redacted journal records the intent before sending and the outcome after; it is mandatory.
-The body is one JSON object or array of at most 1 MiB, from a file or stdin (-), without duplicate members at any depth.
+Use --query-file for secret query values; --query rejects secret-named keys. The file or stdin (-) must contain a JSON object of strings or string arrays.
+The body is one JSON object or array of at most 1 MiB, from a file or stdin (-), without duplicate members at any depth. Query and body cannot both read stdin.
 The same path syntax rules as raw get apply. Falcon authorizes the selected route.
 Raw writes read no target state and detect no no-ops; reconcile an unknown outcome in the Falcon console before retrying.
 Examples:

@@ -57,7 +57,7 @@ const declarations: Command[] = [
     summary:
       "  raw get                   read one Falcon API path with the selected profile",
     order: 2384,
-    values: ["path", "query"],
+    values: ["path", "query", "query-file"],
     booleans: [],
     operations: [],
   },
@@ -66,7 +66,7 @@ const declarations: Command[] = [
     summary:
       "  raw write                 preview or send one guarded Falcon API write",
     order: 2385,
-    values: ["method", "path", "query", "body-file", "confirm"],
+    values: ["method", "path", "query", "query-file", "body-file", "confirm"],
     booleans: ["execute"],
     operations: [],
   },

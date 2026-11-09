@@ -87,6 +87,11 @@ async function body(): Promise<string> {
   await writeFile(file, JSON.stringify({ name: "synthetic", enabled: true }));
   return file;
 }
+async function queryFile(query: Record<string, string | string[]>): Promise<string> {
+  const file = join(directory, "raw-query.json");
+  await writeFile(file, JSON.stringify(query));
+  return file;
+}
 async function confirmValue(profile: string, file: string): Promise<string> {
   const preview = await run(writeArgs(profile, "--body-file", file));
   assert.equal(preview.code, 0, preview.stdout);
@@ -620,7 +625,8 @@ for (const clientId of ["phase", "run", "path", "status", "outcome", "PATCH"])
     };
     document.profiles.ops.clientId = clientId;
     await writeFile(config, JSON.stringify(document));
-    const args = writeArgs("ops", "--query", "password=hidden&note=PATCH");
+    const file = await queryFile({ password: "hidden" });
+    const args = writeArgs("ops", "--query", "note=PATCH", "--query-file", file);
     const preview = await run(args);
     assert.equal(
       (value(preview.stdout).preview as Record<string, unknown>).method,
@@ -669,25 +675,18 @@ test("raw write rejects a changed redacted body", async () => {
 });
 
 test("raw write binds the exact redacted query", async () => {
-  const args = writeArgs("ops", "--query", "password=first");
+  const file = await queryFile({ password: "first" });
+  const args = writeArgs("ops", "--query", "safe=1", "--query-file", file);
   const preview = await run(args);
   assert.equal(preview.code, 0, preview.stdout);
   const output = value(preview.stdout).preview as Record<string, string>;
   assert.equal(
     output.query_sha256,
-    createHash("sha256").update("password=first").digest("hex"),
+    createHash("sha256").update("safe=1&password=first").digest("hex"),
   );
   assert.doesNotMatch(preview.stdout, /first/);
-  const result = await run(
-    writeArgs(
-      "ops",
-      "--query",
-      "password=second",
-      "--execute",
-      "--confirm",
-      output.confirm!,
-    ),
-  );
+  await writeFile(file, JSON.stringify({ password: "second" }));
+  const result = await run([...args, "--execute", "--confirm", output.confirm!]);
   assert.equal(result.code, 2, result.stdout);
   assert.equal(requests().length, 0);
   assert.doesNotMatch(result.stdout, /first|second/);
@@ -815,10 +814,18 @@ test("raw write preserves stdin body numbers and confirms the destination", asyn
 });
 
 test("raw write redacts secret query values in preview and journal", async () => {
+  const file = await queryFile({
+    password: ["hidden", "other"],
+    filter: "note: password:'nestedsecret'",
+    url: "https://example.invalid/?sig=sasvalue",
+    token_count: "5",
+  });
   const args = writeArgs(
     "ops",
     "--query",
-    "password=hidden&password=other&filter=note%3A%20password%3A%27nestedsecret%27&url=https%3A%2F%2Fexample.invalid%2F%3Fsig%3Dsasvalue&token_count=5",
+    "ordinary=1",
+    "--query-file",
+    file,
   );
   const preview = await run(args);
   assert.equal(preview.code, 0, preview.stdout);
@@ -839,6 +846,66 @@ test("raw write redacts secret query values in preview and journal", async () =>
   );
   assert.match(decodeURIComponent(requests()[0]!.url), /nestedsecret/);
   assert.match(result.stdout, /token_count=5/);
+});
+
+for (const method of ["GET", "PATCH"])
+  test(`raw ${method} rejects secret-named argv query parameters`, async () => {
+    const args = method === "GET"
+      ? getArgs("/example/entities/things/v1", "--query", "PaSS%77ord=hidden")
+      : writeArgs("ops", "--query", "PaSS%77ord=hidden");
+    const result = await run(args);
+    assert.equal(result.code, 2, result.stdout);
+    assert.match(result.stdout, /--query-file/);
+    assert.doesNotMatch(result.stdout, /hidden/);
+    assert.equal(requests().length, 0);
+  });
+
+for (const method of ["GET", "PATCH"])
+  test(`raw ${method} accepts secret query values on stdin`, async () => {
+    const args = method === "GET"
+      ? getArgs("/example/entities/things/v1", "--query-file", "-")
+      : writeArgs("ops", "--query-file", "-");
+    if (method === "GET") recordedResponse("GET /example/entities/things/v1", 200, {});
+    const result = await run(args, {}, false, false, undefined, false, (child) =>
+      child.stdin!.end('{"password":"hidden"}'),
+    );
+    assert.equal(result.code, 0, result.stdout);
+    assert.doesNotMatch(result.stdout, /hidden/);
+    if (method === "GET") assert.match(requests()[0]!.url, /password=hidden/);
+  });
+
+test("raw get sends secret query values from a file", async () => {
+  const file = await queryFile({ password: ["first", "second"] });
+  recordedResponse("GET /example/entities/things/v1", 200, {});
+  const result = await run(
+    getArgs("/example/entities/things/v1", "--query-file", file),
+  );
+  assert.equal(result.code, 0, result.stdout);
+  assert.deepEqual(
+    new URL(requests()[0]!.url, "https://example.invalid").searchParams.getAll("password"),
+    ["first", "second"],
+  );
+  assert.doesNotMatch(result.stdout, /first|second/);
+});
+
+test("raw write rejects using stdin for both query and body", async () => {
+  const result = await run(
+    writeArgs("ops", "--query-file", "-", "--body-file", "-"),
+  );
+  assert.equal(result.code, 2, result.stdout);
+  assert.match(result.stdout, /cannot both read stdin/);
+  assert.equal(requests().length, 0);
+});
+
+test("raw get rejects non-string query file values", async () => {
+  const file = join(directory, "invalid-query.json");
+  await writeFile(file, '{"limit":5}');
+  const result = await run(
+    getArgs("/example/entities/things/v1", "--query-file", file),
+  );
+  assert.equal(result.code, 2, result.stdout);
+  assert.match(result.stdout, /string or string-array/);
+  assert.equal(requests().length, 0);
 });
 
 for (const name of ["key", "name", "field", "property", "attribute"])

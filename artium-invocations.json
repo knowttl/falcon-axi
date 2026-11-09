@@ -1322,7 +1322,8 @@
         "region": "value",
         "member-cid": "value",
         "path": "value",
-        "query": "value"
+        "query": "value",
+        "query-file": "value"
       }
     },
     {
@@ -1339,6 +1340,7 @@
         "method": "value",
         "path": "value",
         "query": "value",
+        "query-file": "value",
         "body-file": "value",
         "confirm": "value"
       }
