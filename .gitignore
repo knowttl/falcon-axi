@@ -33,4 +33,5 @@ coverage/
 
 # TypeScript migration build output
 node_modules/
+.pnpm-store/
 .typescript-build/

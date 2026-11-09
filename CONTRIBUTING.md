@@ -1,11 +1,15 @@
 # Contributing
 
-Use Node 24.14.0 and npm 11.9.0, then run the complete local verification gate:
+Use Node 22.18.0 or newer with the pnpm release pinned by `packageManager` in `package.json`, provided through Corepack.
+Node 25 and later do not bundle Corepack, so install it first with `npm install --global corepack`.
+Then run the complete local verification gate:
 
 ```sh
-npm ci --offline --ignore-scripts
-npm run verify
+corepack pnpm install --frozen-lockfile --ignore-scripts --config.confirm-modules-purge=false
+corepack pnpm run verify
 ```
+
+To run it the way the validation pipeline does, with an empty throwaway home directory and no `FALCON_AXI_*` variables, prefix each command with `node scripts/isolated-home.mjs`.
 
 The gate runs TypeScript compilation, formatting, architecture and generated drift checks, package installation checks, the cumulative native suite, and golden/safety provenance reconciliation.
 GitHub CI installs the locked dependencies and runs the same offline verification on pull requests and pushes to `main`.
@@ -19,7 +23,7 @@ Installed-artifact tests use loopback-only namespaces or inherited kernel socket
 Never commit credentials, tenant identifiers, captured responses, or personal data.
 The released package contains no recorded transport or test-origin selector.
 
-Run a focused slice with `npm run check:slice -- --slice S13 --paths native --offline`, or execute the relevant compiled Node test using the same isolation setup as the slice runner.
+Run a focused slice with `corepack pnpm run check:slice --slice S13 --paths native --offline`, or execute the relevant compiled Node test using the same isolation setup as the slice runner.
 The Python sources in `tests/offline/`, `tests/packaged/`, and `tests/support/` are frozen comparison provenance, not an executable suite for the current implementation.
 Their selected source hashes remain checked by the TypeScript safety ledger; no Python runtime is needed to read them.
 The recorded-invocation gate in `tests/golden/` preserves the output contract described in [the Python design](docs/design/v1-python.md#5-behavior-that-must-not-change-during-the-port).
@@ -49,8 +53,8 @@ Exempt: validation-boundary tests, contract tests against an agreed schema or re
 Regenerate the skill, its per-command references, and the invocation catalog from TypeScript metadata and templates:
 
 ```sh
-npm run generate
-npm run verify
+corepack pnpm run generate
+corepack pnpm run verify
 ```
 
 `src/metadata.ts` owns command declarations; the README summarizes command groups.

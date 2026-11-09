@@ -2,7 +2,7 @@
 
 Read CrowdStrike Falcon from the shell with compact, structured results for agents and the humans running them.
 
-This TypeScript tree prepares `@knowttl/falcon-axi@1.0.0-rc.1` for Node 24, with the `falcon-axi` and `falcon-axi-hook` executables.
+This TypeScript tree prepares `@knowttl/falcon-axi@1.0.0-rc.1`, with the `falcon-axi` and `falcon-axi-hook` executables.
 The first npm publication is pending and will be performed manually from merged `main`.
 The [distribution record](docs/distribution/typescript-transition.md) preserves the Python rollback proof and separate publication gates.
 Python 0.9.0 remains available from its [release source](https://github.com/knowttl/falcon-axi/tree/v0.9.0) and existing PyPI artifacts.
@@ -20,7 +20,7 @@ Synthetic offline checks verify local behavior and safety constraints; they do n
 
 ## Quickstart
 
-Requires [Node.js](https://nodejs.org/) 24.11.0 or newer within Node 24.
+Requires [Node.js](https://nodejs.org/) 22.18.0 or newer.
 After the first manual npm publication, install the prerelease globally, or use `npx -y @knowttl/falcon-axi@next` for one-shot reads:
 
 ```sh
@@ -185,7 +185,9 @@ Errors include a stable `code` and actionable `help`; unknown commands and flags
 
 ## Development
 
-Run `npm ci --offline --ignore-scripts` and `npm run verify` with Node 24.14.0 and npm 11.9.0.
+Use Node.js 22.18.0 or newer and the pnpm release pinned in [package.json](package.json), provided through Corepack.
+Node 25 and later do not bundle Corepack, so install it first with `npm install --global corepack`.
+From a checkout root, run `corepack pnpm install --frozen-lockfile --ignore-scripts --config.confirm-modules-purge=false` and `corepack pnpm run verify`.
 The [TypeScript build notes](docs/design/v1-typescript.md#build-and-offline-verification) describe the complete offline gate and installation checks.
 See [CONTRIBUTING.md](CONTRIBUTING.md) for tests, fixtures, documentation generation, and releases, and [AGENTS.md](AGENTS.md) for repository constraints.
 

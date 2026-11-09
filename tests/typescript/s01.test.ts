@@ -26,6 +26,7 @@ import { requestRead, requestToken } from "../../src/transport/https.js";
 import { decode } from "@toon-format/toon";
 import { spawnSync } from "node:child_process";
 import { VERSION } from "../../src/version.js";
+import { installPacked } from "./install-packed.js";
 
 export let directory: string;
 export let executable: string;
@@ -788,19 +789,10 @@ before(async () => {
     );
   const prefix = join(directory, "clean install");
   await mkdir(prefix);
-  execFileSync(
-    "npm",
-    [
-      "install",
-      "--offline",
-      "--ignore-scripts",
-      "--no-audit",
-      "--no-fund",
-      "--prefix",
-      prefix,
-      join(directory, pack[0]!.filename),
-    ],
-    { stdio: "pipe" },
+  installPacked(
+    resolve(dirname(fileURLToPath(import.meta.url)), "../../.."),
+    join(directory, pack[0]!.filename),
+    prefix,
   );
   executable = join(prefix, "node_modules", ".bin", "falcon-axi");
   if (process.env.S01_EVIDENCE_DIR) {

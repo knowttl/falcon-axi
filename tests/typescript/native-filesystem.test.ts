@@ -6,6 +6,7 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { fileURLToPath, pathToFileURL } from "node:url";
 import { openRetainedFile } from "../../src/rtr-filesystem.js";
+import { installPacked } from "./install-packed.js";
 
 const root = fs.mkdtempSync(join(tmpdir(), "falcon-native-"));
 after(() => fs.rmSync(root, { recursive: true, force: true }));
@@ -89,21 +90,11 @@ test("the installed artifact executes its prebuild and keeps reads and Windows r
   );
   assert.equal(pack.status, 0, pack.stderr);
   const artifact = (JSON.parse(pack.stdout) as { filename: string }[])[0]!;
-  const install = spawnSync(
-    "npm",
-    [
-      "install",
-      "--offline",
-      "--ignore-scripts",
-      "--no-audit",
-      "--no-fund",
-      "--prefix",
-      directory,
-      join(directory, artifact.filename),
-    ],
-    { encoding: "utf8" },
+  installPacked(
+    fileURLToPath(new URL("../../../", import.meta.url)),
+    join(directory, artifact.filename),
+    directory,
   );
-  assert.equal(install.status, 0, install.stderr);
   const packageRoot = join(directory, "node_modules/@knowttl/falcon-axi");
   const adapter = pathToFileURL(
     join(packageRoot, ".typescript-build/src/rtr-filesystem.js"),

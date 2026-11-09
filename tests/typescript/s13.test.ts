@@ -16,6 +16,7 @@ import type { Scenario } from "./s01.test.js";
 import "./s12.test.js";
 import "./raw.test.js";
 import "./final-coverage.test.js";
+import "./install-packed.test.js";
 
 test("S13 generated parser schema skill and catalog refuse drift and repair it", async () => {
   const scratch = join(directory, "generation");

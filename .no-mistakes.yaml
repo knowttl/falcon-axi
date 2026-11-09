@@ -1,8 +1,8 @@
 no_ci: true
 commands:
-  prepare: 'test "$(node --version)" = v24.14.0 && test "$(npm --version)" = 11.9.0 && npm ci --offline --ignore-scripts'
-  test: 'npm run verify'
-  lint: 'npm run lint'
+  prepare: 'node scripts/isolated-home.mjs corepack pnpm install --frozen-lockfile --ignore-scripts --config.confirm-modules-purge=false'
+  test: 'node scripts/isolated-home.mjs corepack pnpm run verify'
+  lint: 'node scripts/isolated-home.mjs corepack pnpm run lint'
 review:
   path_instructions:
     - path: "**"
