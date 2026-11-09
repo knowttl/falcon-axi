@@ -348,17 +348,15 @@ export async function rawRun(
     try {
       journal.append(
         Buffer.from(
-          JSON.stringify(
-            redact({
-              run,
-              profile: credential.profile,
-              method,
-              path: safeTarget,
-              body_sha256: body ? digest : undefined,
-              ...record,
-              timestamp: new Date().toISOString(),
-            }),
-          ) + "\n",
+          JSON.stringify({
+            run,
+            profile: redact(credential.profile),
+            method,
+            path: redact(safeTarget),
+            body_sha256: body ? digest : undefined,
+            ...record,
+            timestamp: new Date().toISOString(),
+          }) + "\n",
         ),
       );
     } catch (error) {

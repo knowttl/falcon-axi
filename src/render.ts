@@ -353,7 +353,7 @@ const rawPreviewFields = new Set([
   "body_sha256", "journal", "confirm", "body",
 ]);
 const rawGeneratedValues = new Set([
-  "run", "status", "upstream_status", "content_type", "code", "method",
+  "run", "status", "upstream_status", "code", "method",
   "query_sha256", "body_bytes", "body_sha256",
 ]);
 function redactRawEnvelope(value: Record<string, unknown>, preview = false): unknown {

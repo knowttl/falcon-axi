@@ -478,6 +478,55 @@ test("raw write accepts confirmation when a credential occurs in the marker", as
   assert.equal(requests().length, 1);
 });
 
+for (const method of ["GET", "PATCH"])
+  test(`raw ${method} redacts credentials in upstream content type`, async () => {
+    const document = JSON.parse(await readFile(config, "utf8")) as {
+      profiles: Record<string, { clientId: string }>;
+    };
+    document.profiles[method === "GET" ? "reader" : "ops"]!.clientId = "json";
+    await writeFile(config, JSON.stringify(document));
+    const args = method === "GET" ? getArgs("/example/entities/things/v1") : writeArgs("ops");
+    const preview = method === "PATCH" ? await run(args) : undefined;
+    const confirm = preview && (value(preview.stdout).preview as Record<string, string>).confirm;
+    dynamicResponse(`${method} /example/entities/things/v1`, () => ({
+      status: 200,
+      headers: { "content-type": "application/json" },
+      body: Buffer.from('{}'),
+    }));
+    const result = await run(
+      confirm ? [...args, "--execute", "--confirm", confirm] : args,
+      await state(),
+    );
+    assert.equal(result.code, 0, result.stdout);
+    assert.equal(value(result.stdout).content_type, "application/[redacted]");
+  });
+
+for (const clientId of ["phase", "run", "path", "status", "outcome"])
+  test(`raw write preserves journal fields when client ID is ${clientId}`, async () => {
+    const document = JSON.parse(await readFile(config, "utf8")) as {
+      profiles: { ops: { clientId: string } };
+    };
+    document.profiles.ops.clientId = clientId;
+    await writeFile(config, JSON.stringify(document));
+    const args = writeArgs("ops", "--query", "password=hidden");
+    const preview = await run(args);
+    const confirm = (value(preview.stdout).preview as Record<string, string>).confirm!;
+    const env = await state();
+    const status = clientId === "status" ? 503 : 200;
+    recordedResponse("PATCH /example/entities/things/v1", status, {}, true);
+    const result = await run([...args, "--execute", "--confirm", confirm], env);
+    assert.equal(result.code, status === 200 ? 0 : 1, result.stdout);
+    const records = await journal(env);
+    assert.deepEqual(records.map(({ phase, outcome }) => [phase, outcome]), [
+      ["intent", "not_sent"],
+      ["outcome", "responded"],
+    ]);
+    assert.equal(records[1]!.status, status);
+    assert.equal(records[0]!.run, records[1]!.run);
+    assert.equal(records[0]!.method, "PATCH");
+    assert.doesNotMatch(JSON.stringify(records), /hidden/);
+  });
+
 test("raw write rejects a changed redacted body", async () => {
   const file = join(directory, "secret-body.json");
   await writeFile(file, '{"password":"first"}');
