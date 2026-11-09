@@ -186,9 +186,14 @@ function redactSerialized(text: string, detectOnly = false): string | boolean {
     }
   };
   visit(root);
-  for (const edit of edits.sort((a, b) => b.start - a.start))
-    text = text.slice(0, edit.start) + edit.value + text.slice(edit.end);
-  return text;
+  const parts: string[] = [];
+  let cursor = 0;
+  for (const edit of edits) {
+    parts.push(text.slice(cursor, edit.start), edit.value);
+    cursor = edit.end;
+  }
+  parts.push(text.slice(cursor));
+  return parts.join("");
 }
 export function hasDuplicateJsonMembers(text: string): boolean {
   return redactSerialized(text, true) as boolean;

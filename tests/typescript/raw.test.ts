@@ -306,6 +306,18 @@ for (const status of [200, 403])
     );
   });
 
+test("raw output preserves bulk duplicate members while redacting secrets", async () => {
+  const input = `{${'"password":"hidden","label":"visible",'.repeat(3000)}"tail":"end"}`;
+  const expected = `{${'"password":"[redacted]","label":"visible",'.repeat(3000)}"tail":"end"}`;
+  dynamicResponse("GET /example/entities/things/v1", () => ({
+    status: 200,
+    body: Buffer.from(input),
+  }));
+  const result = await run(getArgs("/example/entities/things/v1"));
+  assert.equal(result.code, 0, result.stdout);
+  assert.equal(value(result.stdout).body, expected);
+});
+
 test("raw write refuses a wrong confirm value before any request", async () => {
   const file = await body();
   const result = await run(
