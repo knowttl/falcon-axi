@@ -100,6 +100,7 @@ export function validateRawInvocation(
       "--query must be key=value pairs joined by &, at most 4096 characters, without a leading ?",
     );
   const params = new URLSearchParams(queryText);
+  const argvEntries = params.size;
   if ([...params.keys()].some(isSecretKey))
     throw new CliError(
       "VALIDATION_ERROR",
@@ -130,6 +131,14 @@ export function validateRawInvocation(
       for (const item of Array.isArray(entry) ? entry : [entry])
         params.append(key, item as string);
   }
+  if (
+    [...positionalSecretPairs([...params])].some((index) => index < argvEntries)
+  )
+    throw new CliError(
+      "VALIDATION_ERROR",
+      "--query cannot contain values paired with secret names",
+      ["Use --query-file <path|-> with a JSON object for secret query values"],
+    );
   const query = params.toString();
   if (query.length > 4096)
     throw new CliError("VALIDATION_ERROR", "the combined query exceeds 4096 characters");
