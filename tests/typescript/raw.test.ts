@@ -753,17 +753,34 @@ for (const status of [200, 403])
   });
 
 for (const status of [200, 403])
-  test(`raw response ${status} redacts credentials in serialized keys`, async () => {
+  test(`raw response ${status} preserves credential keys and redacts their values`, async () => {
     recordedResponse("GET /example/entities/things/v1", status, {
-      payload: '{ "synthetic-s01-secret" : "visible", "safe": 1 }',
+      pair: { "synthetic-s01-secret": "hidden", "[redacted]": "visible" },
+      payload: '{ "synthetic-s01-secret" : "hidden", "[redacted]": "visible" }',
     });
     const result = await run(getArgs("/example/entities/things/v1"));
     assert.equal(result.code, status === 200 ? 0 : 1, result.stdout);
     const body = value(result.stdout)[
       status === 200 ? "body" : "upstream_body"
-    ] as Record<string, string>;
-    assert.equal(body.payload, '{ "[redacted]" : "visible", "safe": 1 }');
+    ] as { pair: unknown; payload: string };
+    assert.deepEqual(body.pair, {
+      "synthetic-s01-secret": "[redacted]",
+      "[redacted]": "visible",
+    });
+    assert.equal(body.payload, '{ "synthetic-s01-secret" : "[redacted]", "[redacted]": "visible" }');
   });
+
+test("raw write preview preserves credential keys and redacts their values", async () => {
+  const file = join(directory, "credential-key.json");
+  const pair = { "synthetic-s01-secret": "hidden", "[redacted]": "visible" };
+  await writeFile(file, JSON.stringify({ pair, payload: JSON.stringify(pair) }));
+  const result = await run(writeArgs("ops", "--body-file", file));
+  assert.equal(result.code, 0, result.stdout);
+  const body = (value(result.stdout).preview as { body: { pair: unknown; payload: string } }).body;
+  const expected = { "synthetic-s01-secret": "[redacted]", "[redacted]": "visible" };
+  assert.deepEqual(body.pair, expected);
+  assert.deepEqual(JSON.parse(body.payload), expected);
+});
 
 for (const status of [200, 403])
   test(`raw response ${status} redacts serialized pairs`, async () => {

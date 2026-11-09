@@ -120,7 +120,7 @@ function redactSerialized(text: string, detectOnly = false): string | boolean {
   type Node = {
     start: number;
     end: number;
-    entries?: { key: string; keyNode: Node; node: Node }[];
+    entries?: { key: string; node: Node }[];
     children?: Node[];
   };
   let position = 0;
@@ -135,7 +135,7 @@ function redactSerialized(text: string, detectOnly = false): string | boolean {
     const character = text[position];
     if (character === "{" || character === "[") {
       position++;
-      const entries: { key: string; keyNode: Node; node: Node }[] = [];
+      const entries: { key: string; node: Node }[] = [];
       const children: Node[] = [];
       const keys = new Set<string>();
       space();
@@ -149,7 +149,6 @@ function redactSerialized(text: string, detectOnly = false): string | boolean {
           keys.add(name);
           entries.push({
             key: name,
-            keyNode: key,
             node: parse(),
           });
         } else children.push(parse());
@@ -190,16 +189,10 @@ function redactSerialized(text: string, detectOnly = false): string | boolean {
             : undefined,
         ]),
       );
-      for (const [index, { key, keyNode, node: entry }] of node.entries.entries()) {
-        const safeKey = redactText(key);
-        if (safeKey !== key)
-          edits.push({
-            start: keyNode.start,
-            end: keyNode.end,
-            value: JSON.stringify(safeKey),
-          });
+      for (const [index, { key, node: entry }] of node.entries.entries()) {
         const sensitive =
           isSecretKey(key) ||
+          redactText(key) !== key ||
           pairs.has(index) ||
           (withinSecret && isPairValue(key));
         visit(entry, sensitive, sensitive);
@@ -284,10 +277,11 @@ function redactValue(
       entries.map(([key, entry], index) => {
         const sensitive =
           isSecretKey(key) ||
+          redactText(key) !== key ||
           pairs.has(index) ||
           (withinSecret && isPairValue(key));
         return [
-          redactText(key),
+          key,
           redactValue(entry, sensitive, sensitive),
         ];
       }),
