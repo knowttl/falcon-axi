@@ -10,6 +10,7 @@ import {
   positionalSecretPairs,
   Raw,
   redact,
+  redactRawEnvelope,
   render,
 } from "./render.js";
 import { origin } from "./origin.js";
@@ -348,15 +349,20 @@ export async function rawRun(
     try {
       journal.append(
         Buffer.from(
-          JSON.stringify({
-            run,
-            profile: redact(credential.profile),
-            method,
-            path: redact(safeTarget),
-            body_sha256: body ? digest : undefined,
-            ...record,
-            timestamp: new Date().toISOString(),
-          }) + "\n",
+          JSON.stringify(
+            redactRawEnvelope(
+              {
+                run,
+                profile: credential.profile,
+                method,
+                path: safeTarget,
+                body_sha256: body ? digest : undefined,
+                ...record,
+                timestamp: new Date().toISOString(),
+              },
+              "journal",
+            ),
+          ) + "\n",
         ),
       );
     } catch (error) {

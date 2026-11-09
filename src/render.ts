@@ -362,17 +362,24 @@ const rawPreviewFields = new Set([
   "profile", "origin", "method", "path", "query_sha256", "body_bytes",
   "body_sha256", "journal", "confirm", "body",
 ]);
+const rawJournalFields = new Set([
+  "run", "profile", "method", "path", "body_sha256", "phase", "outcome",
+  "status", "timestamp",
+]);
 const rawGeneratedValues = new Set([
   "run", "status", "upstream_status", "code", "method",
-  "query_sha256", "body_bytes", "body_sha256",
+  "query_sha256", "body_bytes", "body_sha256", "phase", "outcome", "timestamp",
 ]);
-function redactRawEnvelope(value: Record<string, unknown>, preview = false): unknown {
-  const fields = preview ? rawPreviewFields : rawEnvelopeFields;
+export function redactRawEnvelope(
+  value: Record<string, unknown>,
+  kind: "envelope" | "preview" | "journal" = "envelope",
+): Record<string, unknown> {
+  const fields = kind === "preview" ? rawPreviewFields : kind === "journal" ? rawJournalFields : rawEnvelopeFields;
   return Object.fromEntries(
     Object.entries(value).flatMap(([key, entry]) => {
       if (!fields.has(key)) return Object.entries(redact({ [key]: entry }) as Record<string, unknown>);
       if (key === "preview" && object(entry))
-        return [[key, redactRawEnvelope(entry, true)]];
+        return [[key, redactRawEnvelope(entry, "preview")]];
       return [[key, rawGeneratedValues.has(key) ? entry : redact(entry)]];
     }),
   );

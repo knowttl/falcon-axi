@@ -501,19 +501,28 @@ for (const method of ["GET", "PATCH"])
     assert.equal(value(result.stdout).content_type, "application/[redacted]");
   });
 
-for (const clientId of ["phase", "run", "path", "status", "outcome"])
+for (const clientId of ["phase", "run", "path", "status", "outcome", "PATCH"])
   test(`raw write preserves journal fields when client ID is ${clientId}`, async () => {
     const document = JSON.parse(await readFile(config, "utf8")) as {
       profiles: { ops: { clientId: string } };
     };
     document.profiles.ops.clientId = clientId;
     await writeFile(config, JSON.stringify(document));
-    const args = writeArgs("ops", "--query", "password=hidden");
+    const args = writeArgs("ops", "--query", "password=hidden&note=PATCH");
     const preview = await run(args);
+    assert.equal(
+      (value(preview.stdout).preview as Record<string, unknown>).method,
+      "PATCH",
+    );
     const confirm = (value(preview.stdout).preview as Record<string, string>).confirm!;
     const env = await state();
     const status = clientId === "status" ? 503 : 200;
-    recordedResponse("PATCH /example/entities/things/v1", status, {}, true);
+    recordedResponse(
+      "PATCH /example/entities/things/v1",
+      status,
+      { note: "PATCH" },
+      true,
+    );
     const result = await run([...args, "--execute", "--confirm", confirm], env);
     assert.equal(result.code, status === 200 ? 0 : 1, result.stdout);
     const records = await journal(env);
@@ -525,6 +534,13 @@ for (const clientId of ["phase", "run", "path", "status", "outcome"])
     assert.equal(records[0]!.run, records[1]!.run);
     assert.equal(records[0]!.method, "PATCH");
     assert.doesNotMatch(JSON.stringify(records), /hidden/);
+    if (clientId === "PATCH") {
+      assert.equal(
+        (value(result.stdout).body as Record<string, unknown>).note,
+        "[redacted]",
+      );
+      assert.match(records[0]!.path as string, /note=%5Bredacted%5D/i);
+    }
   });
 
 test("raw write rejects a changed redacted body", async () => {
