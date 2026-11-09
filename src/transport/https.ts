@@ -720,6 +720,6 @@ export function requestRaw(
       },
     },
     signal,
-    method === "GET",
+    false,
   );
 }

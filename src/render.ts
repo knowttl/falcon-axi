@@ -57,6 +57,16 @@ const pairNameFields = ["key", "name", "field", "property", "attribute"];
 const pairValueFields = ["value", "data", "values", "val", "string_value"];
 export const isSecretKey = (name: string): boolean =>
   secretKeys.has(name.toLowerCase());
+const assignment = new RegExp(
+  `(?<![\\w.#-])(${[...secretKeys].map((key) => key.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")).join("|")})([ \\t]*[:=][ \\t]*)(?:bearer[ \\t]+)?("(?:\\\\.|[^"\\\\])*"|'(?:\\\\.|[^'\\\\])*'|[^\\r\\n]+?)(?=[\\r\\n]|[ \\t,;&]+[\\w.#-]+[ \\t]*[:=]|$)`,
+  "gi",
+);
+export function redactAssignments(value: string): string {
+  return value.replace(
+    assignment,
+    (_match, key: string, separator: string) => `${key}${separator}[redacted]`,
+  );
+}
 function namesSecret(entry: Record<string, unknown>): boolean {
   return Object.entries(entry).some(
     ([field, name]) =>
@@ -67,8 +77,8 @@ function namesSecret(entry: Record<string, unknown>): boolean {
 }
 export function redact(value: unknown): unknown {
   if (typeof value === "string")
-    return redactText(value).replace(
-      /-----BEGIN [A-Z ]*PRIVATE KEY-----[\s\S]*?(?:-----END [A-Z ]*PRIVATE KEY-----|$)|\beyJ[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+|AccountKey=[^;\s]+|sig=[A-Za-z0-9%+/=]+/gi,
+    return redactAssignments(redactText(value)).replace(
+      /-----BEGIN [A-Z ]*PRIVATE KEY-----[\s\S]*?(?:-----END [A-Z ]*PRIVATE KEY-----|$)|\beyJ[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+|AccountKey=[^;\s]+|(?<![\w])sig=[A-Za-z0-9%+/=]+/gi,
       "[redacted]",
     );
   if (Array.isArray(value)) return value.map(redact);

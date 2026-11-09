@@ -57,6 +57,7 @@ Avoid simultaneous runs for the same host/API client across machines; local host
 Captain exception N5 admits `raw get` and `raw write`; the [N5 design contract](design/v1.md#47-raw-api-captain-exception-n5) owns the boundary.
 `raw get --path <api-path> [--query <key=value&...>]` sends one GET to the selected cloud with the profile's bearer token and prints the status, content type, and redacted body as TOON.
 It is not limited to the registry, so read-only is the caller's responsibility: choose paths whose CrowdStrike documentation describes a read.
+The GET is never replayed.
 There is no pagination, cursor, or field selection; a response is capped at 4 MiB and a binary body is refused.
 
 `raw write --method POST|PUT|PATCH|DELETE --path <api-path> [--query ...] [--body-file <file|->]` sends one write.

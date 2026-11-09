@@ -128,6 +128,8 @@ for (const path of [
   "/example/things?x=1",
   "example/things",
   "/example/th ings",
+  "/example/%2e%2e/devices",
+  "/example/%zz",
 ])
   test(`raw get refuses ${path} before any request`, async () => {
     const result = await run(getArgs(path));
@@ -135,6 +137,21 @@ for (const path of [
     assert.equal(value(result.stdout).code, "VALIDATION_ERROR");
     assert.equal(wire.length, 0);
   });
+
+test("raw get accepts URI path characters and long paths", async () => {
+  const path = `/example/${"a".repeat(260)}%20x:@!$&'()*+,;=`;
+  recordedResponse(`GET ${path}`, 200, { ok: true });
+  const result = await run(getArgs(path));
+  assert.equal(result.code, 0, result.stdout);
+  assert.equal(requests()[0]!.url, path);
+});
+
+test("raw get does not replay a failed request", async () => {
+  recordedResponse("GET /example/entities/things/v1", 503, {});
+  const result = await run(getArgs("/example/entities/things/v1"));
+  assert.equal(result.code, 1, result.stdout);
+  assert.equal(requests().length, 1);
+});
 
 test("raw get translates an upstream refusal with its status and redacted body", async () => {
   recordedResponse("GET /example/entities/things/v1", 403, {
@@ -325,7 +342,7 @@ test("raw write redacts secret query values in preview and journal", async () =>
   const args = writeArgs(
     "ops",
     "--query",
-    "password=hidden&password=other&filter=password%3A%27nestedsecret%27&token_count=5",
+    "password=hidden&password=other&filter=note%3A%20password%3A%27nestedsecret%27&token_count=5",
   );
   const preview = await run(args);
   assert.equal(preview.code, 0, preview.stdout);
@@ -389,7 +406,7 @@ for (const status of [200, 403])
     dynamicResponse("GET /example/entities/things/v1", () => ({
       status,
       headers: { "content-type": "text/plain" },
-      body: Buffer.from("password: alpha,beta;gamma&delta\ntoken_count=5"),
+      body: Buffer.from("note: password=alpha,beta;gamma&delta\ntoken_count=5"),
     }));
     const result = await run(getArgs("/example/entities/things/v1"));
     assert.equal(result.code, status === 200 ? 0 : 1, result.stdout);
@@ -397,6 +414,18 @@ for (const status of [200, 403])
     assert.match(result.stdout, /token_count=5/);
     assert.match(result.stdout, /\[redacted\]/);
   });
+
+test("raw output redacts nested secrets and preserves metadata", async () => {
+  recordedResponse("GET /example/entities/things/v1", 200, {
+    message: "note: password=hunter2",
+    metadata: "design=blue token_count=5",
+    sas: "https://example.invalid/?sig=syntheticsignature&x=1",
+  });
+  const result = await run(getArgs("/example/entities/things/v1"));
+  assert.equal(result.code, 0, result.stdout);
+  assert.doesNotMatch(result.stdout, /hunter2|syntheticsignature/);
+  assert.match(result.stdout, /design=blue token_count=5/);
+});
 
 test("scopes distinguishes raw routes from registered commands", async () => {
   const result = await run(["scopes"]);

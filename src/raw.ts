@@ -4,7 +4,14 @@ import { observeRate, authenticate } from "./auth.js";
 import { CliError, object, parseResponse } from "./core.js";
 import { writeLogPath } from "./credentials.js";
 import type { Credential } from "./credentials.js";
-import { isSecretKey, Raw, redact, render, truncate } from "./render.js";
+import {
+  isSecretKey,
+  Raw,
+  redact,
+  redactAssignments,
+  render,
+  truncate,
+} from "./render.js";
 import { origin } from "./origin.js";
 import { openRetainedFile } from "./rtr-filesystem.js";
 import { readOnly } from "./rtr-policy.js";
@@ -126,22 +133,12 @@ export function validateRawInvocation(
   };
 }
 
-function safeText(text: string): string {
-  return text.replace(
-    /(^|[^\w.#-])([\w.#-]+)([ \t]*[:=][ \t]*)(?:bearer[ \t]+)?("(?:\\.|[^"\\])*"|'(?:\\.|[^'\\])*'|[^\r\n]+?)(?=[\r\n]|[ \t,;&]+[\w.#-]+[ \t]*[:=]|$)/gi,
-    (match, prefix: string, key: string, separator: string) =>
-      isSecretKey(key) ? `${prefix}${key}${separator}[redacted]` : match,
-  );
-}
-
 function responseBody(response: Response): unknown {
-  return typeof response.body === "string"
-    ? safeText(response.body)
-    : response.body !== undefined
-      ? response.body
-      : response.text
-        ? safeText(response.text)
-        : undefined;
+  return response.body !== undefined
+    ? response.body
+    : response.text
+      ? response.text
+      : undefined;
 }
 
 function failure(response: Response, writing = false): CliError {
@@ -282,7 +279,10 @@ export async function rawRun(
   const confirm = `${credential.profile}:${method} sha256:${confirmationHash}`;
   const safeQuery = new URLSearchParams();
   for (const [key, value] of new URLSearchParams(query))
-    safeQuery.append(key, isSecretKey(key) ? "[redacted]" : safeText(value));
+    safeQuery.append(
+      key,
+      isSecretKey(key) ? "[redacted]" : redactAssignments(value),
+    );
   const safeTarget = safeQuery.size ? `${path}?${safeQuery}` : path;
   if (request.executing && request.confirm !== confirm)
     throw new CliError(
