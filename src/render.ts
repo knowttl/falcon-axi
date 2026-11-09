@@ -1,5 +1,6 @@
 import { encode } from "@toon-format/toon";
-import { object } from "./core.js";
+import { randomUUID } from "node:crypto";
+import { object, RawNumber } from "./core.js";
 
 const secrets = new Set<string>();
 const memberCids = new Set<string>();
@@ -80,7 +81,7 @@ export function positionalSecretPairs(
   let pending: { index: number; name: boolean } | undefined;
   entries.forEach(([key], index) => {
     const name = isPairName(key);
-    if (!name && key.toLowerCase() !== "value") return;
+    if (!name && (!isPairValue(key) || key.toLowerCase() === "data")) return;
     if (pending && pending.name !== name) {
       const nameIndex = name ? index : pending.index;
       const valueIndex = name ? pending.index : index;
@@ -214,6 +215,7 @@ function redactValue(
   withinSecret = false,
   hideScalar = false,
 ): unknown {
+  if (value instanceof RawNumber) return hideScalar ? "[redacted]" : value;
   if (hideScalar && !object(value) && !Array.isArray(value))
     return "[redacted]";
   if (typeof value === "string") {
@@ -273,8 +275,27 @@ export function render(
   let output = "";
   let pending: Record<string, unknown> = {};
   const flush = (): void => {
-    if (Object.keys(pending).length)
-      output += encode(redact(pending)).trimEnd() + "\n";
+    if (Object.keys(pending).length) {
+      const numbers = new Map<string, string>();
+      const prepare = (value: unknown): unknown => {
+        if (value instanceof RawNumber) {
+          const marker = `raw_number_${randomUUID().replaceAll("-", "")}`;
+          numbers.set(marker, value.text);
+          return marker;
+        }
+        if (Array.isArray(value)) return value.map(prepare);
+        if (object(value))
+          return Object.fromEntries(
+            Object.entries(value).map(([key, entry]) => [key, prepare(entry)]),
+          );
+        return value;
+      };
+      let encoded = encode(prepare(redact(pending))).trimEnd();
+      encoded = encoded.replace(/raw_number_[0-9a-f]{32}/g, (marker) =>
+        numbers.get(marker) ?? marker,
+      );
+      output += encoded + "\n";
+    }
     pending = {};
   };
   for (const [key, entry] of Object.entries(value)) {

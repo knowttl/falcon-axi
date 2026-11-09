@@ -1032,32 +1032,41 @@ for (const status of [200, 403])
 for (const status of [200, 403])
   test(`raw response ${status} preserves non-pair aliases and decimal text`, async () => {
     const text =
-      '{"data":"visible","key":"api_key","value":"hidden","threshold":0.10000000000000001}';
+      '{"data":"visible","key":"api_key","value":"hidden","threshold":0.10000000000000001,"count":1.0}';
     dynamicResponse("GET /example/entities/things/v1", () => ({
       status,
       body: Buffer.from(text),
     }));
     const result = await run(getArgs("/example/entities/things/v1"));
     assert.equal(result.code, status === 200 ? 0 : 1, result.stdout);
-    assert.equal(
-      value(result.stdout)[status === 200 ? "body" : "upstream_body"],
-      text.replace('"hidden"', '"[redacted]"'),
-    );
+    const body = value(result.stdout)[
+      status === 200 ? "body" : "upstream_body"
+    ] as Record<string, unknown>;
+    assert.equal(body.data, "visible");
+    assert.equal(body.value, "[redacted]");
+    assert.equal(body.threshold, 0.1);
+    assert.equal(body.count, 1);
+    assert.match(result.stdout, /threshold: 0\.10000000000000001/);
+    assert.match(result.stdout, /count: 1\.0/);
   });
 
 for (const status of [200, 403])
   test(`raw write preserves decimal text in preview and response ${status}`, async () => {
     const text =
-      '{"data":"visible","key":"api_key","value":"hidden","threshold":0.10000000000000001}';
+      '{"data":"visible","key":"api_key","value":"hidden","threshold":0.10000000000000001,"count":1.0}';
     const file = join(directory, "decimal-body.json");
     await writeFile(file, text);
     const args = writeArgs("ops", "--body-file", file);
     const preview = await run(args);
     assert.equal(preview.code, 0, preview.stdout);
-    assert.equal(
-      (value(preview.stdout).preview as { body: string }).body,
-      text.replace('"hidden"', '"[redacted]"'),
-    );
+    const previewBody = (value(preview.stdout).preview as {
+      body: Record<string, unknown>;
+    }).body;
+    assert.equal(previewBody.value, "[redacted]");
+    assert.equal(previewBody.threshold, 0.1);
+    assert.equal(previewBody.count, 1);
+    assert.match(preview.stdout, /threshold: 0\.10000000000000001/);
+    assert.match(preview.stdout, /count: 1\.0/);
     const confirm = (value(preview.stdout).preview as Record<string, string>)
       .confirm!;
     dynamicResponse("PATCH /example/entities/things/v1", () => ({
@@ -1069,8 +1078,58 @@ for (const status of [200, 403])
       await state(),
     );
     assert.equal(result.code, status === 200 ? 0 : 1, result.stdout);
-    assert.equal(
-      value(result.stdout)[status === 200 ? "body" : "upstream_body"],
-      text.replace('"hidden"', '"[redacted]"'),
+    const responseBody = value(result.stdout)[
+      status === 200 ? "body" : "upstream_body"
+    ] as Record<string, unknown>;
+    assert.equal(responseBody.value, "[redacted]");
+    assert.equal(responseBody.threshold, 0.1);
+    assert.equal(responseBody.count, 1);
+    assert.match(result.stdout, /threshold: 0\.10000000000000001/);
+    assert.match(result.stdout, /count: 1\.0/);
+  });
+
+for (const alias of ["value", "val", "values", "string_value"])
+  test(`raw output redacts ${alias} pairs in either order`, async () => {
+    const pairs = [
+      { data: "visible", key: "api_key", [alias]: "hidden-forward" },
+      { [alias]: "hidden-reverse", key: "api_key", data: "visible" },
+    ];
+    recordedResponse("GET /example/entities/things/v1", 200, {
+      pairs,
+      serialized: JSON.stringify(pairs),
+    });
+    const result = await run(getArgs("/example/entities/things/v1"));
+    assert.equal(result.code, 0, result.stdout);
+    assert.doesNotMatch(result.stdout, /hidden-forward|hidden-reverse/);
+    const body = value(result.stdout).body as {
+      pairs: Record<string, string>[];
+      serialized: string;
+    };
+    assert.deepEqual(body.pairs.map((pair) => [pair.data, pair[alias]]), [
+      ["visible", "[redacted]"],
+      ["visible", "[redacted]"],
+    ]);
+    assert.deepEqual(JSON.parse(body.serialized), body.pairs);
+  });
+
+for (const alias of ["val", "values", "string_value"])
+  test(`raw write redacts ${alias} query pairs in preview and journal`, async () => {
+    const args = writeArgs(
+      "ops",
+      "--query",
+      `data=visible&${alias}=hidden&key=api_key`,
     );
+    const preview = await run(args);
+    assert.equal(preview.code, 0, preview.stdout);
+    assert.doesNotMatch(preview.stdout, /hidden/);
+    assert.match(preview.stdout, /data=visible/);
+    const confirm = (value(preview.stdout).preview as Record<string, string>)
+      .confirm!;
+    const env = await state();
+    recordedResponse("PATCH /example/entities/things/v1", 200, {}, true);
+    const result = await run([...args, "--execute", "--confirm", confirm], env);
+    assert.equal(result.code, 0, result.stdout);
+    const records = JSON.stringify(await journal(env));
+    assert.doesNotMatch(records, /hidden/);
+    assert.match(records, /data=visible/);
   });
