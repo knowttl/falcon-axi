@@ -10,6 +10,7 @@ import {
   positionalSecretPairs,
   Raw,
   redact,
+  redactedKeys,
   redactRawEnvelope,
   render,
 } from "./render.js";
@@ -73,6 +74,18 @@ interface RawRequest {
   target: string;
   body: string;
 }
+export function validateRawQuerySecrets(query: string): void {
+  const params = new URLSearchParams(query);
+  if (
+    [...params.keys()].some((key) => isSecretKey(key) || redact(key) !== key) ||
+    [...params.values()].some((value) => redact(value) !== value)
+  )
+    throw new CliError(
+      "VALIDATION_ERROR",
+      "--query cannot contain recognized secret keys or values",
+      ["Use --query-file <path|-> with a JSON object for secret query values"],
+    );
+}
 export function validateRawInvocation(
   invocation: Invocation,
 ): RawRequest & { executing: boolean; confirm: string | undefined } {
@@ -101,18 +114,7 @@ export function validateRawInvocation(
     );
   const params = new URLSearchParams(queryText);
   const argvEntries = params.size;
-  if ([...params.keys()].some(isSecretKey))
-    throw new CliError(
-      "VALIDATION_ERROR",
-      "--query cannot contain secret-named parameters",
-      ["Use --query-file <path|-> with a JSON object for secret query values"],
-    );
-  if ([...params.values()].some((value) => redact(value) !== value))
-    throw new CliError(
-      "VALIDATION_ERROR",
-      "--query cannot contain recognized secret values",
-      ["Use --query-file <path|-> with a JSON object for secret query values"],
-    );
+  validateRawQuerySecrets(queryText);
   const queryFile = flags.get("--query-file");
   if (queryFile === "-" && flags.get("--body-file") === "-")
     throw new CliError(
@@ -212,10 +214,11 @@ function redactQueryPairs(query: string): string {
   const safe = new URLSearchParams();
   const entries = [...new URLSearchParams(query)];
   const pairs = positionalSecretPairs(entries);
+  const keys = redactedKeys(entries.map(([key]) => key));
   for (const [index, [key, value]] of entries.entries()) {
     safe.append(
-      key,
-      isSecretKey(key) || pairs.has(index)
+      keys[index]!,
+      isSecretKey(key) || keys[index] !== key || pairs.has(index)
         ? "[redacted]"
         : String(redact(value)),
     );

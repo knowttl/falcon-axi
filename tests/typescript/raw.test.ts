@@ -625,8 +625,8 @@ for (const clientId of ["phase", "run", "path", "status", "outcome", "PATCH"])
     };
     document.profiles.ops.clientId = clientId;
     await writeFile(config, JSON.stringify(document));
-    const file = await queryFile({ password: "hidden" });
-    const args = writeArgs("ops", "--query", "note=PATCH", "--query-file", file);
+    const file = await queryFile({ password: "hidden", note: "PATCH" });
+    const args = writeArgs("ops", "--query-file", file);
     const preview = await run(args);
     assert.equal(
       (value(preview.stdout).preview as Record<string, unknown>).method,
@@ -859,6 +859,27 @@ for (const method of ["GET", "PATCH"])
     assert.doesNotMatch(result.stdout, /hidden/);
     assert.equal(requests().length, 0);
   });
+
+for (const method of ["GET", "PATCH"])
+  for (const [kind, secret] of [
+    ["client ID", "synthetic-s01-client"],
+    ["client secret", "synthetic-s01-secret"],
+    ["member CID", "synthetic-member"],
+  ] as const)
+    for (const position of ["key", "value"])
+      test(`raw ${method} rejects registered ${kind} in query ${position}`, async () => {
+        const query = new URLSearchParams(
+          position === "key" ? [[secret, "ordinary"]] : [["note", secret]],
+        ).toString();
+        const args = method === "GET"
+          ? getArgs("/example/entities/things/v1", "--query", query)
+          : writeArgs("ops", "--query", query);
+        const result = await run([...args, "--member-cid", "synthetic-member"]);
+        assert.equal(result.code, 2, result.stdout);
+        assert.match(result.stdout, /--query-file/);
+        assert.doesNotMatch(result.stdout, /synthetic-s01-client|synthetic-s01-secret|synthetic-member/);
+        assert.equal(requests().length, 0);
+      });
 
 for (const method of ["GET", "PATCH"])
   for (const [kind, input] of [
@@ -1447,6 +1468,46 @@ for (const status of [200, 403])
     );
     assert.doesNotMatch(result.stdout, /synthetic-s01-secret/);
   });
+
+for (const status of [200, 403])
+  test(`raw response ${status} replaces patterned secret keys without collisions`, async () => {
+    const pair = {
+      "password=hidden": "private",
+      "[redacted-key-1]": "visible",
+    };
+    recordedResponse("GET /example/entities/things/v1", status, {
+      pair,
+      payload: JSON.stringify(pair),
+    });
+    const result = await run(getArgs("/example/entities/things/v1"));
+    assert.equal(result.code, status === 200 ? 0 : 1, result.stdout);
+    const body = value(result.stdout)[status === 200 ? "body" : "upstream_body"] as {
+      pair: unknown;
+      payload: string;
+    };
+    const expected = { "[redacted-key-2]": "[redacted]", "[redacted-key-1]": "visible" };
+    assert.deepEqual(body.pair, expected);
+    assert.deepEqual(JSON.parse(body.payload), expected);
+    assert.doesNotMatch(result.stdout, /hidden|private/);
+  });
+
+test("raw write redacts patterned query keys in preview and journal", async () => {
+  const file = await queryFile({ "password=hidden": "private", "[redacted-key-1]": "visible" });
+  const args = writeArgs("ops", "--query-file", file);
+  const preview = await run(args);
+  assert.equal(preview.code, 0, preview.stdout);
+  assert.doesNotMatch(preview.stdout, /hidden|private/);
+  const path = (value(preview.stdout).preview as { path: string }).path;
+  const params = new URL(path, "https://example.invalid").searchParams;
+  assert.equal(params.get("[redacted-key-2]"), "[redacted]");
+  assert.equal(params.get("[redacted-key-1]"), "visible");
+  const confirm = (value(preview.stdout).preview as Record<string, string>).confirm!;
+  const env = await state();
+  recordedResponse("PATCH /example/entities/things/v1", 200, {}, true);
+  const result = await run([...args, "--execute", "--confirm", confirm], env);
+  assert.equal(result.code, 0, result.stdout);
+  assert.doesNotMatch(JSON.stringify(await journal(env)), /hidden|private/);
+});
 
 test("raw write preview replaces credential keys without collisions", async () => {
   const file = join(directory, "credential-key.json");

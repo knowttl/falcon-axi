@@ -167,11 +167,14 @@ export function positionalSecretPairs(
   });
   return sensitive;
 }
-function redactedKeys(keys: readonly string[]): string[] {
+export function redactedKeys(keys: readonly string[]): string[] {
   const used = new Set(keys);
   let index = 0;
   return keys.map((key) => {
-    if (![...secrets, ...memberCids].some((secret) => key.includes(secret)))
+    if (
+      ![...secrets, ...memberCids].some((secret) => key.includes(secret)) &&
+      redact(key) === key
+    )
       return key;
     let replacement: string;
     do replacement = `[redacted-key-${++index}]`;
