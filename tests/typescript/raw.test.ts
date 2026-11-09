@@ -753,10 +753,15 @@ for (const status of [200, 403])
   });
 
 for (const status of [200, 403])
-  test(`raw response ${status} preserves credential keys and redacts their values`, async () => {
+  test(`raw response ${status} replaces credential keys without collisions`, async () => {
     recordedResponse("GET /example/entities/things/v1", status, {
-      pair: { "synthetic-s01-secret": "hidden", "[redacted]": "visible" },
-      payload: '{ "synthetic-s01-secret" : "hidden", "[redacted]": "visible" }',
+      pair: {
+        "synthetic-s01-secret": "hidden",
+        "[redacted-key-1]": "visible",
+        "[redacted]": "other",
+      },
+      payload:
+        '{ "synthetic-s01-secret" : "hidden", "[redacted-key-1]": "visible", "[redacted]": "other" }',
     });
     const result = await run(getArgs("/example/entities/things/v1"));
     assert.equal(result.code, status === 200 ? 0 : 1, result.stdout);
@@ -764,22 +769,38 @@ for (const status of [200, 403])
       status === 200 ? "body" : "upstream_body"
     ] as { pair: unknown; payload: string };
     assert.deepEqual(body.pair, {
-      "synthetic-s01-secret": "[redacted]",
-      "[redacted]": "visible",
+      "[redacted-key-2]": "[redacted]",
+      "[redacted-key-1]": "visible",
+      "[redacted]": "other",
     });
-    assert.equal(body.payload, '{ "synthetic-s01-secret" : "[redacted]", "[redacted]": "visible" }');
+    assert.equal(
+      body.payload,
+      '{ "[redacted-key-2]" : "[redacted]", "[redacted-key-1]": "visible", "[redacted]": "other" }',
+    );
+    assert.doesNotMatch(result.stdout, /synthetic-s01-secret/);
   });
 
-test("raw write preview preserves credential keys and redacts their values", async () => {
+test("raw write preview replaces credential keys without collisions", async () => {
   const file = join(directory, "credential-key.json");
-  const pair = { "synthetic-s01-secret": "hidden", "[redacted]": "visible" };
+  const pair = {
+    "synthetic-s01-secret": "hidden",
+    "[redacted-key-1]": "visible",
+    "[redacted]": "other",
+  };
   await writeFile(file, JSON.stringify({ pair, payload: JSON.stringify(pair) }));
   const result = await run(writeArgs("ops", "--body-file", file));
   assert.equal(result.code, 0, result.stdout);
-  const body = (value(result.stdout).preview as { body: { pair: unknown; payload: string } }).body;
-  const expected = { "synthetic-s01-secret": "[redacted]", "[redacted]": "visible" };
+  const body = (
+    value(result.stdout).preview as { body: { pair: unknown; payload: string } }
+  ).body;
+  const expected = {
+    "[redacted-key-2]": "[redacted]",
+    "[redacted-key-1]": "visible",
+    "[redacted]": "other",
+  };
   assert.deepEqual(body.pair, expected);
   assert.deepEqual(JSON.parse(body.payload), expected);
+  assert.doesNotMatch(result.stdout, /synthetic-s01-secret/);
 });
 
 for (const status of [200, 403])

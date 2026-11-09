@@ -116,11 +116,23 @@ export function positionalSecretPairs(
   });
   return sensitive;
 }
+function redactedKeys(keys: readonly string[]): string[] {
+  const used = new Set(keys);
+  let index = 0;
+  return keys.map((key) => {
+    if (!secrets.has(key) && !memberCids.has(key)) return key;
+    let replacement: string;
+    do replacement = `[redacted-key-${++index}]`;
+    while (used.has(replacement));
+    used.add(replacement);
+    return replacement;
+  });
+}
 function redactSerialized(text: string, detectOnly = false): string | boolean {
   type Node = {
     start: number;
     end: number;
-    entries?: { key: string; node: Node }[];
+    entries?: { key: string; keyNode: Node; node: Node }[];
     children?: Node[];
   };
   let position = 0;
@@ -135,7 +147,7 @@ function redactSerialized(text: string, detectOnly = false): string | boolean {
     const character = text[position];
     if (character === "{" || character === "[") {
       position++;
-      const entries: { key: string; node: Node }[] = [];
+      const entries: { key: string; keyNode: Node; node: Node }[] = [];
       const children: Node[] = [];
       const keys = new Set<string>();
       space();
@@ -149,6 +161,7 @@ function redactSerialized(text: string, detectOnly = false): string | boolean {
           keys.add(name);
           entries.push({
             key: name,
+            keyNode: key,
             node: parse(),
           });
         } else children.push(parse());
@@ -189,7 +202,14 @@ function redactSerialized(text: string, detectOnly = false): string | boolean {
             : undefined,
         ]),
       );
-      for (const [index, { key, node: entry }] of node.entries.entries()) {
+      const keys = redactedKeys(node.entries.map(({ key }) => key));
+      for (const [index, { key, keyNode, node: entry }] of node.entries.entries()) {
+        if (keys[index] !== key)
+          edits.push({
+            start: keyNode.start,
+            end: keyNode.end,
+            value: JSON.stringify(keys[index]),
+          });
         const sensitive =
           isSecretKey(key) ||
           redactText(key) !== key ||
@@ -273,6 +293,7 @@ function redactValue(
   if (object(value)) {
     const entries = Object.entries(value);
     const pairs = positionalSecretPairs(entries);
+    const keys = redactedKeys(entries.map(([key]) => key));
     return Object.fromEntries(
       entries.map(([key, entry], index) => {
         const sensitive =
@@ -281,7 +302,7 @@ function redactValue(
           pairs.has(index) ||
           (withinSecret && isPairValue(key));
         return [
-          key,
+          keys[index]!,
           redactValue(entry, sensitive, sensitive),
         ];
       }),
