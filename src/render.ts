@@ -92,17 +92,21 @@ const assignment = new RegExp(
   "gi",
 );
 export function redactAssignments(value: string): string {
-  return value.replace(
-    assignment,
-    (
-      _match,
-      authorization: string,
-      authSeparator: string,
-      key: string,
-      separator: string,
-    ) =>
-      `${authorization ?? key}${authSeparator ?? separator}[redacted]`,
-  );
+  return value
+    .replace(
+      /(?<![\w.#-])(authorization)(["']?[ \t]*[:=][ \t]*)digest[ \t]+[^\r\n]*/gi,
+      (_match, key: string, separator: string) => `${key}${separator}[redacted]`,
+    )
+    .replace(
+      assignment,
+      (
+        _match,
+        authorization: string,
+        authSeparator: string,
+        key: string,
+        separator: string,
+      ) => `${authorization ?? key}${authSeparator ?? separator}[redacted]`,
+    );
 }
 export function positionalSecretPairs(
   entries: readonly (readonly [string, unknown])[],

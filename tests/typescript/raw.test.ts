@@ -207,6 +207,31 @@ for (const status of [200, 403])
     assert.equal(value(result.stdout).upstream_body, undefined);
   });
 
+for (const method of ["GET", "PATCH"])
+  for (const status of [200, 403])
+    test(`raw ${method} refuses ASCII PDF response ${status}`, async () => {
+      const args =
+        method === "GET"
+          ? getArgs("/example/entities/things/v1")
+          : writeArgs("ops");
+      const preview = method === "PATCH" ? await run(args) : undefined;
+      const confirm =
+        preview &&
+        (value(preview.stdout).preview as Record<string, string>).confirm;
+      dynamicResponse(`${method} /example/entities/things/v1`, () => ({
+        status,
+        headers: { "content-type": "application/pdf" },
+        body: Buffer.from("%PDF-1.4\nsynthetic-document\n%%EOF"),
+      }));
+      const result = await run(
+        confirm ? [...args, "--execute", "--confirm", confirm] : args,
+        await state(),
+      );
+      assert.equal(result.code, 1, result.stdout);
+      assert.match(result.stdout, /binary/);
+      assert.doesNotMatch(result.stdout, /synthetic-document/);
+    });
+
 test("raw get preserves a valid UTF-8 replacement character", async () => {
   recordedResponse("GET /example/entities/things/v1", 200, {
     description: "a�b",
@@ -1052,6 +1077,38 @@ test("raw write redacts authorization in preview and journal queries", async () 
   const result = await run([...args, "--execute", "--confirm", confirm], env);
   assert.equal(result.code, 0, result.stdout);
   assert.doesNotMatch(JSON.stringify(await journal(env)), /dXNlcjpwYXNz/);
+});
+
+for (const status of [200, 403])
+  test(`raw response ${status} redacts Digest authorization parameters`, async () => {
+    dynamicResponse("GET /example/entities/things/v1", () => ({
+      status,
+      headers: { "content-type": "text/plain" },
+      body: Buffer.from(
+        'Authorization: Digest username="alice", response="secret"',
+      ),
+    }));
+    const result = await run(getArgs("/example/entities/things/v1"));
+    assert.equal(result.code, status === 200 ? 0 : 1, result.stdout);
+    assert.doesNotMatch(result.stdout, /alice|secret/);
+    assert.match(result.stdout, /Authorization: \[redacted\]/);
+  });
+
+test("raw write redacts Digest authorization in preview and journal", async () => {
+  const query = new URLSearchParams({
+    note: 'Authorization: Digest username="alice", response="secret"',
+  }).toString();
+  const args = writeArgs("ops", "--query", query);
+  const preview = await run(args);
+  assert.equal(preview.code, 0, preview.stdout);
+  assert.doesNotMatch(preview.stdout, /alice|secret/);
+  const confirm = (value(preview.stdout).preview as Record<string, string>)
+    .confirm!;
+  const env = await state();
+  recordedResponse("PATCH /example/entities/things/v1", 200, {}, true);
+  const result = await run([...args, "--execute", "--confirm", confirm], env);
+  assert.equal(result.code, 0, result.stdout);
+  assert.doesNotMatch(JSON.stringify(await journal(env)), /alice|secret/);
 });
 
 test("raw output redacts nested secrets and preserves metadata", async () => {

@@ -229,6 +229,10 @@ async function send(
             let body: unknown = undefined;
             const bytes = Buffer.concat(chunks);
             const text = bytes.toString("utf8");
+            const mediaType = headers["content-type"]
+              ?.split(";", 1)[0]
+              ?.trim()
+              .toLowerCase();
             if (text) {
               try {
                 body = prepared.raw
@@ -243,7 +247,18 @@ async function send(
               headers: Object.freeze(headers),
               body,
               ...(prepared.raw
-                ? { text, binary: !isUtf8(bytes) || bytes.includes(0) }
+                ? {
+                    text,
+                    binary:
+                      !isUtf8(bytes) ||
+                      bytes.includes(0) ||
+                      (bytes.length > 0 &&
+                        !!mediaType &&
+                        !/^(?:text\/|application\/(?:json|xml|javascript|x-www-form-urlencoded)$|[^/]+\/[^/]+\+(?:json|xml)$)/.test(
+                          mediaType,
+                        )) ||
+                      text.startsWith("%PDF-"),
+                  }
                 : {}),
             });
           });
