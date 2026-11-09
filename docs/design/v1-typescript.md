@@ -41,12 +41,13 @@ The cutover replaces CI verification with the Node offline gate and disables rel
 ## Build and offline verification
 
 Development uses pnpm, pinned by `packageManager` and provided through Corepack, with exact locked dependencies in `pnpm-lock.yaml`.
+Node 25 and later do not bundle Corepack, so install it first with `npm install --global corepack`.
 The runtime and development floor is Node 22.18.0 with no upper bound, the first Node 22 release that runs the TypeScript build scripts without a flag; native Windows evidence remains pending.
 Run `corepack pnpm install --frozen-lockfile --ignore-scripts --config.confirm-modules-purge=false` and `corepack pnpm run verify`.
 The pipeline wraps both in `scripts/isolated-home.mjs`, which gives each run an empty throwaway home directory and removes `FALCON_AXI_*` variables.
 The latter runs the cumulative S13 native gate, including the S10 carrier, S11 lifecycle, compiled filesystem primitives, S12 installation and hook checks, generated freshness, all 350 goldens, and reconciliation of all 210 retained safety groups.
 It also runs a standalone package-contract check after building: the packed allowlist must contain the bin, admission metadata, parser, credential schema, README, license and native prebuilds, without tests, source maps, local paths or recognizable secret material.
-The check unpacks the tarball outside the checkout, links its declared dependencies from the checkout's pnpm installation because no package-manager cache exists offline, probes the installed bin with `--help` and `--version`, and imports the admission metadata and CLI entry point under the inherited kernel IP socket deny.
+The check unpacks the tarball outside the checkout, copies its declared dependencies and their dependency closure from the checkout's pnpm installation, probes the installed bin with `--help` and `--version`, and imports the admission metadata and CLI entry point under the inherited kernel IP socket deny.
 Run `node .typescript-build/scripts/typescript/package-contract.js` after `corepack pnpm run build` for a focused check; it needs no hosted fixture and requires Linux seccomp support and `/usr/bin/gcc` to compile the socket-denial launcher.
 The S06/S07 carrier repeats the S01-S05 native checks and adds enrichment/configuration golden parity, selector-specific scope and malformed-response refusals, continuation replay, ordered batch hydration, and redaction before detail previews.
 Native S06/S07 retained scenarios compare exact output bytes and exit codes, including signed cursors and suggestions.

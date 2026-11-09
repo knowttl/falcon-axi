@@ -186,6 +186,7 @@ Errors include a stable `code` and actionable `help`; unknown commands and flags
 ## Development
 
 Use Node.js 22.18.0 or newer and the pnpm release pinned in [package.json](package.json), provided through Corepack.
+Node 25 and later do not bundle Corepack, so install it first with `npm install --global corepack`.
 From a checkout root, run `corepack pnpm install --frozen-lockfile --ignore-scripts --config.confirm-modules-purge=false` and `corepack pnpm run verify`.
 The [TypeScript build notes](docs/design/v1-typescript.md#build-and-offline-verification) describe the complete offline gate and installation checks.
 See [CONTRIBUTING.md](CONTRIBUTING.md) for tests, fixtures, documentation generation, and releases, and [AGENTS.md](AGENTS.md) for repository constraints.

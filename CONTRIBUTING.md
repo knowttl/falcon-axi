@@ -1,6 +1,7 @@
 # Contributing
 
 Use Node 22.18.0 or newer with the pnpm release pinned by `packageManager` in `package.json`, provided through Corepack.
+Node 25 and later do not bundle Corepack, so install it first with `npm install --global corepack`.
 Then run the complete local verification gate:
 
 ```sh
