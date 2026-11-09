@@ -606,6 +606,29 @@ test("raw write associates query pairs by position", async () => {
   assert.match(records, /value=40/);
 });
 
+test("raw write retains secret key association across name aliases", async () => {
+  const args = writeArgs(
+    "ops",
+    "--query",
+    "key=api_key&name=display&field=label&value=hidden&key=api_key&key=retention_days&value=30",
+  );
+  const preview = await run(args);
+  assert.equal(preview.code, 0, preview.stdout);
+  assert.doesNotMatch(preview.stdout, /hidden/);
+  assert.match(preview.stdout, /name=display&field=label/);
+  assert.match(preview.stdout, /value=30/);
+  const confirm = (value(preview.stdout).preview as Record<string, string>)
+    .confirm!;
+  const env = await state();
+  recordedResponse("PATCH /example/entities/things/v1", 200, {}, true);
+  const result = await run([...args, "--execute", "--confirm", confirm], env);
+  assert.equal(result.code, 0, result.stdout);
+  const records = JSON.stringify(await journal(env));
+  assert.doesNotMatch(records, /hidden/);
+  assert.match(records, /name=display&field=label/);
+  assert.match(records, /value=30/);
+});
+
 test("raw write redacts reversed query pairs in preview and journal", async () => {
   const args = writeArgs(
     "ops",
@@ -756,12 +779,12 @@ for (const status of [200, 403])
   test(`raw response ${status} replaces credential keys without collisions`, async () => {
     recordedResponse("GET /example/entities/things/v1", status, {
       pair: {
-        "synthetic-s01-secret": "hidden",
+        "prefix-synthetic-s01-secret": "hidden",
         "[redacted-key-1]": "visible",
         "[redacted]": "other",
       },
       payload:
-        '{ "synthetic-s01-secret" : "hidden", "[redacted-key-1]": "visible", "[redacted]": "other" }',
+        '{ "prefix-synthetic-s01-secret" : "hidden", "[redacted-key-1]": "visible", "[redacted]": "other" }',
     });
     const result = await run(getArgs("/example/entities/things/v1"));
     assert.equal(result.code, status === 200 ? 0 : 1, result.stdout);
@@ -783,7 +806,7 @@ for (const status of [200, 403])
 test("raw write preview replaces credential keys without collisions", async () => {
   const file = join(directory, "credential-key.json");
   const pair = {
-    "synthetic-s01-secret": "hidden",
+    "prefix-synthetic-s01-secret": "hidden",
     "[redacted-key-1]": "visible",
     "[redacted]": "other",
   };
@@ -802,6 +825,58 @@ test("raw write preview replaces credential keys without collisions", async () =
   assert.deepEqual(JSON.parse(body.payload), expected);
   assert.doesNotMatch(result.stdout, /synthetic-s01-secret/);
 });
+
+for (const status of [200, 403])
+  test(`raw write ${status} redacts embedded credentials and intervening aliases`, async () => {
+    const pair = {
+      key: "api_key",
+      name: "display label",
+      value: "hidden-pair",
+      "prefix-synthetic-s01-secret": "hidden-key",
+      "[redacted-key-1]": "visible",
+    };
+    const expected = {
+      key: "api_key",
+      name: "display label",
+      value: "[redacted]",
+      "[redacted-key-2]": "[redacted]",
+      "[redacted-key-1]": "visible",
+    };
+    const file = join(directory, "intervening-pair.json");
+    await writeFile(
+      file,
+      JSON.stringify({ pair, serialized: JSON.stringify(pair) }),
+    );
+    const args = writeArgs("ops", "--body-file", file);
+    const preview = await run(args);
+    assert.equal(preview.code, 0, preview.stdout);
+    const previewData = value(preview.stdout).preview as {
+      body: { pair: unknown; serialized: string };
+      confirm: string;
+    };
+    assert.deepEqual(previewData.body.pair, expected);
+    assert.deepEqual(JSON.parse(previewData.body.serialized), expected);
+    recordedResponse(
+      "PATCH /example/entities/things/v1",
+      status,
+      { pair, serialized: JSON.stringify(pair) },
+      true,
+    );
+    const result = await run(
+      [...args, "--execute", "--confirm", previewData.confirm],
+      await state(),
+    );
+    assert.equal(result.code, status === 200 ? 0 : 1, result.stdout);
+    const body = value(result.stdout)[
+      status === 200 ? "body" : "upstream_body"
+    ] as { pair: unknown; serialized: string };
+    assert.deepEqual(body.pair, expected);
+    assert.deepEqual(JSON.parse(body.serialized), expected);
+    assert.doesNotMatch(
+      result.stdout,
+      /synthetic-s01-secret|hidden-pair|hidden-key/,
+    );
+  });
 
 for (const status of [200, 403])
   test(`raw response ${status} redacts serialized pairs`, async () => {

@@ -105,6 +105,15 @@ export function positionalSecretPairs(
   entries.forEach(([key], index) => {
     const name = isPairName(key);
     if (!name && (!isPairValue(key) || key.toLowerCase() === "data")) return;
+    if (
+      name &&
+      key.toLowerCase() !== "key" &&
+      pending?.name &&
+      entries[pending.index]![0].toLowerCase() === "key" &&
+      typeof entries[pending.index]![1] === "string" &&
+      isSecretKey(entries[pending.index]![1] as string)
+    )
+      return;
     if (pending && pending.name !== name) {
       const nameIndex = name ? index : pending.index;
       const valueIndex = name ? pending.index : index;
@@ -120,7 +129,8 @@ function redactedKeys(keys: readonly string[]): string[] {
   const used = new Set(keys);
   let index = 0;
   return keys.map((key) => {
-    if (!secrets.has(key) && !memberCids.has(key)) return key;
+    if (![...secrets, ...memberCids].some((secret) => key.includes(secret)))
+      return key;
     let replacement: string;
     do replacement = `[redacted-key-${++index}]`;
     while (used.has(replacement));
@@ -212,6 +222,7 @@ function redactSerialized(text: string, detectOnly = false): string | boolean {
           });
         const sensitive =
           isSecretKey(key) ||
+          keys[index] !== key ||
           redactText(key) !== key ||
           pairs.has(index) ||
           (withinSecret && isPairValue(key));
@@ -298,6 +309,7 @@ function redactValue(
       entries.map(([key, entry], index) => {
         const sensitive =
           isSecretKey(key) ||
+          keys[index] !== key ||
           redactText(key) !== key ||
           pairs.has(index) ||
           (withinSecret && isPairValue(key));
