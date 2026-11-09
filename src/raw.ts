@@ -295,15 +295,22 @@ export async function rawRun(
     .digest("hex");
   const safeQuery = redactQueryPairs(query);
   const safeTarget = safeQuery ? `${path}?${safeQuery}` : path;
+  const queryDigest = createHash("sha256").update(query).digest("hex");
   const confirmationHash = createHash("sha256")
     .update(
-      String(redact(JSON.stringify([identity, method, safeTarget, redact(body)]))),
+      JSON.stringify([
+        identity,
+        method,
+        redact(safeTarget),
+        createHash("sha256").update(path).digest("hex"),
+        queryDigest,
+        digest,
+        redact(body),
+      ]),
     )
     .digest("hex");
-  const confirm = String(
-    redact(`${credential.profile}:${method} sha256:${confirmationHash}`),
-  );
-  if (request.executing && request.confirm !== confirm)
+  const confirm = `${credential.profile}:${method} sha256:${confirmationHash}`;
+  if (request.executing && request.confirm !== redact(confirm))
     throw new CliError(
       "VALIDATION_ERROR",
       "--confirm must match the preview's confirm value exactly",
@@ -317,6 +324,7 @@ export async function rawRun(
           origin: base,
           method,
           path: safeTarget,
+          query_sha256: queryDigest,
           body_bytes: Buffer.byteLength(body),
           body_sha256: body ? digest : undefined,
           journal: writeLogPath(),

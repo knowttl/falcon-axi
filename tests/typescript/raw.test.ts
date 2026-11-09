@@ -3,6 +3,7 @@ import { test, beforeEach } from "node:test";
 import { readFile, writeFile, mkdtemp } from "node:fs/promises";
 import { join } from "node:path";
 import { execFileSync } from "node:child_process";
+import { createHash } from "node:crypto";
 import { decode } from "@toon-format/toon";
 import {
   directory,
@@ -416,6 +417,62 @@ test("raw write accepts the redacted confirmation shown in its preview", async (
   );
   assert.equal(result.code, 0, result.stdout);
   assert.equal(requests().length, 1);
+});
+
+test("raw write accepts confirmation when a credential occurs in the marker", async () => {
+  const document = JSON.parse(await readFile(config, "utf8")) as {
+    profiles: Record<string, { clientId: string }>;
+  };
+  document.profiles.red = { ...document.profiles.ops!, clientId: "red" };
+  await writeFile(config, JSON.stringify(document));
+  const file = await body();
+  const confirm = await confirmValue("red", file);
+  assert.match(confirm, /^\[redacted\]:PATCH sha256:/);
+  recordedResponse("PATCH /example/entities/things/v1", 200, {}, true);
+  const result = await run(
+    writeArgs("red", "--body-file", file, "--execute", "--confirm", confirm),
+    await state(),
+  );
+  assert.equal(result.code, 0, result.stdout);
+  assert.equal(requests().length, 1);
+});
+
+test("raw write rejects a changed redacted body", async () => {
+  const file = join(directory, "secret-body.json");
+  await writeFile(file, '{"password":"first"}');
+  const confirm = await confirmValue("ops", file);
+  await writeFile(file, '{"password":"second"}');
+  const result = await run(
+    writeArgs("ops", "--body-file", file, "--execute", "--confirm", confirm),
+  );
+  assert.equal(result.code, 2, result.stdout);
+  assert.equal(requests().length, 0);
+  assert.doesNotMatch(result.stdout, /first|second/);
+});
+
+test("raw write binds the exact redacted query", async () => {
+  const args = writeArgs("ops", "--query", "password=first");
+  const preview = await run(args);
+  assert.equal(preview.code, 0, preview.stdout);
+  const output = value(preview.stdout).preview as Record<string, string>;
+  assert.equal(
+    output.query_sha256,
+    createHash("sha256").update("password=first").digest("hex"),
+  );
+  assert.doesNotMatch(preview.stdout, /first/);
+  const result = await run(
+    writeArgs(
+      "ops",
+      "--query",
+      "password=second",
+      "--execute",
+      "--confirm",
+      output.confirm!,
+    ),
+  );
+  assert.equal(result.code, 2, result.stdout);
+  assert.equal(requests().length, 0);
+  assert.doesNotMatch(result.stdout, /first|second/);
 });
 
 test("raw write changes its confirm value when the body changes", async () => {
