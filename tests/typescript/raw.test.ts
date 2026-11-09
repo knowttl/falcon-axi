@@ -820,6 +820,58 @@ test("raw write redacts reversed query pairs in preview and journal", async () =
   assert.match(records, /value=30/);
 });
 
+test("raw write pairs the following secret value before a preceding value", async () => {
+  const args = writeArgs(
+    "ops",
+    "--query",
+    "value=public&name=label&key=api_key&val=hidden",
+  );
+  const preview = await run(args);
+  assert.equal(preview.code, 0, preview.stdout);
+  assert.match(preview.stdout, /value=public/);
+  assert.doesNotMatch(preview.stdout, /hidden/);
+  const confirm = (value(preview.stdout).preview as Record<string, string>).confirm!;
+  const env = await state();
+  recordedResponse("PATCH /example/entities/things/v1", 200, {}, true);
+  const result = await run([...args, "--execute", "--confirm", confirm], env);
+  assert.equal(result.code, 0, result.stdout);
+  const records = JSON.stringify(await journal(env));
+  assert.match(records, /value=public/);
+  assert.doesNotMatch(records, /hidden/);
+});
+
+for (const status of [200, 403])
+  test(`raw response ${status} pairs the following secret value`, async () => {
+    const pair = { value: "public", name: "label", key: "api_key", val: "hidden" };
+    const expected = { ...pair, val: "[redacted]" };
+    recordedResponse("GET /example/entities/things/v1", status, {
+      pair,
+      serialized: JSON.stringify(pair),
+    });
+    const result = await run(getArgs("/example/entities/things/v1"));
+    assert.equal(result.code, status === 200 ? 0 : 1, result.stdout);
+    const body = value(result.stdout)[status === 200 ? "body" : "upstream_body"] as {
+      pair: unknown;
+      serialized: string;
+    };
+    assert.deepEqual(body.pair, expected);
+    assert.deepEqual(JSON.parse(body.serialized), expected);
+  });
+
+test("raw write preview pairs the following secret value", async () => {
+  const pair = { value: "public", name: "label", key: "api_key", val: "hidden" };
+  const file = join(directory, "adjacent-pair.json");
+  await writeFile(file, JSON.stringify({ pair, serialized: JSON.stringify(pair) }));
+  const result = await run(writeArgs("ops", "--body-file", file));
+  assert.equal(result.code, 0, result.stdout);
+  const body = (value(result.stdout).preview as {
+    body: { pair: unknown; serialized: string };
+  }).body;
+  const expected = { ...pair, val: "[redacted]" };
+  assert.deepEqual(body.pair, expected);
+  assert.deepEqual(JSON.parse(body.serialized), expected);
+});
+
 for (const status of [200, 403])
   test(`raw response ${status} redacts reversed pairs across name aliases`, async () => {
     const pair = {

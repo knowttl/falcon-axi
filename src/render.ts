@@ -103,20 +103,35 @@ export function positionalSecretPairs(
   const sensitive = new Set<number>();
   const secretNames = new Set<number>();
   const laterSecret = new Set<number>();
+  const followingValue = new Set<number>();
   let upcomingSecret = false;
+  let nextValue: number | undefined;
+  let followingName = false;
+  let nextIsName = false;
   for (let index = entries.length - 1; index >= 0; index--) {
     const [key, value] = entries[index]!;
     if (upcomingSecret) laterSecret.add(index);
     if (isPairName(key) && typeof value === "string" && isSecretKey(value)) {
       secretNames.add(index);
+      if (nextValue !== undefined && !followingName) followingValue.add(index);
       upcomingSecret = true;
-    } else if (isPairValue(key) && key.toLowerCase() !== "data")
+      nextValue = undefined;
+      nextIsName = true;
+    } else if (isPairValue(key) && key.toLowerCase() !== "data") {
       upcomingSecret = false;
+      nextValue = index;
+      followingName = nextIsName;
+      nextIsName = false;
+    } else if (isPairName(key)) nextIsName = true;
   }
   let pending: { index: number; name: boolean } | undefined;
   entries.forEach(([key], index) => {
     const name = isPairName(key);
     if (!name && (!isPairValue(key) || key.toLowerCase() === "data")) return;
+    if (name && pending && !pending.name && followingValue.has(index)) {
+      pending = { index, name };
+      return;
+    }
     if (
       name &&
       pending &&
