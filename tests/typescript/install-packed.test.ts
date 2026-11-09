@@ -5,7 +5,7 @@ import { join } from "node:path";
 import { test } from "node:test";
 import { installPacked } from "./install-packed.js";
 
-test("packed binaries use only copied runtime dependencies", () => {
+test("S13 packed binaries use only copied runtime dependencies", () => {
   const root = mkdtempSync(join(process.cwd(), ".install-packed-test-"));
   try {
     const checkout = join(root, "checkout");
