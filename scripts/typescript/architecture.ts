@@ -54,7 +54,6 @@ const allowed = new Set([
   "ajv/dist/2020.js",
 ]);
 const sink = new Set([
-  "node:buffer",
   "node:https",
   "node:http",
   "node:tls",

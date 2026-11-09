@@ -330,6 +330,7 @@ function redactValue(
   value: unknown,
   withinSecret = false,
   hideScalar = false,
+  collapseSecretFields = false,
 ): unknown {
   if (value instanceof RawNumber) {
     const cleaned = redactNumber(value.text);
@@ -375,7 +376,9 @@ function redactValue(
     return output + redactAssignments(text);
   }
   if (Array.isArray(value))
-    return value.map((entry) => redactValue(entry, withinSecret, hideScalar));
+    return value.map((entry) =>
+      redactValue(entry, withinSecret, hideScalar, collapseSecretFields),
+    );
   if (object(value)) {
     const entries = Object.entries(value);
     const pairs = positionalSecretPairs(entries);
@@ -388,7 +391,12 @@ function redactValue(
           redactText(key) !== key ||
           pairs.has(index) ||
           (withinSecret && isPairValue(key));
-        return [keys[index]!, redactValue(entry, sensitive, sensitive)];
+        return [
+          keys[index]!,
+          collapseSecretFields && isSecretKey(key)
+            ? "[redacted]"
+            : redactValue(entry, sensitive, sensitive, collapseSecretFields),
+        ];
       }),
     );
   }
@@ -499,7 +507,11 @@ export function render(
         return value;
       };
       let encoded = encode(
-        prepare(rawEnvelope ? redactRawEnvelope(pending) : redact(pending)),
+        prepare(
+          rawEnvelope
+            ? redactRawEnvelope(pending)
+            : redactValue(pending, false, false, true),
+        ),
       ).trimEnd();
       encoded = encoded.replace(
         /raw_number_[0-9a-f]{32}/g,

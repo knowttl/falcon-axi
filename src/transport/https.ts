@@ -1,5 +1,4 @@
 import https from "node:https";
-import { isUtf8 } from "node:buffer";
 import http from "node:http";
 import tls from "node:tls";
 import type { Duplex } from "node:stream";
@@ -39,6 +38,15 @@ interface Prepared {
   operationId?: string;
 }
 const permits = new WeakSet<Prepared>();
+const utf8Decoder = new TextDecoder("utf-8", { fatal: true, ignoreBOM: true });
+function isUtf8(bytes: Uint8Array): boolean {
+  try {
+    utf8Decoder.decode(bytes);
+    return true;
+  } catch {
+    return false;
+  }
+}
 const timeout = (): CliError =>
   new CliError("WAIT_TIMEOUT", "the Falcon request exceeded its time budget", [
     "Retry shortly",
