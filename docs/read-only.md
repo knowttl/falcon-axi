@@ -2,14 +2,14 @@
 
 The shipped CLI reads Falcon data without changing hosts, detections, policies, or identities, except through the opt-in raw write gate below.
 Tenant-side effects are NG-SIEM search jobs, explicitly authorized read-only RTR sessions, bounded MalQuery exact/fuzzy searches, and guarded raw writes.
-Identity Protection's write-labelled GraphQL scope is used solely for registered read-only query documents.
+Identity Protection commands use the write-labelled GraphQL scope solely for registered read-only query documents; gated raw writes may reach GraphQL routes.
 
 ## Closed transport boundary
 
-The [design invariant](design/v1.md#0-invariant-r-v1-is-read-only-with-five-captain-granted-exceptions) is enforced through a closed operation registry before the SDK is constructed.
+The [design invariant](design/v1.md#0-invariant-r-v1-is-read-only-with-five-captain-granted-exceptions) is enforced through a closed operation registry and the separate raw API gates.
 HTTP verbs and scope names alone do not prove a read: Falcon uses POST for reads, and some read-scoped operations have effects.
 Every registered operation carries its documented scope and corroborating source evidence.
-Only the permitted network sink can import and call the FalconPy harness.
+The permitted HTTPS sink enforces the transport boundary.
 
 Captain exception N1 admits exactly `StartSearchV1` and `StopSearchV1` with `NGSIEM:write`.
 The [N4 design contract](design/v1.md#46-malquery-pattern-search-captain-exception-n4) owns MalQuery search admission, pattern and result bounds, and hunt/download exclusions.
@@ -76,7 +76,7 @@ An outcome of `unknown` means the request may have been applied; read the target
 Raw writes read no target state and detect no no-ops.
 
 Falcon decides what the API client may do, so grant the client only the scopes the intended route needs.
-Output redaction keeps every field and redacts only secret values, including the value that sits beside a `key` or `name` field naming a secret.
+Output redaction preserves fields while redacting secrets in names and values, including a value paired with a secret-naming `key` or `name` field.
 
 ## Sensitive output
 
