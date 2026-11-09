@@ -399,6 +399,25 @@ test("raw write sends the confirmed request once and journals intent before outc
   assert.ok(!JSON.stringify(records).includes("synthetic"));
 });
 
+test("raw write accepts the redacted confirmation shown in its preview", async () => {
+  const document = JSON.parse(await readFile(config, "utf8")) as {
+    profiles: { ops: { clientId: string } };
+  };
+  document.profiles.ops.clientId = "ops";
+  await writeFile(config, JSON.stringify(document));
+  const file = await body();
+  const confirm = await confirmValue("ops", file);
+  assert.match(confirm, /^\[redacted\]:PATCH sha256:/);
+  assert.doesNotMatch(confirm, /ops/);
+  recordedResponse("PATCH /example/entities/things/v1", 200, {}, true);
+  const result = await run(
+    writeArgs("ops", "--body-file", file, "--execute", "--confirm", confirm),
+    await state(),
+  );
+  assert.equal(result.code, 0, result.stdout);
+  assert.equal(requests().length, 1);
+});
+
 test("raw write changes its confirm value when the body changes", async () => {
   const file = await body();
   const first = await confirmValue("ops", file);

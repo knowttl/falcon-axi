@@ -283,22 +283,26 @@ export async function rawRun(
     );
   const digest = createHash("sha256").update(body).digest("hex");
   const destination = origin(base, allowUnknown);
-  const confirmationHash = createHash("sha256")
+  const identity = createHash("sha256")
     .update(
       JSON.stringify([
         credential.profile,
         credential.clientId,
         destination,
         credential.memberCid ?? "",
-        method,
-        target,
-        body,
       ]),
     )
     .digest("hex");
-  const confirm = `${credential.profile}:${method} sha256:${confirmationHash}`;
   const safeQuery = redactQueryPairs(query);
   const safeTarget = safeQuery ? `${path}?${safeQuery}` : path;
+  const confirmationHash = createHash("sha256")
+    .update(
+      String(redact(JSON.stringify([identity, method, safeTarget, redact(body)]))),
+    )
+    .digest("hex");
+  const confirm = String(
+    redact(`${credential.profile}:${method} sha256:${confirmationHash}`),
+  );
   if (request.executing && request.confirm !== confirm)
     throw new CliError(
       "VALIDATION_ERROR",
