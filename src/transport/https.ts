@@ -254,7 +254,7 @@ async function send(
                       bytes.includes(0) ||
                       (bytes.length > 0 &&
                         !!mediaType &&
-                        !/^(?:text\/|application\/(?:json|xml|javascript|x-www-form-urlencoded)$|[^/]+\/[^/]+\+(?:json|xml)$)/.test(
+                        /^(?:image|audio|video|font)\/|^application\/(?:octet-stream|pdf|zip|gzip|x-gzip|x-7z-compressed|x-rar-compressed|vnd\.rar|x-tar|wasm)$/.test(
                           mediaType,
                         )) ||
                       text.startsWith("%PDF-"),

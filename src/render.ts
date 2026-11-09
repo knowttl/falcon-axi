@@ -94,7 +94,7 @@ const assignment = new RegExp(
 export function redactAssignments(value: string): string {
   return value
     .replace(
-      /(?<![\w.#-])(authorization)(["']?[ \t]*[:=][ \t]*)digest[ \t]+[^\r\n]*/gi,
+      /(?<![\w.#-])(authorization)(["']?[ \t]*[:=][ \t]*)(?:[a-z][a-z0-9+.-]*[ \t]+)?[\w-]+[ \t]*=[^\r\n]*/gi,
       (_match, key: string, separator: string) => `${key}${separator}[redacted]`,
     )
     .replace(
