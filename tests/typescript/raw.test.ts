@@ -1019,6 +1019,41 @@ for (const status of [200, 403])
     assert.match(result.stdout, /\[redacted\]/);
   });
 
+for (const status of [200, 403])
+  test(`raw get redacts authorization schemes in text response ${status}`, async () => {
+    dynamicResponse("GET /example/entities/things/v1", () => ({
+      status,
+      headers: { "content-type": "text/plain" },
+      body: Buffer.from(
+        "Authorization: Basic dXNlcjpwYXNz, authorization=Custom anothercredential; password=alpha remains",
+      ),
+    }));
+    const result = await run(getArgs("/example/entities/things/v1"));
+    assert.equal(result.code, status === 200 ? 0 : 1, result.stdout);
+    assert.doesNotMatch(result.stdout, /dXNlcjpwYXNz|anothercredential|alpha/);
+    assert.match(
+      result.stdout,
+      /Authorization: \[redacted\], authorization=\[redacted\]; password=\[redacted\] remains/,
+    );
+  });
+
+test("raw write redacts authorization in preview and journal queries", async () => {
+  const query = new URLSearchParams({
+    note: "Authorization: Basic dXNlcjpwYXNz",
+  }).toString();
+  const args = writeArgs("ops", "--query", query);
+  const preview = await run(args);
+  assert.equal(preview.code, 0, preview.stdout);
+  assert.doesNotMatch(preview.stdout, /dXNlcjpwYXNz/);
+  const confirm = (value(preview.stdout).preview as Record<string, string>)
+    .confirm!;
+  const env = await state();
+  recordedResponse("PATCH /example/entities/things/v1", 200, {}, true);
+  const result = await run([...args, "--execute", "--confirm", confirm], env);
+  assert.equal(result.code, 0, result.stdout);
+  assert.doesNotMatch(JSON.stringify(await journal(env)), /dXNlcjpwYXNz/);
+});
+
 test("raw output redacts nested secrets and preserves metadata", async () => {
   recordedResponse("GET /example/entities/things/v1", 200, {
     message: "note: password=hunter2",

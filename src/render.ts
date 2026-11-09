@@ -88,13 +88,20 @@ export const isPairValue = (name: string): boolean =>
 export const isSecretKey = (name: string): boolean =>
   secretKeys.has(name.toLowerCase());
 const assignment = new RegExp(
-  `(?<![\\w.#-])(${[...secretKeys].map((key) => key.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")).join("|")})(["']?[ \\t]*[:=][ \\t]*)(?:bearer[ \\t]+)?(\\[redacted\\]|"(?:\\\\.|[^"\\\\])*"|'(?:\\\\.|[^'\\\\])*'|[^\\s,;&\\]})"']+)`,
+  `(?<![\\w.#-])(?:(authorization)(["']?[ \\t]*[:=][ \\t]*)(?:[a-z][a-z0-9+.-]*[ \\t]+)?|(${[...secretKeys].filter((key) => key !== "authorization").map((key) => key.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")).join("|")})(["']?[ \\t]*[:=][ \\t]*)(?:bearer[ \\t]+)?)(\\[redacted\\]|"(?:\\\\.|[^"\\\\])*"|'(?:\\\\.|[^'\\\\])*'|[^\\s,;&\\]})"']+)`,
   "gi",
 );
 export function redactAssignments(value: string): string {
   return value.replace(
     assignment,
-    (_match, key: string, separator: string) => `${key}${separator}[redacted]`,
+    (
+      _match,
+      authorization: string,
+      authSeparator: string,
+      key: string,
+      separator: string,
+    ) =>
+      `${authorization ?? key}${authSeparator ?? separator}[redacted]`,
   );
 }
 export function positionalSecretPairs(
