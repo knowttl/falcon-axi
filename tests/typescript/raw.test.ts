@@ -1039,11 +1039,13 @@ for (const status of [200, 403])
 
 for (const status of [200, 403])
   test(`raw response ${status} redacts registered numeric credentials`, async () => {
-    const serialized = '{"reference":123456789,"count":1.0}';
-    recordedResponse("GET /example/entities/things/v1", status, {
-      reference: 123456789,
-      serialized,
-    });
+    const serialized = '{"reference":1.23456789e8,"count":1.0}';
+    dynamicResponse("GET /example/entities/things/v1", () => ({
+      status,
+      body: Buffer.from(
+        `{"reference":1.23456789e8,"serialized":${JSON.stringify(serialized)},"distinct":1.2345678900000001e8}`,
+      ),
+    }));
     const result = await run(getArgs("/example/entities/things/v1"), {
       ARTIUM_SECRET_0: "123456789",
     });
@@ -1054,12 +1056,13 @@ for (const status of [200, 403])
     ] as { reference: string; serialized: string };
     assert.equal(body.reference, "[redacted]");
     assert.equal(body.serialized, '{"reference":"[redacted]","count":1.0}');
+    assert.match(result.stdout, /1\.2345678900000001e8/);
   });
 
 for (const status of [200, 403])
   test(`raw write preview and response ${status} redact numeric credentials`, async () => {
   const file = join(directory, "numeric-secret.json");
-  await writeFile(file, '{"reference":123456789,"count":1.0}');
+  await writeFile(file, '{"reference":1.23456789e8,"count":1.0}');
   const args = writeArgs("ops", "--body-file", file);
   const result = await run(args, {
     ARTIUM_SECRET_0: "123456789",
@@ -1074,7 +1077,7 @@ for (const status of [200, 403])
   const confirm = (value(result.stdout).preview as Record<string, string>).confirm!;
   dynamicResponse("PATCH /example/entities/things/v1", () => ({
     status,
-    body: Buffer.from('{"reference":123456789,"count":1.0}'),
+    body: Buffer.from('{"reference":1.23456789e8,"count":1.0}'),
   }));
   const executed = await run([...args, "--execute", "--confirm", confirm], {
     ...(await state()),

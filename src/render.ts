@@ -28,6 +28,29 @@ export function redactText(value: string): string {
     );
   return value;
 }
+function redactNumber(value: string): string {
+  const normalize = (text: string): string | undefined => {
+    const match = /^(-?)(0|[1-9]\d*)(?:\.(\d+))?(?:[eE]([+-]?\d+))?$/.exec(
+      text,
+    );
+    if (!match) return undefined;
+    const digits = (match[2]! + (match[3] ?? "")).replace(/^0+/, "");
+    if (!digits) return "0";
+    const coefficient = digits.replace(/0+$/, "");
+    const exponent =
+      BigInt(match[4] ?? "0") -
+      BigInt((match[3] ?? "").length) +
+      BigInt(digits.length - coefficient.length);
+    return `${match[1]}${coefficient}e${exponent}`;
+  };
+  const number = normalize(value);
+  if (
+    number !== undefined &&
+    [...secrets, ...memberCids].some((secret) => normalize(secret) === number)
+  )
+    return "[redacted]";
+  return redactText(value);
+}
 const secretKeys = new Set([
   "access_token",
   "client_id",
@@ -201,7 +224,7 @@ function redactSerialized(text: string, detectOnly = false): string | boolean {
       /[-0-9]/.test(text[node.start] ?? "")
     ) {
       const original = text.slice(node.start, node.end);
-      const cleaned = redactText(original);
+      const cleaned = redactNumber(original);
       if (cleaned !== original)
         edits.push({
           start: node.start,
@@ -229,7 +252,7 @@ function redactValue(
   hideScalar = false,
 ): unknown {
   if (value instanceof RawNumber) {
-    const cleaned = redactText(value.text);
+    const cleaned = redactNumber(value.text);
     return hideScalar ? "[redacted]" : cleaned === value.text ? value : cleaned;
   }
   if (hideScalar && !object(value) && !Array.isArray(value))
