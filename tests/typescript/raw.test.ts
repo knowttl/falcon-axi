@@ -801,13 +801,13 @@ test("raw write redacts reversed query pairs in preview and journal", async () =
   const args = writeArgs(
     "ops",
     "--query",
-    "value=hidden&key=display&field=label&name=api_key&value=30&key=retention_days",
+    "value=public&key=display&field=label&name=api_key&value=hidden&key=retention_days",
   );
   const preview = await run(args);
   assert.equal(preview.code, 0, preview.stdout);
   assert.doesNotMatch(preview.stdout, /hidden/);
   assert.match(preview.stdout, /key=display&field=label/);
-  assert.match(preview.stdout, /value=30/);
+  assert.match(preview.stdout, /value=public/);
   const confirm = (value(preview.stdout).preview as Record<string, string>)
     .confirm!;
   const env = await state();
@@ -817,7 +817,7 @@ test("raw write redacts reversed query pairs in preview and journal", async () =
   const records = JSON.stringify(await journal(env));
   assert.doesNotMatch(records, /hidden/);
   assert.match(records, /key=display&field=label/);
-  assert.match(records, /value=30/);
+  assert.match(records, /value=public/);
 });
 
 test("raw write pairs the following secret value before a preceding value", async () => {
@@ -870,6 +870,34 @@ test("raw write preview pairs the following secret value", async () => {
   const expected = { ...pair, val: "[redacted]" };
   assert.deepEqual(body.pair, expected);
   assert.deepEqual(JSON.parse(body.serialized), expected);
+});
+
+test("raw pair ordering preserves metadata and redacts paired values", async () => {
+  const cases = [
+    [{ key: "api_key", value: "hidden" }, { key: "api_key", value: "[redacted]" }],
+    [{ value: "hidden", key: "api_key" }, { value: "[redacted]", key: "api_key" }],
+    [{ name: "api_key", field: "label", value: "hidden" }, { name: "api_key", field: "label", value: "[redacted]" }],
+    [{ value: "hidden", field: "label", name: "api_key" }, { value: "[redacted]", field: "label", name: "api_key" }],
+    [{ value: "public", key: "api_key", val: "hidden", name: "label" }, { value: "public", key: "api_key", val: "[redacted]", name: "label" }],
+    [{ value: "public", name: "label", key: "api_key", val: "hidden" }, { value: "public", name: "label", key: "api_key", val: "[redacted]" }],
+    [{ key: "api_key", value: "hidden", name: "retention_days", val: "public" }, { key: "api_key", value: "[redacted]", name: "retention_days", val: "public" }],
+  ] as const;
+  recordedResponse("GET /example/entities/things/v1", 200, {
+    pairs: cases.map(([input]) => input),
+    serialized: JSON.stringify(cases.map(([input]) => input)),
+  });
+  const result = await run(getArgs("/example/entities/things/v1"));
+  assert.equal(result.code, 0, result.stdout);
+  const body = value(result.stdout).body as { pairs: unknown; serialized: string };
+  const expected = cases.map(([, output]) => output);
+  assert.deepEqual(body.pairs, expected);
+  assert.deepEqual(JSON.parse(body.serialized), expected);
+  for (const [input, output] of cases) {
+    const preview = await run(writeArgs("ops", "--query", new URLSearchParams(input).toString()));
+    assert.equal(preview.code, 0, preview.stdout);
+    const path = (value(preview.stdout).preview as { path: string }).path;
+    assert.deepEqual(Object.fromEntries(new URLSearchParams(path.split("?")[1])), output);
+  }
 });
 
 for (const status of [200, 403])
@@ -1346,7 +1374,7 @@ for (const status of [200, 403])
       ],
     };
     const serialized =
-      '{"value":"hidden-pair","key":"api_key","value":30,"key":"retention_days","token":[["hidden-array"]]}';
+      '{"value":"public","key":"api_key","value":"hidden-pair","key":"retention_days","token":[["hidden-array"]]}';
     recordedResponse("GET /example/entities/things/v1", status, {
       structured,
       serialized,
@@ -1366,7 +1394,7 @@ for (const status of [200, 403])
     });
     assert.equal(
       body.serialized,
-      '{"value":"[redacted]","key":"api_key","value":30,"key":"retention_days","token":[["[redacted]"]]}',
+      '{"value":"public","key":"api_key","value":"[redacted]","key":"retention_days","token":[["[redacted]"]]}',
     );
   });
 

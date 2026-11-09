@@ -106,23 +106,18 @@ export function positionalSecretPairs(
   const followingValue = new Set<number>();
   let upcomingSecret = false;
   let nextValue: number | undefined;
-  let followingName = false;
-  let nextIsName = false;
   for (let index = entries.length - 1; index >= 0; index--) {
     const [key, value] = entries[index]!;
     if (upcomingSecret) laterSecret.add(index);
     if (isPairName(key) && typeof value === "string" && isSecretKey(value)) {
       secretNames.add(index);
-      if (nextValue !== undefined && !followingName) followingValue.add(index);
+      if (nextValue !== undefined) followingValue.add(index);
       upcomingSecret = true;
       nextValue = undefined;
-      nextIsName = true;
     } else if (isPairValue(key) && key.toLowerCase() !== "data") {
       upcomingSecret = false;
       nextValue = index;
-      followingName = nextIsName;
-      nextIsName = false;
-    } else if (isPairName(key)) nextIsName = true;
+    }
   }
   let pending: { index: number; name: boolean } | undefined;
   entries.forEach(([key], index) => {
