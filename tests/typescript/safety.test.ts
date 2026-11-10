@@ -5,7 +5,7 @@ import { writeFile, chmod, mkdir } from "node:fs/promises";
 import { join } from "node:path";
 import replay from "../migration/replay-cases.json" with { type: "json" };
 import { CliError } from "../../src/core.js";
-import { loadProfiles } from "../../src/credentials.js";
+import { readPrivate } from "../../src/credentials.js";
 import {
   run,
   reset,
@@ -417,26 +417,29 @@ if (process.env.S01_ACTIVE_PATH !== "artium") {
     assert.match(result.stdout, /CONFIG_INSECURE/);
     assert.equal(wire.length, 0);
   });
-  test("C15 Windows refusal of an unprotected file names the icacls repair", async () => {
-    const path = join(directory, "windows-config.json");
-    await writeFile(path, JSON.stringify({ version: 1, profiles: {} }), {
-      mode: 0o600,
-    });
-    const platform = Object.getOwnPropertyDescriptor(process, "platform")!;
-    const searchPath = process.env.PATH;
-    Object.defineProperty(process, "platform", { value: "win32" });
-    process.env.PATH = directory;
-    try {
-      await assert.rejects(loadProfiles(path), (error: CliError) => {
-        assert.equal(error.code, "CONFIG_INSECURE");
-        assert.match(error.help.join("\n"), /icacls ".+" \/inheritance:r /);
-        return true;
+  for (const secret of [false, true])
+    test(`C15 Windows ${secret ? "secret" : "config"} refusal provides a literal ACL repair`, async () => {
+      const path = join(directory, "windows-'$(`name).json");
+      await writeFile(path, "{}", { mode: 0o600 });
+      const platform = Object.getOwnPropertyDescriptor(process, "platform")!;
+      const searchPath = process.env.PATH;
+      Object.defineProperty(process, "platform", { value: "win32" });
+      process.env.PATH = directory;
+      try {
+        await assert.rejects(readPrivate(path, secret), (error: CliError) => {
+          assert.equal(error.code, "CONFIG_INSECURE");
+          const literal = "'" + join(directory, "windows-''$(`name).json") + "'";
+          assert.equal(
+            error.help[1],
+            `In PowerShell: icacls ${literal} /reset; if ($LASTEXITCODE -eq 0) { icacls ${literal} /inheritance:r /grant:r "*S-1-5-18:(F)" "*S-1-5-32-544:(F)" "\${env:USERNAME}:(F)" }`,
+          );
+          return true;
+        });
+      } finally {
+        Object.defineProperty(process, "platform", platform);
+        process.env.PATH = searchPath;
+      }
       });
-    } finally {
-      Object.defineProperty(process, "platform", platform);
-      process.env.PATH = searchPath;
-    }
-  });
   test("SR-148 invalid READ_ONLY fails closed before credentials", async () => {
     reset();
     const result = await run(["auth", "status"], {

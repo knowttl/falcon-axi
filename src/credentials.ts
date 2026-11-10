@@ -201,7 +201,7 @@ export async function readPrivate(
       process.platform === "win32"
         ? [
             "On Windows, remove inherited permissions and grant Full Control only to your user, SYSTEM and Administrators",
-            `In PowerShell: icacls "${path}" /inheritance:r /grant:r "*S-1-5-18:(F)" "*S-1-5-32-544:(F)" "\${env:USERNAME}:(F)"`,
+            `In PowerShell: icacls '${path.replaceAll("'", "''")}' /reset; if ($LASTEXITCODE -eq 0) { icacls '${path.replaceAll("'", "''")}' /inheritance:r /grant:r "*S-1-5-18:(F)" "*S-1-5-32-544:(F)" "\${env:USERNAME}:(F)" }`,
           ]
         : [],
     );
