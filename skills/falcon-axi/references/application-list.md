@@ -3,7 +3,7 @@
 application list          list Discover applications
 
 ```text
-npx -y @knowttl/falcon-axi@next application list [--filter <FQL>] [--limit N] [--cursor <token>] [--fields <names>] [--full]
+npx -y @knowttl/falcon-axi application list [--filter <FQL>] [--limit N] [--cursor <token>] [--fields <names>] [--full]
 
 Returns every available application field, including nested host and usage details.
 --filter     raw FQL on name, vendor, version, and host.hostname
@@ -19,12 +19,12 @@ Wildcards and partial names are not supported for searches; 0 rows does not prov
 The default name:'*' is the broad inventory query, not a partial-name search.
 Use + for AND and lists for alternatives: name:['Node.js','Python'].
 Spotlight does not accept apps.* filters. For hosts affected by known CVEs, use:
-  npx -y @knowttl/falcon-axi@next vuln list --filter "cve.id:['CVE-2026-0001']" --fields product --all
+  npx -y @knowttl/falcon-axi vuln list --filter "cve.id:['CVE-2026-0001']" --fields product --all
 
 Examples:
-  npx -y @knowttl/falcon-axi@next application list --filter "name:'Node.js'+version:'24.18.0'" --fields name,version,host
-  npx -y @knowttl/falcon-axi@next application list --filter "name:['Node.js','Python']"
-  npx -y @knowttl/falcon-axi@next application list --filter "host.hostname:'<hostname>'"
+  npx -y @knowttl/falcon-axi application list --filter "name:'Node.js'+version:'24.18.0'" --fields name,version,host
+  npx -y @knowttl/falcon-axi application list --filter "name:['Node.js','Python']"
+  npx -y @knowttl/falcon-axi application list --filter "host.hostname:'<hostname>'"
 
 Read-only; requires Assets:read (Falcon Discover or Exposure Management).
 ```

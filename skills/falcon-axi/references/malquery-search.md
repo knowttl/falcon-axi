@@ -3,7 +3,7 @@
 malquery search           bounded exact or fuzzy literal-pattern search (N4)
 
 ```text
-npx -y @knowttl/falcon-axi@next malquery search --string <ASCII> | --hex <bytes> [--fuzzy] [--limit N]
+npx -y @knowttl/falcon-axi malquery search --string <ASCII> | --hex <bytes> [--fuzzy] [--limit N]
 
 At least one pattern is required; combine --string and --hex to search for both.
 --string: 1-4096 printable ASCII characters with nonblank content (API type ascii).
@@ -13,8 +13,8 @@ At least one pattern is required; combine --string and --hex to search for both.
 No pagination, automatic polling, or replay; status uses `malquery status <id>`.
 
 Examples:
-  npx -y @knowttl/falcon-axi@next malquery search --string SYNTHETIC-PATTERN --limit 20
-  npx -y @knowttl/falcon-axi@next malquery search --hex '4d 5a' --fuzzy --limit 10
+  npx -y @knowttl/falcon-axi malquery search --string SYNTHETIC-PATTERN --limit 20
+  npx -y @knowttl/falcon-axi malquery search --hex '4d 5a' --fuzzy --limit 10
 
 Requires MalQuery:write and Falcon MalQuery under captain exception N4.
 FALCON_AXI_READ_ONLY refuses searches. Hunt and all sample downloads remain excluded.

@@ -3,14 +3,14 @@
 shield show <id>          detail for one SaaS security posture check
 
 ```text
-npx -y @knowttl/falcon-axi@next shield show <check id> [--full]
+npx -y @knowttl/falcon-axi shield show <check id> [--full]
 
 Read one Falcon Shield posture check, including remediation details returned by the API.
 Long text is truncated at 800 characters by default; --full returns untruncated text.
 
 Examples:
-  npx -y @knowttl/falcon-axi@next shield show <id>
-  npx -y @knowttl/falcon-axi@next shield show <id> --full
+  npx -y @knowttl/falcon-axi shield show <id>
+  npx -y @knowttl/falcon-axi shield show <id> --full
 
 Read-only. Requires SaaS Security:read (Falcon Shield).
 ```

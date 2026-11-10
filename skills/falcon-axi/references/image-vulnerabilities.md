@@ -3,7 +3,7 @@
 image vulnerabilities     list container image vulnerabilities
 
 ```text
-npx -y @knowttl/falcon-axi@next image vulnerabilities [--filter <FQL>] [--limit N] [--cursor <token>]
+npx -y @knowttl/falcon-axi image vulnerabilities [--filter <FQL>] [--limit N] [--cursor <token>]
 
 Lists vulnerabilities across container images in fixed cve_id.asc order.
 --filter     FQL fields include cve_id, cvss_score, image_id, repository, severity
@@ -11,8 +11,8 @@ Lists vulnerabilities across container images in fixed cve_id.asc order.
 --cursor     opaque continuation token; keep the same filter and credential
 Falcon exposes at most 10000 records per query; narrow --filter at that boundary.
 Examples:
-  npx -y @knowttl/falcon-axi@next image vulnerabilities --filter "cvss_score:>7"
-  npx -y @knowttl/falcon-axi@next image vulnerabilities --filter "image_id:'synthetic-image'"
+  npx -y @knowttl/falcon-axi image vulnerabilities --filter "cvss_score:>7"
+  npx -y @knowttl/falcon-axi image vulnerabilities --filter "image_id:'synthetic-image'"
 
 Read-only; requires Falcon Container Image:read and the corresponding license.
 ```

@@ -1,7 +1,7 @@
 # Falcon investigation quick guide
 
 Start with a command below; reserve `--help` for a command that fails or an unfamiliar option.
-Use `npx -y @knowttl/falcon-axi@next` in place of `falcon-axi` when it is not installed globally.
+Use `npx -y @knowttl/falcon-axi` in place of `falcon-axi` when it is not installed globally.
 Examples are wholly synthetic; replace their identifiers with values returned by your investigation.
 Credentials must already be supplied through environment variables or configured SecretRefs, never arguments.
 Append `--profile <name>` to select a configured profile and retain it on every pivot.

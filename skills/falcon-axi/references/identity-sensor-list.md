@@ -3,7 +3,7 @@
 identity sensor list      list Identity Protection sensors
 
 ```text
-npx -y @knowttl/falcon-axi@next identity sensor list [--filter <FQL>] [--limit N] [--cursor <token>]
+npx -y @knowttl/falcon-axi identity sensor list [--filter <FQL>] [--limit N] [--cursor <token>]
 
 --filter     Falcon Query Language expression for identity sensors
 --limit      rows in this call (default 20, ceiling 200)

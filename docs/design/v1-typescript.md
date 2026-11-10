@@ -4,8 +4,9 @@ The [approved settlement amendment](s01-primitive-amendment.md#dns-deadline-sett
 The installed-artifact regression uses a three-second local DNS blackhole and requires WAIT_TIMEOUT and process settlement within the inherited one-second budget plus startup allowance.
 
 This tree prepares the reviewed Node 24 TypeScript cutover; the Python implementation is preserved in release history rather than shipped alongside it.
-The prepared npm prerelease is `@knowttl/falcon-axi@1.0.0-rc.1` on `next`, with the executable names `falcon-axi` and `falcon-axi-hook`.
-`1.0.0-rc.1` was published manually; later releases publish from `.github/workflows/release-please.yml`, with prereleases on `next`.
+The package provides the `falcon-axi` and `falcon-axi-hook` executables.
+`1.0.0-rc.1` was published manually; later releases publish from `.github/workflows/release-please.yml`, with prereleases on `next` and stable releases on `latest`.
+The release configuration targets `1.0.0`; remove its `release-as` override after that release is cut.
 The [cutover record](../distribution/typescript-cutover.md) owns the imported migration tree, preservation tag, reviewable revert, and publication gates.
 The candidate delivers local configuration diagnostics, token-checking `auth status`, `scopes`, and passive detection investigation and host, IOC, process, FileVantage and RTR history reads.
 S04 adds account, asset, application, login, host-group, IoT, weekly sensor usage and Identity sensor reads.
@@ -191,9 +192,7 @@ Ordinary commands do not install integrations, capture transcripts, or update so
 Build and pack with `corepack pnpm run build` and `npm pack --pack-destination <directory>`.
 Install that tarball into a durable prefix with `npm install --ignore-scripts --prefix <prefix> <tarball>`.
 Run either executable from `<prefix>/node_modules/.bin`, or use the installed Node runtime with its compiled entry point on Windows.
-The generated skill's `npx -y @knowttl/falcon-axi` examples target the future npm release; until publication, substitute the executable from this installed tarball.
-This prepared cutover artifact has not been published to npm.
-Its generated one-shot examples use `@next` so they resolve the prerelease channel after manual publication.
+The generated skill's `npx -y @knowttl/falcon-axi` examples use the `latest` channel; until stable publication, substitute the executable from this installed tarball.
 
 S13 restores complete discovery comparisons against the retained command references and all 350 golden scenarios, removing temporary discovery filtering.
 The `scopes` posture, scope rows, provisioning guidance, and exit code retain exact origin parity, including all four original exception labels and guarded RTR host execution disclosure.

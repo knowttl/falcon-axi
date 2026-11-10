@@ -2,13 +2,13 @@
 
 ## Install session context
 
-After the first manual npm publication, install the CLI with `npm install --global @knowttl/falcon-axi@next`, then opt in:
+After the first stable npm publication, install the CLI with `npm install --global @knowttl/falcon-axi`, then opt in:
 
 ```sh
 falcon-axi setup hooks
 ```
 
-Before publication, follow the [artifact installation instructions](design/v1-typescript.md#installation-and-full-parity-candidate) before opting in.
+Before stable publication, follow the [artifact installation instructions](design/v1-typescript.md#installation-and-full-parity-candidate) before opting in.
 
 This installs or repairs integrations for Claude Code, Codex, and OpenCode.
 At session start, they provide local profile status, region, version, and a command hint without contacting Falcon.
@@ -44,7 +44,6 @@ Add `-g` for a user-wide skill.
 Choose either integration or use both; hook setup does not install the skill.
 The skill grants no permissions.
 Follow its generated invocation examples to run without a global CLI install.
-The migration branch's generated references describe the unpublished candidate; use its [artifact installation instructions](design/v1-typescript.md#installation-and-full-parity-candidate) until npm publication.
 
 ## Remove session integrations
 

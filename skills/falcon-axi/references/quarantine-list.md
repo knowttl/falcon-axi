@@ -3,7 +3,7 @@
 quarantine list           list quarantined file metadata
 
 ```text
-npx -y @knowttl/falcon-axi@next quarantine list [--filter <FQL>] [--limit N] [--cursor <token>]
+npx -y @knowttl/falcon-axi quarantine list [--filter <FQL>] [--limit N] [--cursor <token>]
 
 --filter     raw FQL (hostname, sha256, state, paths.path, paths.state)
 --limit      rows in this call (default 20, ceiling 500)
@@ -11,6 +11,6 @@ npx -y @knowttl/falcon-axi@next quarantine list [--filter <FQL>] [--limit N] [--
 
 Reads file metadata only. Requires Quarantined Files:read.
 Examples:
-  npx -y @knowttl/falcon-axi@next quarantine list
-  npx -y @knowttl/falcon-axi@next quarantine list --filter "hostname:'SYNTHETIC-*'"
+  npx -y @knowttl/falcon-axi quarantine list
+  npx -y @knowttl/falcon-axi quarantine list --filter "hostname:'SYNTHETIC-*'"
 ```

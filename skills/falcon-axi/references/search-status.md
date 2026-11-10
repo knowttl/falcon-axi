@@ -3,7 +3,7 @@
 search status <id>        poll one search job and read its events
 
 ```text
-npx -y @knowttl/falcon-axi@next search status <search id> [--repository <name>] [--wait <seconds>]
+npx -y @knowttl/falcon-axi search status <search id> [--repository <name>] [--wait <seconds>]
 
 --repository the repository the job was started against (default search-all)
 --wait       poll for completion for 1-50 seconds (default: one poll)
@@ -14,7 +14,7 @@ the job is done. parsed_query echoes the filter part only; stages after the firs
 are not echoed. Compare it with the filter you sent, because NG-SIEM turns an
 unrecognised word into a free-text stage rather than an error.
 
-Example: npx -y @knowttl/falcon-axi@next search status abc123 --wait 30
+Example: npx -y @knowttl/falcon-axi search status abc123 --wait 30
 Bound results with | head(N) in the original query; format epoch-millisecond @timestamp with:
 | formatTime("%Y-%m-%dT%H:%M:%SZ", field=@timestamp, as=time, timezone="UTC")
 

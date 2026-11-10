@@ -12,7 +12,7 @@
   },
   "skill": {
     "path": "skills/falcon-axi/SKILL.md",
-    "sha256": "35dbd5ed669533e32b62896752bc1a7d28dd62733698373fed07f03c60ea52f6"
+    "sha256": "ca8a131e79e675b51b9fbe0b296a2740ca3445d8e76bfa61c681e0b16773b9d2"
   },
   "globalFlags": [
     "help",

@@ -1,6 +1,6 @@
 # Design index
 
-Status: implemented in TypeScript; first npm publication pending.
+Status: implemented in TypeScript.
 The [full command reference](../commands.md) is generated from the shipped command registry and owns delivery status; the [README](../../README.md#what-it-covers) summarizes command groups.
 This page preserves the domain rollout inventory formerly in the README; it is historical context, not a second command registry.
 
