@@ -598,7 +598,10 @@ if (process.env.S01_ACTIVE_PATH !== "artium") {
               "-Command",
               `$ErrorActionPreference='Stop'; $u=[System.Security.Principal.WindowsIdentity]::GetCurrent().User.Value; $a=Get-Acl -LiteralPath $env:ACL_TEST_PATH; $a.SetSecurityDescriptorSddlForm("D:P(A;;FA;;;$u)(A;;FA;;;SY)(A;;FA;;;BA)",[System.Security.AccessControl.AccessControlSections]::Access); Set-Acl -LiteralPath $env:ACL_TEST_PATH -AclObject $a`,
             ],
-            { encoding: "utf8", env: { ...process.env, ACL_TEST_PATH: config } },
+            {
+              encoding: "utf8",
+              env: { ...process.env, ACL_TEST_PATH: config },
+            },
           );
           assert.equal(prepared.status, 0, prepared.stderr);
         }
