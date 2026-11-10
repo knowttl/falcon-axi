@@ -418,10 +418,10 @@ if (process.env.S01_ACTIVE_PATH !== "artium") {
   });
   if (process.platform === "win32")
     for (const secret of [false, true])
-      test(`C15 Windows ${secret ? "secret" : "config"} ACL repair protects the selected file`, async () => {
+      test(`C15 Windows ${secret ? "secret" : "config"} ACL hint preserves other explicit entries`, async () => {
         reset();
         const config = join(directory, `acl-config-${secret}.json`);
-        const selected = join(directory, `acl-'$(throw 1)-${secret}.json`);
+        const selected = join(directory, `acl-'$(throw 1)-\`-${secret}.json`);
         await writeFile(
           selected,
           secret ? "synthetic-secret" : JSON.stringify({ version: 1, profiles: {} }),
@@ -440,7 +440,7 @@ if (process.env.S01_ACTIVE_PATH !== "artium") {
             env: { ...process.env, ACL_TEST_PATH: path, USERNAME: "wrong-user" },
           });
         const prepare = (path: string, extra: string) =>
-          powershell(`$ErrorActionPreference='Stop'; $u=[System.Security.Principal.WindowsIdentity]::GetCurrent().User.Value; $a=Get-Acl -LiteralPath $env:ACL_TEST_PATH; $a.SetSecurityDescriptorSddlForm("D:P(A;;FA;;;$u)(A;;FA;;;SY)(A;;FA;;;BA)${extra}",[System.Security.AccessControl.AccessControlSections]::Access); Set-Acl -LiteralPath $env:ACL_TEST_PATH -AclObject $a`, path);
+          powershell(`$ErrorActionPreference='Stop'; $u=[System.Security.Principal.WindowsIdentity]::GetCurrent().User.Value; $a=Get-Acl -LiteralPath $env:ACL_TEST_PATH; $a.SetSecurityDescriptorSddlForm("D:${extra ? "AI" : "P"}(A;;FA;;;$u)(A;;FA;;;SY)(A;;FA;;;BA)${extra}",[System.Security.AccessControl.AccessControlSections]::Access); Set-Acl -LiteralPath $env:ACL_TEST_PATH -AclObject $a`, path);
         if (secret) assert.equal(prepare(config, "").status, 0);
         assert.equal(prepare(selected, "(A;;FR;;;WD)(D;;FW;;;WD)").status, 0);
         const result = await run(["auth", "status", "--config", secret ? config : selected], {
@@ -452,17 +452,35 @@ if (process.env.S01_ACTIVE_PATH !== "artium") {
         assert.equal(document(result.stdout).code, "CONFIG_INSECURE");
         const hint = document(result.stdout).help?.find((line) => line.startsWith("In PowerShell: "));
         assert.ok(hint);
+        const literal = selected.replaceAll("'", "''");
+        assert.equal(
+          hint,
+          `In PowerShell: icacls '${literal}' /inheritance:r /grant:r "*$([System.Security.Principal.WindowsIdentity]::GetCurrent().User.Value):(F)" "*S-1-5-18:(F)" "*S-1-5-32-544:(F)"`,
+        );
+        assert.match(document(result.stdout).help!.join("\n"), /does not remove other explicit allow or deny entries/);
         const repaired = powershell(
           `function icacls { if ($args -contains '/reset') { throw 'unsafe ACL reset' }; & icacls.exe @args }; ${hint.slice("In PowerShell: ".length)}`,
           selected,
         );
         assert.equal(repaired.status, 0, repaired.stderr);
         const check = powershell(
-          `$ErrorActionPreference='Stop'; $a=Get-Acl -LiteralPath $env:ACL_TEST_PATH; $u=[System.Security.Principal.WindowsIdentity]::GetCurrent().User.Value; $rules=@($a.Access); if (-not $a.AreAccessRulesProtected -or $rules.Count -ne 3) { exit 1 }; foreach ($sid in @($u,'S-1-5-18','S-1-5-32-544')) { if (@($rules | Where-Object { $_.IdentityReference.Translate([System.Security.Principal.SecurityIdentifier]).Value -eq $sid -and -not $_.IsInherited -and $_.AccessControlType -eq 'Allow' -and $_.FileSystemRights -eq 'FullControl' }).Count -ne 1) { exit 1 } }`,
+          `$ErrorActionPreference='Stop'; $a=Get-Acl -LiteralPath $env:ACL_TEST_PATH; $u=[System.Security.Principal.WindowsIdentity]::GetCurrent().User.Value; $rules=@($a.Access); if (-not $a.AreAccessRulesProtected -or $rules.Count -ne 5) { exit 1 }; foreach ($sid in @($u,'S-1-5-18','S-1-5-32-544')) { if (@($rules | Where-Object { $_.IdentityReference.Translate([System.Security.Principal.SecurityIdentifier]).Value -eq $sid -and -not $_.IsInherited -and $_.AccessControlType -eq 'Allow' -and $_.FileSystemRights -eq 'FullControl' }).Count -ne 1) { exit 1 } }; foreach ($type in @('Allow','Deny')) { if (@($rules | Where-Object { $_.IdentityReference.Translate([System.Security.Principal.SecurityIdentifier]).Value -eq 'S-1-1-0' -and $_.AccessControlType -eq $type }).Count -ne 1) { exit 1 } }`,
           selected,
         );
         assert.equal(check.status, 0, check.stderr);
       });
+  if (process.platform === "win32")
+    test("C15 Windows directory refusal does not suggest an ACL repair", async () => {
+      reset();
+      const result = await run(["auth", "status", "--config", directory], {
+        FALCON_AXI_CLIENT_ID: undefined,
+        FALCON_AXI_CLIENT_SECRET: undefined,
+        FALCON_AXI_PROFILE: undefined,
+      });
+      assert.equal(result.code, 1, result.stdout);
+      assert.equal(document(result.stdout).code, "CONFIG_INSECURE");
+      assert.equal(document(result.stdout).help?.some((line) => line.includes("icacls")) ?? false, false);
+    });
   test("SR-148 invalid READ_ONLY fails closed before credentials", async () => {
     reset();
     const result = await run(["auth", "status"], {

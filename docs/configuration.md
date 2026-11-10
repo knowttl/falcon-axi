@@ -43,7 +43,14 @@ Inline secrets are rejected.
 On POSIX, secret files require mode 0400 or 0600; config files must not be group/world writable, and both must be owned by you.
 On Windows, links and reparse points are rejected.
 `auth status` also requires a protected DACL with no inherited entries that grants Full Control only to your user, SYSTEM and Administrators; a user-only ACL is refused.
-The refusal prints PowerShell commands that apply this ACL and confirm the grants with `icacls`.
+For a file at `C:\path\secret`, run this command in PowerShell to remove inheritance and grant Full Control to those principals:
+
+```powershell
+icacls 'C:\path\secret' /inheritance:r /grant:r "*$([System.Security.Principal.WindowsIdentity]::GetCurrent().User.Value):(F)" "*S-1-5-18:(F)" "*S-1-5-32-544:(F)"
+```
+
+Replace the example path with the selected file path, doubling any apostrophes inside the single quotes.
+The command does not remove unrelated explicit allow or deny entries; remove those separately before retrying.
 
 ```sh
 falcon-axi profile list
