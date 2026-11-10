@@ -434,7 +434,10 @@ if (process.env.S01_ACTIVE_PATH !== "artium") {
             JSON.stringify({
               version: 1,
               profiles: {
-                test: { clientId: "synthetic-id", clientSecret: { file: selected } },
+                test: {
+                  clientId: "synthetic-id",
+                  clientSecret: { file: selected },
+                },
               },
             }),
           );
@@ -444,7 +447,11 @@ if (process.env.S01_ACTIVE_PATH !== "artium") {
             ["-NoProfile", "-NonInteractive", "-Command", script],
             {
               encoding: "utf8",
-              env: { ...process.env, ACL_TEST_PATH: path, USERNAME: "wrong-user" },
+              env: {
+                ...process.env,
+                ACL_TEST_PATH: path,
+                USERNAME: "wrong-user",
+              },
             },
           );
         const prepare = (path: string, extra: string) =>
@@ -454,11 +461,14 @@ if (process.env.S01_ACTIVE_PATH !== "artium") {
           );
         if (secret) assert.equal(prepare(config, "").status, 0);
         assert.equal(prepare(selected, "(A;;FR;;;WD)(D;;FW;;;WD)").status, 0);
-        const result = await run(["auth", "status", "--config", secret ? config : selected], {
-          FALCON_AXI_CLIENT_ID: undefined,
-          FALCON_AXI_CLIENT_SECRET: undefined,
-          FALCON_AXI_PROFILE: undefined,
-        });
+        const result = await run(
+          ["auth", "status", "--config", secret ? config : selected],
+          {
+            FALCON_AXI_CLIENT_ID: undefined,
+            FALCON_AXI_CLIENT_SECRET: undefined,
+            FALCON_AXI_PROFILE: undefined,
+          },
+        );
         assert.equal(result.code, 1, result.stdout);
         assert.equal(document(result.stdout).code, "CONFIG_INSECURE");
         const hint = document(result.stdout).help?.find((line) =>
