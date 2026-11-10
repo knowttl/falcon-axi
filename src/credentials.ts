@@ -188,7 +188,9 @@ export async function readPrivate(
   }
   const regular = info.isFile() && !info.isSymbolicLink();
   const windowsMetadata =
-    regular && process.platform === "win32" && (await verifyWindowsFile(path, false));
+    regular &&
+    process.platform === "win32" &&
+    (await verifyWindowsFile(path, false));
   const windowsAclFailure =
     windowsMetadata && diagnostic && !(await verifyWindowsFile(path, true));
   if (
@@ -204,8 +206,8 @@ export async function readPrivate(
       windowsAclFailure
         ? [
             "On Windows, remove inherited permissions and grant Full Control only to your user, SYSTEM and Administrators",
+            "First remove unrelated explicit allow or deny entries",
             `In PowerShell: icacls '${path.replaceAll("'", "''")}' /inheritance:r /grant:r "*$([System.Security.Principal.WindowsIdentity]::GetCurrent().User.Value):(F)" "*S-1-5-18:(F)" "*S-1-5-32-544:(F)"`,
-            "This command does not remove other explicit allow or deny entries; remove them separately before retrying",
           ]
         : [],
     );

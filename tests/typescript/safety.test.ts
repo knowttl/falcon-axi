@@ -424,23 +424,34 @@ if (process.env.S01_ACTIVE_PATH !== "artium") {
         const selected = join(directory, `acl-'$(throw 1)-\`-${secret}.json`);
         await writeFile(
           selected,
-          secret ? "synthetic-secret" : JSON.stringify({ version: 1, profiles: {} }),
+          secret
+            ? "synthetic-secret"
+            : JSON.stringify({ version: 1, profiles: {} }),
         );
         if (secret)
           await writeFile(
             config,
             JSON.stringify({
               version: 1,
-              profiles: { test: { clientId: "synthetic-id", clientSecret: { file: selected } } },
+              profiles: {
+                test: { clientId: "synthetic-id", clientSecret: { file: selected } },
+              },
             }),
           );
         const powershell = (script: string, path: string) =>
-          spawnSync("powershell.exe", ["-NoProfile", "-NonInteractive", "-Command", script], {
-            encoding: "utf8",
-            env: { ...process.env, ACL_TEST_PATH: path, USERNAME: "wrong-user" },
-          });
+          spawnSync(
+            "powershell.exe",
+            ["-NoProfile", "-NonInteractive", "-Command", script],
+            {
+              encoding: "utf8",
+              env: { ...process.env, ACL_TEST_PATH: path, USERNAME: "wrong-user" },
+            },
+          );
         const prepare = (path: string, extra: string) =>
-          powershell(`$ErrorActionPreference='Stop'; $u=[System.Security.Principal.WindowsIdentity]::GetCurrent().User.Value; $a=Get-Acl -LiteralPath $env:ACL_TEST_PATH; $a.SetSecurityDescriptorSddlForm("D:${extra ? "AI" : "P"}(A;;FA;;;$u)(A;;FA;;;SY)(A;;FA;;;BA)${extra}",[System.Security.AccessControl.AccessControlSections]::Access); Set-Acl -LiteralPath $env:ACL_TEST_PATH -AclObject $a`, path);
+          powershell(
+            `$ErrorActionPreference='Stop'; $u=[System.Security.Principal.WindowsIdentity]::GetCurrent().User.Value; $a=Get-Acl -LiteralPath $env:ACL_TEST_PATH; $a.SetSecurityDescriptorSddlForm("D:${extra ? "AI" : "P"}(A;;FA;;;$u)(A;;FA;;;SY)(A;;FA;;;BA)${extra}",[System.Security.AccessControl.AccessControlSections]::Access); Set-Acl -LiteralPath $env:ACL_TEST_PATH -AclObject $a`,
+            path,
+          );
         if (secret) assert.equal(prepare(config, "").status, 0);
         assert.equal(prepare(selected, "(A;;FR;;;WD)(D;;FW;;;WD)").status, 0);
         const result = await run(["auth", "status", "--config", secret ? config : selected], {
@@ -450,14 +461,19 @@ if (process.env.S01_ACTIVE_PATH !== "artium") {
         });
         assert.equal(result.code, 1, result.stdout);
         assert.equal(document(result.stdout).code, "CONFIG_INSECURE");
-        const hint = document(result.stdout).help?.find((line) => line.startsWith("In PowerShell: "));
+        const hint = document(result.stdout).help?.find((line) =>
+          line.startsWith("In PowerShell: "),
+        );
         assert.ok(hint);
         const literal = selected.replaceAll("'", "''");
         assert.equal(
           hint,
           `In PowerShell: icacls '${literal}' /inheritance:r /grant:r "*$([System.Security.Principal.WindowsIdentity]::GetCurrent().User.Value):(F)" "*S-1-5-18:(F)" "*S-1-5-32-544:(F)"`,
         );
-        assert.match(document(result.stdout).help!.join("\n"), /does not remove other explicit allow or deny entries/);
+        assert.match(
+          document(result.stdout).help!.join("\n"),
+          /First remove unrelated explicit allow or deny entries/,
+        );
         const repaired = powershell(
           `function icacls { if ($args -contains '/reset') { throw 'unsafe ACL reset' }; & icacls.exe @args }; ${hint.slice("In PowerShell: ".length)}`,
           selected,
@@ -479,7 +495,11 @@ if (process.env.S01_ACTIVE_PATH !== "artium") {
       });
       assert.equal(result.code, 1, result.stdout);
       assert.equal(document(result.stdout).code, "CONFIG_INSECURE");
-      assert.equal(document(result.stdout).help?.some((line) => line.includes("icacls")) ?? false, false);
+      assert.equal(
+        document(result.stdout).help?.some((line) => line.includes("icacls")) ??
+          false,
+        false,
+      );
     });
   test("SR-148 invalid READ_ONLY fails closed before credentials", async () => {
     reset();
