@@ -46,7 +46,7 @@ On Windows, links and reparse points are rejected.
 For a file at `C:\path\secret`, run this command in PowerShell to replace its ACL with those protected grants in one step:
 
 ```powershell
-$ErrorActionPreference='Stop'; $p='C:\path\secret'; $u=[System.Security.Principal.WindowsIdentity]::GetCurrent().User.Value; $a=Get-Acl -LiteralPath $p; $a.SetSecurityDescriptorSddlForm("D:P(A;;FA;;;$u)(A;;FA;;;SY)(A;;FA;;;BA)",[System.Security.AccessControl.AccessControlSections]::Access); Set-Acl -LiteralPath $p -AclObject $a
+$ErrorActionPreference='Stop'; $p='C:\path\secret'; $u=[System.Security.Principal.WindowsIdentity]::GetCurrent().User.Value; $a=New-Object System.Security.AccessControl.FileSecurity; $a.SetSecurityDescriptorSddlForm("D:P(A;;FA;;;$u)(A;;FA;;;SY)(A;;FA;;;BA)",[System.Security.AccessControl.AccessControlSections]::Access); Set-Acl -LiteralPath $p -AclObject $a
 ```
 
 Replace the example path with the selected file path, doubling any ASCII apostrophes (`'`) or smart single quotes (`‘` and `’`) inside the single quotes.

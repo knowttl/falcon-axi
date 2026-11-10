@@ -206,7 +206,7 @@ export async function readPrivate(
       windowsAclFailure
         ? [
             "On Windows, use a protected ACL with no inherited entries granting Full Control only to your user, SYSTEM and Administrators",
-            `In PowerShell: $ErrorActionPreference='Stop'; $p='${path.replace(/['‘’]/g, "$&$&")}'; $u=[System.Security.Principal.WindowsIdentity]::GetCurrent().User.Value; $a=Get-Acl -LiteralPath $p; $a.SetSecurityDescriptorSddlForm("D:P(A;;FA;;;$u)(A;;FA;;;SY)(A;;FA;;;BA)",[System.Security.AccessControl.AccessControlSections]::Access); Set-Acl -LiteralPath $p -AclObject $a`,
+            `In PowerShell: $ErrorActionPreference='Stop'; $p='${path.replace(/['‘’]/g, "$&$&")}'; $u=[System.Security.Principal.WindowsIdentity]::GetCurrent().User.Value; $a=New-Object System.Security.AccessControl.FileSecurity; $a.SetSecurityDescriptorSddlForm("D:P(A;;FA;;;$u)(A;;FA;;;SY)(A;;FA;;;BA)",[System.Security.AccessControl.AccessControlSections]::Access); Set-Acl -LiteralPath $p -AclObject $a`,
           ]
         : [],
     );
