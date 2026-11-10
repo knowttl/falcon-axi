@@ -1,4 +1,5 @@
 import { realpathSync, statSync } from "node:fs";
+import { tmpdir } from "node:os";
 import { dirname, join, resolve, sep } from "node:path";
 import { CliError } from "./core.js";
 
@@ -23,8 +24,11 @@ export function executableCommand(hook = false): string[] {
 export function durableInstallation(): void {
   const entry = resolve(process.argv[1]!);
   const hook = join(dirname(realpathSync(entry)), "hook.js");
-  const temporaryRoots =
-    process.platform === "win32" ? [] : ["/tmp", realpathSync("/tmp")];
+  const temporaryRoots = [
+    tmpdir(),
+    realpathSync(tmpdir()),
+    ...(process.platform === "win32" ? [] : ["/tmp", realpathSync("/tmp")]),
+  ];
   for (const path of [
     entry,
     realpathSync(entry),
