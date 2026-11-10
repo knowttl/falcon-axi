@@ -1,5 +1,17 @@
 # Changelog
 
+## [1.0.0-rc.4](https://github.com/knowttl/falcon-axi/compare/npm-v1.0.0-rc.3...npm-v1.0.0-rc.4) (2026-11-09)
+
+
+### Features
+
+* add guarded raw Falcon API access ([#161](https://github.com/knowttl/falcon-axi/issues/161)) ([98fbf5b](https://github.com/knowttl/falcon-axi/commit/98fbf5b8f4cc51065fdaad0b37f52dc5cda80c35))
+
+
+### Bug Fixes
+
+* broaden Node support and align the toolchain ([#163](https://github.com/knowttl/falcon-axi/issues/163)) ([0a58366](https://github.com/knowttl/falcon-axi/commit/0a5836608891c5ef1b796c34a2a34c5a788d799f))
+
 ## [1.0.0-rc.3](https://github.com/knowttl/falcon-axi/compare/npm-v1.0.0-rc.2...npm-v1.0.0-rc.3) (2026-11-02)
 
 
