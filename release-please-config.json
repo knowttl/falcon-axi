@@ -8,7 +8,6 @@
       "component": "npm",
       "include-component-in-tag": true,
       "tag-separator": "-",
-      "release-as": "1.0.0",
       "extra-files": [{ "type": "generic", "path": "src/version.ts" }]
     }
   }
