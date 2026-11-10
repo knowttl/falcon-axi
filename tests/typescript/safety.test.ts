@@ -563,7 +563,20 @@ if (process.env.S01_ACTIVE_PATH !== "artium") {
         assert.equal(created.status, 0, created.stderr);
         const linked = join(junction, "secret");
         const config = join(directory, `junction-config-${secret}.json`);
-        if (secret) await writeFile(config, profileDocument({ file: linked }));
+        if (secret) {
+          await writeFile(config, profileDocument({ file: linked }));
+          const prepared = spawnSync(
+            "powershell.exe",
+            [
+              "-NoProfile",
+              "-NonInteractive",
+              "-Command",
+              `$ErrorActionPreference='Stop'; $u=[System.Security.Principal.WindowsIdentity]::GetCurrent().User.Value; $a=Get-Acl -LiteralPath $env:ACL_TEST_PATH; $a.SetSecurityDescriptorSddlForm("D:P(A;;FA;;;$u)(A;;FA;;;SY)(A;;FA;;;BA)",[System.Security.AccessControl.AccessControlSections]::Access); Set-Acl -LiteralPath $env:ACL_TEST_PATH -AclObject $a`,
+            ],
+            { encoding: "utf8", env: { ...process.env, ACL_TEST_PATH: config } },
+          );
+          assert.equal(prepared.status, 0, prepared.stderr);
+        }
         const result = await run(
           ["auth", "status", "--config", secret ? config : linked],
           {
