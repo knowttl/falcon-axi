@@ -1,9 +1,10 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
 import { decode } from "@toon-format/toon";
-import { writeFile, chmod, mkdir } from "node:fs/promises";
+import { writeFile, chmod, mkdir, symlink } from "node:fs/promises";
 import { spawnSync } from "node:child_process";
 import { join } from "node:path";
+import { verifyWindowsFile } from "../../src/windows-acl.js";
 import replay from "../migration/replay-cases.json" with { type: "json" };
 import {
   run,
@@ -416,6 +417,30 @@ if (process.env.S01_ACTIVE_PATH !== "artium") {
     assert.match(result.stdout, /CONFIG_INSECURE/);
     assert.equal(wire.length, 0);
   });
+  if (process.platform !== "win32")
+    for (const linked of [false, true])
+      test(
+        `C15 PowerShell metadata check ${linked ? "refuses a linked parent" : "accepts ordinary parents"}`,
+        {
+          skip:
+            spawnSync("powershell.exe", ["-NoProfile", "-Command", "exit 0"])
+              .status !== 0,
+        },
+        async () => {
+          const root = join(directory, `metadata-${linked}`);
+          const target = join(root, "target");
+          await mkdir(join(target, "deep"), { recursive: true });
+          await writeFile(join(target, "deep", "credential"), "synthetic");
+          if (linked) await symlink(target, join(root, "link"), "dir");
+          assert.equal(
+            await verifyWindowsFile(
+              join(linked ? join(root, "link") : target, "deep", "credential"),
+              false,
+            ),
+            !linked,
+          );
+        },
+      );
   if (process.platform === "win32")
     for (const secret of [false, true])
       test(`C15 Windows ${secret ? "secret" : "config"} ACL hint repairs explicit entries`, async () => {
