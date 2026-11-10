@@ -120,6 +120,21 @@ export async function search(domain: Domain): Promise<Output> {
       domain.signal,
     );
     observeRate(domain.session, response);
+    if (response.status === 400 && operation === "GetSearchStatusV1")
+      throw new CliError(
+        "NOT_FOUND",
+        "no queryable NG-SIEM search job matched that identifier",
+        [
+          "Falcon answers 400 for a stopped or expired job as well as for a wrong job id, so this cannot say which",
+          "A job id comes from `falcon-axi search start`; pass the same `--repository` the job was started against",
+          "Run `falcon-axi search start --query '<cql>'` to start a new job if needed",
+        ],
+        object(response.body) &&
+        object(response.body.meta) &&
+        typeof response.body.meta.trace_id === "string"
+          ? { trace_id: response.body.meta.trace_id }
+          : {},
+      );
     if (response.status === 404 && operation !== "StartSearchV1")
       throw new CliError(
         "NOT_FOUND",
