@@ -269,6 +269,41 @@ test("S12 installed executable identity matches package version", async () => {
   assert.equal(identity.stdout, pkg.version + "\n");
 });
 
+test("S12 Windows temporary installation refuses before configuration", async () => {
+  const scratch = join(directory, "windows temporary root");
+  const installation = join(scratch, "installation");
+  const home = join(directory, "windows temporary home");
+  await cp(join(directory, "clean install"), installation, {
+    recursive: true,
+    verbatimSymlinks: true,
+  });
+  await mkdir(home);
+  const entry = await realpath(
+    join(installation, "node_modules/.bin/falcon-axi"),
+  );
+  const result = spawnSync(
+    process.execPath,
+    [
+      "--input-type=module",
+      "-e",
+      'Object.defineProperty(process, "platform", { value: "win32" }); await import((await import("node:url")).pathToFileURL(process.argv[1]).href);',
+      entry,
+      "setup",
+      "hooks",
+    ],
+    {
+      cwd: home,
+      encoding: "utf8",
+      env: { HOME: home, PATH: dirname(process.execPath), TEMP: scratch },
+    },
+  );
+  assert.equal(result.stderr, "");
+  assert.equal(result.status, 2);
+  assert.match(result.stdout, /durable installation/);
+  for (const path of paths)
+    await assert.rejects(stat(join(home, path)), { code: "ENOENT" });
+});
+
 for (const kind of [
   "temporary",
   "worktree",
