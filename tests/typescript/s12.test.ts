@@ -111,6 +111,13 @@ async function invoke(
         HOME: home,
         PATH: dirname(process.execPath),
         FALCON_AXI_CONFIG: join(home, "missing-config.json"),
+        ...(process.platform === "win32"
+          ? {
+              TEMP: tmpdir(),
+              TMP: tmpdir(),
+              SystemRoot: process.env.SystemRoot,
+            }
+          : { TMPDIR: tmpdir() }),
       },
     },
   );
