@@ -2,7 +2,7 @@
 
 ## Install session context
 
-After the first manual npm publication, install the CLI with `npm install --global @knowttl/falcon-axi`, then opt in:
+After the first stable npm publication, install the CLI with `npm install --global @knowttl/falcon-axi`, then opt in:
 
 ```sh
 falcon-axi setup hooks

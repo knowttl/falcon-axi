@@ -21,7 +21,7 @@ Synthetic offline checks verify local behavior and safety constraints; they do n
 ## Quickstart
 
 Requires [Node.js](https://nodejs.org/) 22.18.0 or newer.
-After the first manual npm publication, install the CLI globally, or use `npx -y @knowttl/falcon-axi` for one-shot reads:
+After the first stable npm publication, install the CLI globally, or use `npx -y @knowttl/falcon-axi` for one-shot reads:
 
 ```sh
 npm install --global @knowttl/falcon-axi
