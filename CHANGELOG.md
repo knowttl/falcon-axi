@@ -1,5 +1,15 @@
 # Changelog
 
+## [1.0.0](https://github.com/knowttl/falcon-axi/compare/npm-v1.0.0-rc.4...npm-v1.0.0) (2026-11-10)
+
+
+### Bug Fixes
+
+* classify search status 400 responses as not found ([#167](https://github.com/knowttl/falcon-axi/issues/167)) ([4cf1a3f](https://github.com/knowttl/falcon-axi/commit/4cf1a3f7769a87b05fe0f385eaa9cec0e6369af6))
+* preserve native build input hashes on Windows ([#168](https://github.com/knowttl/falcon-axi/issues/168)) ([3f6e12b](https://github.com/knowttl/falcon-axi/commit/3f6e12b4a4fe30d18e57bf9a0b010bdb6a4aad2b))
+* reject temporary installations when setting up hooks ([#169](https://github.com/knowttl/falcon-axi/issues/169)) ([ee29397](https://github.com/knowttl/falcon-axi/commit/ee29397938d76c16cc519c444ced93d4778f2e33))
+* transition npm releases to stable ([#165](https://github.com/knowttl/falcon-axi/issues/165)) ([49e791e](https://github.com/knowttl/falcon-axi/commit/49e791e403df3bba79503f20aa4d35311d187189))
+
 ## [1.0.0-rc.4](https://github.com/knowttl/falcon-axi/compare/npm-v1.0.0-rc.3...npm-v1.0.0-rc.4) (2026-11-09)
 
 
