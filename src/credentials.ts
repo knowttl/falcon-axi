@@ -201,7 +201,7 @@ export async function readPrivate(
       process.platform === "win32"
         ? [
             "On Windows, remove inherited permissions and grant Full Control only to your user, SYSTEM and Administrators",
-            `In PowerShell: icacls '${path.replaceAll("'", "''")}' /reset; if ($LASTEXITCODE -eq 0) { icacls '${path.replaceAll("'", "''")}' /inheritance:r /grant:r "*S-1-5-18:(F)" "*S-1-5-32-544:(F)" "\${env:USERNAME}:(F)" }`,
+            `In PowerShell: $ErrorActionPreference='Stop'; $p='${path.replaceAll("'", "''")}'; $u=[System.Security.Principal.WindowsIdentity]::GetCurrent().User.Value; $a=Get-Acl -LiteralPath $p; $a.SetSecurityDescriptorSddlForm("D:P(A;;FA;;;$u)(A;;FA;;;SY)(A;;FA;;;BA)",[System.Security.AccessControl.AccessControlSections]::Access); Set-Acl -LiteralPath $p -AclObject $a; icacls $p /grant:r "*\${u}:(F)" "*S-1-5-18:(F)" "*S-1-5-32-544:(F)"`,
           ]
         : [],
     );

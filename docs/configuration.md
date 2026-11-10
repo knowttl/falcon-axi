@@ -43,7 +43,7 @@ Inline secrets are rejected.
 On POSIX, secret files require mode 0400 or 0600; config files must not be group/world writable, and both must be owned by you.
 On Windows, links and reparse points are rejected.
 `auth status` also requires a protected DACL with no inherited entries that grants Full Control only to your user, SYSTEM and Administrators; a user-only ACL is refused.
-The refusal prints the `icacls` command that applies this ACL.
+The refusal prints PowerShell commands that apply this ACL and confirm the grants with `icacls`.
 
 ```sh
 falcon-axi profile list
