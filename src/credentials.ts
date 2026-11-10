@@ -186,11 +186,16 @@ export async function readPrivate(
       "cannot inspect the selected credential file",
     );
   }
+  const regular = info.isFile() && !info.isSymbolicLink();
+  const windowsMetadata =
+    regular &&
+    process.platform === "win32" &&
+    (await verifyWindowsFile(path, false));
+  const windowsAclFailure =
+    windowsMetadata && diagnostic && !(await verifyWindowsFile(path, true));
   if (
-    !info.isFile() ||
-    info.isSymbolicLink() ||
-    (process.platform === "win32" &&
-      !(await verifyWindowsFile(path, diagnostic))) ||
+    !regular ||
+    (process.platform === "win32" && (!windowsMetadata || windowsAclFailure)) ||
     (process.platform !== "win32" &&
       (info.uid !== process.getuid!() ||
         (info.mode & (secret ? 0o077 : 0o022)) !== 0))
@@ -198,6 +203,12 @@ export async function readPrivate(
     throw new CliError(
       "CONFIG_INSECURE",
       "the selected credential file is not protected",
+      windowsAclFailure
+        ? [
+            "On Windows, use a protected ACL with no inherited entries granting Full Control only to your user, SYSTEM and Administrators",
+            `In PowerShell: $ErrorActionPreference='Stop'; $p='${path.replace(/['‘’]/g, "$&$&")}'; $u=[System.Security.Principal.WindowsIdentity]::GetCurrent().User.Value; $a=New-Object System.Security.AccessControl.FileSecurity; $a.SetSecurityDescriptorSddlForm("D:P(A;;FA;;;$u)(A;;FA;;;SY)(A;;FA;;;BA)",[System.Security.AccessControl.AccessControlSections]::Access); Set-Acl -LiteralPath $p -AclObject $a`,
+          ]
+        : [],
     );
   let file;
   try {

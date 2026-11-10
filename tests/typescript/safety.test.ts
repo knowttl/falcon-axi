@@ -2,6 +2,7 @@ import assert from "node:assert/strict";
 import { test } from "node:test";
 import { decode } from "@toon-format/toon";
 import { writeFile, chmod, mkdir } from "node:fs/promises";
+import { spawnSync } from "node:child_process";
 import { join } from "node:path";
 import replay from "../migration/replay-cases.json" with { type: "json" };
 import {
@@ -415,6 +416,115 @@ if (process.env.S01_ACTIVE_PATH !== "artium") {
     assert.match(result.stdout, /CONFIG_INSECURE/);
     assert.equal(wire.length, 0);
   });
+  if (process.platform === "win32")
+    for (const secret of [false, true])
+      test(`C15 Windows ${secret ? "secret" : "config"} ACL hint repairs explicit entries`, async () => {
+        reset();
+        const config = join(directory, `acl-config-${secret}.json`);
+        const selected = join(directory, `acl-'‘’$(throw 1)-\`-${secret}.json`);
+        await writeFile(
+          selected,
+          secret
+            ? "synthetic-secret"
+            : JSON.stringify({
+                version: 1,
+                profiles: {
+                  test: {
+                    clientId: "synthetic-id",
+                    clientSecret: { env: "ARTIUM_SECRET_0" },
+                  },
+                },
+              }),
+        );
+        if (secret)
+          await writeFile(
+            config,
+            JSON.stringify({
+              version: 1,
+              profiles: {
+                test: {
+                  clientId: "synthetic-id",
+                  clientSecret: { file: selected },
+                },
+              },
+            }),
+          );
+        const powershell = (script: string, path: string) =>
+          spawnSync(
+            "powershell.exe",
+            ["-NoProfile", "-NonInteractive", "-Command", script],
+            {
+              encoding: "utf8",
+              env: {
+                ...process.env,
+                ACL_TEST_PATH: path,
+                USERNAME: "wrong-user",
+              },
+            },
+          );
+        const prepare = (path: string, extra: string) =>
+          powershell(
+            `$ErrorActionPreference='Stop'; $u=[System.Security.Principal.WindowsIdentity]::GetCurrent().User.Value; $a=Get-Acl -LiteralPath $env:ACL_TEST_PATH; $a.SetSecurityDescriptorSddlForm("D:${extra ? "AI" : "P"}(A;;FA;;;$u)(A;;FA;;;SY)(A;;FA;;;BA)${extra}",[System.Security.AccessControl.AccessControlSections]::Access); Set-Acl -LiteralPath $env:ACL_TEST_PATH -AclObject $a`,
+            path,
+          );
+        if (secret) assert.equal(prepare(config, "").status, 0);
+        assert.equal(prepare(selected, "(A;;FR;;;WD)(D;;FW;;;WD)").status, 0);
+        const result = await run(
+          ["auth", "status", "--config", secret ? config : selected],
+          {
+            FALCON_AXI_CLIENT_ID: undefined,
+            FALCON_AXI_CLIENT_SECRET: undefined,
+            FALCON_AXI_PROFILE: undefined,
+          },
+        );
+        assert.equal(result.code, 1, result.stdout);
+        assert.equal(document(result.stdout).code, "CONFIG_INSECURE");
+        assert.ok(
+          document(result.stdout).help?.some((line) =>
+            line.includes("no inherited entries"),
+          ),
+        );
+        const hint = document(result.stdout).help?.find((line) =>
+          line.startsWith("In PowerShell: "),
+        );
+        assert.ok(hint);
+        const repaired = powershell(
+          `$writes=0; function Get-Acl { throw 'ACL read denied' }; function icacls { throw 'unexpected ACL write' }; function Set-Acl { param($LiteralPath, $AclObject); $script:writes++; $rules=@($AclObject.Access); $u=[System.Security.Principal.WindowsIdentity]::GetCurrent().User.Value; if (-not $AclObject.AreAccessRulesProtected -or $rules.Count -ne 3) { throw 'unsafe ACL' }; foreach ($sid in @($u,'S-1-5-18','S-1-5-32-544')) { if (@($rules | Where-Object { $_.IdentityReference.Translate([System.Security.Principal.SecurityIdentifier]).Value -eq $sid -and -not $_.IsInherited -and $_.AccessControlType -eq 'Allow' -and $_.FileSystemRights -eq 'FullControl' }).Count -ne 1) { throw 'unsafe ACL' } }; Microsoft.PowerShell.Security\\Set-Acl -LiteralPath $LiteralPath -AclObject $AclObject }; ${hint.slice("In PowerShell: ".length)}; if ($writes -ne 1) { throw 'expected one ACL write' }`,
+          selected,
+        );
+        assert.equal(repaired.status, 0, repaired.stderr);
+        const check = powershell(
+          `$ErrorActionPreference='Stop'; $a=Get-Acl -LiteralPath $env:ACL_TEST_PATH; $u=[System.Security.Principal.WindowsIdentity]::GetCurrent().User.Value; $rules=@($a.Access); if (-not $a.AreAccessRulesProtected -or $rules.Count -ne 3) { exit 1 }; foreach ($sid in @($u,'S-1-5-18','S-1-5-32-544')) { if (@($rules | Where-Object { $_.IdentityReference.Translate([System.Security.Principal.SecurityIdentifier]).Value -eq $sid -and -not $_.IsInherited -and $_.AccessControlType -eq 'Allow' -and $_.FileSystemRights -eq 'FullControl' }).Count -ne 1) { exit 1 } }`,
+          selected,
+        );
+        assert.equal(check.status, 0, check.stderr);
+        const accepted = await run(
+          ["auth", "status", "--config", secret ? config : selected],
+          {
+            FALCON_AXI_CLIENT_ID: undefined,
+            FALCON_AXI_CLIENT_SECRET: undefined,
+            FALCON_AXI_PROFILE: undefined,
+          },
+        );
+        assert.equal(accepted.code, 0, accepted.stdout);
+      });
+  if (process.platform === "win32")
+    test("C15 Windows directory refusal does not suggest an ACL repair", async () => {
+      reset();
+      const result = await run(["auth", "status", "--config", directory], {
+        FALCON_AXI_CLIENT_ID: undefined,
+        FALCON_AXI_CLIENT_SECRET: undefined,
+        FALCON_AXI_PROFILE: undefined,
+      });
+      assert.equal(result.code, 1, result.stdout);
+      assert.equal(document(result.stdout).code, "CONFIG_INSECURE");
+      assert.equal(
+        document(result.stdout).help?.some((line) =>
+          line.startsWith("In PowerShell: "),
+        ) ?? false,
+        false,
+      );
+    });
   test("SR-148 invalid READ_ONLY fails closed before credentials", async () => {
     reset();
     const result = await run(["auth", "status"], {
