@@ -1,5 +1,13 @@
 # Changelog
 
+## [1.0.1](https://github.com/knowttl/falcon-axi/compare/npm-v1.0.0...npm-v1.0.1) (2026-11-10)
+
+
+### Bug Fixes
+
+* clarify Windows credential file ACL requirements ([#170](https://github.com/knowttl/falcon-axi/issues/170)) ([1258d4c](https://github.com/knowttl/falcon-axi/commit/1258d4caee691f7e3545a530a2eb3c22c549ca6d))
+* reject junctions in Windows credential paths ([#173](https://github.com/knowttl/falcon-axi/issues/173)) ([2d3c982](https://github.com/knowttl/falcon-axi/commit/2d3c98270570f0ac4136ec32d4391cfd653cdcfa))
+
 ## [1.0.0](https://github.com/knowttl/falcon-axi/compare/npm-v1.0.0-rc.4...npm-v1.0.0) (2026-11-10)
 
 
