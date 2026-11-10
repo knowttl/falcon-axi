@@ -116,7 +116,6 @@ export function responseFailure(
         : ["detection list", "severity_name:'High'+status:'new'"]);
     const errors = Array.isArray(envelope.errors) ? envelope.errors : [];
     if (
-      operationId !== "GetSearchStatusV1" &&
       errors.some(
         (error) =>
           object(error) &&

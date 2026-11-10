@@ -134,8 +134,8 @@ for (const [status, exitCode, field, expected, guidance] of [
     400,
     1,
     "code",
-    "UPSTREAM_ERROR",
-    /stopped or expired job may no longer be queryable/,
+    "NOT_FOUND",
+    /stopped or expired job as well as for a wrong job id/,
   ],
   [404, 1, "code", "NOT_FOUND", /completed or cancelled job expires/],
 ] as const)
@@ -181,12 +181,13 @@ test("live findings search status rejection preserves trace and avoids FQL advic
   });
   const result = await run(["search", "status", "synthetic-job"]);
   assert.equal(result.code, 1, result.stdout);
-  assert.equal(value(result.stdout).code, "UPSTREAM_ERROR");
+  assert.equal(value(result.stdout).code, "NOT_FOUND");
   assert.equal(value(result.stdout).trace_id, requestId);
   assert.match(
     result.stdout,
-    /stopped or expired job may no longer be queryable/,
+    /stopped or expired job as well as for a wrong job id/,
   );
+  assert.doesNotMatch(result.stdout, /job was stopped\b(?! as well)/);
   assert.match(result.stdout, /same.*--repository/);
   assert.doesNotMatch(
     result.stdout,
