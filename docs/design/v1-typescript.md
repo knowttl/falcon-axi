@@ -193,7 +193,7 @@ Install that tarball into a durable prefix with `npm install --ignore-scripts --
 Run either executable from `<prefix>/node_modules/.bin`, or use the installed Node runtime with its compiled entry point on Windows.
 The generated skill's `npx -y @knowttl/falcon-axi` examples target the future npm release; until publication, substitute the executable from this installed tarball.
 This prepared cutover artifact has not been published to npm.
-Its generated one-shot examples use `@next` so they resolve the prerelease channel after manual publication.
+Its generated one-shot examples use the unqualified package name, so they resolve the `latest` channel.
 
 S13 restores complete discovery comparisons against the retained command references and all 350 golden scenarios, removing temporary discovery filtering.
 The `scopes` posture, scope rows, provisioning guidance, and exit code retain exact origin parity, including all four original exception labels and guarded RTR host execution disclosure.

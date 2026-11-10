@@ -3,7 +3,7 @@
 identity rule list        list Identity Protection policy rules
 
 ```text
-npx -y @knowttl/falcon-axi@next identity rule list [--name <name>] [--enabled true|false] [--simulation-mode true|false]
+npx -y @knowttl/falcon-axi identity rule list [--name <name>] [--enabled true|false] [--simulation-mode true|false]
 
 --name             filter by rule name
 --enabled          filter by enablement status
@@ -11,8 +11,8 @@ npx -y @knowttl/falcon-axi@next identity rule list [--name <name>] [--enabled tr
 
 Queries all matching IDs and hydrates them in chunks of 100; this API has no pagination parameters.
 Examples:
-  npx -y @knowttl/falcon-axi@next identity rule list
-  npx -y @knowttl/falcon-axi@next identity rule list --enabled true
+  npx -y @knowttl/falcon-axi identity rule list
+  npx -y @knowttl/falcon-axi identity rule list --enabled true
 
 Read-only. Requires Identity Protection Policy Rules:read; no GraphQL permission needed.
 ```

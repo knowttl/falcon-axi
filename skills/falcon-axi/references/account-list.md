@@ -3,7 +3,7 @@
 account list              list Discover accounts observed on endpoints
 
 ```text
-npx -y @knowttl/falcon-axi@next account list [--filter <FQL>] [--limit N] [--cursor <token>] [--all] [--max-rows N]
+npx -y @knowttl/falcon-axi account list [--filter <FQL>] [--limit N] [--cursor <token>] [--all] [--max-rows N]
 
 --filter     raw FQL; + is AND, `,` is OR, values are single-quoted
 --limit      rows in this call (default 20, ceiling 100)
@@ -17,8 +17,8 @@ Filterable fields include username, account_name, account_type, login_domain, us
 admin_privileges, local_admin_privileges, first_seen_timestamp, password_last_set_timestamp,
 last_successful_login_timestamp, and last_failed_login_timestamp.
 Examples:
-  npx -y @knowttl/falcon-axi@next account list --filter "admin_privileges:'Yes'"
-  npx -y @knowttl/falcon-axi@next account list --filter "username:'svc-*'"
+  npx -y @knowttl/falcon-axi account list --filter "admin_privileges:'Yes'"
+  npx -y @knowttl/falcon-axi account list --filter "username:'svc-*'"
 
 This command is read-only and requires only Assets:read, which is license-gated to Falcon
 Discover or Exposure Management.

@@ -3,7 +3,7 @@
 cloud-asset list              list CSPM cloud assets
 
 ```text
-npx -y @knowttl/falcon-axi@next cloud-asset list [--filter <FQL>] [--sort <field.direction>] [--limit N] [--cursor <token>]
+npx -y @knowttl/falcon-axi cloud-asset list [--filter <FQL>] [--sort <field.direction>] [--limit N] [--cursor <token>]
 
 list CSPM cloud assets.
 --filter   raw FQL; + is AND, `,` is OR, values are single-quoted
@@ -14,6 +14,6 @@ list CSPM cloud assets.
 Read-only; requires Cloud Security API Assets:read.
 
 Examples:
-  npx -y @knowttl/falcon-axi@next cloud-asset list --filter "cloud_provider:'aws'"
-  npx -y @knowttl/falcon-axi@next cloud-asset list --limit 100
+  npx -y @knowttl/falcon-axi cloud-asset list --filter "cloud_provider:'aws'"
+  npx -y @knowttl/falcon-axi cloud-asset list --limit 100
 ```

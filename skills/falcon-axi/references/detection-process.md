@@ -3,7 +3,7 @@
 detection process <id>    process lineage recorded on one detection
 
 ```text
-npx -y @knowttl/falcon-axi@next detection process <composite id> [--full]
+npx -y @knowttl/falcon-axi detection process <composite id> [--full]
 
 --full       print command lines without the default 800-character truncation
 
@@ -12,8 +12,8 @@ Rows contain relation, filename, filepath, cmdline, sha256, and process_id.
 triggering_process_graph_id is the alert's graph pivot; this view does not fetch a graph.
 Absent ancestors and alerts without a process are stated explicitly.
 Examples:
-  npx -y @knowttl/falcon-axi@next detection process 'ldt:synthetic-agent:1001'
-  npx -y @knowttl/falcon-axi@next detection process 'ldt:synthetic-agent:1001' --full
+  npx -y @knowttl/falcon-axi detection process 'ldt:synthetic-agent:1001'
+  npx -y @knowttl/falcon-axi detection process 'ldt:synthetic-agent:1001' --full
 
 This command is read-only and requires only Alerts:read.
 ```

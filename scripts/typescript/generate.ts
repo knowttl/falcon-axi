@@ -27,7 +27,7 @@ if (pkg.description !== DESCRIPTION)
 const check = process.argv.slice(2);
 if (check.length > 1 || (check.length === 1 && check[0] !== "--check"))
   throw new Error("Expected --check or no arguments");
-const npmCommand = "npx -y @knowttl/falcon-axi@next";
+const npmCommand = "npx -y @knowttl/falcon-axi";
 const npmExamples = (text: string): string =>
   text.replaceAll("uvx falcon-axi", npmCommand);
 const main = npmExamples(

@@ -3,7 +3,7 @@
 serverless list           read serverless vulnerability SARIF
 
 ```text
-npx -y @knowttl/falcon-axi@next serverless list --filter <FQL> [--limit N] [--cursor <token>]
+npx -y @knowttl/falcon-axi serverless list --filter <FQL> [--limit N] [--cursor <token>]
 
 Reads serverless function vulnerabilities as SARIF runs in fixed cve_id order.
 --filter     required FQL; fields include cloud_provider, cve_id, runtime, severity
@@ -12,8 +12,8 @@ Reads serverless function vulnerabilities as SARIF runs in fixed cve_id order.
 SARIF runs aggregate source records; run counts are not vulnerability totals.
 Every nonempty page offers continuation; the next page may be empty.
 Examples:
-  npx -y @knowttl/falcon-axi@next serverless list --filter "cloud_provider:'aws'"
-  npx -y @knowttl/falcon-axi@next serverless list --filter "severity:'HIGH'" --limit 100
+  npx -y @knowttl/falcon-axi serverless list --filter "cloud_provider:'aws'"
+  npx -y @knowttl/falcon-axi serverless list --filter "severity:'HIGH'" --limit 100
 
 Read-only; requires Falcon Container Image:read and the corresponding license.
 ```

@@ -3,7 +3,7 @@
 identity activity <acct>  start a search for one account's identity events
 
 ```text
-npx -y @knowttl/falcon-axi@next identity activity <account objectGUID or name> [--since <window>]
+npx -y @knowttl/falcon-axi identity activity <account objectGUID or name> [--since <window>]
 
 --since      window to search, such as 24h or 7d (default 24h)
 
@@ -12,9 +12,9 @@ authentication and service access, LDAP and RPC requests, account changes and au
 logons, and risk-score changes. It returns the latest 200, newest first.
 The account is an objectGUID (account_id in `detection show`), a sAMAccountName, or a UPN.
 A name may contain letters, digits, and `. _ @ $ -` only, and is matched in full, ignoring case.
-Poll the job with `npx -y @knowttl/falcon-axi@next search status <id>` and cancel it with `npx -y @knowttl/falcon-axi@next search stop <id>`.
+Poll the job with `npx -y @knowttl/falcon-axi search status <id>` and cancel it with `npx -y @knowttl/falcon-axi search stop <id>`.
 
-Example: npx -y @knowttl/falcon-axi@next identity activity 00000000-0000-0000-0000-000000000000 --since 7d
+Example: npx -y @knowttl/falcon-axi identity activity 00000000-0000-0000-0000-000000000000 --since 7d
 
 This command starts a job on the tenant and requires NGSIEM:write.
 It changes no identity, account, or detection.

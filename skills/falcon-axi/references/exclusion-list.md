@@ -3,7 +3,7 @@
 exclusion list            list ML, IOA, sensor-visibility, or certificate exclusions
 
 ```text
-npx -y @knowttl/falcon-axi@next exclusion list --type ml|ioa|sensor-visibility|certificate [--filter <FQL>] [--limit N] [--cursor <token>]
+npx -y @knowttl/falcon-axi exclusion list --type ml|ioa|sensor-visibility|certificate [--filter <FQL>] [--limit N] [--cursor <token>]
 
 --type       required exclusion inventory
 --filter     raw FQL; applied_globally and created_on work for all four types
@@ -16,6 +16,6 @@ npx -y @knowttl/falcon-axi@next exclusion list --type ml|ioa|sensor-visibility|c
 Read-only. Requires IOA Exclusions:read, Sensor Visibility Exclusions:read, or
 Machine Learning Exclusions:read for ml and certificate.
 Examples:
-  npx -y @knowttl/falcon-axi@next exclusion list --type ml
-  npx -y @knowttl/falcon-axi@next exclusion list --type ioa --filter "pattern_id:'569'"
+  npx -y @knowttl/falcon-axi exclusion list --type ml
+  npx -y @knowttl/falcon-axi exclusion list --type ioa --filter "pattern_id:'569'"
 ```
