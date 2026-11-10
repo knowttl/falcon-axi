@@ -418,7 +418,7 @@ if (process.env.S01_ACTIVE_PATH !== "artium") {
   });
   if (process.platform === "win32")
     for (const secret of [false, true])
-      test(`C15 Windows ${secret ? "secret" : "config"} ACL hint preserves other explicit entries`, async () => {
+      test(`C15 Windows ${secret ? "secret" : "config"} ACL hint repairs explicit entries`, async () => {
         reset();
         const config = join(directory, `acl-config-${secret}.json`);
         const selected = join(directory, `acl-'$(throw 1)-\`-${secret}.json`);
@@ -426,7 +426,15 @@ if (process.env.S01_ACTIVE_PATH !== "artium") {
           selected,
           secret
             ? "synthetic-secret"
-            : JSON.stringify({ version: 1, profiles: {} }),
+            : JSON.stringify({
+                version: 1,
+                profiles: {
+                  test: {
+                    clientId: "synthetic-id",
+                    clientSecret: { env: "ARTIUM_SECRET_0" },
+                  },
+                },
+              }),
         );
         if (secret)
           await writeFile(
@@ -475,25 +483,25 @@ if (process.env.S01_ACTIVE_PATH !== "artium") {
           line.startsWith("In PowerShell: "),
         );
         assert.ok(hint);
-        const literal = selected.replaceAll("'", "''");
-        assert.equal(
-          hint,
-          `In PowerShell: icacls '${literal}' /inheritance:r /grant:r "*$([System.Security.Principal.WindowsIdentity]::GetCurrent().User.Value):(F)" "*S-1-5-18:(F)" "*S-1-5-32-544:(F)"`,
-        );
-        assert.match(
-          document(result.stdout).help!.join("\n"),
-          /First remove unrelated explicit allow or deny entries/,
-        );
         const repaired = powershell(
-          `function icacls { if ($args -contains '/reset') { throw 'unsafe ACL reset' }; & icacls.exe @args }; ${hint.slice("In PowerShell: ".length)}`,
+          `$writes=0; function icacls { throw 'unexpected ACL write' }; function Set-Acl { param($LiteralPath, $AclObject); $script:writes++; $rules=@($AclObject.Access); $u=[System.Security.Principal.WindowsIdentity]::GetCurrent().User.Value; if (-not $AclObject.AreAccessRulesProtected -or $rules.Count -ne 3) { throw 'unsafe ACL' }; foreach ($sid in @($u,'S-1-5-18','S-1-5-32-544')) { if (@($rules | Where-Object { $_.IdentityReference.Translate([System.Security.Principal.SecurityIdentifier]).Value -eq $sid -and -not $_.IsInherited -and $_.AccessControlType -eq 'Allow' -and $_.FileSystemRights -eq 'FullControl' }).Count -ne 1) { throw 'unsafe ACL' } }; Microsoft.PowerShell.Security\\Set-Acl -LiteralPath $LiteralPath -AclObject $AclObject }; ${hint.slice("In PowerShell: ".length)}; if ($writes -ne 1) { throw 'expected one ACL write' }`,
           selected,
         );
         assert.equal(repaired.status, 0, repaired.stderr);
         const check = powershell(
-          `$ErrorActionPreference='Stop'; $a=Get-Acl -LiteralPath $env:ACL_TEST_PATH; $u=[System.Security.Principal.WindowsIdentity]::GetCurrent().User.Value; $rules=@($a.Access); if (-not $a.AreAccessRulesProtected -or $rules.Count -ne 5) { exit 1 }; foreach ($sid in @($u,'S-1-5-18','S-1-5-32-544')) { if (@($rules | Where-Object { $_.IdentityReference.Translate([System.Security.Principal.SecurityIdentifier]).Value -eq $sid -and -not $_.IsInherited -and $_.AccessControlType -eq 'Allow' -and $_.FileSystemRights -eq 'FullControl' }).Count -ne 1) { exit 1 } }; foreach ($type in @('Allow','Deny')) { if (@($rules | Where-Object { $_.IdentityReference.Translate([System.Security.Principal.SecurityIdentifier]).Value -eq 'S-1-1-0' -and $_.AccessControlType -eq $type }).Count -ne 1) { exit 1 } }`,
+          `$ErrorActionPreference='Stop'; $a=Get-Acl -LiteralPath $env:ACL_TEST_PATH; $u=[System.Security.Principal.WindowsIdentity]::GetCurrent().User.Value; $rules=@($a.Access); if (-not $a.AreAccessRulesProtected -or $rules.Count -ne 3) { exit 1 }; foreach ($sid in @($u,'S-1-5-18','S-1-5-32-544')) { if (@($rules | Where-Object { $_.IdentityReference.Translate([System.Security.Principal.SecurityIdentifier]).Value -eq $sid -and -not $_.IsInherited -and $_.AccessControlType -eq 'Allow' -and $_.FileSystemRights -eq 'FullControl' }).Count -ne 1) { exit 1 } }`,
           selected,
         );
         assert.equal(check.status, 0, check.stderr);
+        const accepted = await run(
+          ["auth", "status", "--config", secret ? config : selected],
+          {
+            FALCON_AXI_CLIENT_ID: undefined,
+            FALCON_AXI_CLIENT_SECRET: undefined,
+            FALCON_AXI_PROFILE: undefined,
+          },
+        );
+        assert.equal(accepted.code, 0, accepted.stdout);
       });
   if (process.platform === "win32")
     test("C15 Windows directory refusal does not suggest an ACL repair", async () => {
@@ -506,8 +514,9 @@ if (process.env.S01_ACTIVE_PATH !== "artium") {
       assert.equal(result.code, 1, result.stdout);
       assert.equal(document(result.stdout).code, "CONFIG_INSECURE");
       assert.equal(
-        document(result.stdout).help?.some((line) => line.includes("icacls")) ??
-          false,
+        document(result.stdout).help?.some((line) =>
+          line.startsWith("In PowerShell: "),
+        ) ?? false,
         false,
       );
     });
