@@ -41,7 +41,7 @@ Replace the client ID only in your local configuration.
 Use `{"file":"/absolute/local/path"}` to reference a UTF-8 secret file, or `{"env":"YOUR_SECRET_VARIABLE"}` for another environment variable.
 Inline secrets are rejected.
 On POSIX, secret files require mode 0400 or 0600; config files must not be group/world writable, and both must be owned by you.
-On Windows, links and reparse points are rejected.
+On Windows, credential paths must satisfy the [reparse-point restrictions](design/v1.md#121-configuration-holds-no-secrets).
 `auth status` also requires a protected DACL with no inherited entries that grants Full Control only to your user, SYSTEM and Administrators; a user-only ACL is refused.
 For a file at `C:\path\secret`, run this command in PowerShell to replace its ACL with those protected grants in one step:
 

@@ -1,9 +1,10 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
 import { decode } from "@toon-format/toon";
-import { writeFile, chmod, mkdir } from "node:fs/promises";
+import { writeFile, chmod, mkdir, symlink } from "node:fs/promises";
 import { spawnSync } from "node:child_process";
 import { join } from "node:path";
+import { verifyWindowsFile } from "../../src/windows-acl.js";
 import replay from "../migration/replay-cases.json" with { type: "json" };
 import {
   run,
@@ -416,6 +417,30 @@ if (process.env.S01_ACTIVE_PATH !== "artium") {
     assert.match(result.stdout, /CONFIG_INSECURE/);
     assert.equal(wire.length, 0);
   });
+  if (process.platform !== "win32")
+    for (const linked of [false, true])
+      test(
+        `C15 PowerShell metadata check ${linked ? "refuses a linked parent" : "accepts ordinary parents"}`,
+        {
+          skip:
+            spawnSync("powershell.exe", ["-NoProfile", "-Command", "exit 0"])
+              .status !== 0,
+        },
+        async () => {
+          const root = join(directory, `metadata-${linked}`);
+          const target = join(root, "target");
+          await mkdir(join(target, "deep"), { recursive: true });
+          await writeFile(join(target, "deep", "credential"), "synthetic");
+          if (linked) await symlink(target, join(root, "link"), "dir");
+          assert.equal(
+            await verifyWindowsFile(
+              join(linked ? join(root, "link") : target, "deep", "credential"),
+              false,
+            ),
+            !linked,
+          );
+        },
+      );
   if (process.platform === "win32")
     for (const secret of [false, true])
       test(`C15 Windows ${secret ? "secret" : "config"} ACL hint repairs explicit entries`, async () => {
@@ -525,6 +550,78 @@ if (process.env.S01_ACTIVE_PATH !== "artium") {
         false,
       );
     });
+  if (process.platform === "win32")
+    for (const secret of [false, true])
+      test(`C15 Windows junction in a parent of the ${secret ? "secret" : "config"} file is refused without an ACL repair hint`, async () => {
+        reset();
+        const target = join(directory, `junction-target-${secret}`);
+        const junction = join(directory, `junction-link-${secret}`);
+        await mkdir(target, { recursive: true });
+        const profileDocument = (clientSecret: unknown) =>
+          JSON.stringify({
+            version: 1,
+            profiles: { test: { clientId: "synthetic-id", clientSecret } },
+          });
+        await writeFile(
+          join(target, "secret"),
+          secret
+            ? "synthetic-secret"
+            : profileDocument({ env: "ARTIUM_SECRET_0" }),
+        );
+        const created = spawnSync(
+          "powershell.exe",
+          [
+            "-NoProfile",
+            "-NonInteractive",
+            "-Command",
+            "$ErrorActionPreference='Stop'; New-Item -ItemType Junction -Path $env:JUNCTION_PATH -Target $env:JUNCTION_TARGET | Out-Null",
+          ],
+          {
+            encoding: "utf8",
+            env: {
+              ...process.env,
+              JUNCTION_PATH: junction,
+              JUNCTION_TARGET: target,
+            },
+          },
+        );
+        assert.equal(created.status, 0, created.stderr);
+        const linked = join(junction, "secret");
+        const config = join(directory, `junction-config-${secret}.json`);
+        if (secret) {
+          await writeFile(config, profileDocument({ file: linked }));
+          const prepared = spawnSync(
+            "powershell.exe",
+            [
+              "-NoProfile",
+              "-NonInteractive",
+              "-Command",
+              `$ErrorActionPreference='Stop'; $u=[System.Security.Principal.WindowsIdentity]::GetCurrent().User.Value; $a=Get-Acl -LiteralPath $env:ACL_TEST_PATH; $a.SetSecurityDescriptorSddlForm("D:P(A;;FA;;;$u)(A;;FA;;;SY)(A;;FA;;;BA)",[System.Security.AccessControl.AccessControlSections]::Access); Set-Acl -LiteralPath $env:ACL_TEST_PATH -AclObject $a`,
+            ],
+            {
+              encoding: "utf8",
+              env: { ...process.env, ACL_TEST_PATH: config },
+            },
+          );
+          assert.equal(prepared.status, 0, prepared.stderr);
+        }
+        const result = await run(
+          ["auth", "status", "--config", secret ? config : linked],
+          {
+            FALCON_AXI_CLIENT_ID: undefined,
+            FALCON_AXI_CLIENT_SECRET: undefined,
+            FALCON_AXI_PROFILE: undefined,
+          },
+        );
+        assert.equal(result.code, 1, result.stdout);
+        assert.equal(document(result.stdout).code, "CONFIG_INSECURE");
+        assert.equal(
+          document(result.stdout).help?.some((line) =>
+            line.startsWith("In PowerShell: "),
+          ) ?? false,
+          false,
+        );
+      });
   test("SR-148 invalid READ_ONLY fails closed before credentials", async () => {
     reset();
     const result = await run(["auth", "status"], {
