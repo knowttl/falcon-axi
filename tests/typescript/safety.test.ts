@@ -421,7 +421,7 @@ if (process.env.S01_ACTIVE_PATH !== "artium") {
       test(`C15 Windows ${secret ? "secret" : "config"} ACL hint repairs explicit entries`, async () => {
         reset();
         const config = join(directory, `acl-config-${secret}.json`);
-        const selected = join(directory, `acl-'$(throw 1)-\`-${secret}.json`);
+        const selected = join(directory, `acl-'‘’$(throw 1)-\`-${secret}.json`);
         await writeFile(
           selected,
           secret
@@ -479,6 +479,11 @@ if (process.env.S01_ACTIVE_PATH !== "artium") {
         );
         assert.equal(result.code, 1, result.stdout);
         assert.equal(document(result.stdout).code, "CONFIG_INSECURE");
+        assert.ok(
+          document(result.stdout).help?.some((line) =>
+            line.includes("no inherited entries"),
+          ),
+        );
         const hint = document(result.stdout).help?.find((line) =>
           line.startsWith("In PowerShell: "),
         );

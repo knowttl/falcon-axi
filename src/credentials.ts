@@ -205,8 +205,8 @@ export async function readPrivate(
       "the selected credential file is not protected",
       windowsAclFailure
         ? [
-            "On Windows, use a protected ACL granting Full Control only to your user, SYSTEM and Administrators",
-            `In PowerShell: $ErrorActionPreference='Stop'; $p='${path.replaceAll("'", "''")}'; $u=[System.Security.Principal.WindowsIdentity]::GetCurrent().User.Value; $a=Get-Acl -LiteralPath $p; $a.SetSecurityDescriptorSddlForm("D:P(A;;FA;;;$u)(A;;FA;;;SY)(A;;FA;;;BA)",[System.Security.AccessControl.AccessControlSections]::Access); Set-Acl -LiteralPath $p -AclObject $a`,
+            "On Windows, use a protected ACL with no inherited entries granting Full Control only to your user, SYSTEM and Administrators",
+            `In PowerShell: $ErrorActionPreference='Stop'; $p='${path.replace(/['‘’]/g, "$&$&")}'; $u=[System.Security.Principal.WindowsIdentity]::GetCurrent().User.Value; $a=Get-Acl -LiteralPath $p; $a.SetSecurityDescriptorSddlForm("D:P(A;;FA;;;$u)(A;;FA;;;SY)(A;;FA;;;BA)",[System.Security.AccessControl.AccessControlSections]::Access); Set-Acl -LiteralPath $p -AclObject $a`,
           ]
         : [],
     );
