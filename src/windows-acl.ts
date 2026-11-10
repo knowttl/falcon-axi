@@ -4,7 +4,10 @@ import { execFile } from "node:child_process";
 const metadataScript = `
 $ErrorActionPreference = 'Stop'
 $item = Get-Item -LiteralPath $env:FALCON_AXI_ACL_PATH -Force
-if (($item.Attributes -band [IO.FileAttributes]::ReparsePoint) -ne 0) { exit 1 }
+while ($null -ne $item) {
+  if (($item.Attributes -band [IO.FileAttributes]::ReparsePoint) -ne 0) { exit 1 }
+  $item = if ($item -is [IO.FileInfo]) { $item.Directory } else { $item.Parent }
+}
 `;
 const aclScript = `
 $acl = Get-Acl -LiteralPath $env:FALCON_AXI_ACL_PATH

@@ -525,6 +525,62 @@ if (process.env.S01_ACTIVE_PATH !== "artium") {
         false,
       );
     });
+  if (process.platform === "win32")
+    for (const secret of [false, true])
+      test(`C15 Windows junction in a parent of the ${secret ? "secret" : "config"} file is refused without an ACL repair hint`, async () => {
+        reset();
+        const target = join(directory, `junction-target-${secret}`);
+        const junction = join(directory, `junction-link-${secret}`);
+        await mkdir(target, { recursive: true });
+        const profileDocument = (clientSecret: unknown) =>
+          JSON.stringify({
+            version: 1,
+            profiles: { test: { clientId: "synthetic-id", clientSecret } },
+          });
+        await writeFile(
+          join(target, "secret"),
+          secret
+            ? "synthetic-secret"
+            : profileDocument({ env: "ARTIUM_SECRET_0" }),
+        );
+        const created = spawnSync(
+          "powershell.exe",
+          [
+            "-NoProfile",
+            "-NonInteractive",
+            "-Command",
+            "$ErrorActionPreference='Stop'; New-Item -ItemType Junction -Path $env:JUNCTION_PATH -Target $env:JUNCTION_TARGET | Out-Null",
+          ],
+          {
+            encoding: "utf8",
+            env: {
+              ...process.env,
+              JUNCTION_PATH: junction,
+              JUNCTION_TARGET: target,
+            },
+          },
+        );
+        assert.equal(created.status, 0, created.stderr);
+        const linked = join(junction, "secret");
+        const config = join(directory, `junction-config-${secret}.json`);
+        if (secret) await writeFile(config, profileDocument({ file: linked }));
+        const result = await run(
+          ["auth", "status", "--config", secret ? config : linked],
+          {
+            FALCON_AXI_CLIENT_ID: undefined,
+            FALCON_AXI_CLIENT_SECRET: undefined,
+            FALCON_AXI_PROFILE: undefined,
+          },
+        );
+        assert.equal(result.code, 1, result.stdout);
+        assert.equal(document(result.stdout).code, "CONFIG_INSECURE");
+        assert.equal(
+          document(result.stdout).help?.some((line) =>
+            line.startsWith("In PowerShell: "),
+          ) ?? false,
+          false,
+        );
+      });
   test("SR-148 invalid READ_ONLY fails closed before credentials", async () => {
     reset();
     const result = await run(["auth", "status"], {
