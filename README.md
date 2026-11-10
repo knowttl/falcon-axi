@@ -2,8 +2,7 @@
 
 Read CrowdStrike Falcon from the shell with compact, structured results for agents and the humans running them.
 
-This TypeScript tree prepares `@knowttl/falcon-axi@1.0.0-rc.1`, with the `falcon-axi` and `falcon-axi-hook` executables.
-The first npm publication is pending and will be performed manually from merged `main`.
+The TypeScript package provides the `falcon-axi` and `falcon-axi-hook` executables.
 The [distribution record](docs/distribution/typescript-transition.md) preserves the Python rollback proof and separate publication gates.
 Python 0.9.0 remains available from its [release source](https://github.com/knowttl/falcon-axi/tree/v0.9.0) and existing PyPI artifacts.
 
@@ -178,7 +177,7 @@ Errors include a stable `code` and actionable `help`; unknown commands and flags
 ## Limitations
 
 - No live-tenant validation is claimed; offline checks use synthetic fixtures only.
-- The TypeScript package is prepared for its first manual publication; publication has not occurred in this change.
+- The first stable npm publication has not occurred in this change.
 - Native Windows certification and the hosted TypeScript release-candidate fold remain pending.
 - Native RTR controller execution supports Linux x64 with glibc 2.33 or newer; Windows controllers refuse execution while ordinary reads remain available.
 - Remote skill installation, interactive agent-host sessions, and live commissioning are listed as pending in the [catalog verification record](docs/catalog-verification.md).
