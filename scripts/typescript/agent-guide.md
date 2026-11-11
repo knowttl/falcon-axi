@@ -92,3 +92,4 @@ Read the stable `code` and actionable `help` before retrying:
 | `RATE_LIMITED` | Honor retry guidance after the built-in bounded retries; narrow the request |
 | `NETWORK_UNREACHABLE`, `TLS_UNTRUSTED`, `ORIGIN_NOT_ALLOWED` | Fix connectivity, trust or configured region; do not bypass validation |
 | `READ_ONLY_VIOLATION` | Respect the policy boundary; use passive reads |
+| `CREDENTIAL_CHANGED` | Preview the `raw write` again to get a confirm value for the current credential |

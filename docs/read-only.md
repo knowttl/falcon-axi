@@ -69,6 +69,7 @@ Every one of these gates must hold to execute, and the first three apply even to
 3. The body, when given, is one JSON object or array of at most 1 MiB.
 4. The preview prints the exact `confirm` value, which binds the profile, resolved API client identity, origin, tenant, method, path, query, and body.
 5. Execution adds `--execute --confirm '<confirm>'` with that exact value.
+   A host that sets `FALCON_AXI_CREDENTIAL_REVISION=<credential-id>:<revision>` also binds the confirm value to that credential binding, and a confirmation previewed under a different binding fails `CREDENTIAL_CHANGED` before any request; preview again.
 6. `FALCON_AXI_READ_ONLY` is not enabled, and the private journal can be opened.
 
 The journal records the intent before authentication and the outcome after, with a body digest and never the body.

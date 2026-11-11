@@ -2,7 +2,7 @@ import { createHash, randomUUID } from "node:crypto";
 import { readFileSync } from "node:fs";
 import { observeRate, authenticate } from "./auth.js";
 import { CliError, object, parseRawResponse } from "./core.js";
-import { writeLogPath } from "./credentials.js";
+import { credentialBinding, writeLogPath } from "./credentials.js";
 import type { Credential } from "./credentials.js";
 import {
   hasDuplicateJsonMembers,
@@ -344,6 +344,11 @@ export async function rawRun(
         'Set "writes": {"allowWrites": true, "operations": ["raw-write"]} on the selected file profile',
       ],
     );
+  const revision = credentialBinding();
+  const credentialSegment =
+    revision === undefined
+      ? ""
+      : ` credential:${createHash("sha256").update(revision).digest("hex")}`;
   const digest = createHash("sha256").update(body).digest("hex");
   const destination = origin(base, allowUnknown);
   const identity = createHash("sha256")
@@ -353,6 +358,7 @@ export async function rawRun(
         credential.clientId,
         destination,
         credential.memberCid ?? "",
+        ...(revision === undefined ? [] : [revision]),
       ]),
     )
     .digest("hex");
@@ -372,7 +378,19 @@ export async function rawRun(
       ]),
     )
     .digest("hex");
-  const confirm = `${credential.profile}:${method} sha256:${confirmationHash}`;
+  const confirm = `${credential.profile}:${method} sha256:${confirmationHash}${credentialSegment}`;
+  if (
+    request.executing &&
+    credentialSegment &&
+    !request.confirm?.endsWith(credentialSegment)
+  )
+    throw new CliError(
+      "CREDENTIAL_CHANGED",
+      "the host credential binding differs from the previewed confirmation",
+      [
+        "Run without --execute to print the confirm value for the current credential",
+      ],
+    );
   if (request.executing && request.confirm !== redact(confirm))
     throw new CliError(
       "VALIDATION_ERROR",
