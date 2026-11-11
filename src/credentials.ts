@@ -71,6 +71,15 @@ export function writeLogPath(): string {
     process.env.FALCON_AXI_WRITE_LOG || join(directory("state"), "writes.log")
   );
 }
+export function credentialBinding(): string | undefined {
+  const value = process.env.FALCON_AXI_CREDENTIAL_REVISION;
+  if (value !== undefined && !/^[^:\s]{1,128}:[1-9][0-9]{0,14}$/.test(value))
+    throw new CliError(
+      "CONFIG_INVALID",
+      "FALCON_AXI_CREDENTIAL_REVISION must be <credential-id>:<revision> with a positive integer revision",
+    );
+  return value;
+}
 async function checkLegacy(path: string): Promise<void> {
   const exists = async (candidate: string): Promise<boolean> => {
     try {

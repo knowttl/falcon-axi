@@ -133,6 +133,7 @@ Run `falcon-axi config path` to inspect config and journal paths.
 | `FALCON_AXI_PROXY_URL` | HTTPS proxy URL | Direct connection |
 | `FALCON_AXI_READ_ONLY` | Block search lifecycle, MalQuery search, RTR execution, and raw writes | `false`; enable with `1` / `true` |
 | `FALCON_AXI_WRITE_LOG` | Mandatory RTR and raw write execution journal | State directory `writes.log` |
+| `FALCON_AXI_CREDENTIAL_REVISION` | Host-supplied `<credential-id>:<revision>` bound into `raw write` confirmations | Unset |
 | `XDG_CONFIG_HOME`, `XDG_STATE_HOME` | Absolute POSIX config / state roots | `~/.config`, `~/.local/state` |
 | `APPDATA`, `LOCALAPPDATA` | Windows config / state roots | `~/AppData/Roaming`, `~/AppData/Local` |
 | `HOME` | Home directory for session integrations | OS home directory |

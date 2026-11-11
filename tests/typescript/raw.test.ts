@@ -717,6 +717,65 @@ test("raw write rejects confirmation after the API client changes", async () => 
   assert.equal(wire.length, 0);
 });
 
+const bindingA = { FALCON_AXI_CREDENTIAL_REVISION: "credential-a:1" };
+const bindingB = { FALCON_AXI_CREDENTIAL_REVISION: "credential-a:2" };
+
+test("raw write rejects a confirmation previewed under a different credential binding before any request", async () => {
+  const file = await body();
+  const preview = await run(writeArgs("ops", "--body-file", file), bindingA);
+  assert.equal(preview.code, 0, preview.stdout);
+  const confirm = (value(preview.stdout).preview as Record<string, string>)
+    .confirm!;
+  const result = await run(
+    writeArgs("ops", "--body-file", file, "--execute", "--confirm", confirm),
+    { ...(await state()), ...bindingB },
+  );
+  assert.equal(result.code, 1, result.stdout);
+  assert.match(result.stdout, /CREDENTIAL_CHANGED/);
+  assert.equal(wire.length, 0);
+});
+
+test("raw write executes once under the credential binding it was previewed with", async () => {
+  const file = await body();
+  const env = { ...(await state()), ...bindingA };
+  const preview = await run(writeArgs("ops", "--body-file", file), env);
+  const confirm = (value(preview.stdout).preview as Record<string, string>)
+    .confirm!;
+  recordedResponse("PATCH /example/entities/things/v1", 200, {}, true);
+  const result = await run(
+    writeArgs("ops", "--body-file", file, "--execute", "--confirm", confirm),
+    env,
+  );
+  assert.equal(result.code, 0, result.stdout);
+  assert.equal(requests().length, 1);
+});
+
+test("raw write confirmation is unchanged when no credential binding is set", async () => {
+  const file = await body();
+  const confirm = await confirmValue("ops", file);
+  assert.equal(
+    confirm,
+    "ops:PATCH sha256:9c143ee58c372077e5dadb599ba749d2567d0b575b5d85b05fb1d6bcaa445222",
+  );
+});
+
+test("raw write rejects a tampered confirmation under a credential binding", async () => {
+  const file = await body();
+  const preview = await run(writeArgs("ops", "--body-file", file), bindingA);
+  const confirm = (value(preview.stdout).preview as Record<string, string>)
+    .confirm!;
+  const tampered = confirm.replace(/sha256:./, (match) =>
+    match.endsWith("0") ? "sha256:1" : "sha256:0",
+  );
+  const result = await run(
+    writeArgs("ops", "--body-file", file, "--execute", "--confirm", tampered),
+    { ...(await state()), ...bindingA },
+  );
+  assert.equal(result.code, 2, result.stdout);
+  assert.match(result.stdout, /VALIDATION_ERROR/);
+  assert.equal(wire.length, 0);
+});
+
 for (const method of ["GET", "PATCH"])
   test(`raw ${method} preserves a complete duplicate-member error`, async () => {
     const payload = `{"role":"admin","role":"viewer","password":"hidden","padding":"${"x".repeat(2200)}","tail":"visible"}`;
