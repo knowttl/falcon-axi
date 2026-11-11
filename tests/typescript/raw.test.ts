@@ -753,7 +753,10 @@ test("raw write executes once under the credential binding it was previewed with
 test("raw write confirmation is unchanged when no credential binding is set", async () => {
   const file = await body();
   const confirm = await confirmValue("ops", file);
-  assert.match(confirm, /^ops:PATCH sha256:[0-9a-f]{64}$/);
+  assert.equal(
+    confirm,
+    "ops:PATCH sha256:9c143ee58c372077e5dadb599ba749d2567d0b575b5d85b05fb1d6bcaa445222",
+  );
 });
 
 test("raw write rejects a tampered confirmation under a credential binding", async () => {
