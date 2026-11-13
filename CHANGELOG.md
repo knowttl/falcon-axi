@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.1.0](https://github.com/knowttl/falcon-axi/compare/npm-v1.0.1...npm-v1.1.0) (2026-11-11)
+
+
+### Features
+
+* **raw:** bind raw write confirmation to host credential revision ([#175](https://github.com/knowttl/falcon-axi/issues/175)) ([cc0c2a1](https://github.com/knowttl/falcon-axi/commit/cc0c2a14ab3c103654aab0bbc50ee0de7151eb52))
+
 ## [1.0.1](https://github.com/knowttl/falcon-axi/compare/npm-v1.0.0...npm-v1.0.1) (2026-11-10)
 
 
