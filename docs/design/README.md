@@ -86,8 +86,8 @@ What is shipped:
 
 ## Deliberately excluded
 
-Tenant discovery and standalone Identity Protection incident queries remain absent.
-There are no dedicated commands for arbitrary GraphQL, GraphQL mutation, containment, ingest, configuration change, report PDF, or rule-file download; gated raw writes can reach authorized mutation routes.
+Tenant discovery and a dedicated Identity Protection incident query command remain absent.
+There are no dedicated commands for GraphQL mutation, containment, ingest, configuration change, report PDF, or rule-file download; gated raw writes can reach authorized mutation routes.
 The capability inventory and shipped boundaries are in [v1 section 1.5](v1.md#15-command-surface-classes-without-a-dedicated-command).
 The stance is [v1 section 0](v1.md#0-invariant-r-v1-is-read-only-with-five-captain-granted-exceptions).
 The shipped exceptions stay in [v1 section 4](v1.md#4-the-mutation-surface-and-the-closed-captain-exceptions).

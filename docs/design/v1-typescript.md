@@ -21,7 +21,7 @@ This approved replay correction differs from the Python origin's generic respons
 An unknown job identifier leaves the creation outcome unknown; it does not prove that no job exists.
 OAuth, passive status, and search stop retain their separate three-attempt response policies.
 MalQuery submissions likewise never replay.
-READ_ONLY refuses lifecycle changes and MalQuery submissions before authentication, while passive status and fixed GraphQL reads remain available.
+READ_ONLY refuses lifecycle changes and MalQuery submissions before authentication, while passive status and GraphQL reads remain available.
 Search waits include authentication, creation, polling, response acquisition and retry delays under one invocation deadline.
 Expiry before a job identifier is known reports WAIT_TIMEOUT; expiry after it is known returns the recoverable running job and repository-aware suggestions.
 GraphQL text comes from the frozen canonical documents or from `identity graphql`, which sends only documents the pinned `graphql` 16.13.1 parser accepts as exactly one query operation.

@@ -84,7 +84,7 @@ The [README environment table](../README.md#configuration) lists the CLI's confi
 No credentials, profile, or child tenant are selected by default when no usable source exists.
 The read-only switch defaults to `false` and accepts `1` / `true` or `0` / `false`, case-insensitively; other values fail with `CONFIG_INVALID` before authentication.
 When enabled, it blocks `search start`, `search stop`, `identity activity`, `host usb`, `malquery search`, RTR execution, and `raw write --execute`.
-Fixed read-only Identity GraphQL queries, search status, passive RTR history, and local previews remain available.
+Identity GraphQL queries, search status, passive RTR history, and local previews remain available.
 
 Deprecated aliases emit a stderr warning, and their replacements win when both are set:
 
