@@ -103,9 +103,10 @@ export function loadGraphqlVariables(
     );
   return parsed;
 }
-export function validateIdentity({ command, flags, id }: Invocation): void {
+export function validateIdentity(invocation: Invocation): void {
+  const { command, flags, id } = invocation;
   if (command.name === "identity graphql") {
-    loadGraphqlQuery(flags.get("--query"));
+    invocation.graphqlQuery = loadGraphqlQuery(flags.get("--query"));
     loadGraphqlVariables(flags.get("--variables"));
   }
   if (["identity list", "identity assessment"].includes(command.name)) {
@@ -155,7 +156,7 @@ export async function identity(domain: Domain): Promise<Output> {
       "api_preempt_proxy_post_graphql",
       domain.session.base,
       domain.session.token,
-      { query: loadGraphqlQuery(flags.get("--query")), variables },
+      { query: domain.invocation.graphqlQuery!, variables },
       domain.allowUnknown,
       domain.signal,
     );

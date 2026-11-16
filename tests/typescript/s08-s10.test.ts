@@ -11,6 +11,7 @@ import {
   run,
   reset,
   recordedResponse,
+  tokenResponse,
   dynamicResponse,
   managedAudit,
   wire,
@@ -1135,6 +1136,7 @@ for (const [name, query] of [
   ["field named mutation", "query { mutation }"],
   ["bom query", `${bom}query { field }`],
   ["unicode string", 'query { field(note: "\\u006dutation") }'],
+  ["type definition", "type T { f: String } query { field }"],
 ] as const)
   test(`identity graphql sends ${name}`, async () => {
     reset();
@@ -1239,6 +1241,27 @@ test("identity graphql reads a query file and refuses a missing file", async () 
     ]);
     assert.equal(missing.code, 2, missing.stdout);
     assert.equal(wire.length, 0);
+  } finally {
+    rmSync(directory, { recursive: true, force: true });
+  }
+});
+
+test("identity graphql sends the query file validated before authentication", async () => {
+  const directory = mkdtempSync(join(tmpdir(), "identity-graphql-"));
+  const path = join(directory, "query.graphql");
+  try {
+    writeFileSync(path, readQuery);
+    reset();
+    tokenResponse(
+      200,
+      { access_token: "synthetic-s01-token", expires_in: 1800 },
+      {},
+      () => writeFileSync(path, "query Replacement { field }"),
+    );
+    recordedResponse(graph, 200, { data: { field: "synthetic" } });
+    const result = await run(["identity", "graphql", "--query", `@${path}`]);
+    assert.equal(result.code, 0, result.stdout);
+    assert.equal(JSON.parse(scoped()[0]!.body).query, readQuery);
   } finally {
     rmSync(directory, { recursive: true, force: true });
   }

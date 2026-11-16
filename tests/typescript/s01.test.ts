@@ -247,8 +247,12 @@ export function tokenResponse(
   status: number,
   body: unknown,
   headers: Record<string, string> = {},
+  onRequest?: () => void,
 ): void {
-  respondToken = (_request, response) => json(response, body, status, headers);
+  respondToken = (_request, response) => {
+    onRequest?.();
+    json(response, body, status, headers);
+  };
 }
 export function recordedResponse(
   operation: string,

@@ -82,17 +82,6 @@ export function parseQueryDocument(text: string): string {
       "--query must contain exactly one operation",
       ["A document with more than one operation is refused and is not sent"],
     );
-  if (
-    definitions.some(
-      (definition) =>
-        definition.kind !== Kind.OPERATION_DEFINITION &&
-        definition.kind !== Kind.FRAGMENT_DEFINITION,
-    )
-  )
-    throw new CliError(
-      "VALIDATION_ERROR",
-      "--query must be an executable GraphQL document",
-    );
   if (!operations.length)
     throw new CliError(
       "VALIDATION_ERROR",
