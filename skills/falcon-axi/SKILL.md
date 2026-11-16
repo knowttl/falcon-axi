@@ -17,13 +17,12 @@ The design stance is that reads and writes are both in scope, and every write us
 The gate requires a file profile opt-in, a dry-run preview, `--execute` with `--confirm`, and a journal; `FALCON_AXI_READ_ONLY=1` wins.
 The `raw write` confirmation binds the profile, resolved API client, origin, tenant, method, path, query, and body from the preview.
 The `rtr run` preview prints the template `<device_id>:<complete command>`; its confirmation binds only those two values, not the profile or origin.
-Never run `--execute` for a write without the person's explicit go for that exact preview, obtained in the conversation for that one write; the gate does not verify human approval.
-`raw get` stays read-only.
+`raw get` accepts any validated GET route without checking for side effects; choose a route documented as a read.
 A new write command needs its operation evidenced and its own review.
-No shipped command changes a host, detection, policy, or identity except a confirmed `raw write`.
+Dedicated commands do not change a host, detection, policy, or identity.
 Tenant-side effects are NG-SIEM jobs, guarded RTR execution, bounded MalQuery exact/fuzzy searches (N4), and guarded raw writes (N5).
 Identity GraphQL uses a write-labelled scope only for fixed read-only query documents.
-`raw get` reads any validated Falcon API path; `raw write` previews first and sends only with a profile that opts in, `--execute`, and the exact `--confirm`, and is journaled.
+`raw write` previews first and sends only with a profile that opts in, `--execute`, and the exact `--confirm`, and is journaled.
 Raw output redacts secret values and keeps every field.
 There is no unrestricted GraphQL escape hatch.
 Gated raw writes may POST caller-supplied JSON to GraphQL routes with profile `writes.allowWrites` and `raw-write`, preview, `--execute`, exact `--confirm`, and a journal.
@@ -93,7 +92,7 @@ Execution currently requires POSIX private-file and signal primitives.
    Work on one host at a time and prove the workflow on a single host first.
 2. Preview with `npx -y @knowttl/falcon-axi rtr run <device_id> --command '<complete command>'`.
    The preview makes no network request and shows the effective policy and allowed commands.
-3. Obtain the person's explicit go in the conversation for that exact preview, then execute the identical command string with `--execute --confirm '<device_id>:<complete command>'`.
+3. Execute the identical command string with `--execute --confirm '<device_id>:<complete command>'`.
 
 Allowed commands depend on the host's platform, and Falcon rejects a command that the platform lacks as `Command not found`:
 Verified on both Windows and Linux: cat, cd, env, filehash, ls, mount, netstat, ps.

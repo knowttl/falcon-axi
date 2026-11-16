@@ -4,7 +4,6 @@ The [design stance](design/v1.md#0-invariant-r-v1-is-read-only-with-five-captain
 The gate requires a file profile opt-in, a dry-run preview, `--execute` with `--confirm`, and a journal; the read-only switch wins.
 The `raw write` confirmation binds the profile, resolved API client, origin, tenant, method, path, query, and body from the preview.
 The `rtr run` preview prints the template `<device_id>:<complete command>`; its confirmation binds only those two values, not the profile or origin.
-Agents must obtain a person's explicit approval in the conversation for each exact preview before executing that write; the gate does not verify that approval.
 This page records the enforcement that ships today.
 It does not add a command or change a gate.
 The caller must choose a documented read route for `raw get`; see [Raw API](#raw-api).

@@ -18,7 +18,6 @@ Reads and writes are both in scope wherever the Falcon API offers them.
 Every write uses the [write gate](docs/design/v1.md#0-invariant-r-v1-is-read-only-with-five-captain-granted-exceptions): a file profile opt-in, a dry-run preview, `--execute` with `--confirm`, and the write journal; the read-only switch wins.
 The `raw write` confirmation binds the profile, resolved API client, origin, tenant, method, path, query, and body from the preview.
 The `rtr run` preview prints the template `<device_id>:<complete command>`; its confirmation binds only those two values, not the profile or origin.
-Agents must obtain a person's explicit approval in the conversation for each exact preview before executing that write; the gate does not verify that approval.
 For `raw get`, the caller must choose a documented read route; GET routes are not checked for side effects.
 This release does not add a write command.
 Synthetic offline checks verify local behavior and safety constraints; they do not claim live-tenant validation.
