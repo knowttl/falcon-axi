@@ -66,7 +66,7 @@ Every advertised command must exist in the TypeScript registry and its generated
 ## Architecture and review
 
 Read the [design index](docs/design/README.md) before changing command behavior or implementation structure.
-Preserve the [read-only boundary](docs/read-only.md), closed operation registry, and single network sink.
+Preserve the [design stance](docs/design/v1.md#0-invariant-r-v1-is-read-only-with-five-captain-granted-exceptions), the shipped registry, the write gate, and the single network sink.
 Each new endpoint needs the documented scope and first-party corroborating evidence in its registry entry.
 Use conventional commit titles and keep pull requests focused on a reviewable behavior change.
 Do not hand-edit the generated changelog.

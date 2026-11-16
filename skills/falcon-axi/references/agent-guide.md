@@ -64,6 +64,10 @@ Cancel an unneeded job with `falcon-axi search stop synthetic-search-job-01`; th
 
 ## Safety, help and failures
 
+Reads and writes are both in scope.
+Every write uses the write gate: a dry-run, explicit approval for that write, and the write journal.
+`raw get` stays read-only.
+A new write command needs its own review.
 The passive allowlist above changes no tenant data or endpoint state.
 Outside it, `search start`, `search stop`, `host usb` and `identity activity` manage NG-SIEM jobs; `malquery search` creates bounded exact/fuzzy searches.
 `rtr run --execute` opens a real endpoint session even for read-only commands and requires profile opt-in plus exact confirmation; exclude it from passive allowlists.

@@ -4,12 +4,12 @@ This file is the project's committed home for project-intrinsic agent knowledge:
 
 - Add durable project-specific notes here as they are discovered through real work.
 
-## v1 read-only invariant
+## v1 stance
 
-**`docs/design/v1.md` §0 owns the captain-confirmed, binding read-only invariant and its closed exceptions.**
+**`docs/design/v1.md` §0 owns the stance: reads and writes are both in scope, and every write uses the write gate.**
 The generated command reference in `docs/commands.md` owns delivery status.
-Relaxing the invariant further is a captain decision, never an agent's; its exceptions are not precedents to extend, and if a
-task seems to require any other mutation, stop and escalate.
+A new write command needs its operation evidenced and its own review.
+The shipped registry and its gates stay until that review.
 
 Three consequences that catch people out:
 
@@ -35,7 +35,7 @@ Three consequences that catch people out:
   N3 separately seals its guarded RTR lifecycle (§4.5); N4 admits no hunt, multidownload, or sample download.
   Admitting a further state-changing operation requires editing its closed allowlist (§3.3), which is the reviewable diff §1.6 demands.
 
-See `docs/design/v1.md` §0 (the invariant), §1.5 (excluded capability classes), §2.2 (the two-citation rule),
+See `docs/design/v1.md` §0 (the stance), §1.5 (classes without a dedicated command), §2.2 (the two-citation rule),
 §3 (transport enforcement), §4.3-§4.7 (captain exceptions N1-N5 and their boundaries), §5.7
 (provisioning), and §15 (live-test boundary).
 

@@ -2,7 +2,7 @@
 name: falcon-axi
 description: >-
   Inspect CrowdStrike Falcon detections, hosts, accounts, vulnerabilities, identity, and search results.
-  Read-only investigation; no containment, remediation, or tenant configuration changes.
+  Reads and writes are in scope; every write uses the write gate, and a new write command needs its own review.
 ---
 
 # falcon-axi
@@ -11,9 +11,12 @@ Read CrowdStrike Falcon from the shell.
 See [installation and agent setup](https://github.com/knowttl/falcon-axi#use-with-your-agent).
 Run `uvx falcon-axi ...` without a global install.
 
-## Read-only boundary
+## Write gate
 
-No command changes a host, detection, policy, or identity except a confirmed `raw write`.
+The design stance is that reads and writes are both in scope, and every write uses a dry-run, explicit approval for that write, and the write journal.
+`raw get` stays read-only.
+A new write command needs its operation evidenced and its own review.
+No shipped command changes a host, detection, policy, or identity except a confirmed `raw write`.
 Tenant-side effects are NG-SIEM jobs, guarded RTR execution, bounded MalQuery exact/fuzzy searches (N4), and guarded raw writes (N5).
 Identity GraphQL uses a write-labelled scope only for fixed read-only query documents.
 `raw get` reads any validated Falcon API path; `raw write` previews first and sends only with a profile that opts in, `--execute`, and the exact `--confirm`, and is journaled.
