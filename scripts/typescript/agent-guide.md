@@ -68,7 +68,7 @@ Reads and writes are both in scope.
 Every write uses the write gate: a file profile opt-in, a dry-run preview, `--execute` with `--confirm`, and a journal; `FALCON_AXI_READ_ONLY=1` wins.
 The `raw write` confirmation binds the profile, resolved API client, origin, tenant, method, path, query, and body from the preview.
 The `rtr run` preview prints the template `<device_id>:<complete command>`; its confirmation binds only those two values, not the profile or origin.
-`raw get` accepts any validated GET route without checking for side effects; choose a route documented as a read.
+`raw get` sends only GET requests to validated routes. It is not guaranteed free of side effects.
 A new write command needs its own review.
 The passive allowlist above changes no tenant data or endpoint state.
 Outside it, `search start`, `search stop`, `host usb` and `identity activity` manage NG-SIEM jobs; `malquery search` creates bounded exact/fuzzy searches.
