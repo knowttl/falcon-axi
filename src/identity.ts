@@ -185,8 +185,9 @@ export async function identity(domain: Domain): Promise<Output> {
       );
     const body = mapping(response.body);
     if (
-      (body.errors && (!Array.isArray(body.errors) || body.errors.length)) ||
-      !Object.hasOwn(body, "data")
+      (Object.hasOwn(body, "errors") &&
+        (!Array.isArray(body.errors) || body.errors.length > 0)) ||
+      !object(body.data)
     ) {
       try {
         malformed(

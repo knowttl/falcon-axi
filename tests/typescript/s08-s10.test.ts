@@ -1263,6 +1263,32 @@ test("identity graphql reports scope denial and GraphQL errors", async () => {
   assert.doesNotMatch(failed.stdout, /synthetic-s01-secret|synthetic-field/);
 });
 
+for (const data of [null, [], false, 1, "text"])
+  test(`identity graphql rejects non-object data ${JSON.stringify(data)}`, async () => {
+    reset();
+    recordedResponse(graph, 200, { data });
+    const result = await run(["identity", "graphql", "--query", readQuery]);
+    assert.equal(result.code, 1, result.stdout);
+    assert.equal(value(result.stdout).code, "UPSTREAM_ERROR");
+  });
+
+for (const errors of [null, false, 0, "", {}])
+  test(`identity graphql rejects non-array errors ${JSON.stringify(errors)}`, async () => {
+    reset();
+    recordedResponse(graph, 200, { data: { field: "synthetic" }, errors });
+    const result = await run(["identity", "graphql", "--query", readQuery]);
+    assert.equal(result.code, 1, result.stdout);
+    assert.equal(value(result.stdout).code, "UPSTREAM_ERROR");
+  });
+
+test("identity graphql accepts an empty errors array", async () => {
+  reset();
+  recordedResponse(graph, 200, { data: { field: "synthetic" }, errors: [] });
+  const result = await run(["identity", "graphql", "--query", readQuery]);
+  assert.equal(result.code, 0, result.stdout);
+  assert.match(result.stdout, /synthetic/);
+});
+
 test("identity graphql sink refuses an invalid serialized body", async () => {
   reset();
   await assert.rejects(
