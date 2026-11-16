@@ -108,6 +108,7 @@ export type GraphqlConnection = {
   key: string;
   first: string;
   after: string;
+  afterDefault?: string;
   nodes?: string;
   edges?: string;
   pageInfo: string;
@@ -165,7 +166,7 @@ export function graphqlConnections(text: string): {
   connections: GraphqlConnection[];
   alias?: string;
   directive?: string;
-  bothRows?: boolean;
+  duplicate?: string;
 } {
   const source = text.charCodeAt(0) === 0xfeff ? text.slice(1) : text;
   let definitions: ReturnType<typeof parse>["definitions"];
@@ -188,7 +189,7 @@ export function graphqlConnections(text: string): {
   const connections: GraphqlConnection[] = [];
   let alias: string | undefined;
   let directive: string | undefined;
-  let bothRows = false;
+  let duplicate: string | undefined;
   const topFields = selectionFields(
     operation.selectionSet.selections,
     fragments,
@@ -252,22 +253,43 @@ export function graphqlConnections(text: string): {
       alias ??= aliased.alias!.value;
       continue;
     }
+    const repeated = [
+      ...rows,
+      ...pageInfos,
+      ...infoFields.filter((item) =>
+        ["hasNextPage", "endCursor"].includes(item.name.value),
+      ),
+    ].find((item, index, all) =>
+      all.some(
+        (other, otherIndex) =>
+          otherIndex < index && other.name.value === item.name.value,
+      ),
+    );
     if (
-      pageInfos.length !== 1 ||
-      rows.length !== 1 ||
-      infoFields.filter((item) => item.name.value === "hasNextPage").length !==
-        1 ||
-      infoFields.filter((item) => item.name.value === "endCursor").length !== 1
-    )
+      rows.some((item) => item.name.value === "nodes") &&
+      rows.some((item) => item.name.value === "edges")
+    ) {
+      duplicate ??= "both nodes and edges";
       continue;
+    }
+    if (repeated) {
+      duplicate ??= repeated.name.value;
+      continue;
+    }
     const responseKey = (item: FieldNode): string =>
       item.alias?.value ?? item.name.value;
     const nodes = rows.find((item) => item.name.value === "nodes");
     const edges = rows.find((item) => item.name.value === "edges");
+    const afterDefault = operation.variableDefinitions?.find(
+      (item) => item.variable.name.value === after,
+    )?.defaultValue;
     connections.push({
       key: field.alias?.value ?? field.name.value,
       first,
       after,
+      ...(afterDefault?.kind === Kind.STRING
+        ? { afterDefault: afterDefault.value }
+        : {}),
       ...(nodes ? { nodes: responseKey(nodes) } : {}),
       ...(edges ? { edges: responseKey(edges) } : {}),
       pageInfo: responseKey(pageInfo),
@@ -283,7 +305,7 @@ export function graphqlConnections(text: string): {
     connections,
     ...(alias === undefined ? {} : { alias }),
     ...(directive === undefined ? {} : { directive }),
-    bothRows,
+    ...(duplicate === undefined ? {} : { duplicate }),
   };
 }
 export function queryOnly(text: string): boolean {

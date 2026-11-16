@@ -1514,6 +1514,34 @@ for (const [name, selection] of [
     assert.equal(wire.length, 0);
   });
 
+for (const [name, selection, reason] of [
+  [
+    "duplicate nodes",
+    "nodes { entityId } nodes { entityId } pageInfo { hasNextPage endCursor }",
+    /selects nodes more than once/,
+  ],
+  [
+    "both row arrays",
+    "nodes { entityId } edges { node { entityId } } pageInfo { hasNextPage endCursor }",
+    /selects both nodes and edges/,
+  ],
+] as const)
+  test(`identity graphql names the reason for ${name}`, async () => {
+    reset();
+    const query = `query Page($first: Int, $after: Cursor) { entities(first: $first, after: $after) { ${selection} } }`;
+    const result = await run([
+      "identity",
+      "graphql",
+      "--query",
+      query,
+      "--all",
+    ]);
+    assert.equal(result.code, 2, result.stdout);
+    assert.equal(value(result.stdout).code, "VALIDATION_ERROR");
+    assert.match(result.stdout, reason);
+    assert.equal(wire.length, 0);
+  });
+
 for (const [name, query] of [
   [
     "split pageInfo",
@@ -1847,6 +1875,11 @@ for (const [name, body, pattern] of [
     pageData([{ entityId: pageIds[0] }], true, "same"),
     /repeated its cursor/,
   ],
+  [
+    "repeated default cursor",
+    pageData([{ entityId: pageIds[0] }], true, "same"),
+    /repeated its cursor/,
+  ],
   ["empty page", pageData([], true, "next"), /without rows/],
 ] as const)
   test(`identity graphql stops an ${name} walk`, async () => {
@@ -1856,12 +1889,14 @@ for (const [name, body, pattern] of [
       "identity",
       "graphql",
       "--query",
-      pageQuery,
+      name === "repeated default cursor"
+        ? pageQuery.replace("$after: Cursor", '$after: Cursor = "same"')
+        : pageQuery,
       "--variables",
       name === "repeated cursor"
         ? JSON.stringify({ name: "synthetic", after: "same" })
         : pageArgs,
-      "--all",
+      ...(name === "repeated default cursor" ? [] : ["--all"]),
     ]);
     assert.equal(result.code, 1, result.stdout);
     assert.equal(value(result.stdout).code, "UPSTREAM_ERROR");

@@ -105,7 +105,7 @@ const pageError = (
   count: number,
   alias?: string,
   directive?: string,
-  bothRows?: boolean,
+  duplicate?: string,
 ): never => {
   throw new CliError(
     "VALIDATION_ERROR",
@@ -115,8 +115,8 @@ const pageError = (
         ? `The selection uses the alias ${alias}, so those flags are refused and nothing is sent`
         : directive
           ? `The selection uses the directive @${directive}, so those flags are refused and nothing is sent`
-          : bothRows
-            ? "The connection selects both nodes and edges, so those flags are refused and nothing is sent"
+          : duplicate
+            ? `The connection selects ${duplicate}${duplicate === "both nodes and edges" ? "" : " more than once"}, so those flags are refused and nothing is sent`
             : count === 0
               ? "This document has no such connection, so those flags are refused and nothing is sent"
               : `This document has ${count} such connections, so those flags are refused and nothing is sent`,
@@ -129,11 +129,11 @@ export function validateIdentity(invocation: Invocation): void {
     invocation.graphqlQuery = loadGraphqlQuery(flags.get("--query"));
     loadGraphqlVariables(flags.get("--variables"));
     if (flags.has("--limit") || flags.has("--cursor") || flags.has("--all")) {
-      const { connections, alias, directive, bothRows } = graphqlConnections(
+      const { connections, alias, directive, duplicate } = graphqlConnections(
         invocation.graphqlQuery,
       );
-      if (connections.length !== 1 || alias || directive || bothRows)
-        pageError(connections.length, alias, directive, bothRows);
+      if (connections.length !== 1 || alias || directive || duplicate)
+        pageError(connections.length, alias, directive, duplicate);
     }
   }
   if (["identity list", "identity assessment"].includes(command.name)) {
@@ -180,17 +180,17 @@ export async function identity(domain: Domain): Promise<Output> {
   if (command.name === "identity graphql") {
     const query = domain.invocation.graphqlQuery!;
     const variables = loadGraphqlVariables(flags.get("--variables"));
-    const { connections, alias, directive, bothRows } =
+    const { connections, alias, directive, duplicate } =
       graphqlConnections(query);
     const page =
-      connections.length === 1 && !alias && !directive && !bothRows
+      connections.length === 1 && !alias && !directive && !duplicate
         ? connections[0]
         : undefined;
     if (
       (flags.has("--limit") || flags.has("--cursor") || flags.has("--all")) &&
       !page
     )
-      pageError(connections.length, alias, directive, bothRows);
+      pageError(connections.length, alias, directive, duplicate);
     const read = async (
       sent: Record<string, unknown>,
     ): Promise<RecordValue> => {
@@ -292,7 +292,9 @@ export async function identity(domain: Domain): Promise<Output> {
     let next = false;
     let position: string | undefined;
     let pagesRead = 0;
-    const seen = new Set<unknown>([after]);
+    const seen = new Set<unknown>([
+      after === undefined ? page.afterDefault : after,
+    ]);
     do {
       const size = walking ? Math.min(command.ceiling!, remaining) : limit;
       const sent: Record<string, unknown> = {
