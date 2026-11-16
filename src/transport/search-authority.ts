@@ -1,5 +1,11 @@
 import { createHash } from "node:crypto";
-import { Kind, parse } from "graphql";
+import {
+  Kind,
+  parse,
+  type FieldNode,
+  type FragmentDefinitionNode,
+  type SelectionNode,
+} from "graphql";
 import { CliError, object } from "../core.js";
 import documents from "./documents.json" with { type: "json" };
 
@@ -96,6 +102,96 @@ export function parseQueryDocument(text: string): string {
       ],
     );
   return source;
+}
+export type GraphqlConnection = {
+  key: string;
+  first: string;
+  after: string;
+};
+const selectionFields = (
+  selections: readonly SelectionNode[],
+  fragments: ReadonlyMap<string, FragmentDefinitionNode>,
+  seen: ReadonlySet<string>,
+): FieldNode[] => {
+  const fields: FieldNode[] = [];
+  for (const selection of selections) {
+    if (selection.kind === Kind.FIELD) fields.push(selection);
+    else if (selection.kind === Kind.INLINE_FRAGMENT)
+      fields.push(
+        ...selectionFields(selection.selectionSet.selections, fragments, seen),
+      );
+    else if (
+      selection.kind === Kind.FRAGMENT_SPREAD &&
+      !seen.has(selection.name.value)
+    ) {
+      const fragment = fragments.get(selection.name.value);
+      if (!fragment) continue;
+      const next = new Set(seen);
+      next.add(selection.name.value);
+      fields.push(
+        ...selectionFields(fragment.selectionSet.selections, fragments, next),
+      );
+    }
+  }
+  return fields;
+};
+const argumentVariable = (
+  field: FieldNode,
+  name: string,
+): string | undefined => {
+  const argument = field.arguments?.find((item) => item.name.value === name);
+  return argument?.value.kind === Kind.VARIABLE
+    ? argument.value.name.value
+    : undefined;
+};
+export function graphqlConnections(text: string): GraphqlConnection[] {
+  const source = text.charCodeAt(0) === 0xfeff ? text.slice(1) : text;
+  let definitions: ReturnType<typeof parse>["definitions"];
+  try {
+    definitions = parse(source, { noLocation: true }).definitions;
+  } catch {
+    return [];
+  }
+  const fragments = new Map<string, FragmentDefinitionNode>();
+  for (const definition of definitions)
+    if (definition.kind === Kind.FRAGMENT_DEFINITION)
+      fragments.set(definition.name.value, definition);
+  const operation = definitions.find(
+    (definition) =>
+      definition.kind === Kind.OPERATION_DEFINITION &&
+      definition.operation === "query",
+  );
+  if (!operation || operation.kind !== Kind.OPERATION_DEFINITION) return [];
+  const connections: GraphqlConnection[] = [];
+  for (const field of selectionFields(
+    operation.selectionSet.selections,
+    fragments,
+    new Set(),
+  )) {
+    const first = argumentVariable(field, "first");
+    const after = argumentVariable(field, "after");
+    if (!first || !after || !field.selectionSet) continue;
+    const pageInfo = selectionFields(
+      field.selectionSet.selections,
+      fragments,
+      new Set(),
+    ).find((item) => item.name.value === "pageInfo");
+    if (!pageInfo?.selectionSet) continue;
+    const names = new Set(
+      selectionFields(
+        pageInfo.selectionSet.selections,
+        fragments,
+        new Set(),
+      ).map((item) => item.name.value),
+    );
+    if (!names.has("hasNextPage") || !names.has("endCursor")) continue;
+    connections.push({
+      key: field.alias?.value ?? field.name.value,
+      first,
+      after,
+    });
+  }
+  return connections;
 }
 export function queryOnly(text: string): boolean {
   try {
