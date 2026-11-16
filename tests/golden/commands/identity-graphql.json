@@ -1,0 +1,11 @@
+{
+  "name": "identity graphql",
+  "order": 2301.5,
+  "summary": "  identity graphql          run one read-only Identity Protection GraphQL query",
+  "scopes": [
+    {
+      "scope": "Identity Protection GraphQL:write",
+      "access": "write"
+    }
+  ]
+}

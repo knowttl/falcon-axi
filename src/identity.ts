@@ -1,12 +1,13 @@
+import { readFileSync } from "node:fs";
 import { CliError, object } from "./core.js";
 import { pythonJson } from "./cursor.js";
 import { Domain, text } from "./domain.js";
 import type { Output, RecordValue } from "./domain.js";
 import type { Invocation } from "./parser.js";
-import { Raw } from "./render.js";
+import { hasDuplicateJsonMembers, Raw } from "./render.js";
 import { seconds } from "./search.js";
 import { requestException } from "./transport/https.js";
-import { document } from "./transport/search-authority.js";
+import { document, parseQueryDocument } from "./transport/search-authority.js";
 import { observeRate, responseFailure } from "./auth.js";
 import { malformed } from "./response.js";
 
@@ -53,7 +54,71 @@ export function entityId(value: string): string {
     );
   return candidate;
 }
+const QUERY_LIMIT = 1024 * 1024;
+export function loadGraphqlQuery(value: string | undefined): string {
+  if (value === undefined)
+    throw new CliError("VALIDATION_ERROR", "identity graphql requires --query");
+  let text: string;
+  if (value.startsWith("@")) {
+    const path = value.slice(1);
+    if (!path)
+      throw new CliError(
+        "VALIDATION_ERROR",
+        "--query requires a file path after @",
+      );
+    let bytes: Buffer;
+    try {
+      bytes = readFileSync(path);
+    } catch {
+      throw new CliError("VALIDATION_ERROR", "--query file could not be read");
+    }
+    if (bytes.length > QUERY_LIMIT)
+      throw new CliError("VALIDATION_ERROR", "--query must be at most 1 MiB");
+    try {
+      text = new TextDecoder("utf-8", { fatal: true, ignoreBOM: true }).decode(
+        bytes,
+      );
+    } catch {
+      throw new CliError("VALIDATION_ERROR", "--query file must be UTF-8");
+    }
+  } else {
+    if (Buffer.byteLength(value) > QUERY_LIMIT)
+      throw new CliError("VALIDATION_ERROR", "--query must be at most 1 MiB");
+    text = value;
+  }
+  return parseQueryDocument(text);
+}
+export function loadGraphqlVariables(
+  value: string | undefined,
+): Record<string, unknown> {
+  if (value === undefined) return {};
+  if (Buffer.byteLength(value) > QUERY_LIMIT)
+    throw new CliError(
+      "VALIDATION_ERROR",
+      "--variables must be a JSON object of at most 1 MiB without duplicate members",
+    );
+  let parsed: unknown;
+  try {
+    parsed = JSON.parse(value);
+    if (hasDuplicateJsonMembers(value)) throw new Error("duplicate");
+  } catch {
+    throw new CliError(
+      "VALIDATION_ERROR",
+      "--variables must be a JSON object of at most 1 MiB without duplicate members",
+    );
+  }
+  if (!object(parsed))
+    throw new CliError(
+      "VALIDATION_ERROR",
+      "--variables must be a JSON object of at most 1 MiB without duplicate members",
+    );
+  return parsed;
+}
 export function validateIdentity({ command, flags, id }: Invocation): void {
+  if (command.name === "identity graphql") {
+    loadGraphqlQuery(flags.get("--query"));
+    loadGraphqlVariables(flags.get("--variables"));
+  }
   if (["identity list", "identity assessment"].includes(command.name)) {
     const type = flags.get("--type");
     if (
@@ -95,6 +160,69 @@ const summary = (node: RecordValue): RecordValue => ({
 
 export async function identity(domain: Domain): Promise<Output> {
   const { command, flags, id, limit } = domain.invocation;
+  if (command.name === "identity graphql") {
+    const variables = loadGraphqlVariables(flags.get("--variables"));
+    const response = await requestException(
+      "api_preempt_proxy_post_graphql",
+      domain.session.base,
+      domain.session.token,
+      { query: loadGraphqlQuery(flags.get("--query")), variables },
+      domain.allowUnknown,
+      domain.signal,
+    );
+    observeRate(domain.session, response);
+    const subject = "the Identity Protection query";
+    const scopes = ["Identity Protection GraphQL:write"];
+    if (response.status === 403)
+      throw new CliError(
+        "SCOPE_DENIED",
+        `this API client is not permitted to read ${subject}`,
+        [
+          `Grant ${scopes[0]} to the API client in the Falcon console under Support and resources > API clients and keys`,
+          "The GraphQL scope is labelled write because Falcon requires it even for read-only queries; identity graphql sends only documents whose operations are queries",
+          "The selected fields may also require Identity Protection Entities:read, Identity Protection Timeline:read, Identity Protection Assessment:read, or Identity Protection Detections:read",
+          "The Identity Protection scopes appear in the console only for tenants licensed for Falcon Identity Protection",
+          "Run `falcon-axi scopes` for the matrix",
+        ],
+        { required_scopes: scopes },
+      );
+    if (response.status !== 200)
+      responseFailure(
+        response,
+        subject,
+        false,
+        false,
+        "api_preempt_proxy_post_graphql",
+      );
+    const body = mapping(response.body);
+    if (
+      (body.errors && (!Array.isArray(body.errors) || body.errors.length)) ||
+      !Object.hasOwn(body, "data")
+    ) {
+      try {
+        malformed(
+          response,
+          `Falcon reported an error while answering the Identity Protection query for ${subject}`,
+          [
+            "Retry shortly",
+            "Quote the trace_id when opening a CrowdStrike support case",
+          ],
+        );
+      } catch (error) {
+        if (
+          error instanceof CliError &&
+          object(body.meta) &&
+          typeof body.meta.trace_id === "string"
+        )
+          throw new CliError(error.code, error.message, error.help, {
+            ...error.details,
+            trace_id: body.meta.trace_id,
+          });
+        throw error;
+      }
+    }
+    return { value: { data: body.data }, help: [] };
+  }
   const query = async (
     name: string,
     variables: RecordValue,

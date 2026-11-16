@@ -1,6 +1,8 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
-import { readFileSync } from "node:fs";
+import { mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
+import { tmpdir } from "node:os";
+import { join } from "node:path";
 import { resolve } from "node:path";
 import { decode } from "@toon-format/toon";
 import { parse as parseGraphql, visit, Kind } from "graphql";
@@ -1053,3 +1055,216 @@ if (managed) {
     assert.equal(wire.length, 0);
   });
 }
+
+const bom = "\uFEFF";
+const readQuery = "query Read { field }";
+for (const [name, query, code] of [
+  ["mutation", "mutation { field }", "READ_ONLY_VIOLATION"],
+  ["subscription", "subscription { field }", "READ_ONLY_VIOLATION"],
+  [
+    "mixed mutation",
+    "query Read { field }\nmutation Write { field }",
+    "VALIDATION_ERROR",
+  ],
+  [
+    "mixed subscription",
+    "query Read { field }\nsubscription Watch { field }",
+    "VALIDATION_ERROR",
+  ],
+  ["named mutation", "mutation Write { field }", "READ_ONLY_VIOLATION"],
+  [
+    "fragment mutation",
+    "mutation Write { ...Fields }\nfragment Fields on Query { field }",
+    "READ_ONLY_VIOLATION",
+  ],
+  ["commented mutation", "# query\nmutation { field }", "READ_ONLY_VIOLATION"],
+  ["spaced mutation", "mutation\n\n { field }", "READ_ONLY_VIOLATION"],
+  ["bom mutation", `${bom}mutation { field }`, "READ_ONLY_VIOLATION"],
+  ["unicode keyword", "\\u006dutation { field }", "VALIDATION_ERROR"],
+  ["unparsed", "query {", "VALIDATION_ERROR"],
+  ["fragment only", "fragment Fields on Query { field }", "VALIDATION_ERROR"],
+] as const)
+  test(`identity graphql refuses ${name} before authentication`, async () => {
+    reset();
+    recordedResponse(graph, 200, { data: { field: "synthetic" } });
+    const result = await run([
+      "identity",
+      "graphql",
+      "--query",
+      query,
+      "--variables",
+      '{"id":"mutation { delete }"}',
+    ]);
+    assert.equal(
+      result.code,
+      code === "VALIDATION_ERROR" ? 2 : 1,
+      result.stdout,
+    );
+    assert.equal(value(result.stdout).code, code);
+    assert.equal(wire.length, 0);
+  });
+
+for (const [name, query] of [
+  ["string mutation", 'query { field(note: "mutation { delete }") }'],
+  ["commented query", "# mutation { delete }\nquery { field }"],
+  ["spaced query", "query\n\n { \n field \n }"],
+  ["named query", "query mutation { field }"],
+  ["field named mutation", "query { mutation }"],
+  ["bom query", `${bom}query { field }`],
+  ["unicode string", 'query { field(note: "\\u006dutation") }'],
+] as const)
+  test(`identity graphql sends ${name}`, async () => {
+    reset();
+    recordedResponse(graph, 200, {
+      data: { field: "synthetic-field", client_secret: "synthetic-s01-secret" },
+    });
+    const result = await run(["identity", "graphql", "--query", query], {
+      FALCON_AXI_READ_ONLY: "1",
+    });
+    assert.equal(result.code, 0, result.stdout);
+    const body = JSON.parse(scoped()[0]!.body) as {
+      query: string;
+      variables: unknown;
+    };
+    assert.equal(body.query, query.replace(/^\uFEFF/, ""));
+    assert.deepEqual(body.variables, {});
+    assert.match(result.stdout, /synthetic-field/);
+    assert.doesNotMatch(result.stdout, /synthetic-s01-secret/);
+  });
+
+test("identity graphql refuses two query operations before authentication", async () => {
+  reset();
+  recordedResponse(graph, 200, { data: { field: "synthetic-field" } });
+  const result = await run([
+    "identity",
+    "graphql",
+    "--query",
+    "query A { field } query B { field }",
+  ]);
+  assert.equal(result.code, 2, result.stdout);
+  assert.equal(value(result.stdout).code, "VALIDATION_ERROR");
+  assert.match(result.stdout, /exactly one operation/);
+  assert.equal(wire.length, 0);
+});
+
+test("identity graphql sends variables separately from the document", async () => {
+  reset();
+  recordedResponse(graph, 200, { data: { field: "synthetic-field" } });
+  const query = "query Read($id: String) { field(id: $id) }";
+  const hostile = "mutation { delete }";
+  const result = await run([
+    "identity",
+    "graphql",
+    "--query",
+    query,
+    "--variables",
+    JSON.stringify({ id: hostile }),
+  ]);
+  assert.equal(result.code, 0, result.stdout);
+  const body = JSON.parse(scoped()[0]!.body) as {
+    query: string;
+    variables: { id: string };
+  };
+  assert.equal(body.query, query);
+  assert.equal(body.variables.id, hostile);
+  assert.equal(body.query.includes(hostile), false);
+});
+
+for (const variables of ["[", "null", "1", '"text"', "{", '{"a":1,"a":2}'])
+  test(`identity graphql refuses variables ${variables} before authentication`, async () => {
+    reset();
+    const result = await run([
+      "identity",
+      "graphql",
+      "--query",
+      readQuery,
+      "--variables",
+      variables,
+    ]);
+    assert.equal(result.code, 2, result.stdout);
+    assert.equal(value(result.stdout).code, "VALIDATION_ERROR");
+    assert.equal(wire.length, 0);
+  });
+
+test("identity graphql reads a query file and refuses a missing file", async () => {
+  const directory = mkdtempSync(join(tmpdir(), "identity-graphql-"));
+  const path = join(directory, "query.graphql");
+  try {
+    writeFileSync(path, `${bom}query { field }`);
+    reset();
+    recordedResponse(graph, 200, { data: { field: "synthetic-field" } });
+    const result = await run([
+      "identity",
+      "graphql",
+      "--query",
+      `@${path}`,
+      "--variables",
+      '{"id":"synthetic"}',
+    ]);
+    assert.equal(result.code, 0, result.stdout);
+    const body = JSON.parse(scoped()[0]!.body) as {
+      query: string;
+      variables: unknown;
+    };
+    assert.equal(body.query, "query { field }");
+    assert.deepEqual(body.variables, { id: "synthetic" });
+    reset();
+    const missing = await run([
+      "identity",
+      "graphql",
+      "--query",
+      `@${join(directory, "missing.graphql")}`,
+    ]);
+    assert.equal(missing.code, 2, missing.stdout);
+    assert.equal(wire.length, 0);
+  } finally {
+    rmSync(directory, { recursive: true, force: true });
+  }
+});
+
+test("identity graphql reports scope denial and GraphQL errors", async () => {
+  reset();
+  recordedResponse(graph, 403, {});
+  const denied = await run(["identity", "graphql", "--query", readQuery]);
+  assert.equal(denied.code, 1, denied.stdout);
+  assert.deepEqual(value(denied.stdout).required_scopes, [
+    "Identity Protection GraphQL:write",
+  ]);
+  reset();
+  recordedResponse(graph, 200, {
+    data: { field: "synthetic-field" },
+    errors: [{ message: "synthetic-s01-secret" }],
+  });
+  const failed = await run(["identity", "graphql", "--query", readQuery]);
+  assert.equal(failed.code, 1, failed.stdout);
+  assert.equal(value(failed.stdout).code, "UPSTREAM_ERROR");
+  assert.doesNotMatch(failed.stdout, /synthetic-s01-secret|synthetic-field/);
+});
+
+for (const [name, authority] of [
+  ["raw mutation", { query: "mutation { field }", variables: {} }],
+  [
+    "raw fragment",
+    { query: "fragment Fields on Query { field }", variables: {} },
+  ],
+  ["raw unparsed", { query: "query {", variables: {} }],
+  ["raw variables", { query: readQuery, variables: [] }],
+] as const)
+  test(`identity graphql sink refuses ${name}`, async () => {
+    reset();
+    await assert.rejects(
+      async () =>
+        requestException(
+          graph,
+          "https://api.crowdstrike.com",
+          "synthetic-token",
+          authority,
+          false,
+          new AbortController().signal,
+        ),
+      (error: unknown) =>
+        error instanceof CliError &&
+        ["READ_ONLY_VIOLATION", "VALIDATION_ERROR"].includes(error.code),
+    );
+    assert.equal(wire.length, 0);
+  });

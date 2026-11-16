@@ -81,8 +81,8 @@
   },
   {
     "name": "auth-status-member-cid",
-    "definitionSha256": "4ba6ce8e0462d896fdaca6df1c6c446c284f4af4fc86a1f7239d7f8c60e0e47b",
-    "expectedSha256": "4a97373e5777c807e9edb519dc6d66fee6862b907a1be5d83dd0cd3dd0dbcb66"
+    "definitionSha256": "e47d8b0d31c0196150a2ca62ec81621d5ac11ff2ab322a4ad732a6d7a40c24f4",
+    "expectedSha256": "b08a0b66a70b2314b94b56a9fb6983ca2ae6e9f14302c545f44be9c4549483b5"
   },
   {
     "name": "auth-status-no-credential",
@@ -96,8 +96,8 @@
   },
   {
     "name": "auth-status-retargeted",
-    "definitionSha256": "319de357e27dd38ef2d659c56d0a89641f0dd26fb4806967dfa1a7fb0cac05a2",
-    "expectedSha256": "6ddcab8c2630e6beb9360a733cc2d961c8c591b1f4659413deb789ad0f329dbe"
+    "definitionSha256": "5d15f7a534e6ec18936267385b755ec523ab7788a9c62dc0d5243be91b84d94c",
+    "expectedSha256": "9f16754af4c30661fee779688352a6d5db04bf8ad3080ba177d9c2b53d034240"
   },
   {
     "name": "auth-status-tenant-denied",
@@ -111,8 +111,8 @@
   },
   {
     "name": "auth-status",
-    "definitionSha256": "7cb2e5799684fbf98bfe74dbfa2a3c4fd7db450aabb558e63cc223edce5c1049",
-    "expectedSha256": "dafa37faea11871eaab1aafec3a683f887adf0fadeeb6e718bf44954164d8950"
+    "definitionSha256": "bebab0bdaa0f38aad68e6cc3b76b8bb410c426b9e5e61e539bc6e611dfa25e16",
+    "expectedSha256": "7cbdb3b78e60c85a020c8c91ec7585860926949f8724ccf5a5e1b11edfedf5c8"
   },
   {
     "name": "bad-since",
@@ -701,6 +701,11 @@
     "expectedSha256": "a1484c8af95b9187980c730b173209c5ab6b9467135c1fbb92a47d35c0d06e50"
   },
   {
+    "name": "help-identity-graphql",
+    "definitionSha256": "6c6dc97284b15bb11a1cdc220cbec75f213ac2af0f641c8fa4bd8bf1ab8875cd",
+    "expectedSha256": "4b075911bca9c18455b28d5de59814af8164b6432ecc98640878580b6fdef46e"
+  },
+  {
     "name": "help-identity-list",
     "definitionSha256": "6547ab30ef9661dd82e096d46154b78d600bf70202b013f267615d60ad56e088",
     "expectedSha256": "281a5ca6127559a9276dcd7c6877ec23205cc394e86b48b2f30079dab663b463"
@@ -922,8 +927,8 @@
   },
   {
     "name": "help-top",
-    "definitionSha256": "405fbb7a072e1faa8e84f19de8eb85694f71db89d7bb45e580f495604eb72a44",
-    "expectedSha256": "090e31f1ad1d7b0929fcb8911ec2888d8d585c6f3a282ae24e8baccee1faad0a"
+    "definitionSha256": "06c3f3ec87f378778f97818e90bfea5651f12c21d8bec9181149ca7a4fef861b",
+    "expectedSha256": "fc26124ec48ac71f671de301a5a73e9653d0edb008372d82f611243a9fe6f459"
   },
   {
     "name": "help-vuln-list",
@@ -1507,8 +1512,8 @@
   },
   {
     "name": "scopes",
-    "definitionSha256": "c79a60c5399a81b63c9d50c3f596f9daa49ab82398c436464b0718a3c0698a89",
-    "expectedSha256": "7ebb5d613bf34642573784b25cdd78ee466135dfb9b4ab1b1687f3de398e1a5a"
+    "definitionSha256": "a7250f3d7151550659536a7a2c14c8f2529e2f53506852093a00c67e23720d97",
+    "expectedSha256": "2c14e85180e9cdd75b505bf7c9eaa8b3dea98026c526808e6076febe040ef897"
   },
   {
     "name": "search-start-scope-denied",
@@ -1652,8 +1657,8 @@
   },
   {
     "name": "unknown-identity-subcommand",
-    "definitionSha256": "6cd98d6691b8d8eb3c7a12b68ec75d6fe8cfd2a58bc972ade016cf9e551043f3",
-    "expectedSha256": "f8c0ab40166ab21631a9b59d3594335736a01178a942553116cc9db0a256eb7c"
+    "definitionSha256": "f59b2ff4ef2b2f224618ddaf1a9b7517bc3cf1555d2c563a87c5abba881d777e",
+    "expectedSha256": "538a005978f43ee50ea4660caaaf15c341ac37e2b1b8ead8f0d7e8fb1eae9b32"
   },
   {
     "name": "unknown-platform",

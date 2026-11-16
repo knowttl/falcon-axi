@@ -88,7 +88,7 @@ Run any command with `--help` for arguments, limits, and examples.
 | `account`, `asset`, `application`, `login`, `iot`, `host-group` | Discover inventory and group membership | Read | [Inventory](docs/commands.md#account-list) |
 | `vuln`, `cve` | Spotlight findings and CVE intelligence | Read | [Vulnerabilities](docs/commands.md#vuln-list) |
 | `actor`, `report`, `malware`, `indicator`, `ioc`, `sandbox`, `quarantine` | Threat intelligence, observed indicators, and file metadata | Read | [Intelligence](docs/commands.md#actor-list) |
-| `identity` | Directory risk, activity, assessment, sensors, and rules | Read; `activity` starts a search | [Identity](docs/commands.md#identity-list) |
+| `identity` | Directory risk, activity, assessment, sensors, rules, and reviewed GraphQL queries | Read; `activity` starts a search | [Identity](docs/commands.md#identity-list) |
 | `search`, `malquery` | NG-SIEM jobs and bounded malware-pattern searches | Read and search lifecycle | [Search](docs/commands.md#search-start), [MalQuery](docs/commands.md#malquery-search) |
 | `container`, `image`, `serverless`, `cloud-asset`, `iom`, `cloud-risk` | Workloads, cloud inventory, and misconfigurations | Read | [Cloud](docs/commands.md#cloud-asset-list) |
 | `classification`, `data-policy`, `policy`, `exclusion`, `firewall`, `ioa`, `correlation-rule` | Security configuration and rule inventories | Read | [Policies](docs/commands.md#policy-list) |
@@ -108,8 +108,8 @@ RTR previews locally; execution requires profile opt-in, a fixed command allowli
 Falcon authorizes the selected route using the API client's scopes.
 Raw output preserves fields while redacting secrets in their names and values.
 Set `FALCON_AXI_READ_ONLY=1` to block search lifecycle commands, MalQuery search, RTR execution, and raw writes.
-Passive history, local previews, and fixed read-only Identity GraphQL queries remain available.
-Identity GraphQL requires a write-labelled scope but accepts only registered read-only documents.
+Passive history, local previews, and Identity Protection query reads remain available.
+Identity GraphQL requires a write-labelled scope. Fixed commands send registered documents, and `identity graphql` sends a parser-checked query (§4.4 of the design).
 Credentials use environment or file references; tokens stay in memory, and credentials and standalone tenant CIDs are redacted.
 Composite detection IDs retain embedded tenant CIDs, so treat investigation output as sensitive.
 See [shipped enforcement](docs/read-only.md) for gates, data handling, and recovery.
