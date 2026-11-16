@@ -1096,11 +1096,7 @@ for (const [name, query, code] of [
     "READ_ONLY_VIOLATION",
   ],
   ["spaced mutation", "mutation\n\n { field }", "READ_ONLY_VIOLATION"],
-  [
-    "spaced subscription",
-    "subscription\n\n { field }",
-    "READ_ONLY_VIOLATION",
-  ],
+  ["spaced subscription", "subscription\n\n { field }", "READ_ONLY_VIOLATION"],
   ["bom mutation", `${bom}mutation { field }`, "READ_ONLY_VIOLATION"],
   ["bom subscription", `${bom}subscription { field }`, "READ_ONLY_VIOLATION"],
   ["unicode keyword", "\\u006dutation { field }", "VALIDATION_ERROR"],
