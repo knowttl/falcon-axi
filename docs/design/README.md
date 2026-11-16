@@ -7,7 +7,8 @@ This page preserves the domain rollout inventory formerly in the README; it is h
 - [v1 behavior and safety design](v1.md): command contracts, scopes, pagination, redaction, transport enforcement, and closed decisions in section 17.
 - [Python implementation amendment](v1-python.md): preserved baseline, golden comparison contract, and commissioning history.
 - [TypeScript implementation](v1-typescript.md): scope, packaging, offline verification, and approved amendments.
-- [Read-only enforcement](../read-only.md): shipped transport enforcement and source-parity validation limits.
+- [Shipped enforcement](../read-only.md): transport enforcement, the write gate, and source-parity validation limits.
+  The stance is [v1 §0](v1.md#0-invariant-r-v1-is-read-only-with-five-captain-granted-exceptions).
 - [Contributor workflow](../../CONTRIBUTING.md): offline verification and documentation generation.
 
 ## Implemented domain rollout
@@ -87,4 +88,6 @@ What is shipped:
 
 Tenant discovery and standalone Identity Protection incident queries remain absent.
 There are no dedicated commands for arbitrary GraphQL, GraphQL mutation, containment, ingest, configuration change, report PDF, or rule-file download; gated raw writes can reach authorized mutation routes.
-The complete exclusion contract is in [v1 section 1.5](v1.md#15-command-surface-non-goals), and the closed exceptions are owned by [v1 section 0](v1.md#0-invariant-r-v1-is-read-only-with-five-captain-granted-exceptions).
+The capability inventory and shipped boundaries are in [v1 section 1.5](v1.md#15-command-surface-classes-without-a-dedicated-command).
+The stance is [v1 section 0](v1.md#0-invariant-r-v1-is-read-only-with-five-captain-granted-exceptions).
+The shipped exceptions stay in [v1 section 4](v1.md#4-the-mutation-surface-and-the-closed-captain-exceptions).

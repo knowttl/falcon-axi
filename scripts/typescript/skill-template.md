@@ -2,7 +2,7 @@
 name: falcon-axi
 description: >-
   Inspect CrowdStrike Falcon detections, hosts, accounts, vulnerabilities, identity, and search results.
-  Read-only investigation; no containment, remediation, or tenant configuration changes.
+  Reads and writes are in scope; every write uses the write gate, and a new write command needs its own review.
 ---
 
 # falcon-axi
@@ -11,12 +11,18 @@ Read CrowdStrike Falcon from the shell.
 See [installation and agent setup](https://github.com/knowttl/falcon-axi#use-with-your-agent).
 Run `uvx falcon-axi ...` without a global install.
 
-## Read-only boundary
+## Write gate
 
-No command changes a host, detection, policy, or identity except a confirmed `raw write`.
+The design stance is that reads and writes are both in scope, and every write uses the write gate.
+The gate requires a file profile opt-in, a dry-run preview, `--execute` with `--confirm`, and a journal; `FALCON_AXI_READ_ONLY=1` wins.
+The `raw write` confirmation binds the profile, resolved API client, origin, tenant, method, path, query, and body from the preview.
+The `rtr run` preview prints the template `<device_id>:<complete command>`; its confirmation binds only those two values, not the profile or origin.
+`raw get` sends only GET requests to validated routes. It is not guaranteed free of side effects.
+A new write command needs its operation evidenced and its own review.
+Dedicated commands do not change a host, detection, policy, or identity.
 Tenant-side effects are NG-SIEM jobs, guarded RTR execution, bounded MalQuery exact/fuzzy searches (N4), and guarded raw writes (N5).
 Identity GraphQL uses a write-labelled scope only for fixed read-only query documents.
-`raw get` reads any validated Falcon API path; `raw write` previews first and sends only with a profile that opts in, `--execute`, and the exact `--confirm`, and is journaled.
+`raw write` previews first and sends only with a profile that opts in, `--execute`, and the exact `--confirm`, and is journaled.
 Raw output redacts secret values and keeps every field.
 There is no unrestricted GraphQL escape hatch.
 Gated raw writes may POST caller-supplied JSON to GraphQL routes with profile `writes.allowWrites` and `raw-write`, preview, `--execute`, exact `--confirm`, and a journal.

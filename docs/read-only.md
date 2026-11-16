@@ -1,13 +1,20 @@
-# Read-only enforcement
+# Shipped enforcement
 
-Registered commands read Falcon data without changing hosts, detections, policies, or identities.
-Raw requests follow the separate boundary below.
+The [design stance](design/v1.md#0-invariant-r-v1-is-read-only-with-five-captain-granted-exceptions) says reads and writes are both in scope, and every write uses the write gate.
+The gate requires a file profile opt-in, a dry-run preview, `--execute` with `--confirm`, and a journal; the read-only switch wins.
+The `raw write` confirmation binds the profile, resolved API client, origin, tenant, method, path, query, and body from the preview.
+The `rtr run` preview prints the template `<device_id>:<complete command>`; its confirmation binds only those two values, not the profile or origin.
+This page records the enforcement that ships today.
+It does not add a command or change a gate.
+The caller must choose a documented read route for `raw get`; see [Raw API](#raw-api).
+
 Registered commands can create NG-SIEM search jobs, open explicitly authorized read-only RTR sessions, and run bounded MalQuery exact/fuzzy searches.
 Identity Protection commands use the write-labelled GraphQL scope solely for registered read-only query documents; gated raw writes may reach GraphQL routes.
 
 ## Closed transport boundary
 
-The [design invariant](design/v1.md#0-invariant-r-v1-is-read-only-with-five-captain-granted-exceptions) is enforced through a closed operation registry and the separate raw API gates.
+The shipped registry and the separate raw API gates enforce today's boundary.
+The stance those gates serve is [§0](design/v1.md#0-invariant-r-v1-is-read-only-with-five-captain-granted-exceptions).
 HTTP verbs and scope names alone do not prove a read: Falcon uses POST for reads, and some read-scoped operations have effects.
 Every registered operation carries its documented scope and corroborating source evidence.
 The permitted HTTPS sink enforces the transport boundary.
