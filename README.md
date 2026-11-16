@@ -19,7 +19,7 @@ Every write uses the [write gate](docs/design/v1.md#0-invariant-r-v1-is-read-onl
 The `raw write` confirmation binds the profile, resolved API client, origin, tenant, method, path, query, and body from the preview.
 The `rtr run` preview prints the template `<device_id>:<complete command>`; its confirmation binds only those two values, not the profile or origin.
 Agents must obtain a person's explicit approval in the conversation for each exact preview before executing that write; the gate does not verify that approval.
-`raw get` stays read-only.
+For `raw get`, the caller must choose a documented read route; GET routes are not checked for side effects.
 This release does not add a write command.
 Synthetic offline checks verify local behavior and safety constraints; they do not claim live-tenant validation.
 

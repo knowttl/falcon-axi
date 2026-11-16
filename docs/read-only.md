@@ -7,7 +7,7 @@ The `rtr run` preview prints the template `<device_id>:<complete command>`; its 
 Agents must obtain a person's explicit approval in the conversation for each exact preview before executing that write; the gate does not verify that approval.
 This page records the enforcement that ships today.
 It does not add a command or change a gate.
-`raw get` stays read-only.
+The caller must choose a documented read route for `raw get`; see [Raw API](#raw-api).
 
 Registered commands can create NG-SIEM search jobs, open explicitly authorized read-only RTR sessions, and run bounded MalQuery exact/fuzzy searches.
 Identity Protection commands use the write-labelled GraphQL scope solely for registered read-only query documents; gated raw writes may reach GraphQL routes.

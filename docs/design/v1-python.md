@@ -7,7 +7,7 @@ Locked defaults: MIT license, package name `falcon-axi`, and decision D2 accepte
 
 ## 0. What this document is, and what it is not
 
-`docs/design/v1.md` remains the authoritative v1 design for everything it covers: Invariant R, the command surface, credentials, regions and Flight Control, pagination and rate limits, the error envelope, TOON output, command discovery, fixtures, and live-test boundaries.
+`docs/design/v1.md` remains the authoritative v1 design for everything it covers: the stance, command surface, credentials, regions and Flight Control, pagination and rate limits, the error envelope, TOON output, command discovery, fixtures, and live-test boundaries.
 This document changes the implementation language and the HTTP client underneath that design.
 It amends v1.md §2 (backend), §3.3 (transport enforcement, restated for Python), §14 (test layout, restated for pytest), and §16 (API client evaluation, now adopting falconpy), and it adds packaging and distribution, which v1.md never specified.
 Every section of v1.md not named here carries over unchanged, and a commissioned build must not narrow or widen the v1 command surface while porting.
