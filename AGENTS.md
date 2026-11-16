@@ -7,6 +7,7 @@ This file is the project's committed home for project-intrinsic agent knowledge:
 ## v1 stance
 
 **`docs/design/v1.md` §0 owns the stance: reads and writes are both in scope, and every write uses the write gate.**
+The gate checks configuration and confirmation, not human approval; agents must obtain explicit approval for each exact preview in the conversation.
 The generated command reference in `docs/commands.md` owns delivery status.
 A new write command needs its operation evidenced and its own review.
 The shipped registry and its gates stay until that review.

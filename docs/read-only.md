@@ -1,6 +1,8 @@
 # Shipped enforcement
 
 The [design stance](design/v1.md#0-invariant-r-v1-is-read-only-with-five-captain-granted-exceptions) says reads and writes are both in scope, and every write uses the write gate.
+The gate requires a file profile opt-in, a dry-run preview, `--execute` with its exact `--confirm`, and a journal; the read-only switch wins.
+Agents must obtain a person's explicit approval in the conversation for each exact preview before executing that write; the gate does not verify that approval.
 This page records the enforcement that ships today.
 It does not add a command or change a gate.
 `raw get` stays read-only.

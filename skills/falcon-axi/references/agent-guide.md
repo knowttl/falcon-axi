@@ -65,7 +65,8 @@ Cancel an unneeded job with `falcon-axi search stop synthetic-search-job-01`; th
 ## Safety, help and failures
 
 Reads and writes are both in scope.
-Every write uses the write gate: a dry-run, explicit approval for that write, and the write journal.
+Every write uses the write gate: a file profile opt-in, a dry-run preview, `--execute` with its exact `--confirm`, and a journal; `FALCON_AXI_READ_ONLY=1` wins.
+Never run `--execute` for a write without the person's explicit go for that exact preview, obtained in the conversation for that one write; the gate does not verify human approval.
 `raw get` stays read-only.
 A new write command needs its own review.
 The passive allowlist above changes no tenant data or endpoint state.

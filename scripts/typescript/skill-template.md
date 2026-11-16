@@ -13,7 +13,9 @@ Run `uvx falcon-axi ...` without a global install.
 
 ## Write gate
 
-The design stance is that reads and writes are both in scope, and every write uses a dry-run, explicit approval for that write, and the write journal.
+The design stance is that reads and writes are both in scope, and every write uses the write gate.
+The gate requires a file profile opt-in, a dry-run preview, `--execute` with its exact `--confirm`, and a journal; `FALCON_AXI_READ_ONLY=1` wins.
+Never run `--execute` for a write without the person's explicit go for that exact preview, obtained in the conversation for that one write; the gate does not verify human approval.
 `raw get` stays read-only.
 A new write command needs its operation evidenced and its own review.
 No shipped command changes a host, detection, policy, or identity except a confirmed `raw write`.
@@ -85,7 +87,7 @@ Execution currently requires POSIX private-file and signal primitives.
    Work on one host at a time and prove the workflow on a single host first.
 2. Preview with `uvx falcon-axi rtr run <device_id> --command '<complete command>'`.
    The preview makes no network request and shows the effective policy and allowed commands.
-3. Execute the identical command string with `--execute --confirm '<device_id>:<complete command>'`.
+3. Obtain the person's explicit go in the conversation for that exact preview, then execute the identical command string with `--execute --confirm '<device_id>:<complete command>'`.
 
 Allowed commands depend on the host's platform, and Falcon rejects a command that the platform lacks as `Command not found`:
 Verified on both Windows and Linux: cat, cd, env, filehash, ls, mount, netstat, ps.
