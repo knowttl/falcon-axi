@@ -4,7 +4,7 @@ import { pythonJson } from "./cursor.js";
 import { Domain, text } from "./domain.js";
 import type { Output, RecordValue } from "./domain.js";
 import type { Invocation } from "./parser.js";
-import { hasDuplicateJsonMembers, Raw } from "./render.js";
+import { Raw } from "./render.js";
 import { seconds } from "./search.js";
 import { requestException } from "./transport/https.js";
 import { document, parseQueryDocument } from "./transport/search-authority.js";
@@ -54,7 +54,6 @@ export function entityId(value: string): string {
     );
   return candidate;
 }
-const QUERY_LIMIT = 1024 * 1024;
 export function loadGraphqlQuery(value: string | undefined): string {
   if (value === undefined)
     throw new CliError("VALIDATION_ERROR", "identity graphql requires --query");
@@ -72,8 +71,6 @@ export function loadGraphqlQuery(value: string | undefined): string {
     } catch {
       throw new CliError("VALIDATION_ERROR", "--query file could not be read");
     }
-    if (bytes.length > QUERY_LIMIT)
-      throw new CliError("VALIDATION_ERROR", "--query must be at most 1 MiB");
     try {
       text = new TextDecoder("utf-8", { fatal: true, ignoreBOM: true }).decode(
         bytes,
@@ -82,8 +79,6 @@ export function loadGraphqlQuery(value: string | undefined): string {
       throw new CliError("VALIDATION_ERROR", "--query file must be UTF-8");
     }
   } else {
-    if (Buffer.byteLength(value) > QUERY_LIMIT)
-      throw new CliError("VALIDATION_ERROR", "--query must be at most 1 MiB");
     text = value;
   }
   return parseQueryDocument(text);
@@ -92,25 +87,19 @@ export function loadGraphqlVariables(
   value: string | undefined,
 ): Record<string, unknown> {
   if (value === undefined) return {};
-  if (Buffer.byteLength(value) > QUERY_LIMIT)
-    throw new CliError(
-      "VALIDATION_ERROR",
-      "--variables must be a JSON object of at most 1 MiB without duplicate members",
-    );
   let parsed: unknown;
   try {
     parsed = JSON.parse(value);
-    if (hasDuplicateJsonMembers(value)) throw new Error("duplicate");
   } catch {
     throw new CliError(
       "VALIDATION_ERROR",
-      "--variables must be a JSON object of at most 1 MiB without duplicate members",
+      "--variables must be a JSON object",
     );
   }
   if (!object(parsed))
     throw new CliError(
       "VALIDATION_ERROR",
-      "--variables must be a JSON object of at most 1 MiB without duplicate members",
+      "--variables must be a JSON object",
     );
   return parsed;
 }

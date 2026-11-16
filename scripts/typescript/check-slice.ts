@@ -245,12 +245,7 @@ for (const path of paths!.split(",")) {
   writeFileSync(join(evidence, `${path}.tap`), result.stdout ?? "", {
     mode: 0o600,
   });
-  if (
-    result.status !== 0 ||
-    expected === 0 ||
-    count("fail") !== 0 ||
-    count("pass") + count("skipped") !== expected
-  ) {
+  if (result.status !== 0 || expected === 0 || count("pass") !== expected) {
     process.exitCode = result.status ?? 1;
     if (!process.exitCode) process.exitCode = 1;
     break;

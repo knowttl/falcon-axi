@@ -5,7 +5,7 @@ identity graphql          run one read-only Identity Protection GraphQL query
 ```text
 npx -y @knowttl/falcon-axi identity graphql --query <text|@file> [--variables <json>]
 
---query      GraphQL document text, or @path to a UTF-8 file of at most 1 MiB
+--query      GraphQL document text, or @path to a UTF-8 file
 --variables  JSON object sent as GraphQL variables; omit for {}
 
 Sends one read-only query to Identity Protection.

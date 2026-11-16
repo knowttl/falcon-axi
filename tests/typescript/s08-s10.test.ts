@@ -1072,15 +1072,38 @@ for (const [name, query, code] of [
     "VALIDATION_ERROR",
   ],
   ["named mutation", "mutation Write { field }", "READ_ONLY_VIOLATION"],
+  ["named subscription", "subscription Watch { field }", "READ_ONLY_VIOLATION"],
   [
     "fragment mutation",
     "mutation Write { ...Fields }\nfragment Fields on Query { field }",
     "READ_ONLY_VIOLATION",
   ],
+  [
+    "leading fragment mutation",
+    "fragment Fields on Query { field }\nmutation Write { ...Fields }",
+    "READ_ONLY_VIOLATION",
+  ],
+  [
+    "leading fragment subscription",
+    "fragment Fields on Query { field }\nsubscription Watch { ...Fields }",
+    "READ_ONLY_VIOLATION",
+  ],
   ["commented mutation", "# query\nmutation { field }", "READ_ONLY_VIOLATION"],
+  [
+    "commented subscription",
+    "# query\nsubscription { field }",
+    "READ_ONLY_VIOLATION",
+  ],
   ["spaced mutation", "mutation\n\n { field }", "READ_ONLY_VIOLATION"],
+  [
+    "spaced subscription",
+    "subscription\n\n { field }",
+    "READ_ONLY_VIOLATION",
+  ],
   ["bom mutation", `${bom}mutation { field }`, "READ_ONLY_VIOLATION"],
+  ["bom subscription", `${bom}subscription { field }`, "READ_ONLY_VIOLATION"],
   ["unicode keyword", "\\u006dutation { field }", "VALIDATION_ERROR"],
+  ["unicode subscription", "\\u0073ubscription { field }", "VALIDATION_ERROR"],
   ["unparsed", "query {", "VALIDATION_ERROR"],
   ["fragment only", "fragment Fields on Query { field }", "VALIDATION_ERROR"],
 ] as const)
@@ -1132,20 +1155,19 @@ for (const [name, query] of [
     assert.doesNotMatch(result.stdout, /synthetic-s01-secret/);
   });
 
-test("identity graphql refuses two query operations before authentication", async () => {
-  reset();
-  recordedResponse(graph, 200, { data: { field: "synthetic-field" } });
-  const result = await run([
-    "identity",
-    "graphql",
-    "--query",
-    "query A { field } query B { field }",
-  ]);
-  assert.equal(result.code, 2, result.stdout);
-  assert.equal(value(result.stdout).code, "VALIDATION_ERROR");
-  assert.match(result.stdout, /exactly one operation/);
-  assert.equal(wire.length, 0);
-});
+for (const query of [
+  "query A { field } query B { field }",
+  "type T { f: String } query A { field } query B { field }",
+])
+  test("identity graphql refuses two query operations before authentication", async () => {
+    reset();
+    recordedResponse(graph, 200, { data: { field: "synthetic-field" } });
+    const result = await run(["identity", "graphql", "--query", query]);
+    assert.equal(result.code, 2, result.stdout);
+    assert.equal(value(result.stdout).code, "VALIDATION_ERROR");
+    assert.match(result.stdout, /exactly one operation/);
+    assert.equal(wire.length, 0);
+  });
 
 test("identity graphql sends variables separately from the document", async () => {
   reset();
@@ -1170,7 +1192,7 @@ test("identity graphql sends variables separately from the document", async () =
   assert.equal(body.query.includes(hostile), false);
 });
 
-for (const variables of ["[", "null", "1", '"text"', "{", '{"a":1,"a":2}'])
+for (const variables of ["[", "null", "1", '"text"', "{"])
   test(`identity graphql refuses variables ${variables} before authentication`, async () => {
     reset();
     const result = await run([
@@ -1241,30 +1263,55 @@ test("identity graphql reports scope denial and GraphQL errors", async () => {
   assert.doesNotMatch(failed.stdout, /synthetic-s01-secret|synthetic-field/);
 });
 
-for (const [name, authority] of [
-  ["raw mutation", { query: "mutation { field }", variables: {} }],
-  [
-    "raw fragment",
-    { query: "fragment Fields on Query { field }", variables: {} },
-  ],
-  ["raw unparsed", { query: "query {", variables: {} }],
-  ["raw variables", { query: readQuery, variables: [] }],
-] as const)
-  test(`identity graphql sink refuses ${name}`, async () => {
+test("identity graphql sink refuses an invalid serialized body", async () => {
+  reset();
+  await assert.rejects(
+    async () =>
+      requestException(
+        graph,
+        "https://api.crowdstrike.com",
+        "synthetic-token",
+        { query: readQuery, variables: { toJSON: () => [] } },
+        false,
+        new AbortController().signal,
+      ),
+    (error: unknown) =>
+      error instanceof CliError &&
+      error.code === "READ_ONLY_VIOLATION" &&
+      error.message === "request body authority was refused",
+  );
+  assert.equal(wire.length, 0);
+});
+
+for (const query of ["mutation { field }", "subscription { field }", "query {"])
+  test(`identity graphql sink refuses serialized ${query}`, async () => {
     reset();
+    const stringify = JSON.stringify;
+    let request: ReturnType<typeof requestException>;
+    try {
+      JSON.stringify = ((value: unknown) =>
+        stringify(
+          object(value) && value.query === readQuery
+            ? { ...value, query }
+            : value,
+        )) as typeof JSON.stringify;
+      request = requestException(
+        graph,
+        "https://api.crowdstrike.com",
+        "synthetic-token",
+        { query: readQuery, variables: {} },
+        false,
+        new AbortController().signal,
+      );
+    } finally {
+      JSON.stringify = stringify;
+    }
     await assert.rejects(
-      async () =>
-        requestException(
-          graph,
-          "https://api.crowdstrike.com",
-          "synthetic-token",
-          authority,
-          false,
-          new AbortController().signal,
-        ),
+      request,
       (error: unknown) =>
         error instanceof CliError &&
-        ["READ_ONLY_VIOLATION", "VALIDATION_ERROR"].includes(error.code),
+        error.code === "READ_ONLY_VIOLATION" &&
+        error.message === "request body authority was refused",
     );
     assert.equal(wire.length, 0);
   });

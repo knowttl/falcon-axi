@@ -1002,7 +1002,7 @@ Identity Protection GraphQL:write. It changes no identity or assessment.
 ```text
 falcon-axi identity graphql --query <text|@file> [--variables <json>]
 
---query      GraphQL document text, or @path to a UTF-8 file of at most 1 MiB
+--query      GraphQL document text, or @path to a UTF-8 file
 --variables  JSON object sent as GraphQL variables; omit for {}
 
 Sends one read-only query to Identity Protection.
