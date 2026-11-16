@@ -91,16 +91,10 @@ export function loadGraphqlVariables(
   try {
     parsed = JSON.parse(value);
   } catch {
-    throw new CliError(
-      "VALIDATION_ERROR",
-      "--variables must be a JSON object",
-    );
+    throw new CliError("VALIDATION_ERROR", "--variables must be a JSON object");
   }
   if (!object(parsed))
-    throw new CliError(
-      "VALIDATION_ERROR",
-      "--variables must be a JSON object",
-    );
+    throw new CliError("VALIDATION_ERROR", "--variables must be a JSON object");
   return parsed;
 }
 export function validateIdentity(invocation: Invocation): void {
