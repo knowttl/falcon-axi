@@ -21,10 +21,11 @@ This approved replay correction differs from the Python origin's generic respons
 An unknown job identifier leaves the creation outcome unknown; it does not prove that no job exists.
 OAuth, passive status, and search stop retain their separate three-attempt response policies.
 MalQuery submissions likewise never replay.
-READ_ONLY refuses lifecycle changes and MalQuery submissions before authentication, while passive status and fixed GraphQL reads remain available.
+READ_ONLY refuses lifecycle changes and MalQuery submissions before authentication, while passive status and GraphQL reads remain available.
 Search waits include authentication, creation, polling, response acquisition and retry delays under one invocation deadline.
 Expiry before a job identifier is known reports WAIT_TIMEOUT; expiry after it is known returns the recoverable running job and repository-aware suggestions.
-GraphQL text comes only from the frozen canonical documents; variables travel separately and both GraphQL and MalQuery bodies are checked again by the network sink.
+GraphQL text comes from the frozen canonical documents or from `identity graphql`, which sends only documents the pinned `graphql` 16.13.1 parser accepts as exactly one query operation.
+Variables travel separately and both GraphQL and MalQuery bodies are checked again by the network sink.
 Relay cursors bind identity filters, credentials, region and tenant; timeline cursors also retain their original window start.
 Policy and exclusion scopes are selected by the required type selector.
 Sandbox lookup requires exactly one hash or FQL selector and projects only report metadata; it admits no submissions or downloads.
@@ -46,7 +47,7 @@ Node 25 and later do not bundle Corepack, so install it first with `npm install 
 The runtime and development floor is Node 22.18.0 with no upper bound, the first Node 22 release that runs the TypeScript build scripts without a flag; native Windows evidence remains pending.
 Run `corepack pnpm install --frozen-lockfile --ignore-scripts --config.confirm-modules-purge=false` and `corepack pnpm run verify`.
 The pipeline wraps both in `scripts/isolated-home.mjs`, which gives each run an empty throwaway home directory and removes `FALCON_AXI_*` variables.
-The verification command runs the cumulative S13 native gate, including the S10 carrier, S11 lifecycle, compiled filesystem primitives, S12 installation and hook checks, generated freshness, all 350 goldens, and reconciliation of all 210 retained safety groups.
+The verification command runs the cumulative S13 native gate, including the S10 carrier, S11 lifecycle, compiled filesystem primitives, S12 installation and hook checks, generated freshness, all 351 goldens, and reconciliation of all 210 retained safety groups.
 The slice runner accepts skipped tests separately from passes and failures; it fails on a nonzero test process status, any failure, an empty test count, or a mismatch between the test count and the sum of passes and skips.
 On non-Windows hosts, the PowerShell metadata checks skip when `powershell.exe` is unavailable.
 It also runs a standalone package-contract check after building: the packed allowlist must contain the bin, admission metadata, parser, credential schema, README, license and native prebuilds, without tests, source maps, local paths or recognizable secret material.
@@ -60,7 +61,8 @@ The frozen slice contracts in `tests/fixtures/migration/S02/contracts.json` thro
 `tests/migration/coverage-s06-s07.json` retains source identities and parameter selections for the additional safety groups.
 `tests/migration/coverage-s08-s10.json` adds search, GraphQL and MalQuery ownership with executable replacement bindings.
 The S08-S10 carrier repeats the earlier suites and adds retained output comparisons, CQL vectors from the Python origin, non-replay response/failure matrices, bounded waits, shell continuation and authority-boundary refusals.
-The GraphQL parser is a development dependency used to verify the fixed documents' operation, root and variable contracts; it is excluded from the runtime package.
+The GraphQL parser is the runtime dependency `graphql` 16.13.1.
+It verifies the fixed documents' operation, root and variable contracts and decides which `identity graphql` documents may be sent.
 The response-diagnostic replacements exercise bounded shapes at the candidate's validation boundary; Python validator-library issue annotations have no runtime producer in the hand-validated candidate.
 The installed check packs an explicit compiled-source allowlist, installs outside the checkout and executes the npm bin from a directory containing spaces.
 Linux user/network/mount namespaces and iproute2 are required for that check.
@@ -196,7 +198,7 @@ Install that tarball into a durable prefix with `npm install --ignore-scripts --
 Run either executable from `<prefix>/node_modules/.bin`, or use the installed Node runtime with its compiled entry point on Windows.
 The generated skill's `npx -y @knowttl/falcon-axi` examples use the `latest` channel; until stable publication, substitute the executable from this installed tarball.
 
-S13 restores complete discovery comparisons against the retained command references and all 350 golden scenarios, removing temporary discovery filtering.
+S13 restores complete discovery comparisons against the retained command references and all 351 golden scenarios, removing temporary discovery filtering.
 The `scopes` posture, scope rows, provisioning guidance, and exit code retain exact origin parity, including all four original exception labels and guarded RTR host execution disclosure.
 All golden comparisons retain the existing release-version substitutions and byte-for-byte output contract.
 The post-cutover fixes for issues #139 and #140 deliberately amend `search-stop` guidance and the synthetic identifiers in `host-show` and `host-show-not-found`.

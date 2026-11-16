@@ -1,0 +1,10 @@
+{
+  "name": "help-identity-graphql",
+  "argv": [
+    "identity",
+    "graphql",
+    "--help"
+  ],
+  "comment": "identity graphql help records the parser-checked query document added under design section 4.4.",
+  "exit_code": 0
+}

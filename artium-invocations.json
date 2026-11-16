@@ -12,7 +12,7 @@
   },
   "skill": {
     "path": "skills/falcon-axi/SKILL.md",
-    "sha256": "ac312d9a38f9c556f725c2fbff851715a92b6207c375951d8b06d354c58ac1bf"
+    "sha256": "d286fc681c929eef73347f5e1bf4efba4ca0437ad525417ae77fb2b5938cccf9"
   },
   "globalFlags": [
     "help",
@@ -673,6 +673,20 @@
         "region": "value",
         "member-cid": "value",
         "domain": "value"
+      }
+    },
+    {
+      "command": "identity graphql",
+      "flags": {
+        "help": "boolean",
+        "allow-unknown-origin": "boolean",
+        "no-member-cid": "boolean",
+        "config": "value",
+        "profile": "value",
+        "region": "value",
+        "member-cid": "value",
+        "query": "value",
+        "variables": "value"
       }
     },
     {

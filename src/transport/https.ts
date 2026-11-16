@@ -9,8 +9,9 @@ import { operation } from "./operations.js";
 import { VERSION } from "../version.js";
 import { createLookup } from "./resolver.js";
 import {
+  acceptedGraphqlBody,
   graphqlBody,
-  registeredBody,
+  graphqlQueryBody,
   pathValue,
   validateSearchBody,
 } from "./search-authority.js";
@@ -82,7 +83,7 @@ async function send(
     const body: unknown = JSON.parse(prepared.body);
     if (
       prepared.exception === "graphql-query"
-        ? !registeredBody(body)
+        ? !acceptedGraphqlBody(body)
         : JSON.stringify(validateSearchBody(body)) !== prepared.body
     )
       throw new CliError(
@@ -626,6 +627,7 @@ export function requestException(
     repository?: string;
     id?: string;
     document?: string;
+    query?: string;
     variables?: unknown;
     body?: unknown;
   }>,
@@ -673,14 +675,22 @@ export function requestException(
       path = path.replace("{id}", pathValue("id", authority.id!));
     }
   } else if (descriptor.effect === "graphql-query") {
-    if (
-      Object.keys(authority).some(
-        (key) => !["document", "variables"].includes(key),
-      ) ||
-      typeof authority.document !== "string"
-    )
-      invalid();
-    body = graphqlBody(authority.document!, authority.variables);
+    const keys = Object.keys(authority);
+    if (keys.includes("query")) {
+      if (
+        keys.some((key) => !["query", "variables"].includes(key)) ||
+        typeof authority.query !== "string"
+      )
+        invalid();
+      body = graphqlQueryBody(authority.query!, authority.variables ?? {});
+    } else {
+      if (
+        keys.some((key) => !["document", "variables"].includes(key)) ||
+        typeof authority.document !== "string"
+      )
+        invalid();
+      body = graphqlBody(authority.document!, authority.variables);
+    }
     exception = "graphql-query";
   } else if (descriptor.effect === "malquery-search") {
     if (Object.keys(authority).join() !== "body") invalid();

@@ -1,6 +1,6 @@
 {
   "name": "scopes",
-  "comment": "N5 section 4.7 updates scopes guidance to distinguish registered operations from caller-selected raw routes and gated GraphQL writes.",
+  "comment": "N5 section 4.7 updates scopes guidance to distinguish registered operations from caller-selected raw routes and gated GraphQL writes. identity graphql adds a reviewed query document to the N2 scope row and guidance (design section 4.4).",
   "argv": [
     "scopes"
   ],

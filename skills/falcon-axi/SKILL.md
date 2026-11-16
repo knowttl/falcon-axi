@@ -21,10 +21,11 @@ The `rtr run` preview prints the template `<device_id>:<complete command>`; its 
 A new write command needs its operation evidenced and its own review.
 Dedicated commands do not change a host, detection, policy, or identity.
 Tenant-side effects are NG-SIEM jobs, guarded RTR execution, bounded MalQuery exact/fuzzy searches (N4), and guarded raw writes (N5).
-Identity GraphQL uses a write-labelled scope only for fixed read-only query documents.
-`raw write` previews first and sends only with a profile that opts in, `--execute`, and the exact `--confirm`, and is journaled.
+Identity GraphQL uses a write-labelled scope for fixed read-only query documents and for `identity graphql`, which sends only a document the parser accepts as exactly one query operation.
 Raw output redacts secret values and keeps every field.
-There is no unrestricted GraphQL escape hatch.
+`identity graphql` is a reviewed query read on that same endpoint.
+It refuses every mutation and subscription.
+A document with more than one operation, or one that does not parse, is not sent.
 Gated raw writes may POST caller-supplied JSON to GraphQL routes with profile `writes.allowWrites` and `raw-write`, preview, `--execute`, exact `--confirm`, and a journal.
 
 ## Orientation

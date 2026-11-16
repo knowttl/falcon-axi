@@ -58,6 +58,7 @@ Names omit the `falcon-axi` prefix; positional arguments stay inside code spans.
 | `identity show <id>` | one identity's risk, accounts, associations, and open incidents |
 | `identity timeline <id>` | one identity's recent activity |
 | `identity assessment` | security assessment score and risk factors |
+| `identity graphql` | run one read-only Identity Protection GraphQL query |
 | `identity sensor list` | list Identity Protection sensors |
 | `identity sensor show <id>` | one Identity Protection sensor's details |
 | `identity rule list` | list Identity Protection policy rules |
@@ -145,7 +146,7 @@ Run `falcon-axi scopes` to inspect the matrix offline.
 | `Falcon Container Image:read` | container list, image list, image vulnerabilities, serverless list | yes |
 | `Data Protection:read` | classification list, classification show, data-policy list, data-policy show | yes |
 | `NGSIEM:read` | search start, search status | yes |
-| `Identity Protection GraphQL:write` | identity list, identity show, identity timeline, identity assessment | yes |
+| `Identity Protection GraphQL:write` | identity list, identity show, identity timeline, identity assessment, identity graphql | yes |
 | `Identity Protection Entities:read` | identity list, identity show, identity sensor list, identity sensor show | yes |
 | `Identity Protection Timeline:read` | identity timeline | yes |
 | `Identity Protection Assessment:read` | identity assessment | yes |
@@ -994,6 +995,26 @@ falcon-axi identity assessment [--domain <name>]
 Prints the security assessment score, level, and risk factors with severity and likelihood.
 Sends only a fixed read-only query and requires Identity Protection Assessment:read and
 Identity Protection GraphQL:write. It changes no identity or assessment.
+```
+
+## identity graphql
+
+```text
+falcon-axi identity graphql --query <text|@file> [--variables <json>]
+
+--query      GraphQL document text, or @path to a UTF-8 file
+--variables  JSON object sent as GraphQL variables; omit for {}
+
+Sends one read-only query to Identity Protection.
+The document is parsed and refused unless it contains exactly one operation and that operation is a query.
+A document with more than one operation is refused and is not sent.
+A mutation, a subscription, or a document that does not parse is not sent.
+Variables are a separate JSON object and are never inserted into the document.
+Requires Identity Protection GraphQL:write, which Falcon labels write even for reads.
+The selected fields may also need Entities:read, Timeline:read, Assessment:read, or Detections:read.
+Examples:
+  falcon-axi identity graphql --query 'query { securityAssessment { overallScore } }'
+  falcon-axi identity graphql --query @query.graphql --variables '{"domain":"synthetic.example"}'
 ```
 
 ## identity sensor list

@@ -17,6 +17,9 @@ importers:
       axi-sdk-js:
         specifier: 0.1.13
         version: 0.1.13
+      graphql:
+        specifier: 16.13.1
+        version: 16.13.1
       toml-eslint-parser:
         specifier: 1.0.3
         version: 1.0.3
@@ -27,9 +30,6 @@ importers:
       '@types/node':
         specifier: 24.10.1
         version: 24.10.1
-      graphql:
-        specifier: 16.13.1
-        version: 16.13.1
       prettier:
         specifier: 3.6.2
         version: 3.6.2

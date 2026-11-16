@@ -12,6 +12,7 @@ export interface Invocation {
   flags: Map<string, string>;
   id: string | undefined;
   limit: number;
+  graphqlQuery?: string;
 }
 export function parse(argv: string[]): Invocation {
   const group = [

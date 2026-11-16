@@ -17,7 +17,7 @@ const digest = (value: string | Buffer): string =>
 const finalSeal =
   "e119af200b30eb18157b6bd0d670a940f9b1877971f515d07d3b7b6ab596983a";
 const corpusSeal =
-  "3509724fc07370f140d175f349f443bc3af809082f055874002117270eb41ee2";
+  "6e9fcd246cc960382c762699a7d071b81d832de2d36b3ff94f020f1f47c2851d";
 const groups = [
   ...baseline.groups,
   ...inventory.groups,
@@ -70,11 +70,11 @@ export function checkFinalInputs(): void {
     .map((name) => name.replace(/\.json$/, ""))
     .sort();
   if (
-    corpus.length !== 350 ||
+    corpus.length !== 351 ||
     JSON.stringify(names) !==
       JSON.stringify(corpus.map((entry) => entry.name).sort())
   )
-    throw new Error("Full parity requires the exact 350 retained definitions");
+    throw new Error("Full parity requires the exact 351 retained definitions");
   for (const entry of corpus) {
     if (
       digest(
@@ -182,8 +182,8 @@ export function finalCoverage(
     throw new Error(
       "Final coverage requires passing native and selected-path observations",
     );
-  if (passed.filter((name) => name.startsWith("golden ")).length !== 350)
-    throw new Error("Final parity did not execute all 350 goldens");
+  if (passed.filter((name) => name.startsWith("golden ")).length !== 351)
+    throw new Error("Final parity did not execute all 351 goldens");
   const prior = ["S10", "S11"].flatMap((slice) => {
     const result = JSON.parse(
       readFileSync(join(evidence, slice, `${path}-coverage.json`), "utf8"),
@@ -217,7 +217,7 @@ export function finalCoverage(
   return {
     path,
     reports: [...prior, ...reports],
-    goldenScenarios: 350,
+    goldenScenarios: 351,
     nativeWindows: "pending",
     finalLedgerSha256: finalSeal,
     corpusSha256: corpusSeal,
@@ -226,5 +226,5 @@ export function finalCoverage(
 
 checkFinalInputs();
 console.log(
-  "Final inputs: 210 safety groups and 350 retained goldens reconciled; native Windows pending",
+  "Final inputs: 210 safety groups and 351 retained goldens reconciled; native Windows pending",
 );

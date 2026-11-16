@@ -28,8 +28,9 @@ Three consequences that catch people out:
   and registry sealing rejects any other descriptor claiming `effect: "search-lifecycle"`, any scope other than
   `NGSIEM:write` on one, and any `:write` scope on a `read` descriptor.
   The `graphql-query` allowlist is exactly `api_preempt_proxy_post_graphql`, sealed the same way to
-  `Identity Protection GraphQL:write`, and GraphQL text reaches it only as a registered document from
-  `src/transport/documents.json`, never as caller input.
+  `Identity Protection GraphQL:write`.
+  GraphQL text reaches it as a registered document from `src/transport/documents.json`, or as an `identity graphql` document that the parser accepts as exactly one query operation.
+  A mutation, a subscription, or a document that does not parse is refused before send.
   N4 seals `malquery-search` to exactly `PostMalQueryExactSearchV1` and `PostMalQueryFuzzySearchV1`,
   with `MalQuery:write`, canonical POST routes, validated literal patterns, and bounded results rechecked at the sink.
   N3 separately seals its guarded RTR lifecycle (§4.5); N4 admits no hunt, multidownload, or sample download.
@@ -58,7 +59,7 @@ AXI credential profiles with `auth status`, `profile list`, and `config path`, t
 `detection summary`, `host list`, `host show`, `host logins`, `host network`, `account list`, `account show`, `asset list`, `asset show`, `application list`, `login list`, `vuln list`, `vuln show`, `cve list`, `cve show`,
 `actor list`, `actor show`, `report list`, `report show`, `indicator list`, `indicator show`),
 the NG-SIEM search lifecycle (`search start`, `search status`,
-`search stop`), the Identity Protection GraphQL reads (`identity list`, `identity show`, `identity timeline`, `identity assessment`),
+`search stop`), the Identity Protection GraphQL reads (`identity list`, `identity show`, `identity timeline`, `identity assessment`, `identity graphql`),
 the REST sensor inventory (`identity sensor list`, `identity sensor show`),
 the container and serverless reads (`container list`, `image list`, `image vulnerabilities`, `serverless list`),
 the Data Protection configuration reads (`classification list`, `classification show`, `data-policy list`, `data-policy show`),

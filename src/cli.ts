@@ -150,7 +150,7 @@ export async function main(argv: string[], bin?: string): Promise<number> {
               "NGSIEM:read, Identity Protection Entities:read, Identity Protection Timeline:read, and",
               "Identity Protection Assessment:read, plus three",
               "write-labelled scopes: NGSIEM:write for `search start`, `search stop`, and `identity activity`, and",
-              "Identity Protection GraphQL:write for the fixed Identity Protection query commands,",
+              "Identity Protection GraphQL:write for the fixed Identity Protection query commands and `identity graphql`,",
               "which Falcon requires even for read-only queries, and MalQuery:write for bounded exact/fuzzy searches (N4).",
               "The `account`, `asset`, `application`, and `login` commands need license-gated Assets:read.",
               "The `indicator` commands require the license-gated Indicators (Falcon Intelligence):read scope.",
@@ -248,7 +248,7 @@ export async function main(argv: string[], bin?: string): Promise<number> {
         render(
           {
             posture: new Raw(
-              "registered commands are read-only except NGSIEM:write for search lifecycle and identity activity (N1), Identity Protection GraphQL:write for fixed reads (N2), guarded RTR execution (N3), and bounded MalQuery searches (N4); raw writes are separately gated (N5)",
+              "registered commands are read-only except NGSIEM:write for search lifecycle and identity activity (N1), Identity Protection GraphQL:write for fixed reads and reviewed query documents (N2), guarded RTR execution (N3), and bounded MalQuery searches (N4); raw writes are separately gated (N5)",
             ),
             scopes: [...groups].map(([scope, names]) => ({
               scope,
@@ -265,9 +265,9 @@ export async function main(argv: string[], bin?: string): Promise<number> {
           [
             "Grant these scopes in the Falcon console under Support and resources > API clients and keys",
             "Registered commands need read access and only the listed NGSIEM:write, Identity Protection GraphQL:write, and MalQuery:write scopes; raw routes require the scopes Falcon documents for each chosen operation",
-            "Identity commands send fixed read queries under N2; gated raw writes under N5 can send caller-supplied GraphQL",
+            "Identity commands send fixed read queries and parser-checked query documents under N2; gated raw writes under N5 can send caller-supplied GraphQL",
             "Omit NGSIEM:write and `search start`, `search stop`, and `identity activity` fail with SCOPE_DENIED",
-            "Omit Identity Protection GraphQL:write and `identity list`, `identity show`, `identity timeline`, and `identity assessment` fail with SCOPE_DENIED",
+            "Omit Identity Protection GraphQL:write and `identity list`, `identity show`, `identity timeline`, `identity assessment`, and `identity graphql` fail with SCOPE_DENIED",
             "MalQuery:write needs Falcon MalQuery licensing and admits only bounded exact/fuzzy search under N4; hunt and sample downloads remain excluded",
             "Assets:read is license-gated to Falcon Discover or Exposure Management; omit it and the `account`, `asset`, `application`, and `login` commands fail with SCOPE_DENIED",
           ],
@@ -352,7 +352,7 @@ export async function main(argv: string[], bin?: string): Promise<number> {
             credential_path: credential.path,
             tenant,
             scopes: new Raw(
-              "read scopes, plus NGSIEM:write for `search start`, `search stop`, and `identity activity`, Identity Protection GraphQL:write for the fixed Identity Protection query commands, and MalQuery:write for bounded exact/fuzzy searches (N4)",
+              "read scopes, plus NGSIEM:write for `search start`, `search stop`, and `identity activity`, Identity Protection GraphQL:write for the fixed Identity Protection query commands and `identity graphql`, and MalQuery:write for bounded exact/fuzzy searches (N4)",
             ),
             ...(session.rateLimit !== undefined &&
             session.remaining !== undefined
@@ -386,6 +386,7 @@ export async function main(argv: string[], bin?: string): Promise<number> {
               "identity show",
               "identity timeline",
               "identity assessment",
+              "identity graphql",
             ].includes(command.name)
           ? await identity(domain)
           : command.name.startsWith("malquery ")

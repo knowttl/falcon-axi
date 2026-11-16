@@ -75,7 +75,7 @@ Outside it, `search start`, `search stop`, `host usb` and `identity activity` ma
 `rtr run --execute` opens a real endpoint session even for read-only commands and requires profile opt-in plus exact confirmation; exclude it from passive allowlists.
 `raw write --execute` changes tenant state and requires profile opt-in, exact confirmation and a journal; exclude `raw write` from passive allowlists.
 `setup hooks` writes local agent settings.
-`FALCON_AXI_READ_ONLY=1` blocks search creation/cancellation, MalQuery search, RTR execution and raw writes; fixed Identity GraphQL reads remain allowed despite their write-labelled scope.
+`FALCON_AXI_READ_ONLY=1` blocks search creation/cancellation, MalQuery search, RTR execution and raw writes; Identity Protection query reads remain allowed despite their write-labelled scope.
 Gated raw writes can perform containment, remediation, quarantine release and tenant configuration when Falcon authorizes the route.
 Treat all investigation output as sensitive: standalone CIDs and secrets are redacted, but composite detection IDs retain embedded CIDs.
 

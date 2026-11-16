@@ -129,6 +129,19 @@
     ]
   },
   {
+    "name": "identity graphql",
+    "summary": "  identity graphql          run one read-only Identity Protection GraphQL query",
+    "order": 2301.5,
+    "values": [
+      "query",
+      "variables"
+    ],
+    "booleans": [],
+    "operations": [
+      "api_preempt_proxy_post_graphql"
+    ]
+  },
+  {
     "name": "malquery show",
     "summary": "  malquery show <sha256>    indexed file metadata by SHA-256",
     "order": 2307.83,

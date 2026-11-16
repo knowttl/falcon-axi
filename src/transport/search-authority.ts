@@ -1,4 +1,5 @@
 import { createHash } from "node:crypto";
+import { Kind, parse } from "graphql";
 import { CliError, object } from "../core.js";
 import documents from "./documents.json" with { type: "json" };
 
@@ -54,6 +55,72 @@ export function graphqlBody(
   )
     throw refused();
   return { query: entry.text, variables: { ...variables } };
+}
+export function parseQueryDocument(text: string): string {
+  const source = text.charCodeAt(0) === 0xfeff ? text.slice(1) : text;
+  if (!source.trim())
+    throw new CliError(
+      "VALIDATION_ERROR",
+      "--query requires a GraphQL query document",
+    );
+  let definitions: readonly { kind: string; operation?: string }[];
+  try {
+    definitions = parse(source, { noLocation: true }).definitions;
+  } catch {
+    throw new CliError(
+      "VALIDATION_ERROR",
+      "--query is not a GraphQL document",
+      ["A document that does not parse is refused and is not sent"],
+    );
+  }
+  const operations = definitions.filter(
+    (definition) => definition.kind === Kind.OPERATION_DEFINITION,
+  );
+  if (operations.length > 1)
+    throw new CliError(
+      "VALIDATION_ERROR",
+      "--query must contain exactly one operation",
+      ["A document with more than one operation is refused and is not sent"],
+    );
+  if (!operations.length)
+    throw new CliError(
+      "VALIDATION_ERROR",
+      "--query must contain a query operation",
+    );
+  if (operations[0]?.operation !== "query")
+    throw new CliError(
+      "READ_ONLY_VIOLATION",
+      "identity graphql sends only query operations",
+      [
+        "A mutation or subscription is refused, including when named, commented, or preceded by a byte-order mark",
+      ],
+    );
+  return source;
+}
+export function queryOnly(text: string): boolean {
+  try {
+    parseQueryDocument(text);
+    return true;
+  } catch {
+    return false;
+  }
+}
+export function graphqlQueryBody(
+  query: string,
+  variables: unknown,
+): { query: string; variables: Record<string, unknown> } {
+  if (!object(variables)) throw refused();
+  return { query: parseQueryDocument(query), variables: { ...variables } };
+}
+export function acceptedGraphqlBody(body: unknown): boolean {
+  if (registeredBody(body)) return true;
+  return (
+    object(body) &&
+    Object.keys(body).sort().join() === "query,variables" &&
+    typeof body.query === "string" &&
+    object(body.variables) &&
+    queryOnly(body.query)
+  );
 }
 export function registeredBody(body: unknown): boolean {
   if (

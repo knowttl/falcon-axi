@@ -120,6 +120,8 @@ export function violations(source: string, name: string): string[] {
             (["rtr.ts", "raw.ts"].includes(name) &&
               specifier.text === "./rtr-filesystem.js") ||
             (name === "rtr.ts" && specifier.text === "node:timers/promises") ||
+            (name === "transport/search-authority.ts" &&
+              specifier.text === "graphql") ||
             (name === "transport/https.ts" && sink.has(specifier.text)) ||
             (name === "search.ts" &&
               specifier.text === "node:timers/promises") ||
