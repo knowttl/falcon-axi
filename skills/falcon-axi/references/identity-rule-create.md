@@ -14,7 +14,9 @@ The body is one JSON object of at most 1 MiB, from a file or stdin (-), without 
 Required fields are name, action, trigger, enabled, and simulationMode.
 action is ADD_TO_WATCH_LIST, ALLOW, APPLY_SSO_POLICY, BLOCK, FORCE_PASSWORD_CHANGE, or MFA.
 trigger is access, accountEvent, alert, or federatedAccess.
-Optional activity, destination, sourceEndpoint, and sourceUser objects use the documented condition fields only.
+Optional activity accepts accessType and accessTypeCustom.
+Optional destination, sourceEndpoint, and sourceUser accept entityId and groupMembership.
+Each condition field is an object with include and/or exclude string arrays.
 Requires Identity Protection Policy Rules:write.
 The command prints status, content type, and body. CrowdStrike publishes no success schema for this route.
 Examples:
