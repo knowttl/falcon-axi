@@ -20,7 +20,7 @@ Three consequences that catch people out:
   So neither the HTTP verb nor the scope name proves safety.
 - **An endpoint may be added only with two citations**: official CrowdStrike documentation stating its required
   scope, and falcon-mcp's treatment of it as corroboration, or, when falcon-mcp has no tool for the operation,
-  falconpy's generated endpoint table plus PSFalcon wrapping it (`docs/design/v1.md` §2.2).
+  falconpy's generated endpoint table plus another official CrowdStrike SDK wrapping it (`docs/design/v1.md` §2.2).
   The transport's operation registry carries that evidence as a required field and the local required-check
   set asserts it, per tier as defined in `docs/design/v1.md` §2.2.
 - **Exceptions N1-N4 are closed by id allowlists, not by discipline; N5, the raw API, is closed by its profile, confirmation and journal gates (`docs/design/v1.md` §4.7).**

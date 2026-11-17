@@ -36,6 +36,24 @@ const exceptionScopes: Readonly<Record<string, string>> = Object.freeze({
   "malquery-search": "MalQuery:write",
   "identity-policy-write": "Identity Protection Policy Rules:write",
 });
+const otherOfficialSdks = Object.freeze([
+  "PSFalcon",
+  "gofalcon",
+  "rusty-falcon",
+  "falconjs",
+]);
+export function secondCitationAdmitted(
+  row: Pick<Descriptor, "id" | "method" | "path" | "evidence">,
+): boolean {
+  const citation = row.evidence.falcon_mcp;
+  if (!citation.includes(`falcon-mcp has no tool for ${row.id}`))
+    return citation.includes("api_scopes.py") && citation.includes(" maps ");
+  return (
+    citation.includes(` maps ${row.id} to ${row.method} ${row.path}`) &&
+    /falconpy\/_endpoint\/\S+\.py maps /.test(citation) &&
+    otherOfficialSdks.some((sdk) => citation.includes(sdk))
+  );
+}
 const registry: Record<string, Descriptor> = Object.create(null) as Record<
   string,
   Descriptor
@@ -54,6 +72,7 @@ for (const row of rows) {
     !row.evidence.doc_url ||
     !row.evidence.doc_scope ||
     !row.evidence.falcon_mcp ||
+    !secondCitationAdmitted(row) ||
     (row.effect === "read"
       ? row.scopes.some((scope) => !scope.endsWith(":read"))
       : !Object.hasOwn(exceptions, row.effect) ||
