@@ -101,16 +101,18 @@ export function loadGraphqlVariables(
     throw new CliError("VALIDATION_ERROR", "--variables must be a JSON object");
   return parsed;
 }
-const pageError = (count: number, alias?: string): never => {
+const pageError = (count: number, alias?: string, directive?: string): never => {
   throw new CliError(
     "VALIDATION_ERROR",
     "--limit, --cursor, and --all require exactly one top-level connection whose first and after arguments are variables and whose pageInfo selects hasNextPage and endCursor",
     [
       alias
         ? `The selection uses the alias ${alias}, so those flags are refused and nothing is sent`
-        : count === 0
-          ? "This document has no such connection, so those flags are refused and nothing is sent"
-          : `This document has ${count} such connections, so those flags are refused and nothing is sent`,
+        : directive
+          ? `The selection uses the directive @${directive}, so those flags are refused and nothing is sent`
+          : count === 0
+            ? "This document has no such connection, so those flags are refused and nothing is sent"
+            : `This document has ${count} such connections, so those flags are refused and nothing is sent`,
     ],
   );
 };
@@ -120,9 +122,11 @@ export function validateIdentity(invocation: Invocation): void {
     invocation.graphqlQuery = loadGraphqlQuery(flags.get("--query"));
     loadGraphqlVariables(flags.get("--variables"));
     if (flags.has("--limit") || flags.has("--cursor") || flags.has("--all")) {
-      const { connections, alias } = graphqlConnections(invocation.graphqlQuery);
-      if (connections.length !== 1 || alias)
-        pageError(connections.length, alias);
+      const { connections, alias, directive } = graphqlConnections(
+        invocation.graphqlQuery,
+      );
+      if (connections.length !== 1 || alias || directive)
+        pageError(connections.length, alias, directive);
     }
   }
   if (["identity list", "identity assessment"].includes(command.name)) {
@@ -169,14 +173,16 @@ export async function identity(domain: Domain): Promise<Output> {
   if (command.name === "identity graphql") {
     const query = domain.invocation.graphqlQuery!;
     const variables = loadGraphqlVariables(flags.get("--variables"));
-    const { connections, alias } = graphqlConnections(query);
+    const { connections, alias, directive } = graphqlConnections(query);
     const page =
-      connections.length === 1 && !alias ? connections[0] : undefined;
+      connections.length === 1 && !alias && !directive
+        ? connections[0]
+        : undefined;
     if (
       (flags.has("--limit") || flags.has("--cursor") || flags.has("--all")) &&
       !page
     )
-      pageError(connections.length, alias);
+      pageError(connections.length, alias, directive);
     const read = async (
       sent: Record<string, unknown>,
     ): Promise<RecordValue> => {

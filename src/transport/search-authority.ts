@@ -3,6 +3,7 @@ import {
   Kind,
   parse,
   type FieldNode,
+  type DirectiveNode,
   type FragmentDefinitionNode,
   type SelectionNode,
 } from "graphql";
@@ -112,13 +113,21 @@ const selectionFields = (
   selections: readonly SelectionNode[],
   fragments: ReadonlyMap<string, FragmentDefinitionNode>,
   seen: ReadonlySet<string>,
+  inherited: readonly DirectiveNode[] = [],
 ): FieldNode[] => {
   const fields: FieldNode[] = [];
   for (const selection of selections) {
-    if (selection.kind === Kind.FIELD) fields.push(selection);
+    const directives = [...inherited, ...(selection.directives ?? [])];
+    if (selection.kind === Kind.FIELD)
+      fields.push({ ...selection, directives });
     else if (selection.kind === Kind.INLINE_FRAGMENT)
       fields.push(
-        ...selectionFields(selection.selectionSet.selections, fragments, seen),
+        ...selectionFields(
+          selection.selectionSet.selections,
+          fragments,
+          seen,
+          directives,
+        ),
       );
     else if (
       selection.kind === Kind.FRAGMENT_SPREAD &&
@@ -129,7 +138,10 @@ const selectionFields = (
       const next = new Set(seen);
       next.add(selection.name.value);
       fields.push(
-        ...selectionFields(fragment.selectionSet.selections, fragments, next),
+        ...selectionFields(fragment.selectionSet.selections, fragments, next, [
+          ...directives,
+          ...(fragment.directives ?? []),
+        ]),
       );
     }
   }
@@ -147,6 +159,7 @@ const argumentVariable = (
 export function graphqlConnections(text: string): {
   connections: GraphqlConnection[];
   alias?: string;
+  directive?: string;
 } {
   const source = text.charCodeAt(0) === 0xfeff ? text.slice(1) : text;
   let definitions: ReturnType<typeof parse>["definitions"];
@@ -168,6 +181,7 @@ export function graphqlConnections(text: string): {
     return { connections: [] };
   const connections: GraphqlConnection[] = [];
   let alias: string | undefined;
+  let directive: string | undefined;
   for (const field of selectionFields(
     operation.selectionSet.selections,
     fragments,
@@ -194,21 +208,30 @@ export function graphqlConnections(text: string): {
       ["nodes", "edges"].includes(item.name.value),
     );
     if (!rows.length) continue;
-    const aliased = [
+    const pagingFields = [
       ...pageInfos,
       ...pageInfos.flatMap((item) =>
         selectionFields(
           item.selectionSet?.selections ?? [],
           fragments,
           new Set(),
+          item.directives,
         ).filter((child) =>
           ["hasNextPage", "endCursor"].includes(child.name.value),
         ),
       ),
       ...rows,
-    ].find((item) => item.alias);
+    ];
+    const aliased = pagingFields.find((item) => item.alias);
     if (aliased) {
       alias ??= aliased.alias!.value;
+      continue;
+    }
+    const directed = [field, ...pagingFields].find(
+      (item) => item.directives?.length,
+    );
+    if (directed) {
+      directive ??= directed.directives![0]!.name.value;
       continue;
     }
     if (!names.has("hasNextPage") || !names.has("endCursor")) continue;
@@ -218,7 +241,7 @@ export function graphqlConnections(text: string): {
       after,
     });
   }
-  return { connections, alias };
+  return { connections, alias, directive };
 }
 export function queryOnly(text: string): boolean {
   try {
