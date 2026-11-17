@@ -562,6 +562,21 @@ test("raw write previews a caller-written identity GraphQL mutation and sends no
   await assert.rejects(readFile(env.FALCON_AXI_WRITE_LOG!));
 });
 
+for (const [description, args] of [
+  ["missing", []],
+  ["incorrect", ["--confirm", "yes"]],
+] as const) {
+  test(`raw write refuses an identity GraphQL mutation with ${description} confirmation`, async () => {
+    const env = await state();
+    const result = await run(
+      identityWriteArgs(await identityMutationFile(), "--execute", ...args),
+      env,
+    );
+    assert.equal(result.code, 2, result.stdout);
+    assert.equal(wire.length, 0);
+  });
+}
+
 test("raw write sends a confirmed caller-written identity GraphQL mutation unchanged and journals it", async () => {
   const file = await identityMutationFile();
   const env = await state();
