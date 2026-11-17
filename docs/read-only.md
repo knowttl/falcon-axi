@@ -99,7 +99,7 @@ See [redaction](design/v1.md#55-redaction) for the precise contract.
 ## Evidence and validation
 
 Operations and response shapes follow CrowdStrike's official API reference, FalconPy, and the official [falcon-mcp](https://github.com/CrowdStrike/falcon-mcp) source where available.
-Where falcon-mcp lacks an area, registry entries identify the official API reference and FalconPy plus PSFalcon corroboration.
+The [evidence rule](design/v1.md#22-the-two-citation-rule) covers operations without a falcon-mcp tool.
 Per-operation citations live in `src/transport/descriptors.json`; fixed query documents live in `src/transport/documents.json`.
 The CLI does not depend on or run falcon-mcp.
 
