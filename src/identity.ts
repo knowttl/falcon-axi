@@ -290,6 +290,7 @@ export async function identity(domain: Domain): Promise<Output> {
     let data: RecordValue | undefined;
     let next = false;
     let position: string | undefined;
+    let pagesRead = 0;
     const seen = new Set<unknown>([after]);
     do {
       const size = walking ? Math.min(command.ceiling!, remaining) : limit;
@@ -300,29 +301,33 @@ export async function identity(domain: Domain): Promise<Output> {
       if (after !== undefined) sent[page.after] = after;
       const pageData = await read(sent);
       const connection = mapping(pageData[page.key]);
-      const selectedRows = connection[page.rows];
+      const nodeRows = page.nodes ? connection[page.nodes] : undefined;
+      const edgeRows = page.edges ? connection[page.edges] : undefined;
+      const selectedRows = Array.isArray(nodeRows) ? nodeRows : edgeRows;
       const rows = Array.isArray(selectedRows) ? selectedRows : [];
       if (!data) data = structuredClone(pageData);
       else {
         const accumulated = mapping(data[page.key]);
-        if (Array.isArray(accumulated[page.rows]) && Array.isArray(selectedRows))
-          accumulated[page.rows] = [
-            ...(accumulated[page.rows] as unknown[]),
-            ...rows,
-          ];
-        if (object(connection.pageInfo))
-          accumulated.pageInfo = connection.pageInfo;
+        for (const key of [page.nodes, page.edges]) {
+          if (key && Array.isArray(connection[key]))
+            accumulated[key] = [
+              ...(Array.isArray(accumulated[key]) ? accumulated[key] : []),
+              ...connection[key],
+            ];
+        }
+        if (object(connection[page.pageInfo]))
+          accumulated[page.pageInfo] = connection[page.pageInfo];
       }
-      const info = mapping(connection.pageInfo);
-      next = info.hasNextPage === true;
-      position = text(info.endCursor);
+      const info = mapping(connection[page.pageInfo]);
+      next = info[page.hasNextPage] === true;
+      position = text(info[page.endCursor]);
       if (next && !position)
         throw new CliError(
           "UPSTREAM_ERROR",
           "the Identity Protection connection omitted endCursor",
           ["Retry shortly"],
         );
-      if (walking && next && rows.length === 0)
+      if (walking && rows.length === 0 && (next || pagesRead > 0))
         throw new CliError(
           "UPSTREAM_ERROR",
           "the Identity Protection connection returned another page without rows",
@@ -337,6 +342,7 @@ export async function identity(domain: Domain): Promise<Output> {
       if (next) seen.add(position);
       remaining -= rows.length;
       after = position;
+      pagesRead += 1;
     } while (walking && next && remaining > 0);
     const output: Output = { value: { data }, help: [] };
     if (walking && next) {

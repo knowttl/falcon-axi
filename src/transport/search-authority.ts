@@ -108,7 +108,11 @@ export type GraphqlConnection = {
   key: string;
   first: string;
   after: string;
-  rows: "nodes" | "edges";
+  nodes?: string;
+  edges?: string;
+  pageInfo: string;
+  hasNextPage: string;
+  endCursor: string;
 };
 const selectionFields = (
   selections: readonly SelectionNode[],
@@ -185,19 +189,24 @@ export function graphqlConnections(text: string): {
   let alias: string | undefined;
   let directive: string | undefined;
   let bothRows = false;
-  for (const field of selectionFields(
+  const topFields = selectionFields(
     operation.selectionSet.selections,
     fragments,
     new Set(),
-  )) {
+  );
+  const groups = new Map<string, FieldNode[]>();
+  for (const field of topFields) {
+    const key = field.alias?.value ?? field.name.value;
+    groups.set(key, [...(groups.get(key) ?? []), field]);
+  }
+  for (const group of groups.values()) {
+    const field = group[0]!;
     const first = argumentVariable(field, "first");
     const after = argumentVariable(field, "after");
     if (!first || !after || !field.selectionSet) continue;
-    const fields = selectionFields(
-      field.selectionSet.selections,
-      fragments,
-      new Set(),
-    );
+    const fields = group.flatMap((item) => selectionFields(
+      item.selectionSet?.selections ?? [], fragments, new Set(), item.directives,
+    ));
     const pageInfos = fields.filter((item) => item.name.value === "pageInfo");
     const pageInfo = pageInfos[0];
     if (!pageInfo?.selectionSet) continue;
@@ -225,12 +234,7 @@ export function graphqlConnections(text: string): {
       ),
       ...rows,
     ];
-    const aliased = pagingFields.find((item) => item.alias);
-    if (aliased) {
-      alias ??= aliased.alias!.value;
-      continue;
-    }
-    const directed = [field, ...pagingFields].find(
+    const directed = [...group, ...pagingFields].find(
       (item) => item.directives?.length,
     );
     if (directed) {
@@ -238,19 +242,26 @@ export function graphqlConnections(text: string): {
       continue;
     }
     if (!names.has("hasNextPage") || !names.has("endCursor")) continue;
-    const rowNames = new Set(rows.map((item) => item.name.value));
-    if (rowNames.size !== 1) {
-      bothRows = true;
-      continue;
-    }
+    const responseKey = (item: FieldNode): string => item.alias?.value ?? item.name.value;
+    const nodes = rows.find((item) => item.name.value === "nodes");
+    const edges = rows.find((item) => item.name.value === "edges");
     connections.push({
       key: field.alias?.value ?? field.name.value,
       first,
       after,
-      rows: rows[0]!.name.value as "nodes" | "edges",
+      ...(nodes ? { nodes: responseKey(nodes) } : {}),
+      ...(edges ? { edges: responseKey(edges) } : {}),
+      pageInfo: responseKey(pageInfo),
+      hasNextPage: responseKey(infoFields.find((item) => item.name.value === "hasNextPage")!),
+      endCursor: responseKey(infoFields.find((item) => item.name.value === "endCursor")!),
     });
   }
-  return { connections, alias, directive, bothRows };
+  return {
+    connections,
+    ...(alias === undefined ? {} : { alias }),
+    ...(directive === undefined ? {} : { directive }),
+    bothRows,
+  };
 }
 export function queryOnly(text: string): boolean {
   try {
