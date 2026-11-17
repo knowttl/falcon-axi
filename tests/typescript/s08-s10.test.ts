@@ -1402,11 +1402,7 @@ const sent = (): { query: string; variables: Record<string, unknown> } =>
 
 test("identity graphql sets first from the page limit", async () => {
   reset();
-  recordedResponse(
-    graph,
-    200,
-    pageData([{ entityId: pageIds[0] }], false, null),
-  );
+  recordedResponse(graph, 200, pageData([{ entityId: pageIds[0] }], false, null));
   const limited = await run(
     [
       "identity",
@@ -1425,11 +1421,7 @@ test("identity graphql sets first from the page limit", async () => {
   assert.equal(sent().query, pageQuery);
   assert.deepEqual(sent().variables, { name: "synthetic", first: 5 });
   reset();
-  recordedResponse(
-    graph,
-    200,
-    pageData([{ entityId: pageIds[0] }], false, null),
-  );
+  recordedResponse(graph, 200, pageData([{ entityId: pageIds[0] }], false, null));
   const defaults = await run([
     "identity",
     "graphql",
@@ -1502,13 +1494,7 @@ for (const [name, selection] of [
   test(`identity graphql refuses aliased ${name}`, async () => {
     reset();
     const query = `query Page($first: Int, $after: Cursor) { entities(first: $first, after: $after) { ${selection} } }`;
-    const result = await run([
-      "identity",
-      "graphql",
-      "--query",
-      query,
-      "--all",
-    ]);
+    const result = await run(["identity", "graphql", "--query", query, "--all"]);
     assert.equal(result.code, 2, result.stdout);
     assert.equal(value(result.stdout).code, "VALIDATION_ERROR");
     assert.equal(wire.length, 0);
@@ -1550,13 +1536,7 @@ for (const [name, query] of [
 ] as const)
   test(`identity graphql refuses ${name}`, async () => {
     reset();
-    const result = await run([
-      "identity",
-      "graphql",
-      "--query",
-      query,
-      "--all",
-    ]);
+    const result = await run(["identity", "graphql", "--query", query, "--all"]);
     assert.equal(result.code, 2, result.stdout);
     assert.equal(wire.length, 0);
   });
@@ -1620,11 +1600,7 @@ test("identity graphql refuses merged selections with multiple row arrays", asyn
 
 test("identity graphql refuses a limit above the identity list ceiling", async () => {
   reset();
-  recordedResponse(
-    graph,
-    200,
-    pageData([{ entityId: pageIds[0] }], false, null),
-  );
+  recordedResponse(graph, 200, pageData([{ entityId: pageIds[0] }], false, null));
   const result = await run([
     "identity",
     "graphql",
@@ -1661,11 +1637,7 @@ test("identity graphql continues a Relay page and rejects a cursor for a differe
   assert.equal(sent().variables.first, 1);
   assert.equal(sent().variables.after, undefined);
   reset();
-  recordedResponse(
-    graph,
-    200,
-    pageData([{ entityId: pageIds[1] }], false, null),
-  );
+  recordedResponse(graph, 200, pageData([{ entityId: pageIds[1] }], false, null));
   const second = await run([...args, "--cursor", cursor]);
   assert.equal(second.code, 0, second.stdout);
   assert.equal(sent().variables.after, "synthetic-after");
@@ -1673,11 +1645,7 @@ test("identity graphql continues a Relay page and rejects a cursor for a differe
   assert.equal(sent().query, pageQuery);
   assert.equal(value(second.stdout).continuation_cursor, undefined);
   reset();
-  recordedResponse(
-    graph,
-    200,
-    pageData([{ entityId: pageIds[1] }], false, null),
-  );
+  recordedResponse(graph, 200, pageData([{ entityId: pageIds[1] }], false, null));
   const replay = await run([...args, "--cursor", cursor]);
   assert.equal(replay.code, 0, replay.stdout);
   assert.equal(sent().variables.after, "synthetic-after");
@@ -1762,10 +1730,7 @@ test("identity graphql --all spends the row budget and ignores --limit", async (
   ]);
   assert.equal(value(result.stdout).partial, true);
   assert.equal(value(result.stdout).stop_reason, "max_rows");
-  assert.match(
-    result.stdout,
-    /Raise --max-rows, or follow continuation_cursor/,
-  );
+  assert.match(result.stdout, /Raise --max-rows, or follow continuation_cursor/);
 });
 
 test("identity graphql pages a fragment spread and an aliased edge connection", async () => {
@@ -1777,11 +1742,7 @@ test("identity graphql pages a fragment spread and an aliased edge connection", 
 }
 query Page($first: Int, $after: Cursor) { ...Connection }`;
   reset();
-  recordedResponse(
-    graph,
-    200,
-    pageData([{ entityId: pageIds[0] }], false, null),
-  );
+  recordedResponse(graph, 200, pageData([{ entityId: pageIds[0] }], false, null));
   const fragmented = await run([
     "identity",
     "graphql",
@@ -1835,13 +1796,7 @@ test("identity graphql rejects a cursor repeated after another page", async () =
       ["a", "b", "a"][calls - 1],
     ),
   }));
-  const result = await run([
-    "identity",
-    "graphql",
-    "--query",
-    pageQuery,
-    "--all",
-  ]);
+  const result = await run(["identity", "graphql", "--query", pageQuery, "--all"]);
   assert.equal(result.code, 1, result.stdout);
   assert.match(result.stdout, /repeated its cursor/);
   assert.equal(calls, 3);
@@ -1857,13 +1812,7 @@ test("identity graphql rejects an empty final page in a walk", async () => {
         ? pageData([{ entityId: pageIds[0] }], true, "next")
         : pageData([], false, null),
   }));
-  const result = await run([
-    "identity",
-    "graphql",
-    "--query",
-    pageQuery,
-    "--all",
-  ]);
+  const result = await run(["identity", "graphql", "--query", pageQuery, "--all"]);
   assert.equal(result.code, 1, result.stdout);
   assert.match(result.stdout, /without rows/);
 });
