@@ -54,7 +54,8 @@ export function secondCitationAdmitted(
       const rest = citation.slice(match.index + match[0].length);
       return (
         rest.startsWith(mapping) &&
-        (rest.length === mapping.length || /[\s.,;]/.test(rest[mapping.length]!))
+        (rest.length === mapping.length ||
+          /[\s.,;]/.test(rest[mapping.length]!))
       );
     }) &&
     otherOfficialSdks.some((sdk) => {
