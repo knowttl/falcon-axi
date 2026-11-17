@@ -519,6 +519,85 @@ test("raw write sends the confirmed request once and journals intent before outc
   assert.ok(!JSON.stringify(records).includes("synthetic"));
 });
 
+const identityGraphqlPath = "/identity-protection/combined/graphql/v1";
+const identityMutation = {
+  query:
+    "mutation SyntheticCallerMutation($id: ID!) { syntheticNoop(id: $id) }",
+  variables: { id: "synthetic-id-01" },
+};
+const identityWriteArgs = (file: string, ...rest: string[]): string[] => [
+  "raw",
+  "write",
+  "--method",
+  "POST",
+  "--path",
+  identityGraphqlPath,
+  "--body-file",
+  file,
+  "--config",
+  config,
+  "--profile",
+  "ops",
+  ...rest,
+];
+async function identityMutationFile(): Promise<string> {
+  const file = join(directory, "identity-mutation.json");
+  await writeFile(file, JSON.stringify(identityMutation));
+  return file;
+}
+
+test("raw write previews a caller-written identity GraphQL mutation and sends nothing", async () => {
+  const env = await state();
+  const result = await run(
+    identityWriteArgs(await identityMutationFile()),
+    env,
+  );
+  assert.equal(result.code, 0, result.stdout);
+  const preview = value(result.stdout).preview as Record<string, unknown>;
+  assert.equal(preview.method, "POST");
+  assert.equal(preview.path, identityGraphqlPath);
+  assert.deepEqual(preview.body, identityMutation);
+  assert.match(String(preview.confirm), /^ops:POST sha256:/);
+  assert.equal(wire.length, 0);
+  await assert.rejects(readFile(env.FALCON_AXI_WRITE_LOG!));
+});
+
+test("raw write sends a confirmed caller-written identity GraphQL mutation unchanged and journals it", async () => {
+  const file = await identityMutationFile();
+  const env = await state();
+  const preview = await run(identityWriteArgs(file), env);
+  assert.equal(preview.code, 0, preview.stdout);
+  const confirm = (value(preview.stdout).preview as Record<string, string>)
+    .confirm!;
+  recordedResponse(
+    `POST ${identityGraphqlPath}`,
+    200,
+    { data: { syntheticNoop: true } },
+    true,
+  );
+  const result = await run(
+    identityWriteArgs(file, "--execute", "--confirm", confirm),
+    env,
+  );
+  assert.equal(result.code, 0, result.stdout);
+  assert.deepEqual(value(result.stdout).body, {
+    data: { syntheticNoop: true },
+  });
+  assert.equal(requests().length, 1);
+  assert.equal(requests()[0]!.method, "POST");
+  assert.equal(requests()[0]!.url, identityGraphqlPath);
+  assert.deepEqual(JSON.parse(requests()[0]!.body), identityMutation);
+  const records = await journal(env);
+  assert.deepEqual(
+    records.map(({ phase, outcome }) => [phase, outcome]),
+    [
+      ["intent", "not_sent"],
+      ["outcome", "responded"],
+    ],
+  );
+  assert.equal(records[1]!.status, 200);
+});
+
 test("raw write accepts the redacted confirmation shown in its preview", async () => {
   const document = JSON.parse(await readFile(config, "utf8")) as {
     profiles: { ops: { clientId: string } };

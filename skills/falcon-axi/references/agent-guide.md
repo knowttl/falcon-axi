@@ -75,6 +75,18 @@ falcon-axi identity graphql --query 'query { __schema { queryType { name fields 
 
 The document check accepts introspection as an ordinary read; whether a tenant answers it is not verified here.
 
+`identity graphql` never sends a mutation.
+To send a GraphQL mutation you wrote, put the JSON body `{"query": "<mutation document>"}` in a file and use `raw write` on the same route.
+Preview first, then repeat the command with `--execute --confirm` set to the confirm value the preview printed:
+
+```sh
+falcon-axi raw write --method POST --path /identity-protection/combined/graphql/v1 --body-file mutation.json --profile ops
+falcon-axi raw write --method POST --path /identity-protection/combined/graphql/v1 --body-file mutation.json --profile ops --execute --confirm '<confirm from the preview>'
+```
+
+The profile needs `writes.allowWrites` true with `raw-write` in `writes.operations`, and the API client needs the `Identity Protection GraphQL:write` scope.
+The document is sent unchanged, so this repo does not verify mutation shapes and the tenant's response is the only check.
+
 ## Safety, help and failures
 
 Reads and writes are both in scope.
