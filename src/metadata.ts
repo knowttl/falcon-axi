@@ -155,6 +155,16 @@ const declarations: Command[] = [
     operations: ["post_policy_rules"],
   },
   {
+    name: "identity rule delete",
+    order: 2303.8,
+    summary:
+      "  identity rule delete <id> delete one Identity Protection policy rule",
+    values: ["confirm"],
+    booleans: ["execute"],
+    operations: ["delete_policy_rules"],
+    positional: "rule identifier",
+  },
+  {
     name: "identity sensor show",
     order: 2303,
     summary:

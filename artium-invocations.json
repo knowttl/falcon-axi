@@ -759,6 +759,20 @@
       }
     },
     {
+      "command": "identity rule delete",
+      "flags": {
+        "help": "boolean",
+        "allow-unknown-origin": "boolean",
+        "no-member-cid": "boolean",
+        "config": "value",
+        "profile": "value",
+        "region": "value",
+        "member-cid": "value",
+        "execute": "boolean",
+        "confirm": "value"
+      }
+    },
+    {
       "command": "ioc list",
       "flags": {
         "help": "boolean",

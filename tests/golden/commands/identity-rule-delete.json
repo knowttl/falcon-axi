@@ -1,0 +1,11 @@
+{
+  "name": "identity rule delete",
+  "order": 2303.8,
+  "summary": "  identity rule delete <id> delete one Identity Protection policy rule",
+  "scopes": [
+    {
+      "scope": "Identity Protection Policy Rules:write",
+      "access": "write"
+    }
+  ]
+}

@@ -18,7 +18,7 @@ import {
 import { inspectRtrGrant, consumeRtrGrant } from "../rtr.js";
 import { consumeRawGrant } from "../raw.js";
 import { RAW_RESPONSE_LIMIT, routeProblem } from "./raw-authority.js";
-import { policyRuleCreateBody } from "./policy-rule.js";
+import { policyRuleCreateBody, policyRuleDeleteTarget } from "./policy-rule.js";
 
 export interface Response {
   status: number;
@@ -81,9 +81,15 @@ async function send(
   if (!permits.has(prepared) || !Object.isFrozen(prepared))
     throw new CliError("READ_ONLY_VIOLATION", "request authority was refused");
   if (prepared.exception) {
-    const body: unknown = JSON.parse(prepared.body);
-    const accepted =
-      prepared.exception === "graphql-query"
+    const deleting =
+      prepared.exception === "identity-policy-write" &&
+      prepared.method === "DELETE";
+    const body: unknown = deleting ? undefined : JSON.parse(prepared.body);
+    const accepted = deleting
+      ? prepared.body === "" &&
+        policyRuleDeleteTarget(prepared.path.split("?ids=")[1]) ===
+          prepared.path
+      : prepared.exception === "graphql-query"
         ? acceptedGraphqlBody(body)
         : prepared.exception === "malquery-search"
           ? JSON.stringify(validateSearchBody(body)) === prepared.body
@@ -635,6 +641,7 @@ export function requestException(
     query?: string;
     variables?: unknown;
     body?: unknown;
+    ids?: string;
   }>,
   allowUnknown: boolean,
   signal: AbortSignal,
@@ -702,8 +709,13 @@ export function requestException(
     body = validateSearchBody(authority.body);
     exception = "malquery-search";
   } else if (descriptor.effect === "identity-policy-write") {
-    if (Object.keys(authority).join() !== "body") invalid();
-    body = policyRuleCreateBody(authority.body);
+    if (id === "delete_policy_rules") {
+      if (Object.keys(authority).join() !== "ids") invalid();
+      path = policyRuleDeleteTarget(authority.ids);
+    } else {
+      if (Object.keys(authority).join() !== "body") invalid();
+      body = policyRuleCreateBody(authority.body);
+    }
     exception = "identity-policy-write";
   } else invalid();
   if (

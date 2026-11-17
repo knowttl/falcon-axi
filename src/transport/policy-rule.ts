@@ -137,3 +137,9 @@ export function policyRuleCreateBody(value: unknown): Record<string, unknown> {
         }),
   };
 }
+
+export function policyRuleDeleteTarget(id: unknown): string {
+  if (typeof id !== "string" || !/^[A-Za-z0-9_-]+$/.test(id))
+    invalid("the policy rule identifier is malformed");
+  return `/identity-protection/entities/policy-rules/v1?ids=${id}`;
+}

@@ -322,6 +322,20 @@
     }
   },
   {
+    "id": "delete_policy_rules",
+    "method": "DELETE",
+    "path": "/identity-protection/entities/policy-rules/v1",
+    "scopes": [
+      "Identity Protection Policy Rules:write"
+    ],
+    "effect": "identity-policy-write",
+    "evidence": {
+      "doc_url": "https://developer.crowdstrike.com/api-reference/collections/identity-protection/",
+      "doc_scope": "Identity Protection Policy Rules: WRITE",
+      "falcon_mcp": "falcon-mcp has no tool for delete_policy_rules. falconpy/_endpoint/_identity_protection.py maps delete_policy_rules to DELETE /identity-protection/entities/policy-rules/v1. PSFalcon wraps delete_policy_rules. PSFalcon public/identity-protection.ps1 Remove-FalconIdentityRule wraps it."
+    }
+  },
+  {
     "id": "query_iot_hostsV2",
     "method": "GET",
     "path": "/discover/queries/iot-hosts/v2",

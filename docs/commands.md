@@ -64,6 +64,7 @@ Names omit the `falcon-axi` prefix; positional arguments stay inside code spans.
 | `identity rule list` | list Identity Protection policy rules |
 | `identity rule show <id>` | the full Identity Protection policy rule |
 | `identity rule create` | create one Identity Protection policy rule |
+| `identity rule delete <id>` | delete one Identity Protection policy rule |
 | `ioc list` | list custom indicators |
 | `ioc show <id>` | read one custom indicator |
 | `ioc hosts <type:value>` | list observed hosts for a custom IOC |
@@ -152,7 +153,7 @@ Run `falcon-axi scopes` to inspect the matrix offline.
 | `Identity Protection Timeline:read` | identity timeline | yes |
 | `Identity Protection Assessment:read` | identity assessment | yes |
 | `Identity Protection Policy Rules:read` | identity rule list, identity rule show | yes |
-| `Identity Protection Policy Rules:write` | identity rule create | yes |
+| `Identity Protection Policy Rules:write` | identity rule create, identity rule delete | yes |
 | `IOC Management:read` | ioc list, ioc show | yes |
 | `IOCs (Indicators of Compromise):read` | ioc hosts, ioc processes, process show | yes |
 | `Threatgraph:read` | process tree | yes |
@@ -1092,6 +1093,25 @@ The command prints status, content type, and body. CrowdStrike publishes no succ
 Examples:
   falcon-axi identity rule create --body-file rule.json --profile ops
   falcon-axi identity rule create --body-file rule.json --profile ops --execute --confirm '<confirm>'
+```
+
+## identity rule delete
+
+```text
+falcon-axi identity rule delete <id> [--execute --confirm '<confirm>']
+
+Use a rule identifier printed by identity rule list.
+Default: local preview, no network request. The preview prints the exact confirm value.
+Requires a file profile with writes.allowWrites=true and "identity-rule-delete" in writes.operations, even to preview.
+Execution also needs --execute and the exact --confirm value; FALCON_AXI_READ_ONLY always forbids execution.
+Sends one DELETE to /identity-protection/entities/policy-rules/v1 with the identifier as ids, never replayed.
+A private redacted journal records the intent before sending and the outcome after; it is mandatory.
+The identifier may contain only letters, digits, hyphens, and underscores.
+Requires Identity Protection Policy Rules:write.
+The command prints status, content type, and body. CrowdStrike publishes no success schema for this route.
+Examples:
+  falcon-axi identity rule delete synthetic-rule --profile ops
+  falcon-axi identity rule delete synthetic-rule --profile ops --execute --confirm '<confirm>'
 ```
 
 ## ioc list
