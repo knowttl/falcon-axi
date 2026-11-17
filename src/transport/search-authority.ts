@@ -144,13 +144,16 @@ const argumentVariable = (
     ? argument.value.name.value
     : undefined;
 };
-export function graphqlConnections(text: string): GraphqlConnection[] {
+export function graphqlConnections(text: string): {
+  connections: GraphqlConnection[];
+  alias?: string;
+} {
   const source = text.charCodeAt(0) === 0xfeff ? text.slice(1) : text;
   let definitions: ReturnType<typeof parse>["definitions"];
   try {
     definitions = parse(source, { noLocation: true }).definitions;
   } catch {
-    return [];
+    return { connections: [] };
   }
   const fragments = new Map<string, FragmentDefinitionNode>();
   for (const definition of definitions)
@@ -161,8 +164,10 @@ export function graphqlConnections(text: string): GraphqlConnection[] {
       definition.kind === Kind.OPERATION_DEFINITION &&
       definition.operation === "query",
   );
-  if (!operation || operation.kind !== Kind.OPERATION_DEFINITION) return [];
+  if (!operation || operation.kind !== Kind.OPERATION_DEFINITION)
+    return { connections: [] };
   const connections: GraphqlConnection[] = [];
+  let alias: string | undefined;
   for (const field of selectionFields(
     operation.selectionSet.selections,
     fragments,
@@ -171,19 +176,41 @@ export function graphqlConnections(text: string): GraphqlConnection[] {
     const first = argumentVariable(field, "first");
     const after = argumentVariable(field, "after");
     if (!first || !after || !field.selectionSet) continue;
-    const pageInfo = selectionFields(
+    const fields = selectionFields(
       field.selectionSet.selections,
       fragments,
       new Set(),
-    ).find((item) => item.name.value === "pageInfo");
-    if (!pageInfo?.selectionSet) continue;
-    const names = new Set(
-      selectionFields(
-        pageInfo.selectionSet.selections,
-        fragments,
-        new Set(),
-      ).map((item) => item.name.value),
     );
+    const pageInfos = fields.filter((item) => item.name.value === "pageInfo");
+    const pageInfo = pageInfos[0];
+    if (!pageInfo?.selectionSet) continue;
+    const infoFields = selectionFields(
+      pageInfo.selectionSet.selections,
+      fragments,
+      new Set(),
+    );
+    const names = new Set(infoFields.map((item) => item.name.value));
+    const rows = fields.filter((item) =>
+      ["nodes", "edges"].includes(item.name.value),
+    );
+    if (!rows.length) continue;
+    const aliased = [
+      ...pageInfos,
+      ...pageInfos.flatMap((item) =>
+        selectionFields(
+          item.selectionSet?.selections ?? [],
+          fragments,
+          new Set(),
+        ).filter((child) =>
+          ["hasNextPage", "endCursor"].includes(child.name.value),
+        ),
+      ),
+      ...rows,
+    ].find((item) => item.alias);
+    if (aliased) {
+      alias ??= aliased.alias!.value;
+      continue;
+    }
     if (!names.has("hasNextPage") || !names.has("endCursor")) continue;
     connections.push({
       key: field.alias?.value ?? field.name.value,
@@ -191,7 +218,7 @@ export function graphqlConnections(text: string): GraphqlConnection[] {
       after,
     });
   }
-  return connections;
+  return { connections, alias };
 }
 export function queryOnly(text: string): boolean {
   try {

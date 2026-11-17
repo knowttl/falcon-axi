@@ -101,14 +101,16 @@ export function loadGraphqlVariables(
     throw new CliError("VALIDATION_ERROR", "--variables must be a JSON object");
   return parsed;
 }
-const pageError = (count: number): never => {
+const pageError = (count: number, alias?: string): never => {
   throw new CliError(
     "VALIDATION_ERROR",
     "--limit, --cursor, and --all require exactly one top-level connection whose first and after arguments are variables and whose pageInfo selects hasNextPage and endCursor",
     [
-      count === 0
-        ? "This document has no such connection, so those flags are refused and nothing is sent"
-        : `This document has ${count} such connections, so those flags are refused and nothing is sent`,
+      alias
+        ? `The selection uses the alias ${alias}, so those flags are refused and nothing is sent`
+        : count === 0
+          ? "This document has no such connection, so those flags are refused and nothing is sent"
+          : `This document has ${count} such connections, so those flags are refused and nothing is sent`,
     ],
   );
 };
@@ -118,8 +120,9 @@ export function validateIdentity(invocation: Invocation): void {
     invocation.graphqlQuery = loadGraphqlQuery(flags.get("--query"));
     loadGraphqlVariables(flags.get("--variables"));
     if (flags.has("--limit") || flags.has("--cursor") || flags.has("--all")) {
-      const pages = graphqlConnections(invocation.graphqlQuery);
-      if (pages.length !== 1) pageError(pages.length);
+      const { connections, alias } = graphqlConnections(invocation.graphqlQuery);
+      if (connections.length !== 1 || alias)
+        pageError(connections.length, alias);
     }
   }
   if (["identity list", "identity assessment"].includes(command.name)) {
@@ -166,13 +169,14 @@ export async function identity(domain: Domain): Promise<Output> {
   if (command.name === "identity graphql") {
     const query = domain.invocation.graphqlQuery!;
     const variables = loadGraphqlVariables(flags.get("--variables"));
-    const pages = graphqlConnections(query);
-    const page = pages.length === 1 ? pages[0] : undefined;
+    const { connections, alias } = graphqlConnections(query);
+    const page =
+      connections.length === 1 && !alias ? connections[0] : undefined;
     if (
       (flags.has("--limit") || flags.has("--cursor") || flags.has("--all")) &&
       !page
     )
-      pageError(pages.length);
+      pageError(connections.length, alias);
     const read = async (
       sent: Record<string, unknown>,
     ): Promise<RecordValue> => {
@@ -273,6 +277,7 @@ export async function identity(domain: Domain): Promise<Output> {
     let data: RecordValue | undefined;
     let next = false;
     let position: string | undefined;
+    const seen = new Set<unknown>([after]);
     do {
       const size = walking ? Math.min(command.ceiling!, remaining) : limit;
       const sent: Record<string, unknown> = {
@@ -317,12 +322,13 @@ export async function identity(domain: Domain): Promise<Output> {
           "the Identity Protection connection returned another page without rows",
           ["Retry shortly"],
         );
-      if (next && position === after)
+      if (next && seen.has(position))
         throw new CliError(
           "UPSTREAM_ERROR",
           "the Identity Protection connection repeated its cursor",
           ["Retry shortly"],
         );
+      if (next) seen.add(position);
       remaining -= rows.length;
       after = position;
     } while (walking && next && remaining > 0);
