@@ -702,8 +702,8 @@
   },
   {
     "name": "help-identity-graphql",
-    "definitionSha256": "6c6dc97284b15bb11a1cdc220cbec75f213ac2af0f641c8fa4bd8bf1ab8875cd",
-    "expectedSha256": "5db99873c13a3f62a42ccf9c22595351ebb1d5c5f8632c93fdb96088198c863c"
+    "definitionSha256": "c77ae944192ce7d4d4684cadda32c7faf95d583980fb305fa60198bb43eb3d65",
+    "expectedSha256": "f16432533fdcee2f8cdab243131262dda85e14c76765e491862dee2d2349a9a2"
   },
   {
     "name": "help-identity-list",

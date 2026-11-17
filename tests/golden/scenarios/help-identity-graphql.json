@@ -5,6 +5,6 @@
     "graphql",
     "--help"
   ],
-  "comment": "identity graphql help records the parser-checked query document added under design section 4.4.",
+  "comment": "identity graphql help records the parser-checked query document added under design section 4.4, and states that incidents and the remaining assessment reads have no fixed command and are read through a caller-written query.",
   "exit_code": 0
 }
