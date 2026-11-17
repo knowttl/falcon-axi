@@ -132,7 +132,8 @@ export class Domain {
       };
     const envelope = object(response.body) ? response.body : {};
     const rows: unknown =
-      operation === "GetSensorUsageWeekly" && Array.isArray(response.body)
+      ["GetSensorUsageWeekly", "GetSensorAggregates"].includes(operation) &&
+      Array.isArray(response.body)
         ? response.body
         : envelope.resources;
     if (

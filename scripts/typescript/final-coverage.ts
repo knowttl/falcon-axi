@@ -17,7 +17,7 @@ const digest = (value: string | Buffer): string =>
 const finalSeal =
   "e119af200b30eb18157b6bd0d670a940f9b1877971f515d07d3b7b6ab596983a";
 const corpusSeal =
-  "d9093f114ebe1a8500e1bfbeb0718d2c2b1e499f318bdd1720890c366f14d63b";
+  "d55f984296852f6e22bafda40b31a86b04240d89cda5cb628b8232692e9fa610";
 const groups = [
   ...baseline.groups,
   ...inventory.groups,

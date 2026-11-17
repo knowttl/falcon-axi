@@ -47,10 +47,15 @@ const postMigrationCommandNames = [
   "identity graphql",
   "identity rule create",
   "identity rule delete",
+  "identity sensor aggregate",
   "raw get",
   "raw write",
 ];
-const postMigrationOperationIds = ["post_policy_rules", "delete_policy_rules"];
+const postMigrationOperationIds = [
+  "post_policy_rules",
+  "delete_policy_rules",
+  "GetSensorAggregates",
+];
 const expectedCommands = [
   ...new Set([
     ...postMigrationCommandNames,

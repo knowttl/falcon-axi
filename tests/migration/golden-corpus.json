@@ -1142,8 +1142,8 @@
   },
   {
     "name": "identity-sensor-unknown-subcommand",
-    "definitionSha256": "845b7651e8a4a0449d3f0456b77203969d0f545e2356511549bede29c7c96aba",
-    "expectedSha256": "b40fbf013e9204ae7231809f58be2bc7fe472c5b36d0f98b517040a0ab3b37f1"
+    "definitionSha256": "8b09a7d49a2aee06fbc12c0adcb26366a9b856568c08bc8afa190ee29397a927",
+    "expectedSha256": "29d6a9a99250dc2816ae7ec538a058e75536a0b236ad561eabaa97d46d73093d"
   },
   {
     "name": "identity-show-not-a-guid",

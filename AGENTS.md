@@ -61,7 +61,7 @@ AXI credential profiles with `auth status`, `profile list`, and `config path`, t
 `actor list`, `actor show`, `report list`, `report show`, `indicator list`, `indicator show`),
 the NG-SIEM search lifecycle (`search start`, `search status`,
 `search stop`), the Identity Protection GraphQL reads (`identity list`, `identity show`, `identity timeline`, `identity assessment`, `identity graphql`),
-the REST sensor inventory (`identity sensor list`, `identity sensor show`),
+the REST sensor inventory (`identity sensor list`, `identity sensor aggregate`, `identity sensor show`),
 the container and serverless reads (`container list`, `image list`, `image vulnerabilities`, `serverless list`),
 the Data Protection configuration reads (`classification list`, `classification show`, `data-policy list`, `data-policy show`),
 the firewall rule list/show and group list, IOA group list, correlation-rule list, and case list/show,

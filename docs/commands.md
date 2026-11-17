@@ -60,6 +60,7 @@ Names omit the `falcon-axi` prefix; positional arguments stay inside code spans.
 | `identity assessment` | security assessment score and risk factors |
 | `identity graphql` | run one read-only Identity Protection GraphQL query |
 | `identity sensor list` | list Identity Protection sensors |
+| `identity sensor aggregate` | aggregate Identity Protection sensors by a field |
 | `identity sensor show <id>` | one Identity Protection sensor's details |
 | `identity rule list` | list Identity Protection policy rules |
 | `identity rule show <id>` | the full Identity Protection policy rule |
@@ -149,7 +150,7 @@ Run `falcon-axi scopes` to inspect the matrix offline.
 | `Data Protection:read` | classification list, classification show, data-policy list, data-policy show | yes |
 | `NGSIEM:read` | search start, search status | yes |
 | `Identity Protection GraphQL:write` | identity list, identity show, identity timeline, identity assessment, identity graphql | yes |
-| `Identity Protection Entities:read` | identity list, identity show, identity sensor list, identity sensor show | yes |
+| `Identity Protection Entities:read` | identity list, identity show, identity sensor list, identity sensor aggregate, identity sensor show | yes |
 | `Identity Protection Timeline:read` | identity timeline | yes |
 | `Identity Protection Assessment:read` | identity assessment | yes |
 | `Identity Protection Policy Rules:read` | identity rule list, identity rule show | yes |
@@ -1030,6 +1031,22 @@ falcon-axi identity sensor list [--filter <FQL>] [--limit N] [--cursor <token>]
 --cursor     opaque continuation token from a previous call
 
 Lists Identity Protection sensors with device_id, hostname, status, and agent_version.
+This command is read-only and requires Identity Protection Entities:read.
+```
+
+## identity sensor aggregate
+
+```text
+falcon-axi identity sensor aggregate --name <name> --type <type> --field <field> [--filter <FQL>] [--size N]
+
+--name       label for the aggregation, returned in the result
+--type       aggregation type, sent to Falcon as given
+--field      sensor field to aggregate
+--filter     Falcon Query Language expression for identity sensors
+--size       maximum number of buckets
+
+Sends one POST to /identity-protection/aggregates/devices/GET/v1 and prints each result's name, buckets, and counts.
+CrowdStrike's references publish the request fields but not the accepted type or field values; Falcon rejects an unsupported value.
 This command is read-only and requires Identity Protection Entities:read.
 ```
 

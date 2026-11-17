@@ -84,7 +84,7 @@ The recorded source-only `artium-delta` is held for the next release-candidate f
 
 ## Authority and output
 
-The registry retains all 116 canonical operation tuples and their official scope and corroboration citations.
+The registry retains all 117 canonical operation tuples and their official scope and corroboration citations.
 A pinned canonical digest, own-key checks and recursive freezing seal the registry before networking.
 This carrier enables the 110 operations owned by S03-S10 after method, registry and body validation.
 ThreatGraph summaries always use the fixed `processes` path component.

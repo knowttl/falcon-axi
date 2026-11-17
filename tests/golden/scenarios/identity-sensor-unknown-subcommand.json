@@ -1,5 +1,6 @@
 {
   "name": "identity-sensor-unknown-subcommand",
+  "comment": "identity sensor aggregate adds aggregate to the valid identity sensor subcommands (design section 1.2).",
   "argv": [
     "identity",
     "sensor",

@@ -1232,6 +1232,20 @@
     }
   },
   {
+    "id": "GetSensorAggregates",
+    "method": "POST",
+    "path": "/identity-protection/aggregates/devices/GET/v1",
+    "scopes": [
+      "Identity Protection Entities:read"
+    ],
+    "effect": "read",
+    "evidence": {
+      "doc_url": "https://developer.crowdstrike.com/api-reference/collections/identity-protection/#getsensoraggregates",
+      "doc_scope": "Identity Protection Entities: READ",
+      "falcon_mcp": "falcon-mcp has no tool for GetSensorAggregates (falcon_mcp/modules/idp.py). falconpy/_endpoint/_identity_protection.py maps GetSensorAggregates to POST /identity-protection/aggregates/devices/GET/v1. gofalcon wraps GetSensorAggregates. gofalcon Client.GetSensorAggregates in falcon/client/identity_entities/identity_entities_client.go wraps the same operation."
+    }
+  },
+  {
     "id": "QueryVulnerabilities",
     "method": "GET",
     "path": "/intel/queries/vulnerabilities/v1",

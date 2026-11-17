@@ -1,0 +1,11 @@
+{
+  "name": "identity sensor aggregate",
+  "order": 2302.5,
+  "summary": "  identity sensor aggregate aggregate Identity Protection sensors by a field",
+  "scopes": [
+    {
+      "scope": "Identity Protection Entities:read",
+      "access": "read"
+    }
+  ]
+}

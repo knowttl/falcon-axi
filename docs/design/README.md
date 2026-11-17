@@ -41,7 +41,7 @@ What is shipped:
   `identity timeline`, sending only fixed read-only GraphQL query documents under captain exception
   N2, plus `identity graphql` for a caller document that parses as exactly one query operation;
 - `identity assessment [--domain <name>]`, a fixed read-only security-assessment query under N2,
-  and `identity sensor list` / `identity sensor show`, ordinary REST reads of sensor inventory;
+  and [Identity Protection sensor commands](../commands.md#identity-sensor-list), ordinary REST reads;
 - identity-aware detections (`detection list --product idp`, with account and source-endpoint
   fields when present) and `identity activity <account>`, a fixed NG-SIEM search over one account's
   Identity Protection events that adds no operation and no scope beyond N1's;
