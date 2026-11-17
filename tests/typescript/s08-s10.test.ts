@@ -1480,10 +1480,7 @@ for (const [name, query, flag] of [
   });
 
 for (const [name, selection] of [
-  [
-    "pageInfo",
-    "nodes { entityId } info: pageInfo { hasNextPage endCursor }",
-  ],
+  ["pageInfo", "nodes { entityId } info: pageInfo { hasNextPage endCursor }"],
   [
     "hasNextPage",
     "nodes { entityId } pageInfo { more: hasNextPage endCursor }",
@@ -1492,10 +1489,7 @@ for (const [name, selection] of [
     "endCursor",
     "nodes { entityId } pageInfo { hasNextPage cursor: endCursor }",
   ],
-  [
-    "nodes",
-    "items: nodes { entityId } pageInfo { hasNextPage endCursor }",
-  ],
+  ["nodes", "items: nodes { entityId } pageInfo { hasNextPage endCursor }"],
   [
     "edges",
     "items: edges { node { entityId } } pageInfo { hasNextPage endCursor }",

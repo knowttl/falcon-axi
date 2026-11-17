@@ -257,8 +257,7 @@ export function graphqlConnections(text: string): {
       rows.length !== 1 ||
       infoFields.filter((item) => item.name.value === "hasNextPage").length !==
         1 ||
-      infoFields.filter((item) => item.name.value === "endCursor").length !==
-        1
+      infoFields.filter((item) => item.name.value === "endCursor").length !== 1
     )
       continue;
     const responseKey = (item: FieldNode): string =>
