@@ -247,6 +247,20 @@ export function graphqlConnections(text: string): {
       continue;
     }
     if (!names.has("hasNextPage") || !names.has("endCursor")) continue;
+    const aliased = pagingFields.find((item) => item.alias);
+    if (aliased) {
+      alias ??= aliased.alias!.value;
+      continue;
+    }
+    if (
+      pageInfos.length !== 1 ||
+      rows.length !== 1 ||
+      infoFields.filter((item) => item.name.value === "hasNextPage").length !==
+        1 ||
+      infoFields.filter((item) => item.name.value === "endCursor").length !==
+        1
+    )
+      continue;
     const responseKey = (item: FieldNode): string =>
       item.alias?.value ?? item.name.value;
     const nodes = rows.find((item) => item.name.value === "nodes");

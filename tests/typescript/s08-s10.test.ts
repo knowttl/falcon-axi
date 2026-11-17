@@ -1479,64 +1479,35 @@ for (const [name, query, flag] of [
     assert.equal(wire.length, 0);
   });
 
-for (const [name, selection, alias] of [
+for (const [name, selection] of [
   [
     "pageInfo",
     "nodes { entityId } info: pageInfo { hasNextPage endCursor }",
-    "info",
   ],
   [
     "hasNextPage",
     "nodes { entityId } pageInfo { more: hasNextPage endCursor }",
-    "more",
   ],
   [
     "endCursor",
     "nodes { entityId } pageInfo { hasNextPage cursor: endCursor }",
-    "cursor",
   ],
   [
     "nodes",
     "items: nodes { entityId } pageInfo { hasNextPage endCursor }",
-    "items",
   ],
   [
     "edges",
     "items: edges { node { entityId } } pageInfo { hasNextPage endCursor }",
-    "items",
+  ],
+  [
+    "second row array",
+    "nodes { entityId } copies: nodes { entityId } pageInfo { hasNextPage endCursor }",
   ],
 ] as const)
-  test(`identity graphql pages aliased ${name}`, async () => {
+  test(`identity graphql refuses aliased ${name}`, async () => {
     reset();
     const query = `query Page($first: Int, $after: Cursor) { entities(first: $first, after: $after) { ${selection} } }`;
-    let calls = 0;
-    dynamicResponse(graph, (_query, body) => {
-      calls += 1;
-      assert.equal(
-        (body.variables as Record<string, unknown>).after,
-        calls === 1 ? undefined : "next",
-      );
-      const info = {
-        [name === "hasNextPage" ? alias : "hasNextPage"]: calls === 1,
-        [name === "endCursor" ? alias : "endCursor"]:
-          calls === 1 ? "next" : null,
-      };
-      const rows =
-        name === "edges"
-          ? [{ node: { entityId: pageIds[calls - 1] } }]
-          : [{ entityId: pageIds[calls - 1] }];
-      return {
-        status: 200,
-        body: {
-          data: {
-            entities: {
-              [name === "pageInfo" ? alias : "pageInfo"]: info,
-              [name === "nodes" || name === "edges" ? alias : "nodes"]: rows,
-            },
-          },
-        },
-      };
-    });
     const result = await run([
       "identity",
       "graphql",
@@ -1544,17 +1515,9 @@ for (const [name, selection, alias] of [
       query,
       "--all",
     ]);
-    assert.equal(result.code, 0, result.stdout);
-    assert.equal(calls, 2);
-    const data = value(result.stdout).data as Record<
-      string,
-      Record<string, unknown[]>
-    >;
-    assert.equal(
-      data.entities![name === "nodes" || name === "edges" ? alias : "nodes"]!
-        .length,
-      2,
-    );
+    assert.equal(result.code, 2, result.stdout);
+    assert.equal(value(result.stdout).code, "VALIDATION_ERROR");
+    assert.equal(wire.length, 0);
   });
 
 for (const [name, query] of [
@@ -1619,7 +1582,7 @@ for (const [name, query] of [
       assert.equal(wire.length, 0);
     });
 
-test("identity graphql pages merged selections and both row representations", async () => {
+test("identity graphql refuses merged selections with multiple row arrays", async () => {
   reset();
   const query = `query Page($first: Int, $after: Cursor) {
       entities(first: $first, after: $after) {
@@ -1628,38 +1591,9 @@ test("identity graphql pages merged selections and both row representations", as
       }
       ...More
     } fragment More on Query { entities(first: $first, after: $after) { nodes { entityId } } }`;
-  let calls = 0;
-  dynamicResponse(graph, () => {
-    calls += 1;
-    return {
-      status: 200,
-      body: {
-        data: {
-          entities:
-            calls === 1
-              ? {
-                  nodes: null,
-                  edges: [{ node: { entityId: pageIds[0] } }],
-                  pageInfo: { hasNextPage: true, endCursor: "next" },
-                }
-              : {
-                  nodes: [{ entityId: pageIds[1] }],
-                  edges: null,
-                  pageInfo: { hasNextPage: false, endCursor: null },
-                },
-        },
-      },
-    };
-  });
   const result = await run(["identity", "graphql", "--query", query, "--all"]);
-  assert.equal(result.code, 0, result.stdout);
-  assert.equal(scoped().length, 2);
-  assert.deepEqual((value(result.stdout).data as any).entities.nodes, [
-    { entityId: pageIds[1] },
-  ]);
-  assert.deepEqual((value(result.stdout).data as any).entities.edges, [
-    { node: { entityId: pageIds[0] } },
-  ]);
+  assert.equal(result.code, 2, result.stdout);
+  assert.equal(wire.length, 0);
 });
 
 test("identity graphql refuses a limit above the identity list ceiling", async () => {
