@@ -180,7 +180,8 @@ export async function identity(domain: Domain): Promise<Output> {
   if (command.name === "identity graphql") {
     const query = domain.invocation.graphqlQuery!;
     const variables = loadGraphqlVariables(flags.get("--variables"));
-    const { connections, alias, directive, bothRows } = graphqlConnections(query);
+    const { connections, alias, directive, bothRows } =
+      graphqlConnections(query);
     const page =
       connections.length === 1 && !alias && !directive && !bothRows
         ? connections[0]

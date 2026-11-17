@@ -204,9 +204,14 @@ export function graphqlConnections(text: string): {
     const first = argumentVariable(field, "first");
     const after = argumentVariable(field, "after");
     if (!first || !after || !field.selectionSet) continue;
-    const fields = group.flatMap((item) => selectionFields(
-      item.selectionSet?.selections ?? [], fragments, new Set(), item.directives,
-    ));
+    const fields = group.flatMap((item) =>
+      selectionFields(
+        item.selectionSet?.selections ?? [],
+        fragments,
+        new Set(),
+        item.directives,
+      ),
+    );
     const pageInfos = fields.filter((item) => item.name.value === "pageInfo");
     const pageInfo = pageInfos[0];
     if (!pageInfo?.selectionSet) continue;
@@ -242,7 +247,8 @@ export function graphqlConnections(text: string): {
       continue;
     }
     if (!names.has("hasNextPage") || !names.has("endCursor")) continue;
-    const responseKey = (item: FieldNode): string => item.alias?.value ?? item.name.value;
+    const responseKey = (item: FieldNode): string =>
+      item.alias?.value ?? item.name.value;
     const nodes = rows.find((item) => item.name.value === "nodes");
     const edges = rows.find((item) => item.name.value === "edges");
     connections.push({
@@ -252,8 +258,12 @@ export function graphqlConnections(text: string): {
       ...(nodes ? { nodes: responseKey(nodes) } : {}),
       ...(edges ? { edges: responseKey(edges) } : {}),
       pageInfo: responseKey(pageInfo),
-      hasNextPage: responseKey(infoFields.find((item) => item.name.value === "hasNextPage")!),
-      endCursor: responseKey(infoFields.find((item) => item.name.value === "endCursor")!),
+      hasNextPage: responseKey(
+        infoFields.find((item) => item.name.value === "hasNextPage")!,
+      ),
+      endCursor: responseKey(
+        infoFields.find((item) => item.name.value === "endCursor")!,
+      ),
     });
   }
   return {

@@ -1402,7 +1402,11 @@ const sent = (): { query: string; variables: Record<string, unknown> } =>
 
 test("identity graphql sets first from the page limit", async () => {
   reset();
-  recordedResponse(graph, 200, pageData([{ entityId: pageIds[0] }], false, null));
+  recordedResponse(
+    graph,
+    200,
+    pageData([{ entityId: pageIds[0] }], false, null),
+  );
   const limited = await run(
     [
       "identity",
@@ -1421,7 +1425,11 @@ test("identity graphql sets first from the page limit", async () => {
   assert.equal(sent().query, pageQuery);
   assert.deepEqual(sent().variables, { name: "synthetic", first: 5 });
   reset();
-  recordedResponse(graph, 200, pageData([{ entityId: pageIds[0] }], false, null));
+  recordedResponse(
+    graph,
+    200,
+    pageData([{ entityId: pageIds[0] }], false, null),
+  );
   const defaults = await run([
     "identity",
     "graphql",
@@ -1472,48 +1480,131 @@ for (const [name, query, flag] of [
   });
 
 for (const [name, selection, alias] of [
-  ["pageInfo", "nodes { entityId } info: pageInfo { hasNextPage endCursor }", "info"],
-  ["hasNextPage", "nodes { entityId } pageInfo { more: hasNextPage endCursor }", "more"],
-  ["endCursor", "nodes { entityId } pageInfo { hasNextPage cursor: endCursor }", "cursor"],
-  ["nodes", "items: nodes { entityId } pageInfo { hasNextPage endCursor }", "items"],
-  ["edges", "items: edges { node { entityId } } pageInfo { hasNextPage endCursor }", "items"],
+  [
+    "pageInfo",
+    "nodes { entityId } info: pageInfo { hasNextPage endCursor }",
+    "info",
+  ],
+  [
+    "hasNextPage",
+    "nodes { entityId } pageInfo { more: hasNextPage endCursor }",
+    "more",
+  ],
+  [
+    "endCursor",
+    "nodes { entityId } pageInfo { hasNextPage cursor: endCursor }",
+    "cursor",
+  ],
+  [
+    "nodes",
+    "items: nodes { entityId } pageInfo { hasNextPage endCursor }",
+    "items",
+  ],
+  [
+    "edges",
+    "items: edges { node { entityId } } pageInfo { hasNextPage endCursor }",
+    "items",
+  ],
 ] as const)
-    test(`identity graphql pages aliased ${name}`, async () => {
-      reset();
-      const query = `query Page($first: Int, $after: Cursor) { entities(first: $first, after: $after) { ${selection} } }`;
-      let calls = 0;
-      dynamicResponse(graph, (_query, body) => {
-        calls += 1;
-        assert.equal((body.variables as Record<string, unknown>).after, calls === 1 ? undefined : "next");
-        const info = { [name === "hasNextPage" ? alias : "hasNextPage"]: calls === 1, [name === "endCursor" ? alias : "endCursor"]: calls === 1 ? "next" : null };
-        const rows = name === "edges" ? [{ node: { entityId: pageIds[calls - 1] } }] : [{ entityId: pageIds[calls - 1] }];
-        return { status: 200, body: { data: { entities: { [name === "pageInfo" ? alias : "pageInfo"]: info, [name === "nodes" || name === "edges" ? alias : "nodes"]: rows } } } };
-      });
-      const result = await run(["identity", "graphql", "--query", query, "--all"]);
-      assert.equal(result.code, 0, result.stdout);
-      assert.equal(calls, 2);
-      const data = value(result.stdout).data as Record<string, Record<string, unknown[]>>;
-      assert.equal(data.entities![name === "nodes" || name === "edges" ? alias : "nodes"]!.length, 2);
+  test(`identity graphql pages aliased ${name}`, async () => {
+    reset();
+    const query = `query Page($first: Int, $after: Cursor) { entities(first: $first, after: $after) { ${selection} } }`;
+    let calls = 0;
+    dynamicResponse(graph, (_query, body) => {
+      calls += 1;
+      assert.equal(
+        (body.variables as Record<string, unknown>).after,
+        calls === 1 ? undefined : "next",
+      );
+      const info = {
+        [name === "hasNextPage" ? alias : "hasNextPage"]: calls === 1,
+        [name === "endCursor" ? alias : "endCursor"]:
+          calls === 1 ? "next" : null,
+      };
+      const rows =
+        name === "edges"
+          ? [{ node: { entityId: pageIds[calls - 1] } }]
+          : [{ entityId: pageIds[calls - 1] }];
+      return {
+        status: 200,
+        body: {
+          data: {
+            entities: {
+              [name === "pageInfo" ? alias : "pageInfo"]: info,
+              [name === "nodes" || name === "edges" ? alias : "nodes"]: rows,
+            },
+          },
+        },
+      };
     });
+    const result = await run([
+      "identity",
+      "graphql",
+      "--query",
+      query,
+      "--all",
+    ]);
+    assert.equal(result.code, 0, result.stdout);
+    assert.equal(calls, 2);
+    const data = value(result.stdout).data as Record<
+      string,
+      Record<string, unknown[]>
+    >;
+    assert.equal(
+      data.entities![name === "nodes" || name === "edges" ? alias : "nodes"]!
+        .length,
+      2,
+    );
+  });
 
 for (const [name, query] of [
-  ["split pageInfo", `query Page($first: Int, $after: Cursor) { entities(first: $first, after: $after) { nodes { entityId } pageInfo { hasNextPage } pageInfo { endCursor } } }`],
+  [
+    "split pageInfo",
+    `query Page($first: Int, $after: Cursor) { entities(first: $first, after: $after) { nodes { entityId } pageInfo { hasNextPage } pageInfo { endCursor } } }`,
+  ],
 ] as const)
   test(`identity graphql refuses ${name}`, async () => {
     reset();
-    const result = await run(["identity", "graphql", "--query", query, "--all"]);
+    const result = await run([
+      "identity",
+      "graphql",
+      "--query",
+      query,
+      "--all",
+    ]);
     assert.equal(result.code, 2, result.stdout);
     assert.equal(wire.length, 0);
   });
 
 for (const [name, query] of [
-  ["connection", `entities(first: $first, after: $after) @skip(if: true) { nodes { entityId } pageInfo { hasNextPage endCursor } }`],
-  ["pageInfo", `entities(first: $first, after: $after) { nodes { entityId } pageInfo @skip(if: true) { hasNextPage endCursor } }`],
-  ["hasNextPage", `entities(first: $first, after: $after) { nodes { entityId } pageInfo { hasNextPage @skip(if: true) endCursor } }`],
-  ["endCursor", `entities(first: $first, after: $after) { nodes { entityId } pageInfo { hasNextPage endCursor @skip(if: true) } }`],
-  ["nodes", `entities(first: $first, after: $after) { nodes @skip(if: true) { entityId } pageInfo { hasNextPage endCursor } }`],
-  ["edges", `entities(first: $first, after: $after) { edges @skip(if: true) { node { entityId } } pageInfo { hasNextPage endCursor } }`],
-  ["fragment", `... on Query @skip(if: true) { entities(first: $first, after: $after) { nodes { entityId } pageInfo { hasNextPage endCursor } } }`],
+  [
+    "connection",
+    `entities(first: $first, after: $after) @skip(if: true) { nodes { entityId } pageInfo { hasNextPage endCursor } }`,
+  ],
+  [
+    "pageInfo",
+    `entities(first: $first, after: $after) { nodes { entityId } pageInfo @skip(if: true) { hasNextPage endCursor } }`,
+  ],
+  [
+    "hasNextPage",
+    `entities(first: $first, after: $after) { nodes { entityId } pageInfo { hasNextPage @skip(if: true) endCursor } }`,
+  ],
+  [
+    "endCursor",
+    `entities(first: $first, after: $after) { nodes { entityId } pageInfo { hasNextPage endCursor @skip(if: true) } }`,
+  ],
+  [
+    "nodes",
+    `entities(first: $first, after: $after) { nodes @skip(if: true) { entityId } pageInfo { hasNextPage endCursor } }`,
+  ],
+  [
+    "edges",
+    `entities(first: $first, after: $after) { edges @skip(if: true) { node { entityId } } pageInfo { hasNextPage endCursor } }`,
+  ],
+  [
+    "fragment",
+    `... on Query @skip(if: true) { entities(first: $first, after: $after) { nodes { entityId } pageInfo { hasNextPage endCursor } } }`,
+  ],
 ] as const)
   for (const flag of ["--limit", "--cursor", "--all"])
     test(`identity graphql refuses a directive on ${name} with ${flag}`, async () => {
@@ -1529,31 +1620,55 @@ for (const [name, query] of [
     });
 
 test("identity graphql pages merged selections and both row representations", async () => {
-    reset();
-    const query = `query Page($first: Int, $after: Cursor) {
+  reset();
+  const query = `query Page($first: Int, $after: Cursor) {
       entities(first: $first, after: $after) {
         nodes { entityId } edges { node { entityId } }
         pageInfo { hasNextPage endCursor }
       }
       ...More
     } fragment More on Query { entities(first: $first, after: $after) { nodes { entityId } } }`;
-    let calls = 0;
-    dynamicResponse(graph, () => {
-      calls += 1;
-      return { status: 200, body: { data: { entities: calls === 1
-        ? { nodes: null, edges: [{ node: { entityId: pageIds[0] } }], pageInfo: { hasNextPage: true, endCursor: "next" } }
-        : { nodes: [{ entityId: pageIds[1] }], edges: null, pageInfo: { hasNextPage: false, endCursor: null } } } } };
-    });
-    const result = await run(["identity", "graphql", "--query", query, "--all"]);
-    assert.equal(result.code, 0, result.stdout);
-    assert.equal(scoped().length, 2);
-    assert.deepEqual((value(result.stdout).data as any).entities.nodes, [{ entityId: pageIds[1] }]);
-    assert.deepEqual((value(result.stdout).data as any).entities.edges, [{ node: { entityId: pageIds[0] } }]);
+  let calls = 0;
+  dynamicResponse(graph, () => {
+    calls += 1;
+    return {
+      status: 200,
+      body: {
+        data: {
+          entities:
+            calls === 1
+              ? {
+                  nodes: null,
+                  edges: [{ node: { entityId: pageIds[0] } }],
+                  pageInfo: { hasNextPage: true, endCursor: "next" },
+                }
+              : {
+                  nodes: [{ entityId: pageIds[1] }],
+                  edges: null,
+                  pageInfo: { hasNextPage: false, endCursor: null },
+                },
+        },
+      },
+    };
   });
+  const result = await run(["identity", "graphql", "--query", query, "--all"]);
+  assert.equal(result.code, 0, result.stdout);
+  assert.equal(scoped().length, 2);
+  assert.deepEqual((value(result.stdout).data as any).entities.nodes, [
+    { entityId: pageIds[1] },
+  ]);
+  assert.deepEqual((value(result.stdout).data as any).entities.edges, [
+    { node: { entityId: pageIds[0] } },
+  ]);
+});
 
 test("identity graphql refuses a limit above the identity list ceiling", async () => {
   reset();
-  recordedResponse(graph, 200, pageData([{ entityId: pageIds[0] }], false, null));
+  recordedResponse(
+    graph,
+    200,
+    pageData([{ entityId: pageIds[0] }], false, null),
+  );
   const result = await run([
     "identity",
     "graphql",
@@ -1569,7 +1684,11 @@ test("identity graphql refuses a limit above the identity list ceiling", async (
 
 test("identity graphql continues a Relay page and rejects a cursor for a different document", async () => {
   reset();
-  recordedResponse(graph, 200, pageData([{ entityId: pageIds[0] }], true, "synthetic-after"));
+  recordedResponse(
+    graph,
+    200,
+    pageData([{ entityId: pageIds[0] }], true, "synthetic-after"),
+  );
   const args = [
     "identity",
     "graphql",
@@ -1586,7 +1705,11 @@ test("identity graphql continues a Relay page and rejects a cursor for a differe
   assert.equal(sent().variables.first, 1);
   assert.equal(sent().variables.after, undefined);
   reset();
-  recordedResponse(graph, 200, pageData([{ entityId: pageIds[1] }], false, null));
+  recordedResponse(
+    graph,
+    200,
+    pageData([{ entityId: pageIds[1] }], false, null),
+  );
   const second = await run([...args, "--cursor", cursor]);
   assert.equal(second.code, 0, second.stdout);
   assert.equal(sent().variables.after, "synthetic-after");
@@ -1594,7 +1717,11 @@ test("identity graphql continues a Relay page and rejects a cursor for a differe
   assert.equal(sent().query, pageQuery);
   assert.equal(value(second.stdout).continuation_cursor, undefined);
   reset();
-  recordedResponse(graph, 200, pageData([{ entityId: pageIds[1] }], false, null));
+  recordedResponse(
+    graph,
+    200,
+    pageData([{ entityId: pageIds[1] }], false, null),
+  );
   const replay = await run([...args, "--cursor", cursor]);
   assert.equal(replay.code, 0, replay.stdout);
   assert.equal(sent().variables.after, "synthetic-after");
@@ -1694,7 +1821,11 @@ test("identity graphql pages a fragment spread and an aliased edge connection", 
 }
 query Page($first: Int, $after: Cursor) { ...Connection }`;
   reset();
-  recordedResponse(graph, 200, pageData([{ entityId: pageIds[0] }], false, null));
+  recordedResponse(
+    graph,
+    200,
+    pageData([{ entityId: pageIds[0] }], false, null),
+  );
   const fragmented = await run([
     "identity",
     "graphql",
@@ -1716,7 +1847,13 @@ query Page($first: Int, $after: Cursor) { ...Connection }`;
   recordedResponse(
     graph,
     200,
-    pageData([{ node: { entityId: pageIds[0] } }], false, null, "items", "edges"),
+    pageData(
+      [{ node: { entityId: pageIds[0] } }],
+      false,
+      null,
+      "items",
+      "edges",
+    ),
   );
   const alias = await run([
     "identity",
@@ -1736,9 +1873,19 @@ test("identity graphql rejects a cursor repeated after another page", async () =
   let calls = 0;
   dynamicResponse(graph, () => ({
     status: 200,
-    body: pageData([{ entityId: pageIds[calls++] }], true, ["a", "b", "a"][calls - 1]),
+    body: pageData(
+      [{ entityId: pageIds[calls++] }],
+      true,
+      ["a", "b", "a"][calls - 1],
+    ),
   }));
-  const result = await run(["identity", "graphql", "--query", pageQuery, "--all"]);
+  const result = await run([
+    "identity",
+    "graphql",
+    "--query",
+    pageQuery,
+    "--all",
+  ]);
   assert.equal(result.code, 1, result.stdout);
   assert.match(result.stdout, /repeated its cursor/);
   assert.equal(calls, 3);
@@ -1767,7 +1914,11 @@ test("identity graphql rejects an empty final page in a walk", async () => {
 
 for (const [name, body, pattern] of [
   ["omitted endCursor", pageData([], true, null), /omitted endCursor/],
-  ["repeated cursor", pageData([{ entityId: pageIds[0] }], true, "same"), /repeated its cursor/],
+  [
+    "repeated cursor",
+    pageData([{ entityId: pageIds[0] }], true, "same"),
+    /repeated its cursor/,
+  ],
   ["empty page", pageData([], true, "next"), /without rows/],
 ] as const)
   test(`identity graphql stops an ${name} walk`, async () => {
