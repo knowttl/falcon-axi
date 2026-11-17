@@ -108,6 +108,7 @@ export type GraphqlConnection = {
   key: string;
   first: string;
   after: string;
+  rows: "nodes" | "edges";
 };
 const selectionFields = (
   selections: readonly SelectionNode[],
@@ -160,6 +161,7 @@ export function graphqlConnections(text: string): {
   connections: GraphqlConnection[];
   alias?: string;
   directive?: string;
+  bothRows?: boolean;
 } {
   const source = text.charCodeAt(0) === 0xfeff ? text.slice(1) : text;
   let definitions: ReturnType<typeof parse>["definitions"];
@@ -182,6 +184,7 @@ export function graphqlConnections(text: string): {
   const connections: GraphqlConnection[] = [];
   let alias: string | undefined;
   let directive: string | undefined;
+  let bothRows = false;
   for (const field of selectionFields(
     operation.selectionSet.selections,
     fragments,
@@ -235,13 +238,19 @@ export function graphqlConnections(text: string): {
       continue;
     }
     if (!names.has("hasNextPage") || !names.has("endCursor")) continue;
+    const rowNames = new Set(rows.map((item) => item.name.value));
+    if (rowNames.size !== 1) {
+      bothRows = true;
+      continue;
+    }
     connections.push({
       key: field.alias?.value ?? field.name.value,
       first,
       after,
+      rows: rows[0]!.name.value as "nodes" | "edges",
     });
   }
-  return { connections, alias, directive };
+  return { connections, alias, directive, bothRows };
 }
 export function queryOnly(text: string): boolean {
   try {

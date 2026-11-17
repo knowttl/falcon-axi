@@ -101,7 +101,12 @@ export function loadGraphqlVariables(
     throw new CliError("VALIDATION_ERROR", "--variables must be a JSON object");
   return parsed;
 }
-const pageError = (count: number, alias?: string, directive?: string): never => {
+const pageError = (
+  count: number,
+  alias?: string,
+  directive?: string,
+  bothRows?: boolean,
+): never => {
   throw new CliError(
     "VALIDATION_ERROR",
     "--limit, --cursor, and --all require exactly one top-level connection whose first and after arguments are variables and whose pageInfo selects hasNextPage and endCursor",
@@ -110,9 +115,11 @@ const pageError = (count: number, alias?: string, directive?: string): never => 
         ? `The selection uses the alias ${alias}, so those flags are refused and nothing is sent`
         : directive
           ? `The selection uses the directive @${directive}, so those flags are refused and nothing is sent`
-          : count === 0
-            ? "This document has no such connection, so those flags are refused and nothing is sent"
-            : `This document has ${count} such connections, so those flags are refused and nothing is sent`,
+          : bothRows
+            ? "The connection selects both nodes and edges, so those flags are refused and nothing is sent"
+            : count === 0
+              ? "This document has no such connection, so those flags are refused and nothing is sent"
+              : `This document has ${count} such connections, so those flags are refused and nothing is sent`,
     ],
   );
 };
@@ -122,11 +129,11 @@ export function validateIdentity(invocation: Invocation): void {
     invocation.graphqlQuery = loadGraphqlQuery(flags.get("--query"));
     loadGraphqlVariables(flags.get("--variables"));
     if (flags.has("--limit") || flags.has("--cursor") || flags.has("--all")) {
-      const { connections, alias, directive } = graphqlConnections(
+      const { connections, alias, directive, bothRows } = graphqlConnections(
         invocation.graphqlQuery,
       );
-      if (connections.length !== 1 || alias || directive)
-        pageError(connections.length, alias, directive);
+      if (connections.length !== 1 || alias || directive || bothRows)
+        pageError(connections.length, alias, directive, bothRows);
     }
   }
   if (["identity list", "identity assessment"].includes(command.name)) {
@@ -173,16 +180,16 @@ export async function identity(domain: Domain): Promise<Output> {
   if (command.name === "identity graphql") {
     const query = domain.invocation.graphqlQuery!;
     const variables = loadGraphqlVariables(flags.get("--variables"));
-    const { connections, alias, directive } = graphqlConnections(query);
+    const { connections, alias, directive, bothRows } = graphqlConnections(query);
     const page =
-      connections.length === 1 && !alias && !directive
+      connections.length === 1 && !alias && !directive && !bothRows
         ? connections[0]
         : undefined;
     if (
       (flags.has("--limit") || flags.has("--cursor") || flags.has("--all")) &&
       !page
     )
-      pageError(connections.length, alias, directive);
+      pageError(connections.length, alias, directive, bothRows);
     const read = async (
       sent: Record<string, unknown>,
     ): Promise<RecordValue> => {
@@ -293,23 +300,16 @@ export async function identity(domain: Domain): Promise<Output> {
       if (after !== undefined) sent[page.after] = after;
       const pageData = await read(sent);
       const connection = mapping(pageData[page.key]);
-      const rows = Array.isArray(connection.nodes)
-        ? connection.nodes
-        : Array.isArray(connection.edges)
-          ? connection.edges
-          : [];
+      const selectedRows = connection[page.rows];
+      const rows = Array.isArray(selectedRows) ? selectedRows : [];
       if (!data) data = structuredClone(pageData);
       else {
         const accumulated = mapping(data[page.key]);
-        for (const name of ["nodes", "edges"])
-          if (
-            Array.isArray(accumulated[name]) &&
-            Array.isArray(connection[name])
-          )
-            accumulated[name] = [
-              ...(accumulated[name] as unknown[]),
-              ...(connection[name] as unknown[]),
-            ];
+        if (Array.isArray(accumulated[page.rows]) && Array.isArray(selectedRows))
+          accumulated[page.rows] = [
+            ...(accumulated[page.rows] as unknown[]),
+            ...rows,
+          ];
         if (object(connection.pageInfo))
           accumulated.pageInfo = connection.pageInfo;
       }
