@@ -10,7 +10,7 @@
     "evidence": {
       "doc_url": "https://developer.crowdstrike.com/api-reference/collections/filevantage/#highvolumequerychanges",
       "doc_scope": "Falcon FileVantage: READ",
-      "falcon_mcp": "falcon-mcp has no tool for highVolumeQueryChanges. falconpy/_endpoint/_filevantage.py maps highVolumeQueryChanges to GET /filevantage/queries/changes/v3 with after, filter, limit and sort. PSFalcon public/filevantage.ps1 Get-FalconFileVantageChange defaults to this route and requires Falcon FileVantage: Read."
+      "falcon_mcp": "falcon-mcp has no tool for highVolumeQueryChanges. falconpy/_endpoint/_filevantage.py maps highVolumeQueryChanges to GET /filevantage/queries/changes/v3 with after, filter, limit and sort. PSFalcon wraps highVolumeQueryChanges. PSFalcon public/filevantage.ps1 Get-FalconFileVantageChange defaults to this route and requires Falcon FileVantage: Read."
     }
   },
   {
@@ -24,7 +24,7 @@
     "evidence": {
       "doc_url": "https://developer.crowdstrike.com/api-reference/collections/filevantage/#getchanges",
       "doc_scope": "Falcon FileVantage: READ",
-      "falcon_mcp": "falcon-mcp has no tool for getChanges. falconpy/_endpoint/_filevantage.py maps getChanges to GET /filevantage/entities/changes/v2 with at most 500 ids. PSFalcon public/filevantage.ps1 Get-FalconFileVantageChange -Id wraps this route and requires Falcon FileVantage: Read."
+      "falcon_mcp": "falcon-mcp has no tool for getChanges. falconpy/_endpoint/_filevantage.py maps getChanges to GET /filevantage/entities/changes/v2 with at most 500 ids. PSFalcon wraps getChanges. PSFalcon public/filevantage.ps1 Get-FalconFileVantageChange -Id wraps this route and requires Falcon FileVantage: Read."
     }
   },
   {
@@ -38,7 +38,7 @@
     "evidence": {
       "doc_url": "https://developer.crowdstrike.com/api-reference/collections/threatgraph/#combined_summary_get",
       "doc_scope": "Threatgraph: READ",
-      "falcon_mcp": "falcon-mcp has no tool for combined_summary_get. falconpy/_endpoint/_threatgraph.py maps combined_summary_get to GET /threatgraph/combined/{vertex_type}/summary/v1 (the SDK table uses {} with vertex_type). PSFalcon Get-FalconThreatGraphVertex -IncludeEdge wraps the same operation."
+      "falcon_mcp": "falcon-mcp has no tool for combined_summary_get. falconpy/_endpoint/_threatgraph.py maps combined_summary_get to GET /threatgraph/combined/{vertex_type}/summary/v1 (the SDK table uses {} with vertex_type). PSFalcon wraps combined_summary_get. PSFalcon Get-FalconThreatGraphVertex -IncludeEdge wraps the same operation."
     }
   },
   {
@@ -52,7 +52,7 @@
     "evidence": {
       "doc_url": "https://developer.crowdstrike.com/api-reference/collections/threatgraph/#combined_edges_get",
       "doc_scope": "Threatgraph: READ",
-      "falcon_mcp": "falcon-mcp has no tool for combined_edges_get. falconpy/_endpoint/_threatgraph.py maps combined_edges_get to GET /threatgraph/combined/edges/v1. PSFalcon Get-FalconThreatGraphEdge wraps the same operation."
+      "falcon_mcp": "falcon-mcp has no tool for combined_edges_get. falconpy/_endpoint/_threatgraph.py maps combined_edges_get to GET /threatgraph/combined/edges/v1. PSFalcon wraps combined_edges_get. PSFalcon Get-FalconThreatGraphEdge wraps the same operation."
     }
   },
   {
@@ -164,7 +164,7 @@
     "evidence": {
       "doc_url": "https://developer.crowdstrike.com/api-reference/collections/intel/",
       "doc_scope": "Malware Families (Falcon Intelligence): READ",
-      "falcon_mcp": "falcon-mcp has no tool for QueryMalwareEntities. falconpy/_endpoint/_intel.py maps QueryMalwareEntities to GET /intel/combined/malware/v1. PSFalcon public/intel.ps1 Get-FalconMalwareFamily -Detailed wraps it."
+      "falcon_mcp": "falcon-mcp has no tool for QueryMalwareEntities. falconpy/_endpoint/_intel.py maps QueryMalwareEntities to GET /intel/combined/malware/v1. PSFalcon wraps QueryMalwareEntities. PSFalcon public/intel.ps1 Get-FalconMalwareFamily -Detailed wraps it."
     }
   },
   {
@@ -178,7 +178,7 @@
     "evidence": {
       "doc_url": "https://developer.crowdstrike.com/api-reference/collections/malquery/#getmalquerymetadatav1",
       "doc_scope": "MalQuery: READ",
-      "falcon_mcp": "falcon-mcp has no tool for GetMalQueryMetadataV1. falconpy/_endpoint/_malquery.py maps GetMalQueryMetadataV1 to GET /malquery/entities/metadata/v1. PSFalcon public/malquery.ps1 Get-FalconMalQuerySample wraps it and requires MalQuery: Read."
+      "falcon_mcp": "falcon-mcp has no tool for GetMalQueryMetadataV1. falconpy/_endpoint/_malquery.py maps GetMalQueryMetadataV1 to GET /malquery/entities/metadata/v1. PSFalcon wraps GetMalQueryMetadataV1. PSFalcon public/malquery.ps1 Get-FalconMalQuerySample wraps it and requires MalQuery: Read."
     }
   },
   {
@@ -192,7 +192,7 @@
     "evidence": {
       "doc_url": "https://developer.crowdstrike.com/api-reference/collections/malquery/#getmalqueryrequestv1",
       "doc_scope": "MalQuery: READ",
-      "falcon_mcp": "falcon-mcp has no tool for GetMalQueryRequestV1. falconpy/_endpoint/_malquery.py maps GetMalQueryRequestV1 to GET /malquery/entities/requests/v1. PSFalcon public/malquery.ps1 Get-FalconMalQuery wraps it and requires MalQuery: Read."
+      "falcon_mcp": "falcon-mcp has no tool for GetMalQueryRequestV1. falconpy/_endpoint/_malquery.py maps GetMalQueryRequestV1 to GET /malquery/entities/requests/v1. PSFalcon wraps GetMalQueryRequestV1. PSFalcon public/malquery.ps1 Get-FalconMalQuery wraps it and requires MalQuery: Read."
     }
   },
   {
@@ -206,7 +206,7 @@
     "evidence": {
       "doc_url": "https://developer.crowdstrike.com/api-reference/collections/malquery/#postmalqueryexactsearchv1",
       "doc_scope": "MalQuery: WRITE",
-      "falcon_mcp": "falcon-mcp has no tool for PostMalQueryExactSearchV1. falconpy/_endpoint/_malquery.py maps PostMalQueryExactSearchV1 to POST /malquery/queries/exact-search/v1. PSFalcon public/malquery.ps1 Invoke-FalconMalQuery wraps it and requires MalQuery: Write."
+      "falcon_mcp": "falcon-mcp has no tool for PostMalQueryExactSearchV1. falconpy/_endpoint/_malquery.py maps PostMalQueryExactSearchV1 to POST /malquery/queries/exact-search/v1. PSFalcon wraps PostMalQueryExactSearchV1. PSFalcon public/malquery.ps1 Invoke-FalconMalQuery wraps it and requires MalQuery: Write."
     }
   },
   {
@@ -220,7 +220,7 @@
     "evidence": {
       "doc_url": "https://developer.crowdstrike.com/api-reference/collections/malquery/#postmalqueryfuzzysearchv1",
       "doc_scope": "MalQuery: WRITE",
-      "falcon_mcp": "falcon-mcp has no tool for PostMalQueryFuzzySearchV1. falconpy/_endpoint/_malquery.py maps PostMalQueryFuzzySearchV1 to POST /malquery/combined/fuzzy-search/v1. PSFalcon public/malquery.ps1 Invoke-FalconMalQuery -Fuzzy wraps it and requires MalQuery: Write."
+      "falcon_mcp": "falcon-mcp has no tool for PostMalQueryFuzzySearchV1. falconpy/_endpoint/_malquery.py maps PostMalQueryFuzzySearchV1 to POST /malquery/combined/fuzzy-search/v1. PSFalcon wraps PostMalQueryFuzzySearchV1. PSFalcon public/malquery.ps1 Invoke-FalconMalQuery -Fuzzy wraps it and requires MalQuery: Write."
     }
   },
   {
@@ -234,7 +234,7 @@
     "evidence": {
       "doc_url": "https://developer.crowdstrike.com/api-reference/collections/malquery/#getmalqueryquotasv1",
       "doc_scope": "MalQuery: READ",
-      "falcon_mcp": "falcon-mcp has no tool for GetMalQueryQuotasV1. falconpy/_endpoint/_malquery.py maps GetMalQueryQuotasV1 to GET /malquery/aggregates/quotas/v1. PSFalcon public/malquery.ps1 Get-FalconMalQueryQuota wraps it and requires MalQuery: Read."
+      "falcon_mcp": "falcon-mcp has no tool for GetMalQueryQuotasV1. falconpy/_endpoint/_malquery.py maps GetMalQueryQuotasV1 to GET /malquery/aggregates/quotas/v1. PSFalcon wraps GetMalQueryQuotasV1. PSFalcon public/malquery.ps1 Get-FalconMalQueryQuota wraps it and requires MalQuery: Read."
     }
   },
   {
@@ -248,7 +248,7 @@
     "evidence": {
       "doc_url": "https://developer.crowdstrike.com/api-reference/collections/falconx-sandbox/#queryreports",
       "doc_scope": "Sandbox (Falcon Intelligence): READ",
-      "falcon_mcp": "falcon-mcp has no tool for QueryReports. falconpy/_endpoint/_falconx_sandbox.py maps QueryReports to GET /falconx/queries/reports/v1. PSFalcon public/falconx.ps1 Get-FalconReport's default parameter set wraps QueryReports."
+      "falcon_mcp": "falcon-mcp has no tool for QueryReports. falconpy/_endpoint/_falconx_sandbox.py maps QueryReports to GET /falconx/queries/reports/v1. PSFalcon wraps QueryReports. PSFalcon public/falconx.ps1 Get-FalconReport's default parameter set wraps QueryReports."
     }
   },
   {
@@ -262,7 +262,7 @@
     "evidence": {
       "doc_url": "https://developer.crowdstrike.com/api-reference/collections/falconx-sandbox/#getsummaryreports",
       "doc_scope": "Sandbox (Falcon Intelligence): READ",
-      "falcon_mcp": "falcon-mcp has no tool for GetSummaryReports. falconpy/_endpoint/_falconx_sandbox.py maps GetSummaryReports to GET /falconx/entities/report-summaries/v1. PSFalcon public/falconx.ps1 Get-FalconReport -Summary wraps GetSummaryReports."
+      "falcon_mcp": "falcon-mcp has no tool for GetSummaryReports. falconpy/_endpoint/_falconx_sandbox.py maps GetSummaryReports to GET /falconx/entities/report-summaries/v1. PSFalcon wraps GetSummaryReports. PSFalcon public/falconx.ps1 Get-FalconReport -Summary wraps GetSummaryReports."
     }
   },
   {
@@ -276,7 +276,7 @@
     "evidence": {
       "doc_url": "https://developer.crowdstrike.com/api-reference/collections/intel/",
       "doc_scope": "Malware Families (Falcon Intelligence): READ",
-      "falcon_mcp": "falcon-mcp has no tool for GetMalwareEntities. falconpy/_endpoint/_intel.py maps GetMalwareEntities to GET /intel/entities/malware/v1. PSFalcon public/intel.ps1 Get-FalconMalwareFamily -Id wraps it."
+      "falcon_mcp": "falcon-mcp has no tool for GetMalwareEntities. falconpy/_endpoint/_intel.py maps GetMalwareEntities to GET /intel/entities/malware/v1. PSFalcon wraps GetMalwareEntities. PSFalcon public/intel.ps1 Get-FalconMalwareFamily -Id wraps it."
     }
   },
   {
@@ -290,7 +290,7 @@
     "evidence": {
       "doc_url": "https://developer.crowdstrike.com/api-reference/collections/identity-protection/",
       "doc_scope": "Identity Protection Policy Rules: READ",
-      "falcon_mcp": "falcon-mcp has no tool for get_policy_rules_query. falconpy/_endpoint/_identity_protection.py maps get_policy_rules_query to GET /identity-protection/queries/policy-rules/v1. PSFalcon public/identity-protection.ps1 Get-FalconIdentityRule wraps it."
+      "falcon_mcp": "falcon-mcp has no tool for get_policy_rules_query. falconpy/_endpoint/_identity_protection.py maps get_policy_rules_query to GET /identity-protection/queries/policy-rules/v1. PSFalcon wraps get_policy_rules_query. PSFalcon public/identity-protection.ps1 Get-FalconIdentityRule wraps it."
     }
   },
   {
@@ -304,7 +304,7 @@
     "evidence": {
       "doc_url": "https://developer.crowdstrike.com/api-reference/collections/identity-protection/",
       "doc_scope": "Identity Protection Policy Rules: READ",
-      "falcon_mcp": "falcon-mcp has no tool for get_policy_rules. falconpy/_endpoint/_identity_protection.py maps get_policy_rules to GET /identity-protection/entities/policy-rules/v1. PSFalcon public/identity-protection.ps1 Get-FalconIdentityRule -Id wraps it."
+      "falcon_mcp": "falcon-mcp has no tool for get_policy_rules. falconpy/_endpoint/_identity_protection.py maps get_policy_rules to GET /identity-protection/entities/policy-rules/v1. PSFalcon wraps get_policy_rules. PSFalcon public/identity-protection.ps1 Get-FalconIdentityRule -Id wraps it."
     }
   },
   {
@@ -318,7 +318,7 @@
     "evidence": {
       "doc_url": "https://developer.crowdstrike.com/api-reference/collections/identity-protection/",
       "doc_scope": "Identity Protection Policy Rules: WRITE",
-      "falcon_mcp": "falcon-mcp has no tool for post_policy_rules. falconpy/_endpoint/_identity_protection.py maps post_policy_rules to POST /identity-protection/entities/policy-rules/v1. PSFalcon public/identity-protection.ps1 New-FalconIdentityRule wraps it."
+      "falcon_mcp": "falcon-mcp has no tool for post_policy_rules. falconpy/_endpoint/_identity_protection.py maps post_policy_rules to POST /identity-protection/entities/policy-rules/v1. PSFalcon wraps post_policy_rules. PSFalcon public/identity-protection.ps1 New-FalconIdentityRule wraps it."
     }
   },
   {
@@ -332,7 +332,7 @@
     "evidence": {
       "doc_url": "https://developer.crowdstrike.com/api-reference/collections/discover/",
       "doc_scope": "Falcon Discover IoT: READ",
-      "falcon_mcp": "falcon-mcp has no tool for query_iot_hostsV2. falconpy/_endpoint/_discover.py maps query_iot_hostsV2 to GET /discover/queries/iot-hosts/v2. PSFalcon public/discover.ps1 Get-FalconAsset -IoT wraps it."
+      "falcon_mcp": "falcon-mcp has no tool for query_iot_hostsV2. falconpy/_endpoint/_discover.py maps query_iot_hostsV2 to GET /discover/queries/iot-hosts/v2. PSFalcon wraps query_iot_hostsV2. PSFalcon public/discover.ps1 Get-FalconAsset -IoT wraps it."
     }
   },
   {
@@ -346,7 +346,7 @@
     "evidence": {
       "doc_url": "https://developer.crowdstrike.com/api-reference/collections/discover/",
       "doc_scope": "Falcon Discover IoT: READ",
-      "falcon_mcp": "falcon-mcp has no tool for get_iot_hosts. falconpy/_endpoint/_discover.py maps get_iot_hosts to GET /discover/entities/iot-hosts/v1. PSFalcon public/discover.ps1 Get-FalconAsset -IoT -Id wraps it."
+      "falcon_mcp": "falcon-mcp has no tool for get_iot_hosts. falconpy/_endpoint/_discover.py maps get_iot_hosts to GET /discover/entities/iot-hosts/v1. PSFalcon wraps get_iot_hosts. PSFalcon public/discover.ps1 Get-FalconAsset -IoT -Id wraps it."
     }
   },
   {
@@ -808,7 +808,7 @@
     "evidence": {
       "doc_url": "https://developer.crowdstrike.com/api-reference/collections/container-images/",
       "doc_scope": "Falcon Container Image: READ",
-      "falcon_mcp": "falcon-mcp has no tool for GetCombinedImages. falconpy/_endpoint/_container_images.py maps GetCombinedImages to GET /container-security/combined/image-assessment/images/v1. PSFalcon b5f3774 public/container-security.ps1 Get-FalconContainerAssessment wraps the same filter, sort, limit and offset read."
+      "falcon_mcp": "falcon-mcp has no tool for GetCombinedImages. falconpy/_endpoint/_container_images.py maps GetCombinedImages to GET /container-security/combined/image-assessment/images/v1. PSFalcon wraps GetCombinedImages. PSFalcon b5f3774 public/container-security.ps1 Get-FalconContainerAssessment wraps the same filter, sort, limit and offset read."
     }
   },
   {
@@ -1046,7 +1046,7 @@
     "evidence": {
       "doc_url": "https://developer.crowdstrike.com/api-reference/collections/iocs/#devicesranon",
       "doc_scope": "IOCs (Indicators of Compromise): READ",
-      "falcon_mcp": "falcon-mcp has no tool for DevicesRanOn. falconpy/_endpoint/_iocs.py maps DevicesRanOn to GET /indicators/queries/devices/v1. PSFalcon public/indicators.ps1 Get-FalconIocHost wraps this read with type/value and offset/limit."
+      "falcon_mcp": "falcon-mcp has no tool for DevicesRanOn. falconpy/_endpoint/_iocs.py maps DevicesRanOn to GET /indicators/queries/devices/v1. PSFalcon wraps DevicesRanOn. PSFalcon public/indicators.ps1 Get-FalconIocHost wraps this read with type/value and offset/limit."
     }
   },
   {
@@ -1060,7 +1060,7 @@
     "evidence": {
       "doc_url": "https://developer.crowdstrike.com/api-reference/collections/iocs/#processesranon",
       "doc_scope": "IOCs (Indicators of Compromise): READ",
-      "falcon_mcp": "falcon-mcp has no tool for ProcessesRanOn. falconpy/_endpoint/_iocs.py maps ProcessesRanOn to GET /indicators/queries/processes/v1. PSFalcon public/indicators.ps1 Get-FalconIocProcess wraps this read; device_id is required."
+      "falcon_mcp": "falcon-mcp has no tool for ProcessesRanOn. falconpy/_endpoint/_iocs.py maps ProcessesRanOn to GET /indicators/queries/processes/v1. PSFalcon wraps ProcessesRanOn. PSFalcon public/indicators.ps1 Get-FalconIocProcess wraps this read; device_id is required."
     }
   },
   {
@@ -1074,7 +1074,7 @@
     "evidence": {
       "doc_url": "https://developer.crowdstrike.com/api-reference/collections/iocs/#entitiesprocesses",
       "doc_scope": "IOCs (Indicators of Compromise): READ",
-      "falcon_mcp": "falcon-mcp has no tool for entities_processes. falconpy/_endpoint/_iocs.py maps entities_processes to GET /processes/entities/processes/v1. PSFalcon public/indicators.ps1 Get-FalconIocProcess -Id wraps this read with ids query parameters."
+      "falcon_mcp": "falcon-mcp has no tool for entities_processes. falconpy/_endpoint/_iocs.py maps entities_processes to GET /processes/entities/processes/v1. PSFalcon wraps entities_processes. PSFalcon public/indicators.ps1 Get-FalconIocProcess -Id wraps this read with ids query parameters."
     }
   },
   {
@@ -1144,7 +1144,7 @@
     "evidence": {
       "doc_url": "https://developer.crowdstrike.com/api-reference/collections/discover/",
       "doc_scope": "Assets: READ",
-      "falcon_mcp": "falcon-mcp has no tool for get_hosts. falconpy/_endpoint/_discover.py maps get_hosts to GET /discover/entities/hosts/v1. PSFalcon public/discover.ps1 Get-FalconAsset wraps this read with ids in the query."
+      "falcon_mcp": "falcon-mcp has no tool for get_hosts. falconpy/_endpoint/_discover.py maps get_hosts to GET /discover/entities/hosts/v1. PSFalcon wraps get_hosts. PSFalcon public/discover.ps1 Get-FalconAsset wraps this read with ids in the query."
     }
   },
   {
@@ -1158,7 +1158,7 @@
     "evidence": {
       "doc_url": "https://developer.crowdstrike.com/api-reference/collections/discover/",
       "doc_scope": "Assets: READ",
-      "falcon_mcp": "falcon-mcp has no tool for query_logins. falconpy/_endpoint/_discover.py maps query_logins to GET /discover/queries/logins/v1. PSFalcon public/discover.ps1 Get-FalconAsset -Login wraps this offset-paginated read."
+      "falcon_mcp": "falcon-mcp has no tool for query_logins. falconpy/_endpoint/_discover.py maps query_logins to GET /discover/queries/logins/v1. PSFalcon wraps query_logins. PSFalcon public/discover.ps1 Get-FalconAsset -Login wraps this offset-paginated read."
     }
   },
   {
@@ -1172,7 +1172,7 @@
     "evidence": {
       "doc_url": "https://developer.crowdstrike.com/api-reference/collections/discover/",
       "doc_scope": "Assets: READ",
-      "falcon_mcp": "falcon-mcp has no tool for get_logins. falconpy/_endpoint/_discover.py maps get_logins to GET /discover/entities/logins/v1. PSFalcon public/discover.ps1 Get-FalconAsset wraps this read with at most 100 ids in the query."
+      "falcon_mcp": "falcon-mcp has no tool for get_logins. falconpy/_endpoint/_discover.py maps get_logins to GET /discover/entities/logins/v1. PSFalcon wraps get_logins. PSFalcon public/discover.ps1 Get-FalconAsset wraps this read with at most 100 ids in the query."
     }
   },
   {
@@ -1186,7 +1186,7 @@
     "evidence": {
       "doc_url": "https://developer.crowdstrike.com/api-reference/collections/hosts/",
       "doc_scope": "Hosts: READ",
-      "falcon_mcp": "falcon-mcp has no tool for QueryGetNetworkAddressHistoryV1. falconpy/_endpoint/_hosts.py maps QueryGetNetworkAddressHistoryV1 to POST /devices/combined/devices/network-address-history/v1. PSFalcon public/devices.ps1 Get-FalconHost -Network wraps this read with body ids."
+      "falcon_mcp": "falcon-mcp has no tool for QueryGetNetworkAddressHistoryV1. falconpy/_endpoint/_hosts.py maps QueryGetNetworkAddressHistoryV1 to POST /devices/combined/devices/network-address-history/v1. PSFalcon wraps QueryGetNetworkAddressHistoryV1. PSFalcon public/devices.ps1 Get-FalconHost -Network wraps this read with body ids."
     }
   },
   {
@@ -1200,7 +1200,7 @@
     "evidence": {
       "doc_url": "https://developer.crowdstrike.com/api-reference/collections/identity-protection/#querysensorsbyfilter",
       "doc_scope": "Identity Protection Entities: READ",
-      "falcon_mcp": "falcon-mcp has no tool for QuerySensorsByFilter (falcon_mcp/modules/idp.py). falconpy/_endpoint/_identity_protection.py maps QuerySensorsByFilter to GET /identity-protection/queries/devices/v1. PSFalcon Get-FalconIdentityHost in public/identity-protection.ps1 wraps the same operation."
+      "falcon_mcp": "falcon-mcp has no tool for QuerySensorsByFilter (falcon_mcp/modules/idp.py). falconpy/_endpoint/_identity_protection.py maps QuerySensorsByFilter to GET /identity-protection/queries/devices/v1. PSFalcon wraps QuerySensorsByFilter. PSFalcon Get-FalconIdentityHost in public/identity-protection.ps1 wraps the same operation."
     }
   },
   {
@@ -1214,7 +1214,7 @@
     "evidence": {
       "doc_url": "https://developer.crowdstrike.com/api-reference/collections/identity-protection/#getsensordetails",
       "doc_scope": "Identity Protection Entities: READ",
-      "falcon_mcp": "falcon-mcp has no tool for GetSensorDetails (falcon_mcp/modules/idp.py). falconpy/_endpoint/_identity_protection.py maps GetSensorDetails to POST /identity-protection/entities/devices/GET/v1. PSFalcon Get-FalconIdentityHost -Id in public/identity-protection.ps1 wraps the same operation."
+      "falcon_mcp": "falcon-mcp has no tool for GetSensorDetails (falcon_mcp/modules/idp.py). falconpy/_endpoint/_identity_protection.py maps GetSensorDetails to POST /identity-protection/entities/devices/GET/v1. PSFalcon wraps GetSensorDetails. PSFalcon Get-FalconIdentityHost -Id in public/identity-protection.ps1 wraps the same operation."
     }
   },
   {
@@ -1228,7 +1228,7 @@
     "evidence": {
       "doc_url": "https://developer.crowdstrike.com/api-reference/collections/intel/",
       "doc_scope": "Vulnerabilities (Falcon Intelligence): READ",
-      "falcon_mcp": "falcon-mcp has no tool for QueryVulnerabilities (falcon_mcp/modules/intel.py). falconpy/_endpoint/_intel.py maps QueryVulnerabilities to GET /intel/queries/vulnerabilities/v1; PSFalcon public/intel.ps1 Get-FalconCve wraps the same route with filter, limit and offset."
+      "falcon_mcp": "falcon-mcp has no tool for QueryVulnerabilities (falcon_mcp/modules/intel.py). falconpy/_endpoint/_intel.py maps QueryVulnerabilities to GET /intel/queries/vulnerabilities/v1; PSFalcon wraps QueryVulnerabilities. PSFalcon public/intel.ps1 Get-FalconCve wraps the same route with filter, limit and offset."
     }
   },
   {
@@ -1242,7 +1242,7 @@
     "evidence": {
       "doc_url": "https://developer.crowdstrike.com/api-reference/collections/spotlight-vulnerabilities/",
       "doc_scope": "Vulnerabilities: READ",
-      "falcon_mcp": "falcon-mcp has no tool for getVulnerabilities; falcon_mcp/modules/spotlight.py exposes only combinedQueryVulnerabilities. falconpy/_endpoint/_spotlight_vulnerabilities.py maps getVulnerabilities to GET /spotlight/entities/vulnerabilities/v2 with ids; PSFalcon public/spotlight.ps1 Get-FalconVulnerability wraps the same route."
+      "falcon_mcp": "falcon-mcp has no tool for getVulnerabilities; falcon_mcp/modules/spotlight.py exposes only combinedQueryVulnerabilities. falconpy/_endpoint/_spotlight_vulnerabilities.py maps getVulnerabilities to GET /spotlight/entities/vulnerabilities/v2 with ids; PSFalcon wraps getVulnerabilities. PSFalcon public/spotlight.ps1 Get-FalconVulnerability wraps the same route."
     }
   },
   {
@@ -1270,7 +1270,7 @@
     "evidence": {
       "doc_url": "https://developer.crowdstrike.com/api-reference/collections/intel/",
       "doc_scope": "Actors (Falcon Intelligence): READ",
-      "falcon_mcp": "falcon-mcp has no tool for GetIntelActorEntities. falconpy/_endpoint/_intel.py maps GetIntelActorEntities to GET /intel/entities/actors/v1. PSFalcon Get-FalconActor in public/intel.ps1 wraps this entity read with ids and fields."
+      "falcon_mcp": "falcon-mcp has no tool for GetIntelActorEntities. falconpy/_endpoint/_intel.py maps GetIntelActorEntities to GET /intel/entities/actors/v1. PSFalcon wraps GetIntelActorEntities. PSFalcon Get-FalconActor in public/intel.ps1 wraps this entity read with ids and fields."
     }
   },
   {
@@ -1298,7 +1298,7 @@
     "evidence": {
       "doc_url": "https://developer.crowdstrike.com/api-reference/collections/intel/",
       "doc_scope": "Reports (Falcon Intelligence): READ",
-      "falcon_mcp": "falcon-mcp has no tool for GetIntelReportEntities. falconpy/_endpoint/_intel.py maps GetIntelReportEntities to GET /intel/entities/reports/v1. PSFalcon Get-FalconIntel in public/intel.ps1 wraps this entity read with ids and fields."
+      "falcon_mcp": "falcon-mcp has no tool for GetIntelReportEntities. falconpy/_endpoint/_intel.py maps GetIntelReportEntities to GET /intel/entities/reports/v1. PSFalcon wraps GetIntelReportEntities. PSFalcon Get-FalconIntel in public/intel.ps1 wraps this entity read with ids and fields."
     }
   },
   {
@@ -1354,7 +1354,7 @@
     "evidence": {
       "doc_url": "https://developer.crowdstrike.com/api-reference/collections/intel/",
       "doc_scope": "Indicators (Falcon Intelligence): READ",
-      "falcon_mcp": "falcon-mcp has no tool for GetIntelIndicatorEntities. falconpy/_endpoint/_intel.py maps GetIntelIndicatorEntities to POST /intel/entities/indicators/GET/v1. PSFalcon Get-FalconIndicator in public/intel.ps1 wraps the same operation with an ids body."
+      "falcon_mcp": "falcon-mcp has no tool for GetIntelIndicatorEntities. falconpy/_endpoint/_intel.py maps GetIntelIndicatorEntities to POST /intel/entities/indicators/GET/v1. PSFalcon wraps GetIntelIndicatorEntities. PSFalcon Get-FalconIndicator in public/intel.ps1 wraps the same operation with an ids body."
     }
   },
   {
@@ -1508,7 +1508,7 @@
     "evidence": {
       "doc_url": "https://developer.crowdstrike.com/api-reference/collections/intel/",
       "doc_scope": "Vulnerabilities (Falcon Intelligence): READ",
-      "falcon_mcp": "falcon-mcp has no tool for GetVulnerabilities. falconpy/_endpoint/_intel.py maps GetVulnerabilities to POST /intel/entities/vulnerabilities/GET/v1. PSFalcon Get-FalconCve wraps the same operation."
+      "falcon_mcp": "falcon-mcp has no tool for GetVulnerabilities. falconpy/_endpoint/_intel.py maps GetVulnerabilities to POST /intel/entities/vulnerabilities/GET/v1. PSFalcon wraps GetVulnerabilities. PSFalcon Get-FalconCve wraps the same operation."
     }
   },
   {
@@ -1522,7 +1522,7 @@
     "evidence": {
       "doc_url": "https://developer.crowdstrike.com/api-reference/collections/hosts/",
       "doc_scope": "Hosts: READ",
-      "falcon_mcp": "falcon-mcp has no tool for QueryDeviceLoginHistoryV2. falconpy/_endpoint/_hosts.py maps QueryDeviceLoginHistoryV2 to POST /devices/combined/devices/login-history/v2. PSFalcon Get-FalconHost -Login wraps the same operation."
+      "falcon_mcp": "falcon-mcp has no tool for QueryDeviceLoginHistoryV2. falconpy/_endpoint/_hosts.py maps QueryDeviceLoginHistoryV2 to POST /devices/combined/devices/login-history/v2. PSFalcon wraps QueryDeviceLoginHistoryV2. PSFalcon Get-FalconHost -Login wraps the same operation."
     }
   },
   {
@@ -1536,7 +1536,7 @@
     "evidence": {
       "doc_url": "https://developer.crowdstrike.com/api-reference/collections/discover/",
       "doc_scope": "Assets: READ",
-      "falcon_mcp": "falcon-mcp has no tool for query_accounts. falconpy/_endpoint/_discover.py maps query_accounts to GET /discover/queries/accounts/v1. PSFalcon Get-FalconAsset -Account wraps the same operation."
+      "falcon_mcp": "falcon-mcp has no tool for query_accounts. falconpy/_endpoint/_discover.py maps query_accounts to GET /discover/queries/accounts/v1. PSFalcon wraps query_accounts. PSFalcon Get-FalconAsset -Account wraps the same operation."
     }
   },
   {
@@ -1550,7 +1550,7 @@
     "evidence": {
       "doc_url": "https://developer.crowdstrike.com/api-reference/collections/discover/",
       "doc_scope": "Assets: READ",
-      "falcon_mcp": "falcon-mcp has no tool for get_accounts. falconpy/_endpoint/_discover.py maps get_accounts to GET /discover/entities/accounts/v1. PSFalcon Get-FalconAsset -Account -Id wraps the same operation."
+      "falcon_mcp": "falcon-mcp has no tool for get_accounts. falconpy/_endpoint/_discover.py maps get_accounts to GET /discover/entities/accounts/v1. PSFalcon wraps get_accounts. PSFalcon Get-FalconAsset -Account -Id wraps the same operation."
     }
   },
   {

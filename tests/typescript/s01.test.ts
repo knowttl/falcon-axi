@@ -21,7 +21,11 @@ import type { IncomingMessage, ServerResponse } from "node:http";
 import type { Duplex } from "node:stream";
 import { render, Raw, truncate, registerMemberCid } from "../../src/render.js";
 import { parseResponse } from "../../src/core.js";
-import { operation, operationIds } from "../../src/transport/operations.js";
+import {
+  operation,
+  operationIds,
+  secondCitationAdmitted,
+} from "../../src/transport/operations.js";
 import { requestRead, requestToken } from "../../src/transport/https.js";
 import { decode } from "@toon-format/toon";
 import { spawnSync } from "node:child_process";
@@ -1342,6 +1346,83 @@ test("sealed registry rejects inherited keys, mutation and unimplemented excepti
     /not available/,
   );
 });
+for (const [name, citation, admitted] of [
+  [
+    "falconpy table plus another official SDK",
+    "falcon-mcp has no tool for ExampleOp. falconpy/_endpoint/_example.py maps ExampleOp to GET /example/v1. gofalcon wraps ExampleOp.",
+    true,
+  ],
+  [
+    "falconpy table plus PSFalcon",
+    "falcon-mcp has no tool for ExampleOp. falconpy/_endpoint/_example.py maps ExampleOp to GET /example/v1. PSFalcon wraps ExampleOp.",
+    true,
+  ],
+  [
+    "falcon-mcp scope mapping",
+    "falcon_mcp/common/api_scopes.py maps ExampleOp to Example:read.",
+    true,
+  ],
+  [
+    "neighbouring falcon-mcp operation",
+    "falcon_mcp/common/api_scopes.py maps NeighbourOp to Example:read.",
+    false,
+  ],
+  [
+    "longer route",
+    "falcon-mcp has no tool for ExampleOp. falconpy/_endpoint/_example.py maps ExampleOp to GET /example/v1-extra. gofalcon wraps ExampleOp.",
+    false,
+  ],
+  [
+    "unrelated SDK mention",
+    "falcon-mcp has no tool for ExampleOp. falconpy/_endpoint/_example.py maps ExampleOp to GET /example/v1. A community blog wraps ExampleOp and mentions gofalcon.",
+    false,
+  ],
+  [
+    "SDK wrapping a longer operation name",
+    "falcon-mcp has no tool for ExampleOp. falconpy/_endpoint/_example.py maps ExampleOp to GET /example/v1. gofalcon wraps ExampleOpExtra.",
+    false,
+  ],
+  [
+    "mapping separate from endpoint file",
+    "falcon-mcp has no tool for ExampleOp. falconpy/_endpoint/_example.py is a file. Another table maps ExampleOp to GET /example/v1. gofalcon wraps ExampleOp.",
+    false,
+  ],
+  [
+    "falconpy table plus a community source",
+    "falcon-mcp has no tool for ExampleOp. falconpy/_endpoint/_example.py maps ExampleOp to GET /example/v1. A community blog wraps it.",
+    false,
+  ],
+  [
+    "falconpy table alone",
+    "falcon-mcp has no tool for ExampleOp. falconpy/_endpoint/_example.py maps ExampleOp to GET /example/v1.",
+    false,
+  ],
+  [
+    "falconpy table mapping another route",
+    "falcon-mcp has no tool for ExampleOp. falconpy/_endpoint/_example.py maps ExampleOp to GET /other/v1. gofalcon wraps ExampleOp.",
+    false,
+  ],
+  [
+    "neighbouring operation's mapping",
+    "falcon-mcp has no tool for ExampleOp. falconpy/_endpoint/_example.py maps NeighbourOp to GET /example/v1. gofalcon wraps ExampleOp.",
+    false,
+  ],
+] as const)
+  test(`second citation ${name} is ${admitted ? "admitted" : "refused"}`, () => {
+    assert.equal(
+      secondCitationAdmitted({
+        id: "ExampleOp",
+        method: "GET",
+        path: "/example/v1",
+        evidence: {
+          doc_url: "https://example.invalid",
+          doc_scope: "Example: READ",
+          falcon_mcp: citation,
+        },
+      }),
+      admitted,
+    );
+  });
 test("TOON boundaries preserve raw lines, omission, help quoting, Unicode lengths and exact integers", () => {
   assert.equal(
     render(

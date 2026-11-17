@@ -36,6 +36,37 @@ const exceptionScopes: Readonly<Record<string, string>> = Object.freeze({
   "malquery-search": "MalQuery:write",
   "identity-policy-write": "Identity Protection Policy Rules:write",
 });
+const otherOfficialSdks = Object.freeze([
+  "PSFalcon",
+  "gofalcon",
+  "rusty-falcon",
+  "falconjs",
+]);
+export function secondCitationAdmitted(
+  row: Pick<Descriptor, "id" | "method" | "path" | "evidence">,
+): boolean {
+  const citation = row.evidence.falcon_mcp;
+  if (!citation.includes(`falcon-mcp has no tool for ${row.id}`))
+    return citation.includes(`api_scopes.py maps ${row.id} to `);
+  const mapping = ` maps ${row.id} to ${row.method} ${row.path}`;
+  return (
+    [...citation.matchAll(/falconpy\/_endpoint\/[^\s]+\.py/g)].some((match) => {
+      const rest = citation.slice(match.index + match[0].length);
+      return (
+        rest.startsWith(mapping) &&
+        (rest.length === mapping.length ||
+          /[\s.,;]/.test(rest[mapping.length]!))
+      );
+    }) &&
+    otherOfficialSdks.some((sdk) => {
+      const fragment = `${sdk} wraps ${row.id}`;
+      return citation
+        .split(fragment)
+        .slice(1)
+        .some((rest) => rest.length === 0 || /[\s.,;]/.test(rest[0]!));
+    })
+  );
+}
 const registry: Record<string, Descriptor> = Object.create(null) as Record<
   string,
   Descriptor
@@ -43,7 +74,7 @@ const registry: Record<string, Descriptor> = Object.create(null) as Record<
 if (
   rows.length !== 115 ||
   createHash("sha256").update(JSON.stringify(rows)).digest("hex") !==
-    "8b1bdabfb5c5932a88a692977b89d7bf2dc7d63ac0c5966c650e22c294fc74e7"
+    "ff3c73c4558e290725be4c9ff446bd1cdf20a991c4e5781f806f77e01aef1dcb"
 )
   throw new Error("Canonical operation authority changed");
 for (const row of rows) {
@@ -54,6 +85,7 @@ for (const row of rows) {
     !row.evidence.doc_url ||
     !row.evidence.doc_scope ||
     !row.evidence.falcon_mcp ||
+    !secondCitationAdmitted(row) ||
     (row.effect === "read"
       ? row.scopes.some((scope) => !scope.endsWith(":read"))
       : !Object.hasOwn(exceptions, row.effect) ||
