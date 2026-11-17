@@ -8,7 +8,7 @@
   },
   "parser": {
     "path": ".typescript-build/src/parser.js",
-    "sha256": "1a348bb4a13e0034d5919b218e02ddf7ed0036b51d78d06b488bda4fcb78f8eb"
+    "sha256": "111ca5c9f53bcfac677a3728109a4c5275a7516272ce859455333e312274034f"
   },
   "skill": {
     "path": "skills/falcon-axi/SKILL.md",
@@ -702,6 +702,23 @@
         "filter": "value",
         "limit": "value",
         "cursor": "value"
+      }
+    },
+    {
+      "command": "identity sensor aggregate",
+      "flags": {
+        "help": "boolean",
+        "allow-unknown-origin": "boolean",
+        "no-member-cid": "boolean",
+        "config": "value",
+        "profile": "value",
+        "region": "value",
+        "member-cid": "value",
+        "name": "value",
+        "type": "value",
+        "field": "value",
+        "filter": "value",
+        "size": "value"
       }
     },
     {

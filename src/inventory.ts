@@ -112,6 +112,65 @@ export async function inventory(
         text(record[field]) ?? "unknown",
       ]),
     );
+  if (name === "identity sensor aggregate") {
+    const result = await domain.read(
+      operation,
+      subject,
+      {},
+      {
+        name: flags.get("--name")!,
+        type: flags.get("--type")!,
+        field: flags.get("--field")!,
+        ...(filter ? { filter } : {}),
+        ...(flags.has("--size") ? { size: Number(flags.get("--size")) } : {}),
+      },
+    );
+    if (!result.rows.length)
+      return {
+        value: { aggregates: new Raw("0 identity sensor aggregates") },
+        help: [],
+      };
+    const present = (record: RecordValue, fields: string[]): RecordValue =>
+      Object.fromEntries(
+        fields.filter((field) => field in record).map((f) => [f, record[f]]),
+      );
+    return {
+      value: {
+        aggregates: result.rows.map((row) => {
+          if (
+            !object(row) ||
+            !Array.isArray(row.buckets) ||
+            row.buckets.some((bucket) => !object(bucket))
+          )
+            throw new CliError(
+              "UPSTREAM_ERROR",
+              "Falcon returned an incomplete sensor aggregate",
+            );
+          return {
+            name: text(row.name) ?? "unknown",
+            ...present(row, [
+              "doc_count_error_upper_bound",
+              "sum_other_doc_count",
+            ]),
+            buckets: (row.buckets as RecordValue[]).map((bucket) =>
+              present(bucket, [
+                "label",
+                "count",
+                "value",
+                "key_as_string",
+                "value_as_string",
+                "from",
+                "to",
+                "string_from",
+                "string_to",
+              ]),
+            ),
+          };
+        }),
+      },
+      help: [],
+    };
+  }
   if (name.endsWith(" show")) {
     const records = await domain.hydrate(
       operation,

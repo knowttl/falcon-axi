@@ -146,6 +146,15 @@ const declarations: Command[] = [
     ceiling: 200,
   },
   {
+    name: "identity sensor aggregate",
+    order: 2302.5,
+    summary:
+      "  identity sensor aggregate aggregate Identity Protection sensors by a field",
+    values: ["name", "type", "field", "filter", "size"],
+    booleans: [],
+    operations: ["GetSensorAggregates"],
+  },
+  {
     name: "identity rule create",
     order: 2303.75,
     summary:

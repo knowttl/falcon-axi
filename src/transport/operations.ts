@@ -75,9 +75,9 @@ const registry: Record<string, Descriptor> = Object.create(null) as Record<
   Descriptor
 >;
 if (
-  rows.length !== 116 ||
+  rows.length !== 117 ||
   createHash("sha256").update(JSON.stringify(rows)).digest("hex") !==
-    "e523885390577a20b482d5d4cc399a0fcc252e8cc85c4bc3e484f64f447b1f66"
+    "92173388eb5596bc1a4f03965c97771560471af63c9fd3a5e919a5ae138edeb7"
 )
   throw new Error("Canonical operation authority changed");
 for (const row of rows) {

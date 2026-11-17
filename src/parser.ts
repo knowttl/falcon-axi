@@ -239,6 +239,15 @@ export function parse(argv: string[]): Invocation {
       "VALIDATION_ERROR",
       "serverless list requires --filter <FQL>",
     );
+  if (
+    command.name === "identity sensor aggregate" &&
+    (["--name", "--type", "--field"].some((flag) => !flags.get(flag)?.trim()) ||
+      (flags.has("--size") && !/^[1-9][0-9]*$/.test(flags.get("--size")!)))
+  )
+    throw new CliError(
+      "VALIDATION_ERROR",
+      "identity sensor aggregate requires --name, --type, and --field, and --size must be a positive integer",
+    );
   if (command.name === "shield list") shieldFilters(flags);
   if (
     command.name === "process show" &&

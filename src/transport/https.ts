@@ -437,6 +437,7 @@ const enabledReadOperations = new Set([
   "get_logins",
   "QuerySensorsByFilter",
   "GetSensorDetails",
+  "GetSensorAggregates",
   "query_accounts",
   "get_accounts",
   "GetCombinedVulnerabilitiesSARIF",
@@ -602,6 +603,20 @@ export function requestRead(
       body.composite_ids.some((value) => typeof value !== "string" || !value))
   )
     throw new CliError("READ_ONLY_VIOLATION", "invalid hydration authority");
+  if (
+    id === "GetSensorAggregates" &&
+    (Object.keys(query).length ||
+      !object(body) ||
+      Object.keys(body).some(
+        (key) => !["name", "type", "field", "filter", "size"].includes(key),
+      ) ||
+      ["name", "type", "field"].some(
+        (key) => typeof body[key] !== "string" || !body[key],
+      ) ||
+      (body.filter !== undefined && typeof body.filter !== "string") ||
+      (body.size !== undefined && !Number.isSafeInteger(body.size)))
+  )
+    throw new CliError("READ_ONLY_VIOLATION", "invalid aggregate authority");
   const params = new URLSearchParams();
   for (const [key, value] of Object.entries(query))
     for (const item of Array.isArray(value) ? value : [value])
