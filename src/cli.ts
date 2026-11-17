@@ -33,7 +33,7 @@ import {
   validateRawInvocation,
   validateRawQuerySecrets,
 } from "./raw.js";
-import { identityRuleCreate } from "./identity-rule.js";
+import { identityRuleCreate, identityRuleDelete } from "./identity-rule.js";
 import { installHooks } from "./setup.js";
 import { HOME_GUIDANCE, skillHint } from "./skill.js";
 import { readOnly } from "./rtr-policy.js";
@@ -153,7 +153,7 @@ export async function main(argv: string[], bin?: string): Promise<number> {
               "write-labelled scopes: NGSIEM:write for `search start`, `search stop`, and `identity activity`,",
               "Identity Protection GraphQL:write for the fixed Identity Protection query commands and `identity graphql`,",
               "which Falcon requires even for read-only queries, MalQuery:write for bounded exact/fuzzy searches (N4),",
-              "and Identity Protection Policy Rules:write for `identity rule create`.",
+              "and Identity Protection Policy Rules:write for `identity rule create` and `identity rule delete`.",
               "The `account`, `asset`, `application`, and `login` commands need license-gated Assets:read.",
               "The `indicator` commands require the license-gated Indicators (Falcon Intelligence):read scope.",
             ]
@@ -250,7 +250,7 @@ export async function main(argv: string[], bin?: string): Promise<number> {
         render(
           {
             posture: new Raw(
-              "registered commands are read-only except NGSIEM:write for search lifecycle and identity activity (N1), Identity Protection GraphQL:write for fixed reads and reviewed query documents (N2), guarded RTR execution (N3), and bounded MalQuery searches (N4); identity rule create uses Identity Protection Policy Rules:write behind the same write gate; raw writes are separately gated (N5)",
+              "registered commands are read-only except NGSIEM:write for search lifecycle and identity activity (N1), Identity Protection GraphQL:write for fixed reads and reviewed query documents (N2), guarded RTR execution (N3), and bounded MalQuery searches (N4); identity rule create and identity rule delete use Identity Protection Policy Rules:write behind the same write gate; raw writes are separately gated (N5)",
             ),
             scopes: [...groups].map(([scope, names]) => ({
               scope,
@@ -267,10 +267,10 @@ export async function main(argv: string[], bin?: string): Promise<number> {
           [
             "Grant these scopes in the Falcon console under Support and resources > API clients and keys",
             "Registered commands need read access and only the listed NGSIEM:write, Identity Protection GraphQL:write, MalQuery:write, and Identity Protection Policy Rules:write scopes; raw routes require the scopes Falcon documents for each chosen operation",
-            "Identity commands send fixed read queries and parser-checked query documents under N2; identity rule create sends one fixed policy-rule body behind the write gate; gated raw writes under N5 can send caller-supplied GraphQL",
+            "Identity commands send fixed read queries and parser-checked query documents under N2; identity rule create sends one fixed policy-rule body and identity rule delete removes one policy rule by identifier, both behind the write gate; gated raw writes under N5 can send caller-supplied GraphQL",
             "Omit NGSIEM:write and `search start`, `search stop`, and `identity activity` fail with SCOPE_DENIED",
             "Omit Identity Protection GraphQL:write and `identity list`, `identity show`, `identity timeline`, `identity assessment`, and `identity graphql` fail with SCOPE_DENIED",
-            "Omit Identity Protection Policy Rules:write and `identity rule create` fails with SCOPE_DENIED",
+            "Omit Identity Protection Policy Rules:write and `identity rule create` and `identity rule delete` fail with SCOPE_DENIED",
             "MalQuery:write needs Falcon MalQuery licensing and admits only bounded exact/fuzzy search under N4; hunt and sample downloads remain excluded",
             "Assets:read is license-gated to Falcon Discover or Exposure Management; omit it and the `account`, `asset`, `application`, and `login` commands fail with SCOPE_DENIED",
           ],
@@ -323,6 +323,16 @@ export async function main(argv: string[], bin?: string): Promise<number> {
       );
       return 0;
     }
+    if (command.name === "identity rule delete") {
+      await identityRuleDelete(
+        invocation,
+        credential,
+        base,
+        allowUnknown,
+        controller.signal,
+      );
+      return 0;
+    }
     if (
       flags.has("--hostname") &&
       ["host logins", "host network"].includes(command.name)
@@ -365,7 +375,7 @@ export async function main(argv: string[], bin?: string): Promise<number> {
             credential_path: credential.path,
             tenant,
             scopes: new Raw(
-              "read scopes, plus NGSIEM:write for `search start`, `search stop`, and `identity activity`, Identity Protection GraphQL:write for the fixed Identity Protection query commands and `identity graphql`, MalQuery:write for bounded exact/fuzzy searches (N4), and Identity Protection Policy Rules:write for `identity rule create`",
+              "read scopes, plus NGSIEM:write for `search start`, `search stop`, and `identity activity`, Identity Protection GraphQL:write for the fixed Identity Protection query commands and `identity graphql`, MalQuery:write for bounded exact/fuzzy searches (N4), and Identity Protection Policy Rules:write for `identity rule create` and `identity rule delete`",
             ),
             ...(session.rateLimit !== undefined &&
             session.remaining !== undefined

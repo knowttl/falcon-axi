@@ -46,10 +46,11 @@ if (digest(JSON.stringify(ledger)) !== seal)
 const postMigrationCommandNames = [
   "identity graphql",
   "identity rule create",
+  "identity rule delete",
   "raw get",
   "raw write",
 ];
-const postMigrationOperationIds = ["post_policy_rules"];
+const postMigrationOperationIds = ["post_policy_rules", "delete_policy_rules"];
 const expectedCommands = [
   ...new Set([
     ...postMigrationCommandNames,

@@ -67,7 +67,7 @@ Raw writes are off unless a file profile opts in; environment profiles cannot en
 ```
 
 Both `allowWrites: true` and `"raw-write"` in `operations` are required, including to preview a `raw write`.
-`identity rule create` uses the same fields with `"identity-rule-create"` in `operations`.
+`identity rule create` and `identity rule delete` use the same fields with `"identity-rule-create"` and `"identity-rule-delete"` in `operations`.
 See [Raw API](read-only.md#raw-api) for the remaining gates.
 
 ## Selection and overrides

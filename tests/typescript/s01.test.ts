@@ -1325,7 +1325,7 @@ test("unknown flag fails before credentials or traffic", async () => {
   assert.equal(wire.length, 0);
 });
 test("sealed registry rejects inherited keys, mutation and unimplemented exception operations", async () => {
-  assert.equal(operationIds.length, 115);
+  assert.equal(operationIds.length, 116);
   for (const id of ["__proto__", "constructor", "toString", "DeleteHosts"])
     assert.throws(() => operation(id), /outside the sealed/);
   assert.throws(

@@ -16,6 +16,6 @@ Identity Protection Assessment:read, plus four
 write-labelled scopes: NGSIEM:write for `search start`, `search stop`, and `identity activity`,
 Identity Protection GraphQL:write for the fixed Identity Protection query commands and `identity graphql`,
 which Falcon requires even for read-only queries, MalQuery:write for bounded exact/fuzzy searches (N4),
-and Identity Protection Policy Rules:write for `identity rule create`.
+and Identity Protection Policy Rules:write for `identity rule create` and `identity rule delete`.
 The `account`, `asset`, `application`, and `login` commands need license-gated Assets:read.
 The `indicator` commands require the license-gated Indicators (Falcon Intelligence):read scope.

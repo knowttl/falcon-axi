@@ -26,12 +26,12 @@ These are closed ID allowlists; they do not authorize additional writes.
 The GraphQL sink accepts a registered document or a parser-checked `identity graphql` query (§4.4). Variables stay in the JSON variables object.
 See [search lifecycle](design/v1.md#43-ng-siem-search-was-excluded-on-the-credential-scope-test-and-captain-exception-n1-reversed-it) and [Identity Protection](design/v1.md#44-the-identity-protection-directory-was-excluded-on-the-credential-scope-test-and-captain-exception-n2-reversed-it) for exception history and contracts.
 
-`FALCON_AXI_READ_ONLY=1` blocks `search start`, `search stop`, `identity activity`, `host usb`, `malquery search`, RTR execution, `raw write --execute`, and `identity rule create --execute` before authentication.
-Search status, local RTR previews, raw write previews, identity rule create previews, and passive RTR history remain available.
+`FALCON_AXI_READ_ONLY=1` blocks `search start`, `search stop`, `identity activity`, `host usb`, `malquery search`, RTR execution, `raw write --execute`, `identity rule create --execute`, and `identity rule delete --execute` before authentication.
+Search status, local RTR previews, raw write previews, identity rule create and delete previews, and passive RTR history remain available.
 See the [switch contract](design/v1.md#52-accepted-input-channels-in-precedence-order) for accepted values.
 It does not change the Identity Protection query contract in §4.4.
 Registered commands provide no host containment, quarantine release, ingest, or GraphQL mutation surface.
-`identity rule create` is the one registered policy-rule write, and it uses the write gate.
+`identity rule create` and `identity rule delete` are the registered policy-rule writes, and both use the write gate.
 RTR history reads session metadata and audit records without opening or executing a session, including under READ_ONLY.
 RTR operation admission and execution guards are owned by [N3's design contract](design/v1.md#45-rtr-was-excluded-on-semantic-execution-grounds-and-captain-exception-n3-narrowly-reverses-it).
 

@@ -16,6 +16,7 @@ import type { Scenario } from "./s01.test.js";
 import "./s12.test.js";
 import "./raw.test.js";
 import "./identity-rule-create.test.js";
+import "./identity-rule-delete.test.js";
 import "./final-coverage.test.js";
 import "./install-packed.test.js";
 
