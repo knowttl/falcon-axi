@@ -146,6 +146,15 @@ const declarations: Command[] = [
     ceiling: 200,
   },
   {
+    name: "identity rule create",
+    order: 2303.75,
+    summary:
+      "  identity rule create      create one Identity Protection policy rule",
+    values: ["body-file", "confirm"],
+    booleans: ["execute"],
+    operations: ["post_policy_rules"],
+  },
+  {
     name: "identity sensor show",
     order: 2303,
     summary:

@@ -52,7 +52,7 @@ export function consumeRawGrant(
 }
 
 const BODY_LIMIT = 1024 * 1024;
-function readJsonInput(
+export function readJsonInput(
   file: string,
   flag: string,
 ): { text: string; value: unknown } {
@@ -305,45 +305,43 @@ function present(response: Response): Record<string, unknown> {
   };
 }
 
-export async function rawRun(
-  request: ReturnType<typeof validateRawInvocation>,
-  credential: Credential,
-  base: string,
-  allowUnknown: boolean,
-  signal: AbortSignal,
-): Promise<void> {
-  const { method, path, query, target, body } = request;
-  if (method === "GET") {
-    const session = await authenticate(credential, base, allowUnknown, signal);
-    const response = await requestRaw(
-      method,
-      path,
-      query,
-      "",
-      undefined,
-      session.base,
-      session.token,
-      allowUnknown,
-      signal,
-    );
-    observeRate(session, response);
-    if (response.status < 200 || response.status >= 300)
-      throw failure(response);
-    process.stdout.write(render(present(response), [], true));
-    return;
-  }
+export async function runGatedWrite(input: {
+  operationName: string;
+  method: string;
+  path: string;
+  query: string;
+  body: string;
+  executing: boolean;
+  confirm: string | undefined;
+  credential: Credential;
+  base: string;
+  allowUnknown: boolean;
+  signal: AbortSignal;
+  refusal: readonly [string, string];
+  pendingHelp: readonly string[];
+  label?: string;
+  send: (session: { base: string; token: string }) => Promise<Response>;
+}): Promise<void> {
+  const kind = input.label ?? "raw write";
+  const {
+    operationName,
+    method,
+    path,
+    query,
+    body,
+    credential,
+    base,
+    allowUnknown,
+    signal,
+  } = input;
   if (
     credential.channel !== "file" ||
     !credential.writes?.allowWrites ||
-    !credential.writes.operations.includes("raw-write")
+    !credential.writes.operations.includes(operationName)
   )
-    throw new CliError(
-      "READ_ONLY_VIOLATION",
-      "raw writes require explicit profile opt-in",
-      [
-        'Set "writes": {"allowWrites": true, "operations": ["raw-write"]} on the selected file profile',
-      ],
-    );
+    throw new CliError("READ_ONLY_VIOLATION", input.refusal[0], [
+      input.refusal[1],
+    ]);
   const revision = credentialBinding();
   const credentialSegment =
     revision === undefined
@@ -380,9 +378,9 @@ export async function rawRun(
     .digest("hex");
   const confirm = `${credential.profile}:${method} sha256:${confirmationHash}${credentialSegment}`;
   if (
-    request.executing &&
+    input.executing &&
     credentialSegment &&
-    !request.confirm?.endsWith(credentialSegment)
+    !input.confirm?.endsWith(credentialSegment)
   )
     throw new CliError(
       "CREDENTIAL_CHANGED",
@@ -391,7 +389,7 @@ export async function rawRun(
         "Run without --execute to print the confirm value for the current credential",
       ],
     );
-  if (request.executing && request.confirm !== redact(confirm))
+  if (input.executing && input.confirm !== redact(confirm))
     throw new CliError(
       "VALIDATION_ERROR",
       "--confirm must match the preview's confirm value exactly",
@@ -413,16 +411,11 @@ export async function rawRun(
           ...(body ? { body: parseRawResponse(body) } : {}),
         },
       },
-      request.executing
-        ? []
-        : [
-            "Add --execute --confirm '<confirm>' to send this request once; it is never replayed automatically",
-            "Raw writes read no target state and detect no no-ops; reconcile an unknown outcome before retrying",
-          ],
+      input.executing ? [] : input.pendingHelp,
       true,
     ),
   );
-  if (!request.executing) return;
+  if (!input.executing) return;
   const journal = openRetainedFile(writeLogPath());
   const run = randomUUID().replaceAll("-", "");
   const append = (record: Record<string, unknown>, sent = false): void => {
@@ -449,7 +442,7 @@ export async function rawRun(
       if (sent)
         throw new CliError(
           "CONFIG_INSECURE",
-          "the raw write was sent but its outcome could not be recorded",
+          `the ${kind} was sent but its outcome could not be recorded`,
           ["Reconcile the target before retrying"],
           {
             ...(record.status === undefined
@@ -477,25 +470,8 @@ export async function rawRun(
           "authentication selected a different region than the preview",
           ["Repeat the preview with the correct --region"],
         );
-      const grant = {};
-      grants.set(grant, {
-        origin: origin(session.base, allowUnknown),
-        method,
-        path: target,
-        body,
-      });
       sent = true;
-      response = await requestRaw(
-        method,
-        path,
-        query,
-        body,
-        grant,
-        session.base,
-        session.token,
-        allowUnknown,
-        signal,
-      );
+      response = await input.send(session);
       observeRate(session, response);
     } catch (error) {
       append(
@@ -510,7 +486,7 @@ export async function rawRun(
               ["Reconcile the target before retrying"],
               error.details,
             )
-          : new CliError("UNKNOWN", "the raw write outcome is unknown", [
+          : new CliError("UNKNOWN", `the ${kind} outcome is unknown`, [
               "Reconcile the target before retrying",
             ]);
       throw error;
@@ -522,7 +498,7 @@ export async function rawRun(
     if (response.binary)
       throw new CliError(
         "UPSTREAM_ERROR",
-        "the raw write was sent but the response is binary",
+        `the ${kind} was sent but the response is binary`,
         ["Reconcile the target before retrying"],
         { status: response.status },
       );
@@ -532,4 +508,74 @@ export async function rawRun(
   } finally {
     journal.close();
   }
+}
+
+export async function rawRun(
+  request: ReturnType<typeof validateRawInvocation>,
+  credential: Credential,
+  base: string,
+  allowUnknown: boolean,
+  signal: AbortSignal,
+): Promise<void> {
+  const { method, path, query, target, body } = request;
+  if (method === "GET") {
+    const session = await authenticate(credential, base, allowUnknown, signal);
+    const response = await requestRaw(
+      method,
+      path,
+      query,
+      "",
+      undefined,
+      session.base,
+      session.token,
+      allowUnknown,
+      signal,
+    );
+    observeRate(session, response);
+    if (response.status < 200 || response.status >= 300)
+      throw failure(response);
+    process.stdout.write(render(present(response), [], true));
+    return;
+  }
+  await runGatedWrite({
+    operationName: "raw-write",
+    method,
+    path,
+    query,
+    body,
+    executing: request.executing,
+    confirm: request.confirm,
+    credential,
+    base,
+    allowUnknown,
+    signal,
+    refusal: [
+      "raw writes require explicit profile opt-in",
+      'Set "writes": {"allowWrites": true, "operations": ["raw-write"]} on the selected file profile',
+    ],
+    pendingHelp: [
+      "Add --execute --confirm '<confirm>' to send this request once; it is never replayed automatically",
+      "Raw writes read no target state and detect no no-ops; reconcile an unknown outcome before retrying",
+    ],
+    send: async (session) => {
+      const grant = {};
+      grants.set(grant, {
+        origin: origin(session.base, allowUnknown),
+        method,
+        path: target,
+        body,
+      });
+      return requestRaw(
+        method,
+        path,
+        query,
+        body,
+        grant,
+        session.base,
+        session.token,
+        allowUnknown,
+        signal,
+      );
+    },
+  });
 }

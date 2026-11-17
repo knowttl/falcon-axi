@@ -27,21 +27,23 @@ const exceptions: Readonly<Record<string, readonly string[]>> = Object.freeze({
     "PostMalQueryExactSearchV1",
     "PostMalQueryFuzzySearchV1",
   ]),
+  "identity-policy-write": Object.freeze(["post_policy_rules"]),
 });
 const exceptionScopes: Readonly<Record<string, string>> = Object.freeze({
   "search-lifecycle": "NGSIEM:write",
   "graphql-query": "Identity Protection GraphQL:write",
   "rtr-read-only-execute": "Real time response:read",
   "malquery-search": "MalQuery:write",
+  "identity-policy-write": "Identity Protection Policy Rules:write",
 });
 const registry: Record<string, Descriptor> = Object.create(null) as Record<
   string,
   Descriptor
 >;
 if (
-  rows.length !== 114 ||
+  rows.length !== 115 ||
   createHash("sha256").update(JSON.stringify(rows)).digest("hex") !==
-    "018194bb531b41bf54f1f1efd86badbc17f1667f37f2b056af225f9478181840"
+    "8b1bdabfb5c5932a88a692977b89d7bf2dc7d63ac0c5966c650e22c294fc74e7"
 )
   throw new Error("Canonical operation authority changed");
 for (const row of rows) {

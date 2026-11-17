@@ -113,9 +113,21 @@ export function violations(source: string, name: string): string[] {
             (name === "setup.ts" && specifier.text === "node:util") ||
             (name === "cli.ts" && specifier.text === "./rtr.js") ||
             (name === "cli.ts" && specifier.text === "./raw.js") ||
+            (name === "cli.ts" && specifier.text === "./identity-rule.js") ||
+            (name === "identity-rule.ts" && specifier.text === "./raw.js") ||
+            (name === "identity-rule.ts" &&
+              specifier.text === "./transport/policy-rule.js") ||
             (name === "transport/https.ts" && specifier.text === "../rtr.js") ||
             (name === "transport/https.ts" && specifier.text === "../raw.js") ||
-            (["credentials.ts", "rtr.ts", "raw.ts", "cli.ts"].includes(name) &&
+            (name === "transport/https.ts" &&
+              specifier.text === "./policy-rule.js") ||
+            ([
+              "credentials.ts",
+              "rtr.ts",
+              "raw.ts",
+              "cli.ts",
+              "identity-rule.ts",
+            ].includes(name) &&
               specifier.text === "./rtr-policy.js") ||
             (["rtr.ts", "raw.ts"].includes(name) &&
               specifier.text === "./rtr-filesystem.js") ||

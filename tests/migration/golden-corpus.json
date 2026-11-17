@@ -81,8 +81,8 @@
   },
   {
     "name": "auth-status-member-cid",
-    "definitionSha256": "e47d8b0d31c0196150a2ca62ec81621d5ac11ff2ab322a4ad732a6d7a40c24f4",
-    "expectedSha256": "b08a0b66a70b2314b94b56a9fb6983ca2ae6e9f14302c545f44be9c4549483b5"
+    "definitionSha256": "e79bb0ccfc6ef4ed186c3e27577194d59663d4a5f420dd165362019caecbadd1",
+    "expectedSha256": "a696b266e40bbf994ef45cdab823a0660339507729d814714bd91d48058eba69"
   },
   {
     "name": "auth-status-no-credential",
@@ -96,8 +96,8 @@
   },
   {
     "name": "auth-status-retargeted",
-    "definitionSha256": "5d15f7a534e6ec18936267385b755ec523ab7788a9c62dc0d5243be91b84d94c",
-    "expectedSha256": "9f16754af4c30661fee779688352a6d5db04bf8ad3080ba177d9c2b53d034240"
+    "definitionSha256": "955f57582559a270cab7ed3f857053c89e096a976a3569dd4fd39b8c09b98a83",
+    "expectedSha256": "2331e548d97b9d95b7d2d949d09c8dc9655835e6039a52d59dd5ce3434c7b8f4"
   },
   {
     "name": "auth-status-tenant-denied",
@@ -111,8 +111,8 @@
   },
   {
     "name": "auth-status",
-    "definitionSha256": "bebab0bdaa0f38aad68e6cc3b76b8bb410c426b9e5e61e539bc6e611dfa25e16",
-    "expectedSha256": "7cbdb3b78e60c85a020c8c91ec7585860926949f8724ccf5a5e1b11edfedf5c8"
+    "definitionSha256": "76cbac08a4ee4d3c33f0eb4722d92a916d7145a90c4af0fdaa60c04419f4a0a2",
+    "expectedSha256": "6a5c2ef6f434e0a5aa4f3ce2fa25d109d0afbfe139e039609ef9a0b59330de03"
   },
   {
     "name": "bad-since",
@@ -927,8 +927,8 @@
   },
   {
     "name": "help-top",
-    "definitionSha256": "06c3f3ec87f378778f97818e90bfea5651f12c21d8bec9181149ca7a4fef861b",
-    "expectedSha256": "fc26124ec48ac71f671de301a5a73e9653d0edb008372d82f611243a9fe6f459"
+    "definitionSha256": "5d8da0e9469ac517ca9fccdce1dc7825964467a21552cc950a44108572ba7bba",
+    "expectedSha256": "1f9dc1062289f845ce07f1a0740dea7ca385da5e89b771faffe6848792c4be02"
   },
   {
     "name": "help-vuln-list",
@@ -1512,8 +1512,8 @@
   },
   {
     "name": "scopes",
-    "definitionSha256": "a7250f3d7151550659536a7a2c14c8f2529e2f53506852093a00c67e23720d97",
-    "expectedSha256": "2c14e85180e9cdd75b505bf7c9eaa8b3dea98026c526808e6076febe040ef897"
+    "definitionSha256": "d4388be6bb9e7a5ef17f09dd46c718b1b396941c3d77f9e79d6fca3b442953b6",
+    "expectedSha256": "2fec37b40cad839265a337e14f0cd4c1b55f51d68dd6b79a2c1caabd0b6b5040"
   },
   {
     "name": "search-start-scope-denied",

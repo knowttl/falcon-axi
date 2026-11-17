@@ -63,6 +63,7 @@ Names omit the `falcon-axi` prefix; positional arguments stay inside code spans.
 | `identity sensor show <id>` | one Identity Protection sensor's details |
 | `identity rule list` | list Identity Protection policy rules |
 | `identity rule show <id>` | the full Identity Protection policy rule |
+| `identity rule create` | create one Identity Protection policy rule |
 | `ioc list` | list custom indicators |
 | `ioc show <id>` | read one custom indicator |
 | `ioc hosts <type:value>` | list observed hosts for a custom IOC |
@@ -151,6 +152,7 @@ Run `falcon-axi scopes` to inspect the matrix offline.
 | `Identity Protection Timeline:read` | identity timeline | yes |
 | `Identity Protection Assessment:read` | identity assessment | yes |
 | `Identity Protection Policy Rules:read` | identity rule list, identity rule show | yes |
+| `Identity Protection Policy Rules:write` | identity rule create | yes |
 | `IOC Management:read` | ioc list, ioc show | yes |
 | `IOCs (Indicators of Compromise):read` | ioc hosts, ioc processes, process show | yes |
 | `Threatgraph:read` | process tree | yes |
@@ -1066,6 +1068,30 @@ Use a rule identifier printed by identity rule list.
 Example: falcon-axi identity rule show synthetic-rule
 
 Read-only. Requires Identity Protection Policy Rules:read; no GraphQL permission needed.
+```
+
+## identity rule create
+
+```text
+falcon-axi identity rule create --body-file <file|-> [--execute --confirm '<confirm>']
+
+Default: local preview, no network request. The preview prints the exact confirm value.
+Requires a file profile with writes.allowWrites=true and "identity-rule-create" in writes.operations, even to preview.
+Execution also needs --execute and the exact --confirm value; FALCON_AXI_READ_ONLY always forbids execution.
+Sends one POST to /identity-protection/entities/policy-rules/v1, never replayed.
+A private redacted journal records the intent before sending and the outcome after; it is mandatory.
+The body is one JSON object of at most 1 MiB, from a file or stdin (-), without duplicate members.
+Required fields are name, action, trigger, enabled, and simulationMode.
+action is ADD_TO_WATCH_LIST, ALLOW, APPLY_SSO_POLICY, BLOCK, FORCE_PASSWORD_CHANGE, or MFA.
+trigger is access, accountEvent, alert, or federatedAccess.
+Optional activity accepts accessType and accessTypeCustom.
+Optional destination, sourceEndpoint, and sourceUser accept entityId and groupMembership.
+Each condition field is an object with include and/or exclude string arrays.
+Requires Identity Protection Policy Rules:write.
+The command prints status, content type, and body. CrowdStrike publishes no success schema for this route.
+Examples:
+  falcon-axi identity rule create --body-file rule.json --profile ops
+  falcon-axi identity rule create --body-file rule.json --profile ops --execute --confirm '<confirm>'
 ```
 
 ## ioc list

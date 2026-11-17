@@ -744,6 +744,21 @@
       }
     },
     {
+      "command": "identity rule create",
+      "flags": {
+        "help": "boolean",
+        "allow-unknown-origin": "boolean",
+        "no-member-cid": "boolean",
+        "config": "value",
+        "profile": "value",
+        "region": "value",
+        "member-cid": "value",
+        "execute": "boolean",
+        "body-file": "value",
+        "confirm": "value"
+      }
+    },
+    {
       "command": "ioc list",
       "flags": {
         "help": "boolean",
