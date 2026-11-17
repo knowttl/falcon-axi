@@ -1,5 +1,12 @@
 import { createHash } from "node:crypto";
-import { Kind, parse } from "graphql";
+import {
+  Kind,
+  parse,
+  type FieldNode,
+  type DirectiveNode,
+  type FragmentDefinitionNode,
+  type SelectionNode,
+} from "graphql";
 import { CliError, object } from "../core.js";
 import documents from "./documents.json" with { type: "json" };
 
@@ -96,6 +103,210 @@ export function parseQueryDocument(text: string): string {
       ],
     );
   return source;
+}
+export type GraphqlConnection = {
+  key: string;
+  first: string;
+  after: string;
+  afterDefault?: string;
+  nodes?: string;
+  edges?: string;
+  pageInfo: string;
+  hasNextPage: string;
+  endCursor: string;
+};
+const selectionFields = (
+  selections: readonly SelectionNode[],
+  fragments: ReadonlyMap<string, FragmentDefinitionNode>,
+  seen: ReadonlySet<string>,
+  inherited: readonly DirectiveNode[] = [],
+): FieldNode[] => {
+  const fields: FieldNode[] = [];
+  for (const selection of selections) {
+    const directives = [...inherited, ...(selection.directives ?? [])];
+    if (selection.kind === Kind.FIELD)
+      fields.push({ ...selection, directives });
+    else if (selection.kind === Kind.INLINE_FRAGMENT)
+      fields.push(
+        ...selectionFields(
+          selection.selectionSet.selections,
+          fragments,
+          seen,
+          directives,
+        ),
+      );
+    else if (
+      selection.kind === Kind.FRAGMENT_SPREAD &&
+      !seen.has(selection.name.value)
+    ) {
+      const fragment = fragments.get(selection.name.value);
+      if (!fragment) continue;
+      const next = new Set(seen);
+      next.add(selection.name.value);
+      fields.push(
+        ...selectionFields(fragment.selectionSet.selections, fragments, next, [
+          ...directives,
+          ...(fragment.directives ?? []),
+        ]),
+      );
+    }
+  }
+  return fields;
+};
+const argumentVariable = (
+  field: FieldNode,
+  name: string,
+): string | undefined => {
+  const argument = field.arguments?.find((item) => item.name.value === name);
+  return argument?.value.kind === Kind.VARIABLE
+    ? argument.value.name.value
+    : undefined;
+};
+export function graphqlConnections(text: string): {
+  connections: GraphqlConnection[];
+  alias?: string;
+  directive?: string;
+  duplicate?: string;
+} {
+  const source = text.charCodeAt(0) === 0xfeff ? text.slice(1) : text;
+  let definitions: ReturnType<typeof parse>["definitions"];
+  try {
+    definitions = parse(source, { noLocation: true }).definitions;
+  } catch {
+    return { connections: [] };
+  }
+  const fragments = new Map<string, FragmentDefinitionNode>();
+  for (const definition of definitions)
+    if (definition.kind === Kind.FRAGMENT_DEFINITION)
+      fragments.set(definition.name.value, definition);
+  const operation = definitions.find(
+    (definition) =>
+      definition.kind === Kind.OPERATION_DEFINITION &&
+      definition.operation === "query",
+  );
+  if (!operation || operation.kind !== Kind.OPERATION_DEFINITION)
+    return { connections: [] };
+  const connections: GraphqlConnection[] = [];
+  let alias: string | undefined;
+  let directive: string | undefined;
+  let duplicate: string | undefined;
+  const topFields = selectionFields(
+    operation.selectionSet.selections,
+    fragments,
+    new Set(),
+  );
+  const groups = new Map<string, FieldNode[]>();
+  for (const field of topFields) {
+    const key = field.alias?.value ?? field.name.value;
+    groups.set(key, [...(groups.get(key) ?? []), field]);
+  }
+  for (const group of groups.values()) {
+    const field = group[0]!;
+    const first = argumentVariable(field, "first");
+    const after = argumentVariable(field, "after");
+    if (!first || !after || !field.selectionSet) continue;
+    const fields = group.flatMap((item) =>
+      selectionFields(
+        item.selectionSet?.selections ?? [],
+        fragments,
+        new Set(),
+        item.directives,
+      ),
+    );
+    const pageInfos = fields.filter((item) => item.name.value === "pageInfo");
+    const pageInfo = pageInfos[0];
+    if (!pageInfo?.selectionSet) continue;
+    const infoFields = selectionFields(
+      pageInfo.selectionSet.selections,
+      fragments,
+      new Set(),
+    );
+    const names = new Set(infoFields.map((item) => item.name.value));
+    const rows = fields.filter((item) =>
+      ["nodes", "edges"].includes(item.name.value),
+    );
+    if (!rows.length) continue;
+    const pagingFields = [
+      ...pageInfos,
+      ...pageInfos.flatMap((item) =>
+        selectionFields(
+          item.selectionSet?.selections ?? [],
+          fragments,
+          new Set(),
+          item.directives,
+        ).filter((child) =>
+          ["hasNextPage", "endCursor"].includes(child.name.value),
+        ),
+      ),
+      ...rows,
+    ];
+    const directed = [...group, ...pagingFields].find(
+      (item) => item.directives?.length,
+    );
+    if (directed) {
+      directive ??= directed.directives![0]!.name.value;
+      continue;
+    }
+    if (!names.has("hasNextPage") || !names.has("endCursor")) continue;
+    const aliased = pagingFields.find((item) => item.alias);
+    if (aliased) {
+      alias ??= aliased.alias!.value;
+      continue;
+    }
+    const repeated = [
+      ...rows,
+      ...pageInfos,
+      ...infoFields.filter((item) =>
+        ["hasNextPage", "endCursor"].includes(item.name.value),
+      ),
+    ].find((item, index, all) =>
+      all.some(
+        (other, otherIndex) =>
+          otherIndex < index && other.name.value === item.name.value,
+      ),
+    );
+    if (
+      rows.some((item) => item.name.value === "nodes") &&
+      rows.some((item) => item.name.value === "edges")
+    ) {
+      duplicate ??= "both nodes and edges";
+      continue;
+    }
+    if (repeated) {
+      duplicate ??= repeated.name.value;
+      continue;
+    }
+    const responseKey = (item: FieldNode): string =>
+      item.alias?.value ?? item.name.value;
+    const nodes = rows.find((item) => item.name.value === "nodes");
+    const edges = rows.find((item) => item.name.value === "edges");
+    const afterDefault = operation.variableDefinitions?.find(
+      (item) => item.variable.name.value === after,
+    )?.defaultValue;
+    connections.push({
+      key: field.alias?.value ?? field.name.value,
+      first,
+      after,
+      ...(afterDefault?.kind === Kind.STRING
+        ? { afterDefault: afterDefault.value }
+        : {}),
+      ...(nodes ? { nodes: responseKey(nodes) } : {}),
+      ...(edges ? { edges: responseKey(edges) } : {}),
+      pageInfo: responseKey(pageInfo),
+      hasNextPage: responseKey(
+        infoFields.find((item) => item.name.value === "hasNextPage")!,
+      ),
+      endCursor: responseKey(
+        infoFields.find((item) => item.name.value === "endCursor")!,
+      ),
+    });
+  }
+  return {
+    connections,
+    ...(alias === undefined ? {} : { alias }),
+    ...(directive === undefined ? {} : { directive }),
+    ...(duplicate === undefined ? {} : { duplicate }),
+  };
 }
 export function queryOnly(text: string): boolean {
   try {

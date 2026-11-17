@@ -25,6 +25,7 @@ READ_ONLY refuses lifecycle changes and MalQuery submissions before authenticati
 Search waits include authentication, creation, polling, response acquisition and retry delays under one invocation deadline.
 Expiry before a job identifier is known reports WAIT_TIMEOUT; expiry after it is known returns the recoverable running job and repository-aware suggestions.
 GraphQL text comes from the frozen canonical documents or from `identity graphql`, which sends only documents the pinned `graphql` 16.13.1 parser accepts as exactly one query operation.
+The caller-document paging contract is in v1.md §4.4.
 Variables travel separately and both GraphQL and MalQuery bodies are checked again by the network sink.
 Relay cursors bind identity filters, credentials, region and tenant; timeline cursors also retain their original window start.
 Policy and exclusion scopes are selected by the required type selector.

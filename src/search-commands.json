@@ -134,12 +134,18 @@
     "order": 2301.5,
     "values": [
       "query",
-      "variables"
+      "variables",
+      "limit",
+      "cursor",
+      "max-rows"
     ],
-    "booleans": [],
+    "booleans": [
+      "all"
+    ],
     "operations": [
       "api_preempt_proxy_post_graphql"
-    ]
+    ],
+    "ceiling": 200
   },
   {
     "name": "malquery show",

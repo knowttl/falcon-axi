@@ -685,8 +685,12 @@
         "profile": "value",
         "region": "value",
         "member-cid": "value",
+        "all": "boolean",
         "query": "value",
-        "variables": "value"
+        "variables": "value",
+        "limit": "value",
+        "cursor": "value",
+        "max-rows": "value"
       }
     },
     {

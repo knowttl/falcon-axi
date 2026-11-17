@@ -7,7 +7,11 @@ import type { Invocation } from "./parser.js";
 import { Raw } from "./render.js";
 import { seconds } from "./search.js";
 import { requestException } from "./transport/https.js";
-import { document, parseQueryDocument } from "./transport/search-authority.js";
+import {
+  document,
+  graphqlConnections,
+  parseQueryDocument,
+} from "./transport/search-authority.js";
 import { observeRate, responseFailure } from "./auth.js";
 import { malformed } from "./response.js";
 
@@ -97,11 +101,40 @@ export function loadGraphqlVariables(
     throw new CliError("VALIDATION_ERROR", "--variables must be a JSON object");
   return parsed;
 }
+const pageError = (
+  count: number,
+  alias?: string,
+  directive?: string,
+  duplicate?: string,
+): never => {
+  throw new CliError(
+    "VALIDATION_ERROR",
+    "--limit, --cursor, and --all require exactly one top-level connection whose first and after arguments are variables and whose pageInfo selects hasNextPage and endCursor",
+    [
+      alias
+        ? `The selection uses the alias ${alias}, so those flags are refused and nothing is sent`
+        : directive
+          ? `The selection uses the directive @${directive}, so those flags are refused and nothing is sent`
+          : duplicate
+            ? `The connection selects ${duplicate}${duplicate === "both nodes and edges" ? "" : " more than once"}, so those flags are refused and nothing is sent`
+            : count === 0
+              ? "This document has no such connection, so those flags are refused and nothing is sent"
+              : `This document has ${count} such connections, so those flags are refused and nothing is sent`,
+    ],
+  );
+};
 export function validateIdentity(invocation: Invocation): void {
   const { command, flags, id } = invocation;
   if (command.name === "identity graphql") {
     invocation.graphqlQuery = loadGraphqlQuery(flags.get("--query"));
     loadGraphqlVariables(flags.get("--variables"));
+    if (flags.has("--limit") || flags.has("--cursor") || flags.has("--all")) {
+      const { connections, alias, directive, duplicate } = graphqlConnections(
+        invocation.graphqlQuery,
+      );
+      if (connections.length !== 1 || alias || directive || duplicate)
+        pageError(connections.length, alias, directive, duplicate);
+    }
   }
   if (["identity list", "identity assessment"].includes(command.name)) {
     const type = flags.get("--type");
@@ -145,68 +178,185 @@ const summary = (node: RecordValue): RecordValue => ({
 export async function identity(domain: Domain): Promise<Output> {
   const { command, flags, id, limit } = domain.invocation;
   if (command.name === "identity graphql") {
+    const query = domain.invocation.graphqlQuery!;
     const variables = loadGraphqlVariables(flags.get("--variables"));
-    const response = await requestException(
-      "api_preempt_proxy_post_graphql",
-      domain.session.base,
-      domain.session.token,
-      { query: domain.invocation.graphqlQuery!, variables },
-      domain.allowUnknown,
-      domain.signal,
-    );
-    observeRate(domain.session, response);
-    const subject = "the Identity Protection query";
-    const scopes = ["Identity Protection GraphQL:write"];
-    if (response.status === 403)
-      throw new CliError(
-        "SCOPE_DENIED",
-        `this API client is not permitted to read ${subject}`,
-        [
-          `Grant ${scopes[0]} to the API client in the Falcon console under Support and resources > API clients and keys`,
-          "The GraphQL scope is labelled write because Falcon requires it even for read-only queries; identity graphql sends only documents whose operations are queries",
-          "The selected fields may also require Identity Protection Entities:read, Identity Protection Timeline:read, Identity Protection Assessment:read, or Identity Protection Detections:read",
-          "The Identity Protection scopes appear in the console only for tenants licensed for Falcon Identity Protection",
-          "Run `falcon-axi scopes` for the matrix",
-        ],
-        { required_scopes: scopes },
-      );
-    if (response.status !== 200)
-      responseFailure(
-        response,
-        subject,
-        false,
-        false,
-        "api_preempt_proxy_post_graphql",
-      );
-    const body = mapping(response.body);
+    const { connections, alias, directive, duplicate } =
+      graphqlConnections(query);
+    const page =
+      connections.length === 1 && !alias && !directive && !duplicate
+        ? connections[0]
+        : undefined;
     if (
-      (Object.hasOwn(body, "errors") &&
-        (!Array.isArray(body.errors) || body.errors.length > 0)) ||
-      !object(body.data)
-    ) {
-      try {
-        malformed(
-          response,
-          `Falcon reported an error while answering the Identity Protection query for ${subject}`,
+      (flags.has("--limit") || flags.has("--cursor") || flags.has("--all")) &&
+      !page
+    )
+      pageError(connections.length, alias, directive, duplicate);
+    const read = async (
+      sent: Record<string, unknown>,
+    ): Promise<RecordValue> => {
+      const response = await requestException(
+        "api_preempt_proxy_post_graphql",
+        domain.session.base,
+        domain.session.token,
+        { query, variables: sent },
+        domain.allowUnknown,
+        domain.signal,
+      );
+      observeRate(domain.session, response);
+      const subject = "the Identity Protection query";
+      const scopes = ["Identity Protection GraphQL:write"];
+      if (response.status === 403)
+        throw new CliError(
+          "SCOPE_DENIED",
+          `this API client is not permitted to read ${subject}`,
           [
-            "Retry shortly",
-            "Quote the trace_id when opening a CrowdStrike support case",
+            `Grant ${scopes[0]} to the API client in the Falcon console under Support and resources > API clients and keys`,
+            "The GraphQL scope is labelled write because Falcon requires it even for read-only queries; identity graphql sends only documents whose operations are queries",
+            "The selected fields may also require Identity Protection Entities:read, Identity Protection Timeline:read, Identity Protection Assessment:read, or Identity Protection Detections:read",
+            "The Identity Protection scopes appear in the console only for tenants licensed for Falcon Identity Protection",
+            "Run `falcon-axi scopes` for the matrix",
           ],
+          { required_scopes: scopes },
         );
-      } catch (error) {
-        if (
-          error instanceof CliError &&
-          object(body.meta) &&
-          typeof body.meta.trace_id === "string"
-        )
-          throw new CliError(error.code, error.message, error.help, {
-            ...error.details,
-            trace_id: body.meta.trace_id,
-          });
-        throw error;
+      if (response.status !== 200)
+        responseFailure(
+          response,
+          subject,
+          false,
+          false,
+          "api_preempt_proxy_post_graphql",
+        );
+      const body = mapping(response.body);
+      if (
+        (Object.hasOwn(body, "errors") &&
+          (!Array.isArray(body.errors) || body.errors.length > 0)) ||
+        !object(body.data)
+      ) {
+        try {
+          malformed(
+            response,
+            `Falcon reported an error while answering the Identity Protection query for ${subject}`,
+            [
+              "Retry shortly",
+              "Quote the trace_id when opening a CrowdStrike support case",
+            ],
+          );
+        } catch (error) {
+          if (
+            error instanceof CliError &&
+            object(body.meta) &&
+            typeof body.meta.trace_id === "string"
+          )
+            throw new CliError(error.code, error.message, error.help, {
+              ...error.details,
+              trace_id: body.meta.trace_id,
+            });
+          throw error;
+        }
       }
+      return body.data as RecordValue;
+    };
+    if (!page) return { value: { data: await read(variables) }, help: [] };
+    const context = domain.cursor(
+      "api_preempt_proxy_post_graphql",
+      pythonJson(
+        [
+          query,
+          Object.fromEntries(
+            Object.entries(variables)
+              .filter(([key]) => key !== page.first && key !== page.after)
+              .sort(([left], [right]) =>
+                left < right ? -1 : left > right ? 1 : 0,
+              ),
+          ),
+        ],
+        true,
+      ),
+      "token",
+    );
+    let after: unknown = flags.has("--cursor")
+      ? context.decode(flags.get("--cursor")!)
+      : variables[page.after];
+    if (flags.has("--cursor") && typeof after !== "string")
+      throw new CliError(
+        "VALIDATION_ERROR",
+        "this cursor does not continue the current query",
+        [
+          "A cursor is bound to its operation, document, variables, region, tenant selection, and credential",
+          "Re-run the command without `--cursor` to start a fresh read",
+        ],
+      );
+    const walking = flags.has("--all");
+    let remaining = walking ? Number(flags.get("--max-rows") ?? 1000) : limit;
+    let data: RecordValue | undefined;
+    let next = false;
+    let position: string | undefined;
+    let pagesRead = 0;
+    const seen = new Set<unknown>([
+      after === undefined ? page.afterDefault : after,
+    ]);
+    do {
+      const size = walking ? Math.min(command.ceiling!, remaining) : limit;
+      const sent: Record<string, unknown> = {
+        ...variables,
+        [page.first]: size,
+      };
+      if (after !== undefined) sent[page.after] = after;
+      const pageData = await read(sent);
+      const connection = mapping(pageData[page.key]);
+      const nodeRows = page.nodes ? connection[page.nodes] : undefined;
+      const edgeRows = page.edges ? connection[page.edges] : undefined;
+      const selectedRows = Array.isArray(nodeRows) ? nodeRows : edgeRows;
+      const rows = Array.isArray(selectedRows) ? selectedRows : [];
+      if (!data) data = structuredClone(pageData);
+      else {
+        const accumulated = mapping(data[page.key]);
+        for (const key of [page.nodes, page.edges]) {
+          if (key && Array.isArray(connection[key]))
+            accumulated[key] = [
+              ...(Array.isArray(accumulated[key]) ? accumulated[key] : []),
+              ...connection[key],
+            ];
+        }
+        if (object(connection[page.pageInfo]))
+          accumulated[page.pageInfo] = connection[page.pageInfo];
+      }
+      const info = mapping(connection[page.pageInfo]);
+      next = info[page.hasNextPage] === true;
+      position = text(info[page.endCursor]);
+      if (next && !position)
+        throw new CliError(
+          "UPSTREAM_ERROR",
+          "the Identity Protection connection omitted endCursor",
+          ["Retry shortly"],
+        );
+      if (walking && rows.length === 0 && (next || pagesRead > 0))
+        throw new CliError(
+          "UPSTREAM_ERROR",
+          "the Identity Protection connection returned another page without rows",
+          ["Retry shortly"],
+        );
+      if (next && seen.has(position))
+        throw new CliError(
+          "UPSTREAM_ERROR",
+          "the Identity Protection connection repeated its cursor",
+          ["Retry shortly"],
+        );
+      if (next) seen.add(position);
+      remaining -= rows.length;
+      after = position;
+      pagesRead += 1;
+    } while (walking && next && remaining > 0);
+    const output: Output = { value: { data }, help: [] };
+    if (walking && next) {
+      output.value.partial = true;
+      output.value.stop_reason = "max_rows";
+      output.help.push(
+        "Raise --max-rows, or follow continuation_cursor to resume from this position",
+      );
     }
-    return { value: { data: body.data }, help: [] };
+    if (next) domain.continuation(output, context, position);
+    return output;
   }
   const query = async (
     name: string,
