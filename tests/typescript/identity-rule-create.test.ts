@@ -3,7 +3,14 @@ import { test, beforeEach } from "node:test";
 import { readFile, writeFile, mkdtemp } from "node:fs/promises";
 import { join } from "node:path";
 import { decode } from "@toon-format/toon";
-import { directory, run, reset, wire, recordedResponse } from "./s01.test.js";
+import {
+  directory,
+  run,
+  reset,
+  wire,
+  recordedResponse,
+  dynamicResponse,
+} from "./s01.test.js";
 
 let config: string;
 beforeEach(async () => {
@@ -165,6 +172,47 @@ test("identity rule create journals an executed write and sends the canonical bo
   assert.equal(records[1]!.status, 200);
   assert.equal(JSON.stringify(records).includes("synthetic-rule-name"), false);
 });
+
+for (const status of [200, 403])
+  for (const body of ["plain response", '{"role":"admin","role":"viewer"}'])
+    test(`identity rule create preserves ${status} response ${body}`, async () => {
+      const file = await bodyFile();
+      const confirm = await confirmValue(file);
+      dynamicResponse("post_policy_rules", () => ({
+        status,
+        headers: { "content-type": "text/plain" },
+        body: Buffer.from(body),
+      }));
+      const result = await run(
+        args("ops", "--body-file", file, "--execute", "--confirm", confirm),
+        await state(),
+      );
+      assert.equal(result.code, status === 200 ? 0 : 1, result.stdout);
+      const output = value(result.stdout);
+      assert.equal(output[status === 200 ? "body" : "upstream_body"], body);
+      if (status === 200) {
+        assert.equal(output.status, status);
+        assert.equal(output.content_type, "text/plain");
+      }
+    });
+
+for (const status of [200, 403])
+  test(`identity rule create refuses a binary ${status} response`, async () => {
+    const file = await bodyFile();
+    const confirm = await confirmValue(file);
+    dynamicResponse("post_policy_rules", () => ({
+      status,
+      body: Buffer.from([0x61, 0]),
+    }));
+    const result = await run(
+      args("ops", "--body-file", file, "--execute", "--confirm", confirm),
+      await state(),
+    );
+    assert.equal(result.code, 1, result.stdout);
+    assert.match(result.stdout, /binary/);
+    assert.equal(value(result.stdout).status, status);
+    assert.equal(value(result.stdout).upstream_body, undefined);
+  });
 
 test("identity rule create sends nothing for a malformed body or a profile that did not opt in", async () => {
   const malformed = await bodyFile({ ...rule, extra: true });

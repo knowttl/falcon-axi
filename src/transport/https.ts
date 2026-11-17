@@ -113,6 +113,8 @@ async function send(
     if (prepared.method !== "GET")
       consumeRawGrant(prepared.raw.grant, prepared);
   }
+  const rawResponse =
+    !!prepared.raw || prepared.exception === "identity-policy-write";
   const signal = AbortSignal.any([inherited, AbortSignal.timeout(30_000)]);
   signal.throwIfAborted();
   const resolver = createLookup(inherited, signal);
@@ -215,7 +217,7 @@ async function send(
               bytes >
               (prepared.rtr
                 ? 1024 * 1024
-                : prepared.raw
+                : rawResponse
                   ? RAW_RESPONSE_LIMIT
                   : 16 * 1024 * 1024)
             ) {
@@ -247,7 +249,7 @@ async function send(
               .toLowerCase();
             if (text) {
               try {
-                body = prepared.raw
+                body = rawResponse
                   ? parseRawResponse(text)
                   : parseResponse(text);
               } catch {
@@ -258,7 +260,7 @@ async function send(
               status: response.statusCode ?? 500,
               headers: Object.freeze(headers),
               body,
-              ...(prepared.raw
+              ...(rawResponse
                 ? {
                     text,
                     binary:
