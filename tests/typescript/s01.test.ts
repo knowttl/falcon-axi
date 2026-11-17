@@ -1349,18 +1349,43 @@ test("sealed registry rejects inherited keys, mutation and unimplemented excepti
 for (const [name, citation, admitted] of [
   [
     "falconpy table plus another official SDK",
-    "falcon-mcp has no tool for ExampleOp. falconpy/_endpoint/_example.py maps ExampleOp to GET /example/v1. gofalcon Client.ExampleOp calls the same route.",
+    "falcon-mcp has no tool for ExampleOp. falconpy/_endpoint/_example.py maps ExampleOp to GET /example/v1. gofalcon wraps ExampleOp.",
     true,
   ],
   [
     "falconpy table plus PSFalcon",
-    "falcon-mcp has no tool for ExampleOp. falconpy/_endpoint/_example.py maps ExampleOp to GET /example/v1. PSFalcon Get-FalconExample wraps it.",
+    "falcon-mcp has no tool for ExampleOp. falconpy/_endpoint/_example.py maps ExampleOp to GET /example/v1. PSFalcon wraps ExampleOp.",
     true,
   ],
   [
     "falcon-mcp scope mapping",
     "falcon_mcp/common/api_scopes.py maps ExampleOp to Example:read.",
     true,
+  ],
+  [
+    "neighbouring falcon-mcp operation",
+    "falcon_mcp/common/api_scopes.py maps NeighbourOp to Example:read.",
+    false,
+  ],
+  [
+    "longer route",
+    "falcon-mcp has no tool for ExampleOp. falconpy/_endpoint/_example.py maps ExampleOp to GET /example/v1-extra. gofalcon wraps ExampleOp.",
+    false,
+  ],
+  [
+    "unrelated SDK mention",
+    "falcon-mcp has no tool for ExampleOp. falconpy/_endpoint/_example.py maps ExampleOp to GET /example/v1. A community blog wraps ExampleOp and mentions gofalcon.",
+    false,
+  ],
+  [
+    "SDK wrapping a longer operation name",
+    "falcon-mcp has no tool for ExampleOp. falconpy/_endpoint/_example.py maps ExampleOp to GET /example/v1. gofalcon wraps ExampleOpExtra.",
+    false,
+  ],
+  [
+    "mapping separate from endpoint file",
+    "falcon-mcp has no tool for ExampleOp. falconpy/_endpoint/_example.py is a file. Another table maps ExampleOp to GET /example/v1. gofalcon wraps ExampleOp.",
+    false,
   ],
   [
     "falconpy table plus a community source",
