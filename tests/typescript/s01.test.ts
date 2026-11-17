@@ -1399,12 +1399,12 @@ for (const [name, citation, admitted] of [
   ],
   [
     "falconpy table mapping another route",
-    "falcon-mcp has no tool for ExampleOp. falconpy/_endpoint/_example.py maps ExampleOp to GET /other/v1. gofalcon wraps it.",
+    "falcon-mcp has no tool for ExampleOp. falconpy/_endpoint/_example.py maps ExampleOp to GET /other/v1. gofalcon wraps ExampleOp.",
     false,
   ],
   [
     "neighbouring operation's mapping",
-    "falcon-mcp has no tool for ExampleOp. falconpy/_endpoint/_example.py maps NeighbourOp to GET /example/v1. gofalcon wraps NeighbourOp.",
+    "falcon-mcp has no tool for ExampleOp. falconpy/_endpoint/_example.py maps NeighbourOp to GET /example/v1. gofalcon wraps ExampleOp.",
     false,
   ],
 ] as const)
