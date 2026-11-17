@@ -1,5 +1,20 @@
 # Changelog
 
+## [1.2.0](https://github.com/knowttl/falcon-axi/compare/npm-v1.1.0...npm-v1.2.0) (2026-11-17)
+
+
+### Features
+
+* add identity policy rule deletion ([#186](https://github.com/knowttl/falcon-axi/issues/186)) ([324b9b0](https://github.com/knowttl/falcon-axi/commit/324b9b09aa99a64d91b16cf396477f7684a1bea2))
+* add Identity Protection GraphQL queries ([#182](https://github.com/knowttl/falcon-axi/issues/182)) ([454c6c1](https://github.com/knowttl/falcon-axi/commit/454c6c14dc252212d1adf5612d870de246e966ae))
+* add identity sensor aggregation ([#187](https://github.com/knowttl/falcon-axi/issues/187)) ([3ad3909](https://github.com/knowttl/falcon-axi/commit/3ad3909268c80f7d863bf97e191c94577ed4b857))
+* add Relay paging to identity graphql ([#184](https://github.com/knowttl/falcon-axi/issues/184)) ([607b498](https://github.com/knowttl/falcon-axi/commit/607b498f1a503079d25de7a405a100d0a6b11cda))
+
+
+### Bug Fixes
+
+* allow skipped tests in verification slices ([#180](https://github.com/knowttl/falcon-axi/issues/180)) ([f22a643](https://github.com/knowttl/falcon-axi/commit/f22a6433245aa533ace9a433a7ff7463004cb18b))
+
 ## [1.1.0](https://github.com/knowttl/falcon-axi/compare/npm-v1.0.1...npm-v1.1.0) (2026-11-11)
 
 
