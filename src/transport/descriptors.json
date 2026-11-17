@@ -336,20 +336,6 @@
     }
   },
   {
-    "id": "post_policy_rules",
-    "method": "POST",
-    "path": "/identity-protection/entities/policy-rules/v1",
-    "scopes": [
-      "Identity Protection Policy Rules:write"
-    ],
-    "effect": "identity-policy-write",
-    "evidence": {
-      "doc_url": "https://developer.crowdstrike.com/api-reference/collections/identity-protection/",
-      "doc_scope": "Identity Protection Policy Rules: WRITE",
-      "falcon_mcp": "falcon-mcp has no tool for post_policy_rules. falconpy/_endpoint/_identity_protection.py maps post_policy_rules to POST /identity-protection/entities/policy-rules/v1. PSFalcon public/identity-protection.ps1 New-FalconIdentityRule wraps it."
-    }
-  },
-  {
     "id": "query_iot_hostsV2",
     "method": "GET",
     "path": "/discover/queries/iot-hosts/v2",
