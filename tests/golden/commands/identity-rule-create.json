@@ -1,0 +1,11 @@
+{
+  "name": "identity rule create",
+  "order": 2303.75,
+  "summary": "  identity rule create      create one Identity Protection policy rule",
+  "scopes": [
+    {
+      "scope": "Identity Protection Policy Rules:write",
+      "access": "write"
+    }
+  ]
+}

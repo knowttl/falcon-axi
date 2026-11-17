@@ -34,6 +34,7 @@ Three consequences that catch people out:
   N4 seals `malquery-search` to exactly `PostMalQueryExactSearchV1` and `PostMalQueryFuzzySearchV1`,
   with `MalQuery:write`, canonical POST routes, validated literal patterns, and bounded results rechecked at the sink.
   N3 separately seals its guarded RTR lifecycle (§4.5); N4 admits no hunt, multidownload, or sample download.
+  The `identity-policy-write` allowlist is exactly `post_policy_rules`, sealed to `Identity Protection Policy Rules:write`, and `identity rule create` sends that fixed body through the same write gate as `raw write`.
   Admitting a further state-changing operation requires editing its closed allowlist (§3.3), which is the reviewable diff §1.6 demands.
 
 See `docs/design/v1.md` §0 (the stance), §1.5 (classes without a dedicated command), §2.2 (the two-citation rule),
@@ -68,7 +69,7 @@ plus the `scopes` matrix and the home view.
 The exclusion inventories (`exclusion list|show` with `--type`) and quarantined file metadata
 (`quarantine list|show`) also ship as read-only commands.
 Malware family reads (`malware list`, `malware show`), Identity Protection policy-rule reads
-(`identity rule list`, `identity rule show`), and Discover IoT inventory (`iot list`) also ship.
+(`identity rule list`, `identity rule show`), the gated policy-rule create (`identity rule create`), and Discover IoT inventory (`iot list`) also ship.
 The generated command reference in `docs/commands.md` is the authoritative list of shipped commands, and
 no help text, suggestion, or skill may advertise an unshipped command.
 `pnpm run verify` is the single local entry point for the complete offline required-check set.

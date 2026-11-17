@@ -43,7 +43,13 @@ if (digest(JSON.stringify(ledger)) !== seal)
   throw new Error(
     "Frozen safety ownership, members or parameter selections changed",
   );
-const postMigrationCommandNames = ["identity graphql", "raw get", "raw write"];
+const postMigrationCommandNames = [
+  "identity graphql",
+  "identity rule create",
+  "raw get",
+  "raw write",
+];
+const postMigrationOperationIds = ["post_policy_rules"];
 const expectedCommands = [
   ...new Set([
     ...postMigrationCommandNames,
@@ -76,6 +82,7 @@ if (
   JSON.stringify(operations) !==
   JSON.stringify(
     [
+      ...postMigrationOperationIds,
       ...s03.operationIds,
       ...s04.operationIds,
       ...s05.operationIds,

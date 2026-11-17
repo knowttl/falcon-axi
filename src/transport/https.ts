@@ -18,6 +18,7 @@ import {
 import { inspectRtrGrant, consumeRtrGrant } from "../rtr.js";
 import { consumeRawGrant } from "../raw.js";
 import { RAW_RESPONSE_LIMIT, routeProblem } from "./raw-authority.js";
+import { policyRuleCreateBody } from "./policy-rule.js";
 
 export interface Response {
   status: number;
@@ -33,7 +34,7 @@ interface Prepared {
   path: string;
   headers: Readonly<Record<string, string>>;
   body: string;
-  exception?: "graphql-query" | "malquery-search";
+  exception?: "graphql-query" | "malquery-search" | "identity-policy-write";
   rtr?: object;
   raw?: { grant: object | undefined };
   operationId?: string;
@@ -81,11 +82,13 @@ async function send(
     throw new CliError("READ_ONLY_VIOLATION", "request authority was refused");
   if (prepared.exception) {
     const body: unknown = JSON.parse(prepared.body);
-    if (
+    const accepted =
       prepared.exception === "graphql-query"
-        ? !acceptedGraphqlBody(body)
-        : JSON.stringify(validateSearchBody(body)) !== prepared.body
-    )
+        ? acceptedGraphqlBody(body)
+        : prepared.exception === "malquery-search"
+          ? JSON.stringify(validateSearchBody(body)) === prepared.body
+          : JSON.stringify(policyRuleCreateBody(body)) === prepared.body;
+    if (!accepted)
       throw new CliError(
         "READ_ONLY_VIOLATION",
         "request body authority was refused",
@@ -696,15 +699,22 @@ export function requestException(
     if (Object.keys(authority).join() !== "body") invalid();
     body = validateSearchBody(authority.body);
     exception = "malquery-search";
+  } else if (descriptor.effect === "identity-policy-write") {
+    if (Object.keys(authority).join() !== "body") invalid();
+    body = policyRuleCreateBody(authority.body);
+    exception = "identity-policy-write";
   } else invalid();
   if (
     /^(true|1)$/i.test(process.env.FALCON_AXI_READ_ONLY ?? "false") &&
     (descriptor.effect === "search-lifecycle" ||
-      descriptor.effect === "malquery-search")
+      descriptor.effect === "malquery-search" ||
+      descriptor.effect === "identity-policy-write")
   )
     throw new CliError(
       "READ_ONLY_VIOLATION",
-      "FALCON_AXI_READ_ONLY forbids search lifecycle changes",
+      descriptor.effect === "identity-policy-write"
+        ? "FALCON_AXI_READ_ONLY forbids identity policy rule writes"
+        : "FALCON_AXI_READ_ONLY forbids search lifecycle changes",
     );
   const serialized = body === undefined ? "" : JSON.stringify(body);
   return acquire(
@@ -726,7 +736,9 @@ export function requestException(
       },
     },
     signal,
-    id !== "StartSearchV1" && descriptor.effect !== "malquery-search",
+    id !== "StartSearchV1" &&
+      descriptor.effect !== "malquery-search" &&
+      descriptor.effect !== "identity-policy-write",
   );
 }
 

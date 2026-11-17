@@ -15,6 +15,7 @@ import { directory, executable, prepareScenario, run } from "./s01.test.js";
 import type { Scenario } from "./s01.test.js";
 import "./s12.test.js";
 import "./raw.test.js";
+import "./identity-rule-create.test.js";
 import "./final-coverage.test.js";
 import "./install-packed.test.js";
 

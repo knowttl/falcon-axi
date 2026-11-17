@@ -1,6 +1,6 @@
 {
   "name": "auth-status-retargeted",
-  "comment": "N4 section 4.6 deliberately adds the optional MalQuery:write grant to authentication scope guidance. identity graphql is named on the GraphQL:write guidance (design section 4.4).",
+  "comment": "N4 section 4.6 deliberately adds the optional MalQuery:write grant to authentication scope guidance. identity graphql is named on the GraphQL:write guidance (design section 4.4). identity rule create adds Identity Protection Policy Rules:write to that guidance.",
   "argv": [
     "auth",
     "status"
