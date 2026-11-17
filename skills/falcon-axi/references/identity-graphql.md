@@ -22,7 +22,10 @@ The page size follows identity list: default 20 and ceiling 200.
 --all follows detection list: each page uses the 200 ceiling or the remaining --max-rows budget, not --limit.
 Requires Identity Protection GraphQL:write, which Falcon labels write even for reads.
 The selected fields may also need Entities:read, Timeline:read, Assessment:read, or Detections:read.
+Incidents, riskFactors, riskByMembershipSummary, securityAssessmentGoals and securityAssessmentHistory have no fixed command; read them here with a query you write, using --limit, --cursor and --all where the connection is pageable.
+This tool ships no fixed document for them and this repo does not verify their field shapes, so discover fields first with a schema query through this command.
 Examples:
   npx -y @knowttl/falcon-axi identity graphql --query 'query { securityAssessment { overallScore } }'
+  npx -y @knowttl/falcon-axi identity graphql --query 'query { __schema { queryType { name fields { name } } } }'
   npx -y @knowttl/falcon-axi identity graphql --query @query.graphql --variables '{"domain":"synthetic.example"}'
 ```

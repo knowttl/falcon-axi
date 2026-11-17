@@ -62,6 +62,19 @@ Search has no `--fields`, `--limit` or `--cursor`: bound events with CQL `head(N
 Review `parsed_query` (filter only) and warnings before trusting results.
 Cancel an unneeded job with `falcon-axi search stop synthetic-search-job-01`; this also requires `NGSIEM:write`.
 
+## Identity Protection reads without a fixed command
+
+Identity Protection incidents, risk factors, risk by membership summary, security assessment goals and security assessment history have no dedicated command and no fixed document.
+Read them with `identity graphql` and a query you write; the tool sends it only when the parser accepts exactly one query operation.
+Use `--limit`, `--cursor` and `--all` where the connection is pageable: one top-level connection whose first and after arguments are variables and whose pageInfo selects hasNextPage and endCursor.
+This repo does not verify the field shapes of these reads, so discover the fields first with a schema query through the same command:
+
+```sh
+falcon-axi identity graphql --query 'query { __schema { queryType { name fields { name } } } }'
+```
+
+The document check accepts introspection as an ordinary read; whether a tenant answers it is not verified here.
+
 ## Safety, help and failures
 
 Reads and writes are both in scope.
