@@ -1,5 +1,6 @@
 {
   "name": "help-host-list",
+  "change_reason": "Host list help now advertises the top-level local_ip, external_ip, product_type_desc, and mac_address fields documented by the Hosts device-details response (docs/design/v1.md section 10.2).",
   "argv": [
     "host",
     "list",
