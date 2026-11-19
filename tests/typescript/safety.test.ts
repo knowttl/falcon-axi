@@ -131,6 +131,37 @@ test("SR-072 network history has a definitive empty result and posts one identit
     ids: ["synthetic-device-01"],
   });
 });
+test("host list emits device network and product fields without dropping existing fields", async () => {
+  reset();
+  await recordings(["hosts/query-page.json", "hosts/details-page.json"]);
+  const result = await run([
+    "host",
+    "list",
+    "--limit",
+    "2",
+    "--fields",
+    "os_version,agent_version,status,first_seen,machine_domain,local_ip,external_ip,product_type_desc,mac_address",
+  ]);
+  assert.equal(result.code, 0, result.stdout);
+  const output = decode(result.stdout) as {
+    hosts: Record<string, unknown>[];
+  };
+  assert.deepEqual(output.hosts[0], {
+    device_id: "synthetic-device-01",
+    hostname: "WIN-DC-01",
+    platform: "Windows",
+    last_seen: "2026-07-28T11:02:14Z",
+    os_version: "Windows Server 2022",
+    agent_version: "7.11.0000",
+    status: "normal",
+    first_seen: "2026-01-04T08:12:55Z",
+    machine_domain: "synthetic.example",
+    local_ip: "192.0.2.11",
+    external_ip: "198.51.100.11",
+    product_type_desc: "Server",
+    mac_address: "00:00:5E:00:53:11",
+  });
+});
 for (const entry of [
   {
     operation: "GetQueriesAlertsV2",

@@ -667,7 +667,7 @@
   {
     "name": "help-host-list",
     "definitionSha256": "1e7a068b68d6afc218cf2a672c8c2f0532795816626fc2e906d197a925e30619",
-    "expectedSha256": "88ce419d75dba3e8e4de31be8e0d816e62b6654a7bf59a2eb2a8af27e33862ce"
+    "expectedSha256": "cbe4caa54f89dc0287f04c13ff8ea2861f1ef588c97fc9d566cc463de56de862"
   },
   {
     "name": "help-host-logins",

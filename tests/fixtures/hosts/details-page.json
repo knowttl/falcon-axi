@@ -20,6 +20,10 @@
           "agent_version": "7.11.0000",
           "status": "normal",
           "machine_domain": "synthetic.example",
+          "local_ip": "192.0.2.11",
+          "external_ip": "198.51.100.11",
+          "product_type_desc": "Server",
+          "mac_address": "00:00:5E:00:53:11",
           "first_seen": "2026-01-04T08:12:55Z",
           "last_seen": "2026-07-28T11:02:14Z"
         },
@@ -31,6 +35,10 @@
           "agent_version": "7.11.0000",
           "status": "contained",
           "machine_domain": "synthetic.example",
+          "local_ip": "192.0.2.42",
+          "external_ip": "198.51.100.42",
+          "product_type_desc": "Workstation",
+          "mac_address": "00:00:5E:00:53:42",
           "first_seen": "2026-02-17T15:41:09Z",
           "last_seen": "2026-07-28T10:57:48Z"
         }

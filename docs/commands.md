@@ -297,7 +297,7 @@ falcon-axi host list [--hostname <name>] [--platform <name>] [--status <name>] [
 --cursor     opaque continuation token from a previous call
 --all        walk pages; page size is independent of --limit
 --max-rows   row budget (default 1000; requires --all)
---fields     extra columns, comma-separated: os_version, agent_version, status, first_seen, machine_domain
+--fields     extra columns, comma-separated: os_version, agent_version, status, first_seen, machine_domain, local_ip, external_ip, product_type_desc, mac_address
 
 Filterable fields include hostname, platform_name, os_version, agent_version, status,
 last_seen, first_seen, machine_domain, and local_ip.
