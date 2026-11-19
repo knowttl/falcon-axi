@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.2.1](https://github.com/knowttl/falcon-axi/compare/npm-v1.2.0...npm-v1.2.1) (2026-11-19)
+
+
+### Bug Fixes
+
+* support additional host list fields ([#192](https://github.com/knowttl/falcon-axi/issues/192)) ([faf3941](https://github.com/knowttl/falcon-axi/commit/faf3941d1ac2709358d5c4aa96a3abba2c5e7efe)), closes [#191](https://github.com/knowttl/falcon-axi/issues/191)
+
 ## [1.2.0](https://github.com/knowttl/falcon-axi/compare/npm-v1.1.0...npm-v1.2.0) (2026-11-17)
 
 
