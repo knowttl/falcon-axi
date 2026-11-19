@@ -9,7 +9,8 @@ corepack pnpm install --frozen-lockfile --ignore-scripts --config.confirm-module
 corepack pnpm run verify
 ```
 
-To run it the way the validation pipeline does, with an empty throwaway home directory and no `FALCON_AXI_*` variables, prefix each command with `node scripts/isolated-home.mjs`.
+To reproduce the validation pipeline, use the commands in [`.no-mistakes.yaml`](.no-mistakes.yaml).
+They use an empty throwaway home directory without `FALCON_AXI_*` variables, and preparation installs a repository-local pnpm shim for nested scripts.
 
 The gate runs TypeScript compilation, formatting, architecture and generated drift checks, package installation checks, the cumulative native suite, and golden/safety provenance reconciliation.
 GitHub CI installs the locked dependencies and runs the same offline verification on pull requests and pushes to `main`.
