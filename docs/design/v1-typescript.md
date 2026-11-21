@@ -48,6 +48,8 @@ Node 25 and later do not bundle Corepack, so install it first with `npm install 
 The runtime and development floor is Node 22.18.0 with no upper bound, the first Node 22 release that runs the TypeScript build scripts without a flag; native Windows evidence remains pending.
 Run `corepack pnpm install --frozen-lockfile --ignore-scripts --config.confirm-modules-purge=false` and `corepack pnpm run verify`.
 The pipeline wraps both in `scripts/isolated-home.mjs`, which gives each run an empty throwaway home directory and removes `FALCON_AXI_*` variables.
+The pipeline test command also wraps verification in `scripts/validation-digest.mjs`, which passes output and exit status through unchanged and, on failure, writes the failing lines and the last lines of output to the gitignored `.no-mistakes/validation-failure-digest.txt`.
+The `test.instructions` in `.no-mistakes.yaml` tell the tester to read that digest first; a passing run removes it.
 The verification command runs the cumulative S13 native gate, including the S10 carrier, S11 lifecycle, compiled filesystem primitives, S12 installation and hook checks, generated freshness, all 351 goldens, and reconciliation of all 210 retained safety groups.
 The slice runner accepts skipped tests separately from passes and failures; it fails on a nonzero test process status, any failure, an empty test count, or a mismatch between the test count and the sum of passes and skips.
 On non-Windows hosts, the PowerShell metadata checks skip when `powershell.exe` is unavailable.
