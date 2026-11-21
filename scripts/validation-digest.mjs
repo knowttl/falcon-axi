@@ -7,8 +7,8 @@ const failurePattern =
 const maxFailureLines = 60;
 const tailLines = 30;
 
-const [command, ...args] = process.argv.slice(2);
-if (!command) throw new Error("Expected a validation command");
+const command = process.execPath;
+const args = ["scripts/isolated-home.mjs", "corepack", "pnpm", "run", "verify"];
 rmSync(digestPath, { force: true });
 
 const stdoutChunks = [];
