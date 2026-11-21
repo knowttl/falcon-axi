@@ -3,7 +3,7 @@ import { mkdirSync, rmSync, writeFileSync } from "node:fs";
 
 const digestPath = ".no-mistakes/validation-failure-digest.txt";
 const failurePattern =
-  /^\s*not ok\b|^# fail [1-9]|\[warn\]|error TS\d+|ELIFECYCLE|^[\w-]+: .*\bfailed\b/;
+  /^\s*not ok\b|\[warn\]|error TS\d+|^[\w-]+: .*\bfailed\b/;
 const maxFailureLines = 60;
 const tailLines = 30;
 
@@ -20,10 +20,19 @@ for (const [source, sink] of [
   source.on("data", (chunk) => chunks.push(chunk));
   source.pipe(sink, { end: false });
 }
-const [status, signal] = await new Promise((resolve, reject) => {
-  child.on("error", reject);
+let spawnError;
+const [code, signal] = await new Promise((resolve) => {
+  child.on("error", (error) => {
+    spawnError = error;
+  });
   child.on("close", (code, killedBy) => resolve([code, killedBy]));
 });
+const status = spawnError ? 1 : code;
+if (spawnError) {
+  const line = `validation: ${command} failed to start: ${spawnError.message}\n`;
+  process.stderr.write(line);
+  chunks.push(Buffer.from(line));
+}
 
 if (status !== 0) {
   const lines = Buffer.concat(chunks).toString("utf8").trimEnd().split("\n");
@@ -43,7 +52,7 @@ if (status !== 0) {
     ...lines.slice(-tailLines),
     "",
   ].join("\n");
-  mkdirSync(".no-mistakes", { recursive: true });
-  writeFileSync(digestPath, digest);
+  mkdirSync(".no-mistakes", { recursive: true, mode: 0o700 });
+  writeFileSync(digestPath, digest, { mode: 0o600 });
 }
 process.exitCode = status ?? 1;
