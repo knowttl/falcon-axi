@@ -4,39 +4,18 @@ commands:
   test: |-
     bash -o pipefail -c '
       digest=.no-mistakes/validation-failure-digest.txt
-      catalog_inputs=(src/parser.ts src/axi-credential.schema.json)
-      catalog_entries=(parser schema)
-      catalog_pending=.cache/falcon-axi-catalog-digests
       rm -f "$digest" || exit
       if output=$(
         exec 2>&1
-        printf "format: resolving base and hashing catalog inputs\n" &&
-        base=$(git merge-base HEAD refs/remotes/origin/main) &&
-        before=$(git hash-object --no-filters "${catalog_inputs[@]}") &&
-        before=($before) &&
         printf "format: selecting and formatting changed files\n" &&
+        base=$(git merge-base HEAD refs/remotes/origin/main) &&
         set -- package.json tsconfig.json ":(glob)src/**/*.ts" src/axi-credential.schema.json src/help.json \
           ":(glob)scripts/typescript/*.ts" ":(glob)tests/typescript/*.ts" ":(exclude)scripts/typescript/build-native.ts" &&
-        format_status=0 &&
-        { { git diff --name-only -z --diff-filter=ACMR "$base" -- "$@" &&
-            git ls-files --others --exclude-standard -z -- "$@"; } |
-            xargs -0 -r node scripts/isolated-home.mjs corepack pnpm exec prettier --write -- ||
-          format_status=$?; } &&
-        after=$(git hash-object --no-filters "${catalog_inputs[@]}") &&
-        after=($after) &&
-        for index in "${!catalog_inputs[@]}"; do
-          if [ "${before[index]}" != "${after[index]}" ]; then
-            mkdir -p .cache && printf "%s\n" "${catalog_entries[index]}" >> "$catalog_pending" || exit
-          fi
-        done &&
-        if [ "$format_status" -ne 0 ]; then exit "$format_status"; fi &&
-        if [ -f "$catalog_pending" ]; then
-          pending=$(sort -u "$catalog_pending") &&
-          printf "generate: checking built catalog digests\n" &&
-          node scripts/isolated-home.mjs corepack pnpm run build &&
-          node .typescript-build/scripts/typescript/generate.js --refresh-digests $pending &&
-          rm -f "$catalog_pending"
-        fi
+        { git diff --name-only -z --diff-filter=ACMR "$base" -- "$@" &&
+          git ls-files --others --exclude-standard -z -- "$@"; } |
+          xargs -0 -r node scripts/isolated-home.mjs corepack pnpm exec prettier --write -- &&
+        printf "generate: refreshing catalog\n" &&
+        node scripts/isolated-home.mjs corepack pnpm run generate
       ); then
         printf "%s\n" "$output"
         exec node scripts/validation-digest.mjs
