@@ -4,12 +4,17 @@ commands:
   test: |-
     bash -o pipefail -c '
       digest=.no-mistakes/validation-failure-digest.txt
+      catalog_before=.cache/falcon-axi-catalog-inputs
       rm -f "$digest" || exit
       if output=$(
         exec 2>&1
         printf "format: resolving base and hashing catalog inputs\n" &&
-        base=$(git merge-base HEAD "${FALCON_AXI_FORMAT_BASE_REF:-refs/remotes/origin/main}") &&
-        before=$(git hash-object --no-filters src/parser.ts src/axi-credential.schema.json) &&
+        base=$(git merge-base HEAD refs/remotes/origin/main) &&
+        if [ ! -f "$catalog_before" ]; then
+          before=$(git hash-object --no-filters src/parser.ts src/axi-credential.schema.json) &&
+          mkdir -p .cache &&
+          printf "%s\n" "$before" > "$catalog_before"
+        fi &&
         printf "format: selecting and formatting changed files\n" &&
         set -- package.json tsconfig.json ":(glob)src/**/*.ts" src/axi-credential.schema.json src/help.json \
           ":(glob)scripts/typescript/*.ts" ":(glob)tests/typescript/*.ts" ":(exclude)scripts/typescript/build-native.ts" &&
@@ -17,11 +22,13 @@ commands:
           git ls-files --others --exclude-standard -z -- "$@"; } |
           xargs -0 -r node scripts/isolated-home.mjs corepack pnpm exec prettier --write -- &&
         printf "generate: checking whether formatting changed catalog inputs\n" &&
+        before=$(cat "$catalog_before") &&
         after=$(git hash-object --no-filters src/parser.ts src/axi-credential.schema.json) &&
         if [ "$before" != "$after" ]; then
           printf "generate: refreshing catalog and generated skill\n" &&
           node scripts/isolated-home.mjs corepack pnpm run generate
-        fi
+        fi &&
+        rm -f "$catalog_before"
       ); then
         printf "%s\n" "$output"
         exec node scripts/validation-digest.mjs
@@ -35,7 +42,7 @@ commands:
     '
   format: |-
     bash -o pipefail -c '
-      base=$(git merge-base HEAD "${FALCON_AXI_FORMAT_BASE_REF:-refs/remotes/origin/main}") || exit
+      base=$(git merge-base HEAD refs/remotes/origin/main) || exit
       set -- package.json tsconfig.json ":(glob)src/**/*.ts" src/help.json \
         ":(glob)scripts/typescript/*.ts" ":(glob)tests/typescript/*.ts" ":(exclude)scripts/typescript/build-native.ts" \
         ":(exclude)src/parser.ts"
