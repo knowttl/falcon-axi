@@ -35,3 +35,4 @@ coverage/
 node_modules/
 .pnpm-store/
 .typescript-build/
+.no-mistakes/validation-failure-digest.txt

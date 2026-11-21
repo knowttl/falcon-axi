@@ -20,6 +20,7 @@ for (let index = 0; index < args.length; index++) {
   }
 }
 const paths = selections.get("--paths");
+const slice = selections.get("--slice") ?? "";
 if (
   ![
     "S01",
@@ -35,7 +36,7 @@ if (
     "S11",
     "S12",
     "S13",
-  ].includes(selections.get("--slice") ?? "") ||
+  ].includes(slice) ||
   selections.get("--offline") !== "true" ||
   !["native", "artium", "native,artium"].includes(paths ?? "")
 ) {
@@ -48,8 +49,8 @@ if (paths?.includes("artium") && !process.env.S01_ARTIUM_ROOT) {
   console.error("Real local Artium fixture is required for the requested path");
   process.exit(1);
 }
-const rtr = selections.get("--slice") === "S11";
-const complete = selections.get("--slice") === "S13";
+const rtr = slice === "S11";
+const complete = slice === "S13";
 if (complete && paths === "artium") {
   console.error(
     "S13 hosted acceptance requires --paths native,artium to include its native prerequisites",
@@ -60,39 +61,55 @@ const evidence =
   process.env.S01_EVIDENCE_DIR ??
   mkdtempSync(join(tmpdir(), "falcon-s01-proof-"));
 mkdirSync(evidence, { recursive: true, mode: 0o700 });
+function reportFailure(
+  check: string,
+  result: Pick<ReturnType<typeof spawnSync>, "error" | "signal" | "status">,
+): void {
+  const detail =
+    result.error?.message ??
+    (result.signal ? `signal ${result.signal}` : `exit ${result.status}`);
+  console.error(`${slice}: ${check} failed (${detail})`);
+}
+
 if (complete) {
   for (const [script, ...arguments_] of [
     ["generate.js", "--check"],
     ["architecture.js"],
     ["coverage.js", "--strict"],
-  ]) {
+  ] as const) {
     const result = spawnSync(
       process.execPath,
       [fileURLToPath(new URL(`./${script}`, import.meta.url)), ...arguments_],
       { stdio: "inherit" },
     );
-    if (result.status !== 0) process.exit(result.status ?? 1);
+    if (result.status !== 0) {
+      reportFailure(script, result);
+      process.exit(result.status ?? 1);
+    }
   }
-  for (const slice of ["S10", "S11"]) {
+  for (const prerequisite of ["S10", "S11"]) {
     const result = spawnSync(
       process.execPath,
       [
         fileURLToPath(import.meta.url),
         "--slice",
-        slice,
+        prerequisite,
         "--paths",
         paths!,
         "--offline",
       ],
       {
         stdio: "inherit",
-        env: { ...process.env, S01_EVIDENCE_DIR: join(evidence, slice) },
+        env: { ...process.env, S01_EVIDENCE_DIR: join(evidence, prerequisite) },
       },
     );
-    if (result.status !== 0) process.exit(result.status ?? 1);
+    if (result.status !== 0) {
+      reportFailure(`${prerequisite} prerequisite`, result);
+      process.exit(result.status ?? 1);
+    }
   }
 }
-const installation = complete || selections.get("--slice") === "S12";
+const installation = complete || slice === "S12";
 const restricted = rtr || installation;
 if (!restricted && !process.env.FALCON_TEST_NAMESPACED) {
   const result = spawnSync(
@@ -111,22 +128,25 @@ if (!restricted && !process.env.FALCON_TEST_NAMESPACED) {
       env: { ...process.env, FALCON_TEST_NAMESPACED: "1" },
     },
   );
+  if (result.status !== 0)
+    reportFailure(result.error ? "unshare" : "namespaced slice", result);
   process.exit(result.status ?? 1);
 }
 // Ordinary-read checks use loopback in a network namespace; RTR retains real inode ownership.
-const network = restricted
-  ? { status: 0, stderr: "" }
-  : spawnSync("/usr/sbin/ip", ["link", "set", "lo", "up"], {
-      encoding: "utf8",
-    });
-if (network.status !== 0) {
-  console.error(network.stderr);
-  process.exit(1);
+if (!restricted) {
+  const network = spawnSync("/usr/sbin/ip", ["link", "set", "lo", "up"], {
+    encoding: "utf8",
+  });
+  if (network.status !== 0) {
+    if (network.stderr) process.stderr.write(network.stderr);
+    reportFailure("/usr/sbin/ip link set lo up", network);
+    process.exit(1);
+  }
 }
 const tests = [
   fileURLToPath(
     new URL(
-      `../../tests/typescript/${complete ? "s13" : installation ? "s12" : rtr ? "s11" : ["S08", "S09", "S10"].includes(selections.get("--slice")!) ? "s08-s10" : selections.get("--slice") === "S01" ? "s01" : ["S06", "S07"].includes(selections.get("--slice")!) ? "s06-s07" : ["S04", "S05"].includes(selections.get("--slice")!) ? "s04-s05" : "s02-s03"}.test.js`,
+      `../../tests/typescript/${complete ? "s13" : installation ? "s12" : rtr ? "s11" : ["S08", "S09", "S10"].includes(slice) ? "s08-s10" : slice === "S01" ? "s01" : ["S06", "S07"].includes(slice) ? "s06-s07" : ["S04", "S05"].includes(slice) ? "s04-s05" : "s02-s03"}.test.js`,
       import.meta.url,
     ),
   ),
@@ -148,7 +168,10 @@ if (restricted) {
     ],
     { stdio: "inherit" },
   );
-  if (compile.status !== 0) process.exit(1);
+  if (compile.status !== 0) {
+    reportFailure("/usr/bin/gcc network-deny build", compile);
+    process.exit(1);
+  }
 }
 const results: Record<string, unknown>[] = [];
 for (const path of paths!.split(",")) {
@@ -174,6 +197,7 @@ for (const path of paths!.split(",")) {
       mode: 0o600,
     });
     if (probe.status !== 0) {
+      reportFailure("primitive-probe.js", probe);
       process.exitCode = probe.status ?? 1;
       break;
     }
@@ -251,8 +275,10 @@ for (const path of paths!.split(",")) {
     count("fail") !== 0 ||
     count("pass") + count("skipped") !== expected
   ) {
-    process.exitCode = result.status ?? 1;
-    if (!process.exitCode) process.exitCode = 1;
+    if (result.status === 0)
+      console.error(`${slice}: ${path} TAP validation failed (invalid totals)`);
+    else reportFailure(`${path} TAP tests`, result);
+    process.exitCode = result.status || 1;
     break;
   }
   if (rtr) {
@@ -271,7 +297,7 @@ for (const path of paths!.split(",")) {
       JSON.stringify(finalCoverage(path, evidence), null, 2) + "\n",
       { mode: 0o600 },
     );
-  } else if (!installation && selections.get("--slice") !== "S01") {
+  } else if (!installation && slice !== "S01") {
     const coverage = spawnSync(
       process.execPath,
       [
@@ -282,13 +308,14 @@ for (const path of paths!.split(",")) {
         "--path",
         path,
         "--slice",
-        selections.get("--slice")!,
+        slice,
       ],
       { cwd: resolve("."), encoding: "utf8" },
     );
     process.stdout.write(coverage.stdout ?? "");
     process.stderr.write(coverage.stderr ?? "");
     if (coverage.status !== 0) {
+      reportFailure(`${path} coverage.js`, coverage);
       process.exitCode = coverage.status ?? 1;
       break;
     }
@@ -298,7 +325,7 @@ writeFileSync(
   join(evidence, "result.json"),
   JSON.stringify(
     {
-      slice: selections.get("--slice"),
+      slice,
       command: process.argv,
       results,
       nativeWindows: "pending",

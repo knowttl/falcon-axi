@@ -30,6 +30,10 @@ try {
     },
   });
   if (result.error) throw result.error;
+  if (result.signal)
+    console.error(
+      `isolated-home: ${[command, ...args].join(" ")} failed (signal ${result.signal})`,
+    );
   process.exitCode = result.status ?? 1;
 } finally {
   rmSync(home, { recursive: true, force: true });
