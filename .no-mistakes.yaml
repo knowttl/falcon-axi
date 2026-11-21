@@ -6,8 +6,8 @@ commands:
 test:
   instructions: |
     When commands.test fails, read .no-mistakes/validation-failure-digest.txt in this worktree before anything else.
-    The digest holds the command, its exit status, the recognized failing lines (failing TAP tests, formatter warnings, TypeScript errors, and named check failures) and the last lines of output.
-    Name the failing check from the digest, and open the full output only for what the digest leaves unsettled.
+    The digest holds the command, its exit status, the recognized failing lines (failing TAP tests, formatter warnings, TypeScript errors, and named check failures) and the last lines of stdout and stderr.
+    Name the failing check from the digest.
     A passing run leaves no digest.
 review:
   path_instructions:

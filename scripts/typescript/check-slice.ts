@@ -128,7 +128,8 @@ if (!restricted && !process.env.FALCON_TEST_NAMESPACED) {
       env: { ...process.env, FALCON_TEST_NAMESPACED: "1" },
     },
   );
-  if (result.status !== 0) reportFailure("unshare", result);
+  if (result.status !== 0)
+    reportFailure(result.error ? "unshare" : "namespaced slice", result);
   process.exit(result.status ?? 1);
 }
 // Ordinary-read checks use loopback in a network namespace; RTR retains real inode ownership.

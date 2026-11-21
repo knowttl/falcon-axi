@@ -11,11 +11,12 @@ const [command, ...args] = process.argv.slice(2);
 if (!command) throw new Error("Expected a validation command");
 rmSync(digestPath, { force: true });
 
-const chunks = [];
+const stdoutChunks = [];
+const stderrChunks = [];
 const child = spawn(command, args, { stdio: ["inherit", "pipe", "pipe"] });
-for (const [source, sink] of [
-  [child.stdout, process.stdout],
-  [child.stderr, process.stderr],
+for (const [source, sink, chunks] of [
+  [child.stdout, process.stdout, stdoutChunks],
+  [child.stderr, process.stderr, stderrChunks],
 ]) {
   source.on("data", (chunk) => chunks.push(chunk));
   source.pipe(sink, { end: false });
@@ -31,12 +32,16 @@ const status = spawnError ? 1 : code;
 if (spawnError) {
   const line = `validation: ${command} failed to start: ${spawnError.message}\n`;
   process.stderr.write(line);
-  chunks.push(Buffer.from(line));
+  stderrChunks.push(Buffer.from(line));
 }
 
 if (status !== 0) {
-  const lines = Buffer.concat(chunks).toString("utf8").trimEnd().split("\n");
-  const failureLines = lines.filter((line) => failurePattern.test(line));
+  const [stdoutLines, stderrLines] = [stdoutChunks, stderrChunks].map(
+    (chunks) => Buffer.concat(chunks).toString("utf8").trimEnd().split("\n"),
+  );
+  const failureLines = [...stdoutLines, ...stderrLines].filter((line) =>
+    failurePattern.test(line),
+  );
   const digest = [
     "===== validation failure digest =====",
     `Command: ${[command, ...args].join(" ")}`,
@@ -48,8 +53,10 @@ if (status !== 0) {
     ...(failureLines.length > maxFailureLines
       ? [`... ${failureLines.length - maxFailureLines} more`]
       : []),
-    `--- last ${tailLines} lines ---`,
-    ...lines.slice(-tailLines),
+    `--- last ${tailLines} stdout lines ---`,
+    ...stdoutLines.slice(-tailLines),
+    `--- last ${tailLines} stderr lines ---`,
+    ...stderrLines.slice(-tailLines),
     "",
   ].join("\n");
   mkdirSync(".no-mistakes", { recursive: true, mode: 0o700 });
