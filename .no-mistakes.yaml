@@ -5,7 +5,8 @@ commands:
     bash -o pipefail -c '
       digest=.no-mistakes/validation-failure-digest.txt
       catalog_inputs=(src/parser.ts src/axi-credential.schema.json)
-      catalog_pending=(.cache/falcon-axi-parser-pending .cache/falcon-axi-schema-pending)
+      catalog_entries=(parser schema)
+      catalog_pending=.cache/falcon-axi-catalog-digests
       rm -f "$digest" || exit
       if output=$(
         exec 2>&1
@@ -23,26 +24,18 @@ commands:
           format_status=$?; } &&
         after=$(git hash-object --no-filters "${catalog_inputs[@]}") &&
         after=($after) &&
-        refresh=0 &&
         for index in "${!catalog_inputs[@]}"; do
-          pending=${catalog_pending[index]}
           if [ "${before[index]}" != "${after[index]}" ]; then
-            mkdir -p .cache && printf "%s\n" "${after[index]}" > "$pending" || exit
-          fi
-          if [ -f "$pending" ]; then
-            pending_hash=$(cat "$pending") || exit
-            if [ "$pending_hash" = "${after[index]}" ]; then
-              refresh=1
-            else
-              rm -f "$pending" || exit
-            fi
+            mkdir -p .cache && printf "%s\n" "${catalog_entries[index]}" >> "$catalog_pending" || exit
           fi
         done &&
         if [ "$format_status" -ne 0 ]; then exit "$format_status"; fi &&
-        if [ "$refresh" -eq 1 ]; then
-          printf "generate: refreshing catalog and generated skill\n" &&
-          node scripts/isolated-home.mjs corepack pnpm run generate &&
-          rm -f "${catalog_pending[@]}"
+        if [ -f "$catalog_pending" ]; then
+          pending=$(sort -u "$catalog_pending") &&
+          printf "generate: checking built catalog digests\n" &&
+          node scripts/isolated-home.mjs corepack pnpm run build &&
+          node .typescript-build/scripts/typescript/generate.js --refresh-digests $pending &&
+          rm -f "$catalog_pending"
         fi
       ); then
         printf "%s\n" "$output"
