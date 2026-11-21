@@ -19,12 +19,50 @@ import help from "../../src/help.json" with { type: "json" };
 import searchHelp from "../../src/search-help.json" with { type: "json" };
 
 const root = fileURLToPath(new URL("../../../", import.meta.url));
+const catalogPath = "artium-invocations.json";
+const hash = (text: string | Buffer): string =>
+  createHash("sha256").update(text).digest("hex");
+const builtPaths = {
+  parser: ".typescript-build/src/parser.js",
+  schema: ".typescript-build/src/axi-credential.schema.json",
+};
+const builtEntry = (name: keyof typeof builtPaths) => {
+  const path = builtPaths[name];
+  return { path, sha256: hash(readFileSync(join(root, path))) };
+};
+const check = process.argv.slice(2);
+if (check[0] === "--refresh-formatted-digests" && check.length === 3) {
+  const destination = join(root, catalogPath);
+  const original = readFileSync(destination, "utf8");
+  const catalog = JSON.parse(original) as Partial<
+    Record<keyof typeof builtPaths, { path: string; sha256: string }>
+  >;
+  if (original !== JSON.stringify(catalog, null, 2) + "\n") process.exit(0);
+  let changed = false;
+  for (const [name, before] of [
+    ["parser", check[1]],
+    ["schema", check[2]],
+  ] as const) {
+    const entry = catalog[name];
+    const after = builtEntry(name);
+    if (
+      entry?.path === after.path &&
+      entry.sha256 === before &&
+      before !== after.sha256
+    ) {
+      entry.sha256 = after.sha256;
+      changed = true;
+    }
+  }
+  if (changed)
+    writeFileSync(destination, JSON.stringify(catalog, null, 2) + "\n");
+  process.exit(0);
+}
 const pkg = JSON.parse(readFileSync(join(root, "package.json"), "utf8")) as {
   description: string;
 };
 if (pkg.description !== DESCRIPTION)
   throw new Error("Package description differs from the CLI description");
-const check = process.argv.slice(2);
 if (check.length > 1 || (check.length === 1 && check[0] !== "--check"))
   throw new Error("Expected --check or no arguments");
 const npmCommand = "npx -y @knowttl/falcon-axi";
@@ -69,24 +107,12 @@ for (const name of ["raw get", "raw write"] as const) {
   reference = reference.slice(0, start) + help[name] + reference.slice(end);
 }
 expected.set(referencePath, reference);
-const hash = (text: string | Buffer): string =>
-  createHash("sha256").update(text).digest("hex");
 const catalog = {
   version: 1,
   executable: ".typescript-build/src/bin.js",
   hook: ".typescript-build/src/hook.js",
-  schema: {
-    path: ".typescript-build/src/axi-credential.schema.json",
-    sha256: hash(
-      readFileSync(
-        join(root, ".typescript-build/src/axi-credential.schema.json"),
-      ),
-    ),
-  },
-  parser: {
-    path: ".typescript-build/src/parser.js",
-    sha256: hash(readFileSync(join(root, ".typescript-build/src/parser.js"))),
-  },
+  schema: builtEntry("schema"),
+  parser: builtEntry("parser"),
   skill: { path: "skills/falcon-axi/SKILL.md", sha256: hash(main) },
   globalFlags: [...boolFlags, ...valueFlags].map((flag) => flag.slice(2)),
   commands: commands.map((command) => ({
@@ -100,7 +126,7 @@ const catalog = {
   })),
 };
 expected.set(
-  "artium-invocations.json",
+  catalogPath,
   JSON.stringify(catalog, null, 2) + "\n",
 );
 const references = readdirSync(join(root, "skills/falcon-axi/references"));

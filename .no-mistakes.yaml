@@ -11,11 +11,25 @@ commands:
         base=$(git merge-base HEAD refs/remotes/origin/main) &&
         set -- package.json tsconfig.json ":(glob)src/**/*.ts" src/axi-credential.schema.json src/help.json \
           ":(glob)scripts/typescript/*.ts" ":(glob)tests/typescript/*.ts" ":(exclude)scripts/typescript/build-native.ts" &&
-        { git diff --name-only -z --diff-filter=ACMR "$base" -- "$@" &&
-          git ls-files --others --exclude-standard -z -- "$@"; } |
-          xargs -0 -r node scripts/isolated-home.mjs corepack pnpm exec prettier --write -- &&
-        printf "generate: refreshing catalog\n" &&
-        node scripts/isolated-home.mjs corepack pnpm run generate
+        catalog_inputs=$(git diff --name-only --diff-filter=ACMR "$base" -- src/parser.ts src/axi-credential.schema.json &&
+          git ls-files --others --exclude-standard -- src/parser.ts src/axi-credential.schema.json) &&
+        if [ -n "$catalog_inputs" ]; then
+          printf "build: recording pre-format catalog digests\n" &&
+          node scripts/isolated-home.mjs corepack pnpm run build &&
+          parser=$(sha256sum .typescript-build/src/parser.js) &&
+          schema=$(sha256sum .typescript-build/src/axi-credential.schema.json)
+        fi &&
+        format_status=0 &&
+        { { git diff --name-only -z --diff-filter=ACMR "$base" -- "$@" &&
+            git ls-files --others --exclude-standard -z -- "$@"; } |
+            xargs -0 -r node scripts/isolated-home.mjs corepack pnpm exec prettier --write -- ||
+          format_status=$?; } &&
+        if [ -n "$catalog_inputs" ]; then
+          printf "generate: checking for formatter changes to built catalog entries\n" &&
+          node scripts/isolated-home.mjs corepack pnpm run build &&
+          node .typescript-build/scripts/typescript/generate.js --refresh-formatted-digests "${parser%% *}" "${schema%% *}"
+        fi &&
+        exit "$format_status"
       ); then
         printf "%s\n" "$output"
         exec node scripts/validation-digest.mjs
