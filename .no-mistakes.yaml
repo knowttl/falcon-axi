@@ -1,11 +1,11 @@
 no_ci: true
 commands:
   prepare: 'node scripts/isolated-home.mjs corepack pnpm install --frozen-lockfile --ignore-scripts --config.confirm-modules-purge=false && node scripts/isolated-home.mjs corepack enable --install-directory node_modules/.bin pnpm'
-  test: 'node scripts/isolated-home.mjs node scripts/validation-digest.mjs corepack pnpm run verify'
+  test: 'node scripts/validation-digest.mjs node scripts/isolated-home.mjs corepack pnpm run verify'
   lint: 'node scripts/isolated-home.mjs corepack pnpm run lint'
 test:
   instructions: |
-    When commands.test fails, read .no-mistakes/validation-failure-digest.txt in this worktree before anything else.
+    When commands.test fails, read .no-mistakes/validation-failure-digest.txt in this worktree.
     The digest holds the command, its exit status, the recognized failing lines (failing TAP tests, formatter warnings, TypeScript errors, and named check failures) and the last lines of stdout and stderr.
     Name the failing check from the digest.
     A passing run leaves no digest.
