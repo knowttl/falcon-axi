@@ -1,9 +1,15 @@
 no_ci: true
 commands:
   prepare: 'node scripts/isolated-home.mjs corepack pnpm install --frozen-lockfile --ignore-scripts --config.confirm-modules-purge=false && node scripts/isolated-home.mjs corepack enable --install-directory node_modules/.bin pnpm'
-  test: 'base=$(git merge-base origin/main HEAD 2>/dev/null || git merge-base main HEAD) && git diff --name-only --diff-filter=ACMR "$base" -- package.json tsconfig.json ":(glob)src/**/*.ts" src/axi-credential.schema.json src/help.json ":(glob)scripts/typescript/*.ts" ":(glob)tests/typescript/*.ts" | xargs -r node scripts/isolated-home.mjs corepack pnpm exec prettier --write && node scripts/isolated-home.mjs corepack pnpm run generate && node scripts/isolated-home.mjs corepack pnpm run verify'
+  test: 'base=$(git merge-base origin/main HEAD 2>/dev/null || git merge-base main HEAD) && git diff --name-only --diff-filter=ACMR "$base" -- package.json tsconfig.json ":(glob)src/**/*.ts" src/axi-credential.schema.json src/help.json ":(glob)scripts/typescript/*.ts" ":(glob)tests/typescript/*.ts" | xargs -r node scripts/isolated-home.mjs corepack pnpm exec prettier --write && node scripts/isolated-home.mjs corepack pnpm run generate && node scripts/validation-digest.mjs'
   format: 'base=$(git merge-base origin/main HEAD 2>/dev/null || git merge-base main HEAD) && git diff --name-only --diff-filter=ACMR "$base" -- package.json tsconfig.json ":(glob)src/**/*.ts" src/axi-credential.schema.json src/help.json ":(glob)scripts/typescript/*.ts" ":(glob)tests/typescript/*.ts" | xargs -r node scripts/isolated-home.mjs corepack pnpm exec prettier --write'
   lint: 'node scripts/isolated-home.mjs corepack pnpm run lint'
+test:
+  instructions: |
+    When commands.test fails, read .no-mistakes/validation-failure-digest.txt in this worktree.
+    The digest holds the command, its exit status, the recognized failing lines (failing TAP tests, formatter warnings, TypeScript errors, and named check failures) and the last lines of stdout and stderr.
+    Name the failing check from the digest.
+    A passing run leaves no digest.
 review:
   path_instructions:
     - path: "**"
