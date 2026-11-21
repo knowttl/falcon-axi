@@ -1,7 +1,8 @@
 no_ci: true
 commands:
   prepare: 'node scripts/isolated-home.mjs corepack pnpm install --frozen-lockfile --ignore-scripts --config.confirm-modules-purge=false && node scripts/isolated-home.mjs corepack enable --install-directory node_modules/.bin pnpm'
-  test: 'node scripts/isolated-home.mjs corepack pnpm run verify'
+  test: 'base=$(git merge-base origin/main HEAD 2>/dev/null || git merge-base main HEAD) && git diff --name-only --diff-filter=ACMR "$base" -- package.json tsconfig.json ":(glob)src/**/*.ts" src/axi-credential.schema.json src/help.json ":(glob)scripts/typescript/*.ts" ":(glob)tests/typescript/*.ts" | xargs -r node scripts/isolated-home.mjs corepack pnpm exec prettier --write && node scripts/isolated-home.mjs corepack pnpm run generate && node scripts/isolated-home.mjs corepack pnpm run verify'
+  format: 'base=$(git merge-base origin/main HEAD 2>/dev/null || git merge-base main HEAD) && git diff --name-only --diff-filter=ACMR "$base" -- package.json tsconfig.json ":(glob)src/**/*.ts" src/axi-credential.schema.json src/help.json ":(glob)scripts/typescript/*.ts" ":(glob)tests/typescript/*.ts" | xargs -r node scripts/isolated-home.mjs corepack pnpm exec prettier --write'
   lint: 'node scripts/isolated-home.mjs corepack pnpm run lint'
 review:
   path_instructions:
