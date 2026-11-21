@@ -4,13 +4,15 @@ commands:
   test: |-
     bash -o pipefail -c '
       digest=.no-mistakes/validation-failure-digest.txt
-      catalog_pending=.cache/falcon-axi-catalog-pending
+      catalog_inputs=(src/parser.ts src/axi-credential.schema.json)
+      catalog_pending=(.cache/falcon-axi-parser-pending .cache/falcon-axi-schema-pending)
       rm -f "$digest" || exit
       if output=$(
         exec 2>&1
         printf "format: resolving base and hashing catalog inputs\n" &&
         base=$(git merge-base HEAD refs/remotes/origin/main) &&
-        before=$(git hash-object --no-filters src/parser.ts src/axi-credential.schema.json) &&
+        before=$(git hash-object --no-filters "${catalog_inputs[@]}") &&
+        before=($before) &&
         printf "format: selecting and formatting changed files\n" &&
         set -- package.json tsconfig.json ":(glob)src/**/*.ts" src/axi-credential.schema.json src/help.json \
           ":(glob)scripts/typescript/*.ts" ":(glob)tests/typescript/*.ts" ":(exclude)scripts/typescript/build-native.ts" &&
@@ -19,15 +21,28 @@ commands:
             git ls-files --others --exclude-standard -z -- "$@"; } |
             xargs -0 -r node scripts/isolated-home.mjs corepack pnpm exec prettier --write -- ||
           format_status=$?; } &&
-        after=$(git hash-object --no-filters src/parser.ts src/axi-credential.schema.json) &&
-        if [ "$before" != "$after" ]; then
-          mkdir -p .cache && : > "$catalog_pending"
-        fi &&
+        after=$(git hash-object --no-filters "${catalog_inputs[@]}") &&
+        after=($after) &&
+        refresh=0 &&
+        for index in "${!catalog_inputs[@]}"; do
+          pending=${catalog_pending[index]}
+          if [ "${before[index]}" != "${after[index]}" ]; then
+            mkdir -p .cache && printf "%s\n" "${after[index]}" > "$pending" || exit
+          fi
+          if [ -f "$pending" ]; then
+            pending_hash=$(cat "$pending") || exit
+            if [ "$pending_hash" = "${after[index]}" ]; then
+              refresh=1
+            else
+              rm -f "$pending" || exit
+            fi
+          fi
+        done &&
         if [ "$format_status" -ne 0 ]; then exit "$format_status"; fi &&
-        if [ -f "$catalog_pending" ]; then
+        if [ "$refresh" -eq 1 ]; then
           printf "generate: refreshing catalog and generated skill\n" &&
           node scripts/isolated-home.mjs corepack pnpm run generate &&
-          rm -f "$catalog_pending"
+          rm -f "${catalog_pending[@]}"
         fi
       ); then
         printf "%s\n" "$output"
