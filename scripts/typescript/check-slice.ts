@@ -76,7 +76,7 @@ if (complete) {
     ["generate.js", "--check"],
     ["architecture.js"],
     ["coverage.js", "--strict"],
-  ]) {
+  ] as const) {
     const result = spawnSync(
       process.execPath,
       [fileURLToPath(new URL(`./${script}`, import.meta.url)), ...arguments_],
