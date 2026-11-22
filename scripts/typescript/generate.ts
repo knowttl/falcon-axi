@@ -54,7 +54,8 @@ if (check[0] === "--refresh-formatted-digests" && check.length === 3) {
       changed = true;
     }
   }
-  if (changed) writeFileSync(destination, JSON.stringify(catalog, null, 2) + "\n");
+  if (changed)
+    writeFileSync(destination, JSON.stringify(catalog, null, 2) + "\n");
   process.exit(0);
 }
 const pkg = JSON.parse(readFileSync(join(root, "package.json"), "utf8")) as {
