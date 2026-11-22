@@ -1,7 +1,45 @@
 no_ci: true
 commands:
   prepare: 'node scripts/isolated-home.mjs corepack pnpm install --frozen-lockfile --ignore-scripts --config.confirm-modules-purge=false && node scripts/isolated-home.mjs corepack enable --install-directory node_modules/.bin pnpm'
-  test: 'node scripts/validation-digest.mjs'
+  test: |-
+    bash -o pipefail -c '
+      digest=.no-mistakes/validation-failure-digest.txt
+      list=$(git rev-parse --git-dir)/format-files.list
+      if output=$(
+        exec 2>&1
+        base=$(git merge-base HEAD refs/remotes/origin/main) &&
+        set -- package.json tsconfig.json ":(glob)src/**/*.ts" src/axi-credential.schema.json src/help.json \
+          ":(glob)scripts/typescript/*.ts" ":(glob)tests/typescript/*.ts" ":(exclude)scripts/typescript/build-native.ts" &&
+        { git diff --name-only -z --diff-filter=ACMR "$base" -- "$@" &&
+          git ls-files --others --exclude-standard -z -- "$@"; } > "$list" &&
+        mapfile -d "" files < "$list" &&
+        if [ "${#files[@]}" -gt 0 ]; then
+          before=$(sha256sum -- "${files[@]}") &&
+          node scripts/isolated-home.mjs corepack pnpm exec prettier --write -- "${files[@]}" &&
+          after=$(sha256sum -- "${files[@]}") &&
+          if [ "$before" != "$after" ]; then node scripts/isolated-home.mjs corepack pnpm run generate; fi
+        fi
+      ); then
+        printf "%s\n" "$output"
+        exec node scripts/validation-digest.mjs
+      else
+        status=$?
+        printf "%s\n" "$output" >&2
+        (umask 077 && mkdir -p .no-mistakes &&
+          printf "===== validation failure digest =====\nCommand: Test preflight\nExit status: %s\n%s\n" "$status" "$output" > "$digest")
+        exit "$status"
+      fi
+    '
+  format: |-
+    bash -o pipefail -c '
+      base=$(git merge-base HEAD refs/remotes/origin/main) || exit
+      set -- package.json tsconfig.json ":(glob)src/**/*.ts" src/help.json \
+        ":(glob)scripts/typescript/*.ts" ":(glob)tests/typescript/*.ts" ":(exclude)scripts/typescript/build-native.ts" \
+        ":(exclude)src/parser.ts"
+      { git diff --name-only -z --diff-filter=ACMR "$base" -- "$@" &&
+        git ls-files --others --exclude-standard -z -- "$@"; } |
+        xargs -0 -r node scripts/isolated-home.mjs corepack pnpm exec prettier --write --
+    '
   lint: 'node scripts/isolated-home.mjs corepack pnpm run lint'
 test:
   instructions: |
