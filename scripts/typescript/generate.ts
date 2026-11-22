@@ -54,8 +54,7 @@ if (check[0] === "--refresh-formatted-digests" && check.length === 3) {
       changed = true;
     }
   }
-  if (changed)
-    writeFileSync(destination, JSON.stringify(catalog, null, 2) + "\n");
+  if (changed) writeFileSync(destination, JSON.stringify(catalog, null, 2) + "\n");
   process.exit(0);
 }
 const pkg = JSON.parse(readFileSync(join(root, "package.json"), "utf8")) as {
@@ -125,10 +124,7 @@ const catalog = {
     ]),
   })),
 };
-expected.set(
-  catalogPath,
-  JSON.stringify(catalog, null, 2) + "\n",
-);
+expected.set(catalogPath, JSON.stringify(catalog, null, 2) + "\n");
 const references = readdirSync(join(root, "skills/falcon-axi/references"));
 for (const name of references)
   if (!expected.has(`skills/falcon-axi/references/${name}`)) {
